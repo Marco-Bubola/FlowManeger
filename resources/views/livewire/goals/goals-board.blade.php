@@ -222,11 +222,14 @@
     @endif
 
     <!-- SortableJS para Drag and Drop -->
-    @push('scripts')
+    {{-- Antes num @push('scripts') que o layout do app não imprime: arrastar metas entre listas não funcionava. --}}
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            (function initGoalsBoard() {
+                if (typeof Sortable === 'undefined') { return setTimeout(initGoalsBoard, 150); }
                 document.querySelectorAll('.goal-cards-container').forEach(function(el) {
+                    if (el._sortable) return;
+                    el._sortable = true;
                     new Sortable(el, {
                         group: 'goals',
                         animation: 180,
@@ -241,7 +244,7 @@
                         }
                     });
                 });
-            });
+            })();
         </script>
         <style>
             /* Custom scrollbar for Trello-like look */
@@ -269,5 +272,4 @@
                 to { opacity: 1; transform: none; }
             }
         </style>
-    @endpush
 </div>

@@ -335,21 +335,3 @@
     </form>
 </div>
 
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Apenas carrega a localização globalmente uma vez.
-        if (window.flatpickr && flatpickr.l10ns && flatpickr.l10ns.pt) {
-            flatpickr.localize(flatpickr.l10ns.pt);
-        }
-    });
-
-    Livewire.hook('message.processed', (message, component) => {
-        // Log para depurar re-renderizações do Livewire
-        setTimeout(() => {
-            const el = document.getElementById('invoice_date');
-            console.debug('Livewire re-renderizou. Elemento existe:', !!el, 'Tem flatpickr:', el ? !!el._flatpickr : 'N/A');
-        }, 100);
-    });
-</script>
-@endpush

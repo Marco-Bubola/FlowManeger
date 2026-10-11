@@ -303,7 +303,7 @@
                         </label>
                         <div class="relative">
                             <i class="bi bi-calendar-event absolute left-4 top-1/2 -translate-y-1/2 text-blue-400 text-lg pointer-events-none z-10"></i>
-                            <input wire:model="date" type="text" id="date" placeholder="Selecione a data..."
+                            <input wire:model="date" type="date" id="date" placeholder="Selecione a data..."
                                 class="w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium transition-all duration-200
                                 {{ $errors->has('date') ? 'border-red-500 focus:border-red-400' : 'focus:border-blue-500 hover:border-blue-600' }}
                                 focus:ring-4 focus:ring-blue-500/20 focus:outline-none cursor-pointer
@@ -325,7 +325,7 @@
                         </label>
                         <div class="relative">
                             <i class="bi bi-alarm absolute left-4 top-1/2 -translate-y-1/2 text-orange-400 text-lg pointer-events-none z-10"></i>
-                            <input wire:model="due_date" type="text" id="due_date" placeholder="Selecione a data de vencimento..."
+                            <input wire:model="due_date" type="date" id="due_date" placeholder="Selecione a data de vencimento..."
                                 class="w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium transition-all duration-200
                                 focus:border-orange-500 hover:border-orange-600 focus:ring-4 focus:ring-orange-500/20 focus:outline-none cursor-pointer
                                 hover:bg-white dark:hover:bg-slate-800 hover:shadow-lg hover:shadow-orange-500/10" readonly>
@@ -360,73 +360,3 @@
     </form>
 </div>
 
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Configuração padrão do Flatpickr em português
-        flatpickr.localize(flatpickr.l10ns.pt);
-
-        const defaultConfig = {
-            locale: 'pt',
-            dateFormat: 'Y-m-d',
-            allowInput: true,
-            animate: true,
-            disableMobile: true, // Usa Flatpickr mesmo no mobile
-            prevArrow: '<i class="bi bi-chevron-left"></i>',
-            nextArrow: '<i class="bi bi-chevron-right"></i>',
-            onReady: function(selectedDates, dateStr, instance) {
-                instance.calendarContainer.style.setProperty('--fp-primary', 'rgb(16 185 129)');
-            }
-        };
-
-        // Inicializa Data da Transação
-        const dateInput = document.getElementById('date');
-        if (dateInput) {
-            flatpickr(dateInput, {
-                ...defaultConfig,
-                defaultDate: new Date(),
-                onChange: function(selectedDates, dateStr) {
-                    @this.set('date', dateStr);
-                }
-            });
-        }
-
-        // Inicializa Data de Vencimento
-        const dueDateInput = document.getElementById('due_date');
-        if (dueDateInput) {
-            flatpickr(dueDateInput, {
-                ...defaultConfig,
-                minDate: 'today',
-                onChange: function(selectedDates, dateStr) {
-                    @this.set('due_date', dateStr);
-                }
-            });
-        }
-
-        // Re-inicializa após updates do Livewire
-        Livewire.hook('message.processed', (message, component) => {
-            // Re-aplica Flatpickr se os inputs foram re-renderizados
-            setTimeout(() => {
-                if (document.getElementById('date') && !document.getElementById('date')._flatpickr) {
-                    flatpickr('#date', {
-                        ...defaultConfig,
-                        defaultDate: new Date(),
-                        onChange: function(selectedDates, dateStr) {
-                            @this.set('date', dateStr);
-                        }
-                    });
-                }
-                if (document.getElementById('due_date') && !document.getElementById('due_date')._flatpickr) {
-                    flatpickr('#due_date', {
-                        ...defaultConfig,
-                        minDate: 'today',
-                        onChange: function(selectedDates, dateStr) {
-                            @this.set('due_date', dateStr);
-                        }
-                    });
-                }
-            }, 100);
-        });
-    });
-</script>
-@endpush

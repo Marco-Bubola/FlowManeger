@@ -86,7 +86,7 @@ $bankIcons = [
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Dia do mês em que a fatura do cartão abre (ex: dia 6)</p>
                 <div class="relative">
                     <i class="bi bi-calendar-event absolute left-4 top-1/2 -translate-y-1/2 text-blue-400 text-lg pointer-events-none z-10"></i>
-                    <input type="text" id="edit_start_date" wire:model="start_date" placeholder="Selecione a data de abertura..."
+                    <input type="date" id="edit_start_date" wire:model="start_date" placeholder="Selecione a data de abertura..."
                         class="w-full pl-12 pr-4 py-4 text-base border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-medium shadow-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/80 hover:shadow-lg hover:shadow-blue-500/10" readonly required>
                 </div>
                 @error('start_date') <div class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
@@ -101,7 +101,7 @@ $bankIcons = [
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Dia do mês em que a fatura do cartão fecha (ex: dia 5)</p>
                 <div class="relative">
                     <i class="bi bi-alarm absolute left-4 top-1/2 -translate-y-1/2 text-orange-400 text-lg pointer-events-none z-10"></i>
-                    <input type="text" id="edit_end_date" wire:model="end_date" placeholder="Selecione a data de fechamento..."
+                    <input type="date" id="edit_end_date" wire:model="end_date" placeholder="Selecione a data de fechamento..."
                         class="w-full pl-12 pr-4 py-4 text-base border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-300 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-medium shadow-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/80 hover:shadow-lg hover:shadow-orange-500/10" readonly required>
                 </div>
                 @error('end_date') <div class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
@@ -154,69 +154,3 @@ $bankIcons = [
     </form>
 </div>
 
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        flatpickr.localize(flatpickr.l10ns.pt);
-
-        const defaultConfig = {
-            locale: 'pt',
-            dateFormat: 'Y-m-d',
-            allowInput: true,
-            animate: true,
-            disableMobile: true,
-            prevArrow: '<i class="bi bi-chevron-left"></i>',
-            nextArrow: '<i class="bi bi-chevron-right"></i>',
-        };
-
-        const startDateInput = document.getElementById('edit_start_date');
-        if (startDateInput) {
-            const existingDate = startDateInput.value || '{{ $start_date }}';
-            flatpickr(startDateInput, {
-                ...defaultConfig,
-                defaultDate: existingDate,
-                onChange: function(selectedDates, dateStr) {
-                    @this.set('start_date', dateStr);
-                }
-            });
-        }
-
-        const endDateInput = document.getElementById('edit_end_date');
-        if (endDateInput) {
-            const existingDate = endDateInput.value || '{{ $end_date }}';
-            flatpickr(endDateInput, {
-                ...defaultConfig,
-                defaultDate: existingDate,
-                onChange: function(selectedDates, dateStr) {
-                    @this.set('end_date', dateStr);
-                }
-            });
-        }
-
-        Livewire.hook('message.processed', (message, component) => {
-            setTimeout(() => {
-                if (document.getElementById('edit_start_date') && !document.getElementById('edit_start_date')._flatpickr) {
-                    const existingDate = '{{ $start_date }}';
-                    flatpickr('#edit_start_date', {
-                        ...defaultConfig,
-                        defaultDate: existingDate,
-                        onChange: function(selectedDates, dateStr) {
-                            @this.set('start_date', dateStr);
-                        }
-                    });
-                }
-                if (document.getElementById('edit_end_date') && !document.getElementById('edit_end_date')._flatpickr) {
-                    const existingDate = '{{ $end_date }}';
-                    flatpickr('#edit_end_date', {
-                        ...defaultConfig,
-                        defaultDate: existingDate,
-                        onChange: function(selectedDates, dateStr) {
-                            @this.set('end_date', dateStr);
-                        }
-                    });
-                }
-            }, 100);
-        });
-    });
-</script>
-@endpush

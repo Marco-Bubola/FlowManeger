@@ -219,7 +219,7 @@
                     <div class="">
                         @if (count($categoriesChartData) > 0)
                             <div>
-                                <div id="apex-pie-cashbook" class="w-full" style="height: 240px;"></div>
+                                <div id="apex-pie-cashbook" wire:ignore class="w-full" style="min-height: 240px;"></div>
                             </div>
                         @else
                             <div
@@ -745,203 +745,71 @@
             opacity: 1;
         }
     </style>
-</div>
 
-@push('scripts')
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {{-- Scripts da tela. Antes ficavam num @push('scripts') que o layout do app nunca imprimia,
+         por isso o gráfico, "Expandir/Recolher todas" e o botão Ocultar de cada categoria não funcionavam. --}}
     <script>
-        document.addEventListener('livewire:init', () => {
-            let cashbookPieChart = null; // Variável para manter a instância do gráfico
-
-            const initOrUpdateCashbookPieChart = (data) => {
-                const chartEl = document.querySelector("#apex-pie-cashbook");
-                if (!chartEl) return;
-
-                // Se uma instância do gráfico existir, destrua-a antes de criar uma nova
-                if (cashbookPieChart) {
-                    cashbookPieChart.destroy();
-                    cashbookPieChart = null;
-                }
-
-                // Se não houver dados, limpe a área do gráfico e não renderize um novo
-                if (!data || data.length === 0) {
-                    chartEl.innerHTML = `<div class="flex items-center justify-center h-full text-slate-500 p-4">Sem dados para o gráfico.</div>`;
-                    return;
-                }
-
-                const series = data.map(item => item.value);
-                const labels = data.map(item => item.label);
-                const colors = data.map(item => item.color);
-
-                const options = {
-                    series: series,
-                    labels: labels,
-                    colors: colors,
-                    chart: {
-                        type: 'donut',
-                        height: 240,
-                        sparkline: {
-                            enabled: true
-                        }
-                    },
-                    plotOptions: {
-                        pie: {
-                            donut: {
-                                size: '70%',
-                                labels: {
-                                    show: true,
-                                    total: {
-                                        show: true,
-                                        label: 'Total',
-                                        formatter: function (w) {
-                                            const total = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
-                                            return 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    legend: {
-                        show: false
-                    },
-                    responsive: [{
-                        breakpoint: 480,
-                        options: {
-                            chart: {
-                                width: 200
-                            },
-                            legend: {
-                                position: 'bottom'
-                            }
-                        }
-                    }]
-                };
-
-                // Crie uma nova instância do gráfico e renderize-a
-                cashbookPieChart = new ApexCharts(chartEl, options);
-                cashbookPieChart.render();
+        (() => {
+            const setGroup = (group, open) => {
+                const btn = group.querySelector('.category-toggle-btn');
+                const wrapper = group.querySelector('.group-transactions-wrapper');
+                if (!btn) return;
+                const sw = btn.querySelector('.toggle-switch');
+                const thumb = btn.querySelector('.toggle-thumb');
+                const label = btn.querySelector('.toggle-label');
+                const color = btn.style.getPropertyValue('--cat-color');
+                group.classList.toggle('expanded', open);
+                if (wrapper) wrapper.style.maxHeight = open ? wrapper.scrollHeight + 'px' : '0px';
+                if (thumb) thumb.style.transform = open ? 'translateX(20px)' : 'translateX(0)';
+                if (sw) sw.style.background = open ? `linear-gradient(135deg, ${color} 0%, ${color}CC 100%)` : '#cbd5e0';
+                if (label) label.textContent = open ? 'Ocultar' : 'Mostrar';
+                btn.dataset.expanded = open ? 'true' : 'false';
             };
+            window.expandAllCategories = () => document.querySelectorAll('.category-group').forEach(g => setGroup(g, true));
+            window.collapseAllCategories = () => document.querySelectorAll('.category-group').forEach(g => setGroup(g, false));
 
-            // Inicialize o gráfico com o primeiro lote de dados passados do servidor
-            initOrUpdateCashbookPieChart(@json($categoriesChartData));
-
-            // Ouça o evento de atualização do componente Livewire
-            Livewire.on('cashbook-chart-updated', event => {
-                const eventData = Array.isArray(event) ? event[0].data : event.data;
-                initOrUpdateCashbookPieChart(eventData);
-            });
-
-            // Sistema de notificação
-            function showNotification(message, type = 'info') {
-                const notification = document.createElement('div');
-                notification.className = `fixed top-4 right-4 z-[100000] px-6 py-3 rounded-xl text-white font-bold shadow-2xl transform transition-all duration-300 ${
-                type === 'success' ? 'bg-gradient-to-r from-emerald-500 to-teal-600' :
-                type === 'error' ? 'bg-gradient-to-r from-red-500 to-pink-600' :
-                'bg-gradient-to-r from-blue-500 to-indigo-600'
-            }`;
-                notification.innerHTML = message;
-                document.body.appendChild(notification);
-                setTimeout(() => {
-                    notification.style.opacity = '0';
-                    notification.style.transform = 'translateX(400px)';
-                    setTimeout(() => notification.remove(), 300);
-                }, 3000);
+            if (!window.__cxToggleBound) {
+                window.__cxToggleBound = true;
+                document.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.category-toggle-btn');
+                    if (!btn) return;
+                    e.stopPropagation();
+                    setGroup(btn.closest('.category-group'), btn.dataset.expanded !== 'true');
+                });
             }
 
-            Livewire.on('transaction-deleted', () => {
-                showNotification('✅ Transação excluída com sucesso!', 'success');
-            });
-        });
-
-        // Funções globais para expandir/recolher todas (DEVE estar no escopo global)
-        function expandAllCategories() {
-            document.querySelectorAll('.category-group').forEach(group => {
-                const btn = group.querySelector('.category-toggle-btn');
-                if (!btn) return;
-
-                const wrapper = group.querySelector('.group-transactions-wrapper');
-                const toggleSwitch = btn.querySelector('.toggle-switch');
-                const toggleThumb = btn.querySelector('.toggle-thumb');
-                const toggleLabel = btn.querySelector('.toggle-label');
-                const catColor = btn.style.getPropertyValue('--cat-color');
-
-                group.classList.add('expanded');
-                setTimeout(() => {
-                    if (wrapper) wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
-                }, 50);
-
-                if (toggleThumb) toggleThumb.style.transform = 'translateX(20px)';
-                if (toggleSwitch) toggleSwitch.style.background =
-                    `linear-gradient(135deg, ${catColor} 0%, ${catColor}CC 100%)`;
-                if (toggleLabel) toggleLabel.textContent = 'Ocultar';
-                btn.dataset.expanded = 'true';
-            });
-        }
-
-        function collapseAllCategories() {
-            document.querySelectorAll('.category-group').forEach(group => {
-                const btn = group.querySelector('.category-toggle-btn');
-                if (!btn) return;
-
-                const toggleSwitch = btn.querySelector('.toggle-switch');
-                const toggleThumb = btn.querySelector('.toggle-thumb');
-                const toggleLabel = btn.querySelector('.toggle-label');
-
-                group.classList.remove('expanded');
-                if (toggleThumb) toggleThumb.style.transform = 'translateX(0)';
-                if (toggleSwitch) toggleSwitch.style.background = '#cbd5e0';
-                if (toggleLabel) toggleLabel.textContent = 'Mostrar';
-                btn.dataset.expanded = 'false';
-            });
-        }
-
-        // Category toggle functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar categorias expandidas
-            setTimeout(() => {
-                document.querySelectorAll('.category-group.expanded').forEach(group => {
-                    const wrapper = group.querySelector('.group-transactions-wrapper');
-                    if (wrapper) {
-                        wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
-                        wrapper.style.opacity = '1';
-                    }
+            let pie = null;
+            const drawPie = (data) => {
+                const el = document.querySelector('#apex-pie-cashbook');
+                if (!el || typeof ApexCharts === 'undefined') return;
+                if (pie) { pie.destroy(); pie = null; }
+                el.innerHTML = '';
+                if (!data || !data.length) return;
+                pie = new ApexCharts(el, {
+                    series: data.map(i => Number(i.value)),
+                    labels: data.map(i => i.label),
+                    colors: data.map(i => i.color),
+                    chart: { type: 'donut', height: 240, fontFamily: 'inherit' },
+                    dataLabels: { enabled: false },
+                    legend: { position: 'bottom', fontSize: '12px' },
+                    stroke: { width: 2 },
+                    plotOptions: { pie: { donut: { size: '68%', labels: { show: true, total: { show: true, label: 'Total',
+                        formatter: (w) => 'R$ ' + w.globals.seriesTotals.reduce((a, b) => a + b, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } } } } },
+                    tooltip: { y: { formatter: (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } },
                 });
-            }, 100);
+                pie.render();
+            };
+            drawPie(@json($categoriesChartData));
 
-            // Toggle de categorias
-            document.querySelectorAll('.category-toggle-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const categoryGroup = this.closest('.category-group');
-                    const wrapper = categoryGroup.querySelector('.group-transactions-wrapper');
-                    const isExpanded = this.dataset.expanded === 'true';
-                    const toggleSwitch = this.querySelector('.toggle-switch');
-                    const toggleThumb = this.querySelector('.toggle-thumb');
-                    const toggleLabel = this.querySelector('.toggle-label');
-                    const catColor = this.style.getPropertyValue('--cat-color');
-
-                    if (isExpanded) {
-                        // Colapsar
-                        categoryGroup.classList.remove('expanded');
-                        toggleThumb.style.transform = 'translateX(0)';
-                        toggleSwitch.style.background = '#cbd5e0';
-                        toggleLabel.textContent = 'Mostrar';
-                        this.dataset.expanded = 'false';
-                    } else {
-                        // Expandir
-                        categoryGroup.classList.add('expanded');
-                        setTimeout(() => {
-                            wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
-                        }, 50);
-                        toggleThumb.style.transform = 'translateX(20px)';
-                        toggleSwitch.style.background =
-                            `linear-gradient(135deg, ${catColor} 0%, ${catColor}CC 100%)`;
-                        toggleLabel.textContent = 'Ocultar';
-                        this.dataset.expanded = 'true';
-                    }
+            const bindLivewire = () => {
+                if (window.__cxLivewireBound) return;
+                window.__cxLivewireBound = true;
+                Livewire.on('cashbook-chart-updated', (event) => {
+                    const payload = Array.isArray(event) ? event[0] : event;
+                    drawPie(payload?.data ?? []);
                 });
-            });
-        });
+            };
+            if (window.Livewire) bindLivewire(); else document.addEventListener('livewire:init', bindLivewire, { once: true });
+        })();
     </script>
-@endpush
+</div>
