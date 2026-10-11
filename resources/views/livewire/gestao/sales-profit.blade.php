@@ -2,7 +2,7 @@
     <x-gestao-header title="Lucro por venda" subtitle="Quanto cada venda deixou de lucro, descontando o custo dos produtos"
         icon="bi-graph-up-arrow" active="lucro">
         <x-slot:actions>
-            <div class="inline-flex items-center gap-1 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-900/80 p-1 shadow-sm">
+            <div class="app-ph-period inline-flex items-center gap-1 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-900/80 p-1 shadow-sm">
                 <button type="button" wire:click="shiftMonth(-1)" aria-label="Mês anterior" class="h-9 w-9 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
                     <i class="bi bi-chevron-left"></i>
                 </button>

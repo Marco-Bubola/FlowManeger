@@ -13,7 +13,7 @@
     <x-gestao-header title="Lucro real" subtitle="Quanto sobra de verdade em cada canal, depois do custo dos produtos e das taxas"
         icon="bi-pie-chart" active="lucro-real">
         <x-slot:actions>
-            <div class="inline-flex items-center gap-1 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-900/80 p-1 shadow-sm">
+            <div class="app-ph-period inline-flex items-center gap-1 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-900/80 p-1 shadow-sm">
                 <button type="button" wire:click="shiftMonth(-1)" aria-label="Mês anterior" class="h-9 w-9 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
                     <i class="bi bi-chevron-left"></i>
                 </button>
@@ -22,7 +22,7 @@
                     <i class="bi bi-chevron-right"></i>
                 </button>
             </div>
-            <div class="inline-flex items-center gap-1 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-900/80 p-1 shadow-sm">
+            <div class="app-ph-period inline-flex items-center gap-1 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-900/80 p-1 shadow-sm">
                 @foreach ([1 => 'Mês', 3 => '3 meses', 6 => '6 meses', 12 => '12 meses'] as $n => $label)
                     <button type="button" wire:click="setMonths({{ $n }})" class="{{ $pill }} {{ $months === $n ? $pillOn : $pillOff }}">{{ $label }}</button>
                 @endforeach
