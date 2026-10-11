@@ -334,7 +334,7 @@ class ShowProduct extends Component
             $date = Carbon::now()->subMonths($i);
             $monthKey = $date->year . '-' . $date->month;
 
-            $labels[] = $date->format('M Y');
+            $labels[] = ucfirst($date->locale('pt_BR')->translatedFormat('M/y'));
 
             $monthData = $monthlySales->where('year', $date->year)
                                    ->where('month', $date->month)

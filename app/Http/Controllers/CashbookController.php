@@ -203,14 +203,14 @@ $clients = Client::where('user_id', auth()->id())->get();
             'December' => 'Dezembro',
         ];
 
-        $monthName = $date->format('F Y');
+        $monthName = ucfirst($date->locale('pt_BR')->translatedFormat('F Y'));
         foreach ($monthTranslations as $english => $portuguese) {
             $monthName = str_replace($english, $portuguese, $monthName);
         }
 
         // Calcular dados do mês anterior
         $prevDate = (clone $date)->subMonth();
-        $prevMonthName = $prevDate->format('F Y');
+        $prevMonthName = ucfirst($prevDate->locale('pt_BR')->translatedFormat('F Y'));
         foreach ($monthTranslations as $english => $portuguese) {
             $prevMonthName = str_replace($english, $portuguese, $prevMonthName);
         }
@@ -222,7 +222,7 @@ $clients = Client::where('user_id', auth()->id())->get();
 
         // Calcular dados do próximo mês
         $nextDate = (clone $date)->addMonth();
-        $nextMonthName = $nextDate->format('F Y');
+        $nextMonthName = ucfirst($nextDate->locale('pt_BR')->translatedFormat('F Y'));
         foreach ($monthTranslations as $english => $portuguese) {
             $nextMonthName = str_replace($english, $portuguese, $nextMonthName);
         }

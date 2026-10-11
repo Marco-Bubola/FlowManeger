@@ -232,7 +232,7 @@ class ClientDashboard extends Component
 
         $this->vendasPorMes = $vendasPorMes->map(function ($item) {
             return [
-                'mes' => Carbon::createFromDate($item->year, $item->month, 1)->format('M/Y'),
+                'mes' => ucfirst(Carbon::createFromDate($item->year, $item->month, 1)->locale('pt_BR')->translatedFormat('M/Y')),
                 'vendas' => $item->total_vendas,
                 'faturamento' => $item->total_faturamento
             ];

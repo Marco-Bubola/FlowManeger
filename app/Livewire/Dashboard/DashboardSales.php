@@ -422,7 +422,7 @@ class DashboardSales extends Component
             ->count();
 
         $labels = collect(range(5, 0))
-            ->map(fn ($monthsAgo) => now()->subMonths($monthsAgo)->format('M/y'))
+            ->map(fn ($monthsAgo) => ucfirst(now()->subMonths($monthsAgo)->locale('pt_BR')->translatedFormat('M/y')))
             ->values()
             ->all();
 

@@ -664,7 +664,7 @@ class DashboardIndex extends Component
             });
 
             $this->cashflowMonthly[] = [
-                'label' => $dt->format('M/y'),
+                'label' => ucfirst($dt->locale('pt_BR')->translatedFormat('M/y')),
                 'receitas' => (float) ($row->receitas ?? 0),
                 'despesas' => (float) ($row->despesas ?? 0),
             ];

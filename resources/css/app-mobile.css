@@ -454,6 +454,11 @@ html body .dash-kpis.dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)
 /* Dashboards com 8 indicadores: 2 por linha no celular, 4 no iPad, 8 no computador */
 @media (min-width: 600px) { html body .dash-kpis.dash-kpis.dash-kpis-8 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
 @media (min-width: 1280px) { html body .dash-kpis.dash-kpis.dash-kpis-8 { grid-template-columns: repeat(8, minmax(0, 1fr)) !important; } }
+/* Detalhe com 6 indicadores (produto): 2 no celular, 3 no iPad, 6 no computador */
+@media (min-width: 600px) { html body .dash-kpis.dash-kpis.dash-kpis-6 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
+@media (min-width: 1025px) { html body .dash-kpis.dash-kpis.dash-kpis-6 { grid-template-columns: repeat(6, minmax(0, 1fr)) !important; } }
+/* Detalhe do produto no iPad: cartões largos ficam lado a lado com os estreitos (sem meia linha vazia) */
+@media (min-width: 768px) and (max-width: 1279px) { html body .sp-grid > .dash-col-8 { grid-column: span 3 !important; } }
 html body .dash-ph .dash-period:empty { display: none; }
 @media (max-width: 767px) {
     html body .dash-ph .dash-period { margin-top: 0.4rem !important; }

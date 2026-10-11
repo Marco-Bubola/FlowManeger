@@ -152,7 +152,7 @@
     @endif
 
     {{-- ============ KPIs (compactos + sparkline + countup) ============ --}}
-    <div class="dash-kpis">
+    <div class="dash-kpis dash-kpis-6">
         <x-dash.kpi label="Total vendido" tone="sky" icon="bi-cart-check" :value="number_format($analytics['total_quantity_sold'])" countup :spark="$chartData['sales'] ?? []" spark-color="#0ea5e9" />
         <x-dash.kpi label="Receita total" tone="emerald" icon="bi-currency-dollar" :value="'R$ ' . number_format($analytics['total_revenue'], 0, ',', '.')" :spark="$chartData['revenue'] ?? []" spark-color="#10b981" />
         <x-dash.kpi label="Lucro total" tone="purple" icon="bi-graph-up-arrow" :value="'R$ ' . number_format($analytics['total_profit'], 0, ',', '.')" :delta="round($analytics['profit_margin'] ?? 0)" />
@@ -162,7 +162,7 @@
     </div>
 
     {{-- ============ GRID PRINCIPAL (tudo em uma tela) ============ --}}
-    <div class="dash-grid">
+    <div class="dash-grid sp-grid">
 
         {{-- Vendas por mês --}}
         <x-dash.card title="Vendas por mês" sub="Unidades nos últimos 12 meses" icon="bi-bar-chart-line" tone="sky" span="dash-col-6">
@@ -205,7 +205,7 @@
             @if(!empty($analytics['top_clients']) && count($analytics['top_clients']) > 0)
                 <div class="dash-list dash-scroll max-h-[260px] overflow-y-auto pr-1">
                     @foreach($analytics['top_clients'] as $i => $client)
-                        <x-dash.list-item :title="$client->name ?? 'Cliente'" :sub="'#' . ($i + 1) . ' · ' . (int)($client->total_quantity ?? 0) . ' un · ' . (int)($client->total_orders ?? 0) . ' pedidos'" icon="bi-person-fill" tone="amber" :value="'R$ ' . number_format($client->total_spent ?? 0, 0, ',', '.')" trend="up" />
+                        <x-dash.list-item :title="$client->name ?? 'Cliente'" :sub="'#' . ($i + 1) . ' · ' . (int)($client->total_quantity ?? 0) . ' un · ' . (int)($client->total_orders ?? 0) . ' pedidos'" :icon="['bi-trophy-fill', 'bi-award-fill', 'bi-award-fill'][$i] ?? 'bi-person-fill'" :tone="['amber', 'slate', 'rose'][$i] ?? 'indigo'" :value="'R$ ' . number_format($client->total_spent ?? 0, 0, ',', '.')" trend="up" />
                     @endforeach
                 </div>
             @else
