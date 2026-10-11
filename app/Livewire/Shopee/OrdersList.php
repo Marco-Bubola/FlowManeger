@@ -351,7 +351,7 @@ class OrdersList extends Component
         $orders = $query->with('importedSale:id,status')
             ->orderByRaw('COALESCE(shopee_created_at, created_at) DESC')
             ->orderByDesc('id')
-            ->paginate(in_array($this->perPage, [12, 24, 48], true) ? $this->perPage : 12);
+            ->paginate($this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 12);
 
         $selected = $this->pedido !== ''
             ? ShopeeOrder::where('user_id', Auth::id())->where('shopee_order_sn', $this->pedido)->with('importedSale')->first()

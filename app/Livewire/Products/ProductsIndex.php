@@ -82,11 +82,11 @@ class ProductsIndex extends Component
 
     private function alignPerPageToOptions(): void
     {
-        $allowed = $this->getPerPageOptions();
+        // A barra de paginação ajusta o "por página" ao número de colunas da grade
+        // (múltiplos de 5 numa tela, de 6 em outra...), então aceita qualquer valor razoável.
         $current = (int) $this->perPage;
-
-        if (!in_array($current, $allowed, true)) {
-            $this->perPage = $allowed[array_key_first($allowed)];
+        if ($current < 1 || $current > 120) {
+            $this->perPage = $this->defaultPerPage();
         }
     }
 
@@ -115,15 +115,12 @@ class ProductsIndex extends Component
 
     public function updatingPerPage($value): void
     {
-        $target = (int) $value;
-        $allowed = $this->getPerPageOptions();
-
-        if (!in_array($target, $allowed, true)) {
-            $this->perPage = $allowed[array_key_first($allowed)];
-            session()->flash('info', 'Use um dos tamanhos sugeridos para esta visualização.');
-        }
-
         $this->resetPage();
+    }
+
+    public function updatedPerPage(): void
+    {
+        $this->alignPerPageToOptions();
     }
 
     public function updatedFullHdLayout(bool $isFullHd): void
@@ -155,9 +152,6 @@ class ProductsIndex extends Component
         // múltiplos de 7 (landscape) ou 6 (outros), garantindo mín. 3 linhas.
         $this->queryString['perPage']['except'] = $isIpadLandscape ? 21 : 18;
         $this->alignPerPageToOptions();
-        if ($isIpadLandscape && $this->perPage < 21) {
-            $this->perPage = 21;
-        }
     }
 
     public function updatingSearch()
@@ -665,7 +659,7 @@ class ProductsIndex extends Component
             $query->orderByRaw('stock_quantity > 0 DESC');
         }
 
-        $products = $query->with('activePromotion')->paginate($this->perPage);
+        $products = $query->with('activePromotion')->paginate($this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 18);
 
         // Garante que os links de paginação apontem para a rota pública (evita herdar
         // o caminho interno do Livewire como `/livewire/update`) e preserva os filtros

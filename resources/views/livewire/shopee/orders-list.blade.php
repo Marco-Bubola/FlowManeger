@@ -204,7 +204,7 @@
                 @endif
             </div>
         @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+            <div class="shopee-orders-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                 @foreach($orders as $order)
                     @php
                         [$stText, $stColor] = \App\Livewire\Shopee\OrdersList::statusBadge($order->order_status);
@@ -304,7 +304,7 @@
                 @endforeach
             </div>
 
-            <x-pagination-bar :paginator="$orders" label="pedidos" :per-page-options="[12, 24, 48]" />
+            <x-pagination-bar :paginator="$orders" label="pedidos" :per-page-options="[12, 24, 48]" fit-grid=".shopee-orders-grid" />
         @endif
         </div>
     </div>

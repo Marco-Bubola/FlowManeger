@@ -285,7 +285,7 @@
     </div>
 
     <!-- Grid de Cards (Responsivo com Ultra Wide) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 mb-8">
+    <div class="consortiums-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 mb-8">
             @forelse($consortiums as $consortium)
                 <x-consortium-card :consortium="$consortium" />
             @empty
@@ -314,7 +314,7 @@
             @endforelse
         </div>
 
-    <x-pagination-bar :paginator="$consortiums" :per-page-options="$perPageOptions" label="consórcios" />
+    <x-pagination-bar :paginator="$consortiums" :per-page-options="$perPageOptions" label="consórcios" fit-grid=".consortiums-grid" />
 
     <!-- Modal de Dicas (Wizard Moderno) -->
     @if($showTipsModal)

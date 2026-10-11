@@ -540,7 +540,7 @@
             </div>
         </div>
 
-        <x-pagination-bar :paginator="$clients" :per-page-options="[12, 24, 48, 96]" label="clientes" />
+        <x-pagination-bar :paginator="$clients" :per-page-options="[12, 24, 48, 96]" label="clientes" fit-grid=".clients-grid" />
     </div>
 
 

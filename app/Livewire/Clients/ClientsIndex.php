@@ -479,7 +479,7 @@ class ClientsIndex extends Component
                 break;
         }
 
-        $clients = $query->with(['sales', 'consortiumParticipants'])->paginate($this->perPage);
+        $clients = $query->with(['sales', 'consortiumParticipants'])->paginate($this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 12);
 
         return view('livewire.clients.clients-index', [
             'clients' => $clients

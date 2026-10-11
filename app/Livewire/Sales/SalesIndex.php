@@ -114,25 +114,16 @@ class SalesIndex extends Component
             return;
         }
 
+        // A barra ajusta o "por página" às colunas da grade desta tela; aceita qualquer valor razoável.
         $current = (int) $this->perPage;
 
-        if (!in_array($current, $allowed, true)) {
+        if ($current < 1 || $current > 120) {
             $this->perPage = $allowed[array_key_first($allowed)];
         }
     }
 
     public function updatingPerPage($value): void
     {
-        $target = (int) $value;
-        $allowed = $this->getPerPageOptions();
-
-        if (!in_array($target, $allowed, true)) {
-            $this->perPage = $allowed[array_key_first($allowed)];
-            session()->flash('info', 'Selecione um tamanho compatível com este layout.');
-        } else {
-            $this->perPage = $target;
-        }
-
         $this->resetPage();
     }
 
@@ -541,7 +532,7 @@ class SalesIndex extends Component
                 break;
         }
 
-        return $query->paginate($this->perPage);
+        return $query->paginate($this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 12);
     }
 
     public function getPerPageOptions(): array

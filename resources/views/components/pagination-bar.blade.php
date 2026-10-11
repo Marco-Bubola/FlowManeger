@@ -10,6 +10,9 @@
     'scrollTop' => true,
     // Componentes com paginação própria (sem WithPagination) podem usar outro nome de método.
     'gotoMethod' => 'gotoPage',
+    // Seletor da grade de cards (ex.: '.products-grid'). Com ele, os "por página" viram múltiplos
+    // do número de colunas que a grade tem NESTA tela, para a última linha sempre fechar.
+    'fitGrid' => null,
 ])
 
 @php
@@ -107,12 +110,40 @@
     <div class="flex flex-wrap items-center justify-center gap-2 lg:justify-end">
         @if(count($perPageOptions) > 0)
             <label class="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                @if($fitGrid && $livewire)
+                <select wire:model.live="{{ $perPageModel }}"
+                        x-data="{
+                            cols: 0, opts: @js(array_values($perPageOptions)),
+                            grid() { const root = this.$el.closest('[wire\\:id]') || document; return root.querySelector(@js($fitGrid)); },
+                            measure() {
+                                const g = this.grid(); if (!g || !g.children.length) return;
+                                const c = getComputedStyle(g).gridTemplateColumns.split(' ').filter(Boolean).length;
+                                if (!c || c === this.cols) return;
+                                this.cols = c;
+                                this.opts = [...new Set([12, 18, 24, 36, 48, 72, 96].map(t => Math.ceil(t / c) * c).filter(v => v <= 120))];
+                                const cur = parseInt(this.$wire.$get(@js($perPageModel))) || this.opts[0];
+                                if (cur % c !== 0) {
+                                    const fit = this.opts.find(v => v >= cur) ?? this.opts[this.opts.length - 1];
+                                    this.$wire.$set(@js($perPageModel), fit);
+                                }
+                                this.$nextTick(() => { this.$el.value = String(this.$wire.$get(@js($perPageModel))); });
+                            },
+                            init() {
+                                this.$nextTick(() => this.measure());
+                                let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => this.measure(), 250); });
+                            }
+                        }"
+                        class="h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-3 pr-8 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
+                    <template x-for="o in opts" :key="o"><option :value="o" x-text="o" :selected="o == $wire.{{ $perPageModel }}"></option></template>
+                </select>
+                @else
                 <select wire:model.live="{{ $perPageModel }}"
                         class="h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-3 pr-8 text-sm font-semibold text-slate-700 dark:text-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20">
                     @foreach($perPageOptions as $opt)
                         <option value="{{ $opt }}">{{ $opt }}</option>
                     @endforeach
                 </select>
+                @endif
                 por página
             </label>
         @endif

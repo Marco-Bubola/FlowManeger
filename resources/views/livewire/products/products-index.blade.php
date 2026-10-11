@@ -479,7 +479,7 @@
             </div>
         </form>
 
-        <x-pagination-bar :paginator="$products" :per-page-options="$perPageOptions" label="produtos" />
+        <x-pagination-bar :paginator="$products" :per-page-options="$perPageOptions" label="produtos" fit-grid=".products-grid" />
     @endif
 
     <!-- Modal de Confirmação de Exclusão Ultra Moderno -->

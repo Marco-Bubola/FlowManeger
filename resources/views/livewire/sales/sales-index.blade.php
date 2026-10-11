@@ -235,7 +235,7 @@
             @endforelse
         </div>
 
-        <x-pagination-bar :paginator="$sales" :per-page-options="$perPageOptions" label="vendas" />
+        <x-pagination-bar :paginator="$sales" :per-page-options="$perPageOptions" label="vendas" fit-grid=".sales-grid-v2" />
         <!-- Componente de Exportação de Venda (modal) -->
         @livewire('sales.export-sale-modal')
 
