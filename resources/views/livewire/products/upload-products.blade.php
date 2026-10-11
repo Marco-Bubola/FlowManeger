@@ -1734,10 +1734,10 @@
                 // Verificar se o foco está em um input de produto
                 const activeElement = document.activeElement;
                 if (activeElement && activeElement.tagName === 'INPUT') {
-                    const productInput = activeElement.closest('.product-card-modern');
+                    const productInput = activeElement.closest('.upc-card');
                     if (productInput) {
                         // Encontrar o índice do produto
-                        const allCards = document.querySelectorAll('.product-card-modern');
+                        const allCards = document.querySelectorAll('.upc-card');
                         const productIndex = Array.from(allCards).indexOf(productInput);
 
                         if (productIndex !== -1) {

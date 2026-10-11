@@ -30,142 +30,57 @@
     ];
 @endphp
 
-<div class="products-preview-container space-y-6">
+<div class="products-preview-container">
     @if(!empty($products) && count($products) > 0)
-        <!-- Grid de Cards de Produtos - até 8 por linha em telas ultrawide -->
-        <div class="products-preview-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
+        {{-- Cartões de revisão do upload: foto, código e quantidade em cima; nome, categoria e preços embaixo.
+             Os ids image-input-N / product-image-N e os wire:model.lazy ficam iguais (o robô de imagens usa). --}}
+        <div class="upc-grid">
                 @foreach($products as $index => $product)
-                    <div class="product-card-modern"
-                         x-data="{ dropdownOpen: false }"
-                         :class="{ 'dropdown-open': dropdownOpen }">
-                        <!-- Botões de ação modernos -->
-                        <div class="btn-action-group flex gap-2 mb-3">
-                            <button type="button"
-                                    onclick="copyProductName({{ $index }}, '{{ $product['name'] ?? '' }}')"
-                                    class="group relative inline-flex items-center justify-center px-3 py-2 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-emerald-300 backdrop-blur-sm"
-                                    title="Copiar nome">
-                                <i class="bi bi-tag text-sm group-hover:scale-110 transition-transform duration-200"></i>
-                                <!-- Efeito hover ring -->
-                                <div class="absolute inset-0 rounded-xl bg-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            </button>
-                            <button type="button"
-                                    onclick="copyProductCode({{ $index }}, '{{ $product['product_code'] ?? '' }}')"
-                                    class="group relative inline-flex items-center justify-center px-3 py-2 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-blue-300 backdrop-blur-sm"
-                                    title="Copiar código">
-                                <i class="bi bi-upc-scan text-sm group-hover:scale-110 transition-transform duration-200"></i>
-                                <!-- Efeito hover ring -->
-                                <div class="absolute inset-0 rounded-xl bg-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            </button>
-                            <button type="button"
-                                    wire:click="removeProduct({{ $index }})"
-                                    class="group relative inline-flex items-center justify-center px-3 py-2 rounded-xl bg-gradient-to-br from-red-400 to-red-600 hover:from-red-500 hover:to-red-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-red-300 backdrop-blur-sm"
-                                    title="Remover">
-                                <i class="bi bi-trash3 text-sm group-hover:scale-110 transition-transform duration-200"></i>
-                                <!-- Efeito hover ring -->
-                                <div class="absolute inset-0 rounded-xl bg-red-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            </button>
+                    @php
+                        $tabela = (float) ($product['price_original'] ?? 0);
+                        $revenda = (float) ($product['price_sale'] ?? 0);
+                        $descontoTabela = $tabela > 0 && $revenda > 0 ? (int) round((1 - $revenda / $tabela) * 100) : 0;
+                        $podePromo = $tabela > $revenda && $revenda > 0;
+                        $emPromo = !empty($product['promo']) && $podePromo;
+                        $nomeJs = Js::from($product['name'] ?? '');
+                        $codigoJs = Js::from($product['product_code'] ?? '');
+                    @endphp
+                    <div class="upc-card {{ $emPromo ? 'is-promo' : '' }}" wire:key="upc-{{ $index }}">
+                        <!-- Foto: clicar copia o nome e abre o seletor de imagem -->
+                        <div class="upc-media">
+                            <div class="upc-photo"
+                                 onclick="copyProductName({{ $index }}, {{ $nomeJs }}); document.getElementById('image-input-{{ $index }}').click();"
+                                 title="Copiar nome e trocar a foto">
+                                <img src="{{ $product['temp_image'] ?? asset('storage/products/product-placeholder.png') }}"
+                                     alt="{{ $product['name'] ?? 'Produto' }}"
+                                     id="product-image-{{ $index }}">
+                                <span class="upc-photo-hint"><i class="bi bi-camera"></i> Trocar foto</span>
+                            </div>
+
+                            <input type="file" id="image-input-{{ $index }}" class="hidden" accept="image/*">
+
+                            <label class="upc-chip upc-code" title="Código do produto">
+                                <i class="bi bi-upc"></i>
+                                <input type="text" wire:model.lazy="productsUpload.{{ $index }}.product_code" placeholder="Código" maxlength="15">
+                            </label>
+                            <label class="upc-chip upc-qty" title="Quantidade">
+                                <span>Qtd</span>
+                                <input type="number" min="0" wire:model.lazy="productsUpload.{{ $index }}.stock_quantity" placeholder="0">
+                            </label>
+                            @if($emPromo)
+                                <span class="upc-ribbon"><i class="bi bi-fire"></i> -{{ $descontoTabela }}%</span>
+                            @endif
                         </div>
 
-                        <!-- Área da imagem com badges -->
-                        <div class="product-img-area">
-                            <!-- Upload de imagem ao clicar: copia o nome e abre o seletor -->
-                            <div class="relative cursor-pointer"
-                                 onclick="copyProductName({{ $index }}, '{{ addslashes($product['name'] ?? '') }}'); document.getElementById('image-input-{{ $index }}').click();">
-                                @if(isset($product['temp_image']))
-                                    <img src="{{ $product['temp_image'] }}"
-                                         class="product-img"
-                                         alt="{{ $product['name'] ?? 'Produto' }}"
-                                         id="product-image-{{ $index }}">
-                                @else
-                                    <img src="{{ asset('storage/products/product-placeholder.png') }}"
-                                         class="product-img"
-                                         alt="{{ $product['name'] ?? 'Produto' }}"
-                                         id="product-image-{{ $index }}">
-                                @endif
+                        <div class="upc-body">
+                            <input type="text"
+                                   wire:model.lazy="productsUpload.{{ $index }}.name"
+                                   class="upc-name"
+                                   title="{{ $product['name'] ?? '' }}"
+                                   placeholder="Nome do produto">
 
-                                <!-- Overlay para indicar que é clicável -->
-                                <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-25 transition-all duration-200 rounded-t-xl flex flex-col items-center justify-center gap-1.5 opacity-0 hover:opacity-100">
-                                    <div class="bg-white bg-opacity-90 rounded-full p-2">
-                                        <i class="bi bi-camera text-gray-700 text-xl"></i>
-                                    </div>
-                                    <span class="text-[10px] font-bold text-white bg-black/60 px-2 py-0.5 rounded-full whitespace-nowrap">Copiar nome + trocar foto</span>
-                                </div>
-                            </div>
-
-                            <!-- Input de arquivo oculto -->
-                            <input type="file"
-                                   id="image-input-{{ $index }}"
-                                   class="hidden"
-                                   accept="image/*">
-
-                            <!-- Código do produto editável -->
-                            <div class="badge-product-code editable-badge" title="Código do Produto">
-                                <input type="text"
-                                       wire:model.lazy="productsUpload.{{ $index }}.product_code"
-                                       class="bg-transparent border-none text-inherit font-inherit w-full text-center focus:outline-none focus:ring-1 focus:ring-white focus:bg-white focus:bg-opacity-20 rounded"
-                                       placeholder="Código"
-                                       maxlength="15">
-                            </div>
-
-                            <!-- Quantidade editável -->
-                            <div class="badge-quantity editable-badge" title="Quantidade em Estoque">
-                                <input type="number"
-                                       wire:model.lazy="productsUpload.{{ $index }}.stock_quantity"
-                                       min="0"
-                                       class="bg-transparent border-none text-inherit font-inherit w-full text-center focus:outline-none focus:ring-1 focus:ring-white focus:bg-white focus:bg-opacity-20 rounded"
-                                       placeholder="0">
-                            </div>
-
-                            <!-- Ícone da categoria -->
-                            <div class="category-icon-wrapper">
-                                @php
-                                    $category = $categories->firstWhere('id_category', $product['category_id'] ?? 1);
-                                    $iconClass = $iconMap[$category->icone ?? ''] ?? 'bi-tag';
-                                @endphp
-                                <i id="category-icon-{{ $index }}"
-                                   class="{{ $iconClass }} category-icon"></i>
-                            </div>
-                        </div>
-
-                        <!-- Conteúdo editável -->
-                        <div class="card-body">
-                            <!-- Nome do produto como título editável -->
-                            <div class="product-title-editable">
-                                <input type="text"
-                                       wire:model.lazy="productsUpload.{{ $index }}.name"
-                                       class="w-full text-center font-bold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-300 focus:bg-white focus:bg-opacity-10 rounded px-2 py-1"
-                                       placeholder="Nome do produto"
-                                       style="font-size: 1.1em; color: #1a1a1a; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-                            </div>
-
-                            <!-- Preço de tabela (riscado nas promoções) + pôr em promoção -->
-                            @php
-                                $tabela = (float) ($product['price_original'] ?? 0);
-                                $revenda = (float) ($product['price_sale'] ?? 0);
-                                $descontoTabela = $tabela > 0 && $revenda > 0 ? (int) round((1 - $revenda / $tabela) * 100) : 0;
-                            @endphp
-                            <div class="flex items-center justify-center gap-2 mt-1 mb-1 text-xs">
-                                <label class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300" title="R$ TABELA do extrato (preço original, aparece riscado na promoção)">
-                                    <span>Tabela R$</span>
-                                    <input type="number" step="0.01" min="0"
-                                           wire:model.lazy="productsUpload.{{ $index }}.price_original"
-                                           class="w-16 bg-transparent border-none p-0 text-xs line-through text-slate-500 dark:text-slate-300 focus:outline-none focus:ring-0 text-right"
-                                           placeholder="0,00">
-                                </label>
-                                <label class="inline-flex items-center gap-1 px-2 py-1 rounded-lg cursor-pointer {{ !empty($product['promo']) ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300' }}"
-                                       title="Pôr em promoção ao salvar: tabela riscado, revenda como preço de promoção">
-                                    <input type="checkbox" wire:model.live="productsUpload.{{ $index }}.promo" class="rounded text-rose-500 w-3.5 h-3.5" @disabled($tabela <= $revenda)>
-                                    <i class="bi bi-fire"></i>
-                                    @if($descontoTabela > 0)
-                                        -{{ $descontoTabela }}%
-                                    @else
-                                        Promo
-                                    @endif
-                                </label>
-                            </div>
-
-                            <!-- Select de Categoria Estilizado -->
-                            <div class="flex justify-center mt-2" x-data="{
+<!-- Select de Categoria Estilizado -->
+                            <div class="upc-cat" x-data="{
                                 open: false,
                                 search: '',
                                 selectedId: {{ $product['category_id'] ?? 1 }},
@@ -182,7 +97,7 @@
                                     ];
                                 })) }},
                                 get selectedCategory() {
-                                    return this.categories.find(c => c.id === this.selectedId) || this.categories[0];
+                                    return this.categories.find(c => c.id == this.selectedId) || this.categories[0] || { name: 'Categoria', icon: 'bi-tag' };
                                 },
                                 get filteredCategories() {
                                     if (!this.search) return this.categories;
@@ -212,28 +127,26 @@
                                         this.dropdownBottom = 0;
                                     }
                                     this.open = true;
-                                    this.$parent.dropdownOpen = true;
                                 },
                                 closeDropdown() {
                                     this.open = false;
-                                    this.$parent.dropdownOpen = false;
                                 },
                                 selectCategory(cat) {
                                     this.selectedId = cat.id;
                                     this.closeDropdown();
                                     this.search = '';
                                     $wire.set('productsUpload.{{ $index }}.category_id', cat.id);
-                                    document.getElementById('category-icon-{{ $index }}').className = cat.icon + ' category-icon';
+                                    
                                 }
                             }">
-                                <div class="relative w-full max-w-xs" x-ref="dropdownAnchor">
+                                <div class="relative w-full" x-ref="dropdownAnchor">
                                     <button type="button"
                                             x-ref="dropdownTrigger"
                                             @click.stop="open ? closeDropdown() : openDropdown()"
                                             class="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-purple-200 bg-white dark:bg-slate-700 dark:border-purple-700 text-slate-700 dark:text-slate-200 hover:border-purple-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-400/20 focus:outline-none transition-all duration-200 text-xs">
                                         <span class="flex items-center gap-2 overflow-hidden">
                                             <i :class="selectedCategory.icon" class="text-purple-500 flex-shrink-0"></i>
-                                            <span x-text="selectedCategory.name" class="truncate max-w-[120px]"></span>
+                                            <span x-text="selectedCategory.name" class="truncate"></span>
                                         </span>
                                         <i class="bi bi-chevron-down text-slate-400 transition-transform duration-200 flex-shrink-0" :class="{ 'rotate-180': open }"></i>
                                     </button>
@@ -277,31 +190,154 @@
                                     </template>
                                 </div>
                             </div>
+                        
+                            <div class="upc-prices">
+                                <label class="upc-field" title="Preço de custo">
+                                    <span class="upc-label">Custo</span>
+                                    <span class="upc-money"><small>R$</small>
+                                        <input type="number" step="0.01" min="0" wire:model.lazy="productsUpload.{{ $index }}.price" placeholder="0,00">
+                                    </span>
+                                </label>
+                                <label class="upc-field upc-field-sale" title="Preço de venda (revenda)">
+                                    <span class="upc-label">Venda</span>
+                                    <span class="upc-money"><small>R$</small>
+                                        <input type="number" step="0.01" min="0" wire:model.lazy="productsUpload.{{ $index }}.price_sale" placeholder="0,00">
+                                    </span>
+                                </label>
+                                <label class="upc-field" title="R$ TABELA do PDF (preço original, aparece riscado na promoção)">
+                                    <span class="upc-label">Tabela</span>
+                                    <span class="upc-money"><small>R$</small>
+                                        <input type="number" step="0.01" min="0" wire:model.lazy="productsUpload.{{ $index }}.price_original" placeholder="0,00" class="{{ $emPromo ? 'is-struck' : '' }}">
+                                    </span>
+                                </label>
+                                <label class="upc-promo {{ $emPromo ? 'is-on' : '' }} {{ $podePromo ? '' : 'is-disabled' }}"
+                                       title="{{ $podePromo ? 'Pôr em promoção ao salvar: tabela riscado, venda como preço de promoção' : 'Sem desconto: a venda não é menor que a tabela' }}">
+                                    <span class="upc-label">Promoção</span>
+                                    <span class="upc-promo-row">
+                                        @if($podePromo)
+                                            <input type="checkbox" wire:model.live="productsUpload.{{ $index }}.promo">
+                                            <span><i class="bi bi-fire"></i> -{{ $descontoTabela }}%</span>
+                                        @else
+                                            <span class="upc-nodisc">Sem desconto</span>
+                                        @endif
+                                    </span>
+                                </label>
+                            </div>
                         </div>
 
-                        <!-- Badges de preço editáveis no rodapé -->
-                        <div class="badge-price editable-price-badge" title="Preço de Custo">
-                            <i class="bi bi-tag"></i>
-                            <span class="text-xs">R$</span>
-                            <input type="number"
-                                   wire:model.lazy="productsUpload.{{ $index }}.price"
-                                   step="0.01"
-                                   class="bg-transparent border-none text-inherit font-inherit w-16 focus:outline-none focus:ring-1 focus:ring-white focus:bg-white focus:bg-opacity-20 rounded text-right"
-                                   placeholder="0,00">
-                        </div>
-
-                        <div class="badge-price-sale editable-price-badge" title="Preço de Venda">
-                            <i class="bi bi-currency-dollar"></i>
-                            <span class="text-xs">R$</span>
-                            <input type="number"
-                                   wire:model.lazy="productsUpload.{{ $index }}.price_sale"
-                                   step="0.01"
-                                   class="bg-transparent border-none text-inherit font-inherit w-16 focus:outline-none focus:ring-1 focus:ring-white focus:bg-white focus:bg-opacity-20 rounded text-right"
-                                   placeholder="0,00">
+                        <div class="upc-actions">
+                            <button type="button" onclick="copyProductName({{ $index }}, {{ $nomeJs }})" title="Copiar nome">
+                                <i class="bi bi-clipboard"></i><span>Nome</span>
+                            </button>
+                            <button type="button" onclick="copyProductCode({{ $index }}, {{ $codigoJs }})" title="Copiar código">
+                                <i class="bi bi-upc-scan"></i><span>Código</span>
+                            </button>
+                            <button type="button" wire:click="removeProduct({{ $index }})" class="is-danger" title="Remover da lista">
+                                <i class="bi bi-trash3"></i><span>Remover</span>
+                            </button>
                         </div>
                     </div>
                 @endforeach
         </div>
-
     @endif
 </div>
+
+<style>
+    .upc-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+    @media (max-width: 640px) { .upc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } }
+    @media (max-width: 359px) { .upc-grid { grid-template-columns: 1fr; } }
+
+    .upc-card { position: relative; display: flex; flex-direction: column; min-width: 0; border-radius: 18px; overflow: hidden;
+        background: #fff; border: 1px solid rgb(226 232 240); box-shadow: 0 1px 2px rgb(15 23 42 / .05), 0 6px 18px -10px rgb(15 23 42 / .18);
+        transition: box-shadow .2s, border-color .2s, transform .2s; }
+    .upc-card:hover { border-color: rgb(196 181 253); box-shadow: 0 10px 28px -12px rgb(124 58 237 / .35); }
+    .upc-card.is-promo { border-color: rgb(253 164 175); }
+    .dark .upc-card { background: rgb(15 23 42); border-color: rgb(51 65 85); }
+    .dark .upc-card.is-promo { border-color: rgb(190 18 60 / .6); }
+
+    .upc-media { position: relative; background: #fff; }
+    .upc-photo { position: relative; aspect-ratio: 1 / 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 34px 12px 10px; }
+    .upc-photo img { width: 100%; height: 100%; object-fit: contain; }
+    .upc-photo-hint { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: inline-flex; gap: 4px; align-items: center;
+        font-size: 11px; font-weight: 700; color: #fff; background: rgb(15 23 42 / .72); padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+        opacity: 0; transition: opacity .2s; pointer-events: none; }
+    .upc-photo:hover .upc-photo-hint { opacity: 1; }
+    @media (hover: none) { .upc-photo-hint { opacity: .85; font-size: 10px; } }
+
+    .upc-chip { position: absolute; top: 8px; display: inline-flex; align-items: center; gap: 3px; height: 26px; padding: 0 8px; border-radius: 999px;
+        font-size: 11px; font-weight: 700; background: rgb(255 255 255 / .92); border: 1px solid rgb(226 232 240); color: rgb(71 85 105);
+        box-shadow: 0 1px 3px rgb(15 23 42 / .08); backdrop-filter: blur(6px); }
+    .upc-chip input { background: transparent; border: 0; padding: 0; font: inherit; color: rgb(30 41 59); outline: none; box-shadow: none; min-width: 0; }
+    .upc-chip input:focus { box-shadow: none; }
+    .upc-code { left: 8px; max-width: calc(100% - 92px); }
+    .upc-code i { color: rgb(124 58 237); }
+    .upc-code input { width: 7ch; }
+    .upc-qty { right: 8px; }
+    .upc-qty span { color: rgb(100 116 139); font-weight: 600; }
+    .upc-qty input { width: 3.2ch; text-align: center; -moz-appearance: textfield; }
+    .upc-ribbon { position: absolute; left: 8px; bottom: 8px; display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 800; color: #fff;
+        padding: 3px 9px; border-radius: 999px; background: linear-gradient(135deg, #f43f5e, #f97316); box-shadow: 0 4px 10px -4px rgb(244 63 94 / .6); }
+
+    .upc-body { display: flex; flex-direction: column; gap: 8px; padding: 10px 10px 8px; border-top: 1px solid rgb(241 245 249); flex: 1; }
+    .dark .upc-body { border-top-color: rgb(30 41 59); }
+    .upc-name { width: 100%; border: 1px solid transparent; background: transparent; border-radius: 10px; padding: 4px 6px; font-size: 13px; font-weight: 700;
+        color: rgb(15 23 42); text-overflow: ellipsis; }
+    .upc-name:hover { border-color: rgb(226 232 240); }
+    .upc-name:focus { outline: none; border-color: rgb(167 139 250); box-shadow: 0 0 0 3px rgb(167 139 250 / .2); background: #fff; }
+    .dark .upc-name { color: rgb(241 245 249); }
+    .dark .upc-name:focus { background: rgb(30 41 59); }
+    .upc-cat button { padding: 6px 10px !important; border-radius: 10px !important; border-color: rgb(226 232 240) !important; }
+    .dark .upc-cat button { border-color: rgb(51 65 85) !important; }
+
+    .upc-prices { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .upc-field, .upc-promo { display: flex; flex-direction: column; gap: 1px; min-width: 0; padding: 5px 8px; border-radius: 10px; background: rgb(248 250 252);
+        border: 1px solid rgb(241 245 249); cursor: text; }
+    .dark .upc-field, .dark .upc-promo { background: rgb(30 41 59 / .7); border-color: rgb(51 65 85); }
+    .upc-field:focus-within { border-color: rgb(167 139 250); box-shadow: 0 0 0 3px rgb(167 139 250 / .18); }
+    .upc-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: rgb(100 116 139); }
+    .upc-money { display: flex; align-items: baseline; gap: 3px; min-width: 0; }
+    .upc-money small { font-size: 10px; color: rgb(148 163 184); }
+    .upc-money input { width: 100%; min-width: 0; border: 0; background: transparent; padding: 0; font-size: 13px; font-weight: 700; color: rgb(30 41 59);
+        outline: none; box-shadow: none; -moz-appearance: textfield; }
+    .upc-money input.is-struck { text-decoration: line-through; color: rgb(148 163 184); font-weight: 600; }
+    .dark .upc-money input { color: rgb(226 232 240); }
+    .upc-field-sale { background: rgb(236 253 245); border-color: rgb(209 250 229); }
+    .upc-field-sale .upc-money input { color: rgb(4 120 87); }
+    .dark .upc-field-sale { background: rgb(6 78 59 / .35); border-color: rgb(6 95 70 / .6); }
+    .dark .upc-field-sale .upc-money input { color: rgb(110 231 183); }
+    .upc-card input[type=number]::-webkit-outer-spin-button, .upc-card input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .upc-promo { cursor: pointer; }
+    .upc-promo-row { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: rgb(71 85 105); white-space: nowrap; overflow: hidden; }
+    .upc-promo-row input { width: 14px; height: 14px; border-radius: 4px; color: rgb(244 63 94); accent-color: rgb(244 63 94); flex-shrink: 0; }
+    .upc-nodisc { font-size: 11px; }
+    .upc-promo.is-on { background: rgb(255 241 242); border-color: rgb(254 205 211); }
+    .upc-promo.is-on .upc-promo-row { color: rgb(225 29 72); }
+    .dark .upc-promo.is-on { background: rgb(136 19 55 / .35); border-color: rgb(159 18 57 / .6); }
+    .dark .upc-promo.is-on .upc-promo-row { color: rgb(253 164 175); }
+    .upc-promo.is-disabled { cursor: not-allowed; }
+    .upc-promo.is-disabled .upc-promo-row { color: rgb(148 163 184); font-weight: 600; }
+
+    .upc-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; border-top: 1px solid rgb(241 245 249); }
+    .dark .upc-actions { border-top-color: rgb(30 41 59); }
+    .upc-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 4px; font-size: 11px; font-weight: 600;
+        color: rgb(71 85 105); transition: background .15s, color .15s; }
+    .upc-actions button + button { border-left: 1px solid rgb(241 245 249); }
+    .dark .upc-actions button { color: rgb(148 163 184); }
+    .dark .upc-actions button + button { border-left-color: rgb(30 41 59); }
+    .upc-actions button:hover { background: rgb(245 243 255); color: rgb(109 40 217); }
+    .upc-actions button.is-danger:hover { background: rgb(254 242 242); color: rgb(220 38 38); }
+    .dark .upc-actions button:hover { background: rgb(30 41 59); }
+    .upc-actions button.copied { color: rgb(5 150 105); }
+    @media (max-width: 640px) {
+        .upc-actions button span { display: none; }
+        .upc-actions button { padding: 9px 4px; font-size: 14px; }
+        .upc-body { padding: 8px 7px 7px; gap: 6px; }
+        .upc-field, .upc-promo { padding: 4px 6px; }
+        .upc-money input { font-size: 12px; }
+        .upc-name { font-size: 12px; }
+        .upc-photo { padding-top: 32px; }
+        .upc-code input { width: 5.5ch; }
+        .upc-nodisc { font-size: 10px; }
+    }
+</style>
