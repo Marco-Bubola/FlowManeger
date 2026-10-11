@@ -492,3 +492,6 @@ html body .dash-grid > .ini-mais-btn { grid-column: 1 / -1 !important; }
 html body .fm-empty h3 { font-size: 1.125rem !important; line-height: 1.6rem !important; }
 html body .fm-empty p { font-size: .9rem !important; line-height: 1.35rem !important; }
 html body .fm-empty a, html body .fm-empty button { font-size: .9rem !important; }
+
+/* Central de notificações: a própria página já é a lista, então o sino flutuante some */
+html body:has(.notif-ph) .mobile-top-bell { display: none !important; }

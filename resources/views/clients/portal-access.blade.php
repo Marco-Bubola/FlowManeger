@@ -4,27 +4,27 @@
     <x-client-page-header :client="$client" title="Acesso ao portal" icon="bi-key" active="portal">
         <x-slot name="actions">
                     @if($client->portal_active)
-                        <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                        <span class="hidden md:inline-flex items-center gap-1.5 rounded-full border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Portal Ativo
                         </span>
                     @else
-                        <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                        <span class="hidden md:inline-flex items-center gap-1.5 rounded-full border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
                             <span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span>Portal Inativo
                         </span>
                     @endif
-                    <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider {{ $client->email ? 'border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400' }}">
+                    <span class="hidden lg:inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider {{ $client->email ? 'border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400' }}">
                         <i class="fas fa-envelope text-[9px]"></i>
                         {{ $client->email ? 'Com e-mail' : 'Sem e-mail' }}
                     </span>
-                    <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider {{ $client->google_id ? 'border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400' }}">
+                    <span class="hidden lg:inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider {{ $client->google_id ? 'border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400' }}">
                         <i class="fab fa-google text-[9px]"></i>
                         {{ $client->google_id ? 'Google conectado' : 'Google opcional' }}
                     </span>
                     @if($client->portal_active)
-                        <a href="{{ route('portal.login') }}" target="_blank"
+                        <a href="{{ route('portal.login') }}" target="_blank" aria-label="Abrir portal" title="Abrir portal"
                            class="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition">
                             <i class="fas fa-external-link-alt text-[9px]"></i>
-                            Abrir portal
+                            <span class="app-ph-label">Abrir portal</span>
                         </a>
                     @endif
         </x-slot>
@@ -73,7 +73,7 @@
             ],
             [
                 'label'   => 'Portal',
-                'icon'    => $client->portal_active ? 'fa-shield-check' : 'fa-shield-xmark',
+                'icon'    => $client->portal_active ? 'fa-shield-halved' : 'fa-shield',
                 'bg'      => $client->portal_active ? 'bg-emerald-500/10 dark:bg-emerald-400/15' : 'bg-amber-500/10 dark:bg-amber-400/15',
                 'color'   => $client->portal_active ? 'text-emerald-500 dark:text-emerald-400' : 'text-amber-500 dark:text-amber-400',
                 'value'   => $client->portal_active ? 'Ativo' : 'Inativo',
@@ -242,7 +242,7 @@
             </div>
             <div class="p-4 flex-1 flex flex-col">
                 <textarea id="portalWhatsappMessagePage" readonly
-                          class="flex-1 w-full min-h-[160px] rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/40 px-3 py-2.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-emerald-400/50 transition font-mono">{{ session('portal_access_whatsapp_message', 'Ola, ' . $client->name . '!\n\nPortal: ' . route('portal.login') . '\nLogin: ' . $client->portal_login . '\n\nSe quiser, depois conecte sua conta Google dentro do portal.') }}</textarea>
+                          class="flex-1 w-full min-h-[160px] rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/40 px-3 py-2.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-emerald-400/50 transition">{{ session('portal_access_whatsapp_message', "Olá, {$client->name}!\n\nPortal: " . route('portal.login') . "\nLogin: {$client->portal_login}\n\nSe quiser, depois conecte sua conta Google dentro do portal.") }}</textarea>
             </div>
         </div>
 

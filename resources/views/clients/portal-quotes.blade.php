@@ -161,46 +161,46 @@
     @endphp
     <x-client-page-header :client="$client" title="Orçamentos do portal" icon="bi-file-earmark-text" active="orcamentos">
         <x-slot name="actions">
-            <span class="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300">
+            <span class="hidden lg:inline-flex items-center gap-1.5 rounded-full border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300">
                 <i class="bi bi-file-earmark-text"></i>{{ $totalQ }} {{ $totalQ === 1 ? 'orçamento' : 'orçamentos' }}
             </span>
             @if($pendingQ > 0)
-                <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 px-3 py-1.5 text-xs font-bold text-amber-700 dark:text-amber-300">
+                <span class="hidden lg:inline-flex items-center gap-1.5 rounded-full border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 px-3 py-1.5 text-xs font-bold text-amber-700 dark:text-amber-300">
                     <i class="bi bi-clock"></i>{{ $pendingQ }} pendentes
                 </span>
             @endif
             @if($approvedQ > 0)
-                <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                <span class="hidden lg:inline-flex items-center gap-1.5 rounded-full border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
                     <i class="bi bi-check-circle"></i>{{ $approvedQ }} aprovados
                 </span>
             @endif
             @if($client->portal_active)
-                <a href="{{ route('portal.login') }}" target="_blank"
-                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-semibold shadow-md transition">
-                    <i class="bi bi-box-arrow-up-right"></i>Abrir portal
+                <a href="{{ route('portal.login') }}" target="_blank" aria-label="Abrir portal" title="Abrir portal"
+                   class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-semibold shadow-md transition">
+                    <i class="bi bi-box-arrow-up-right"></i><span class="app-ph-label">Abrir portal</span>
                 </a>
             @endif
         </x-slot>
     </x-client-page-header>
 
     {{-- Filtro rápido por status --}}
-    <div class="mb-6 flex flex-wrap items-center gap-2">
+    <div class="mb-4 -mx-1 overflow-x-auto"><div class="flex min-w-max md:min-w-0 md:flex-wrap items-center gap-2 px-1 pb-1">
         @foreach([''=>'Todos','pending'=>'Aguardando','reviewing'=>'Em análise','quoted'=>'Cotado','approved'=>'Aprovado','rejected'=>'Recusado'] as $val => $lbl)
             <a href="{{ request()->fullUrlWithQuery(['status_filter' => $val]) }}"
                class="rounded-xl px-3 py-1.5 text-sm font-semibold transition {{ request('status_filter', '') === $val ? 'bg-indigo-600 text-white shadow' : 'bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300' }}">
                 {{ $lbl }}
             </a>
         @endforeach
-    </div>
+    </div></div>
 
     {{-- Flash --}}
     @if(session('success'))
-    <div class="mx-4 sm:mx-6 lg:mx-8 mb-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-700/30 px-4 py-3 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+    <div class="mb-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-700/30 px-4 py-3 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
         <i class="fas fa-check-circle text-emerald-500"></i> {{ session('success') }}
     </div>
     @endif
     @if(session('error'))
-    <div class="mx-4 sm:mx-6 lg:mx-8 mb-4 flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-700/30 px-4 py-3 text-sm font-semibold text-rose-700 dark:text-rose-300">
+    <div class="mb-4 flex items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-700/30 px-4 py-3 text-sm font-semibold text-rose-700 dark:text-rose-300">
         <i class="fas fa-exclamation-circle text-rose-500"></i> {{ session('error') }}
     </div>
     @endif
@@ -208,7 +208,7 @@
     {{-- Aviso ao cliente depois de confirmar/recusar: WhatsApp em um clique --}}
     @if($notify = session('portal_notify'))
     @php $notifyOk = ($notify['status'] ?? '') === 'approved'; @endphp
-    <div class="mx-4 sm:mx-6 lg:mx-8 mb-5 rounded-2xl border {{ $notifyOk ? 'border-emerald-200 dark:border-emerald-700/40' : 'border-rose-200 dark:border-rose-700/40' }} bg-white dark:bg-slate-900 shadow-sm overflow-hidden" data-testid="portal-notify">
+    <div class="mb-5 rounded-2xl border {{ $notifyOk ? 'border-emerald-200 dark:border-emerald-700/40' : 'border-rose-200 dark:border-rose-700/40' }} bg-white dark:bg-slate-900 shadow-sm overflow-hidden" data-testid="portal-notify">
         <div class="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center">
             <div class="flex items-start gap-3 flex-1 min-w-0">
                 <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 {{ $notifyOk ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300' }}">
