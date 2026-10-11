@@ -151,7 +151,7 @@
                             <x-variation-carousel :items="$group" :start="$start" :note="$picked ? ($picked === 1 ? '1 escolhida' : $picked . ' escolhidas') : null" wire:key="fam-{{ $group->first()->id }}">
                                 @foreach($group as $k => $product)
                                     <div class="vc-slide" x-show="vi === {{ $k }}" @if($k !== $start) x-cloak @endif>
-                                        <x-modern-product-card :product="$product" :selected="$pickedIds->contains($product->id)" clickAction="toggleProduct({{ $product->id }})" />
+                                        <x-modern-product-card :product="$product" :selected="$pickedIds->contains($product->id)" clickAction="toggleProduct({{ $product->id }})" :in-carousel="true" />
                                     </div>
                                 @endforeach
                             </x-variation-carousel>

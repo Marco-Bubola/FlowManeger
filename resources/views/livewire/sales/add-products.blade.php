@@ -127,7 +127,7 @@
                                 <x-variation-carousel :items="$group" :start="$start" wire:key="fam-{{ $group->first()->id }}">
                                     @foreach($group as $k => $product)
                                         <div class="vc-slide" x-show="vi === {{ $k }}" @if($k !== $start) x-cloak @endif>
-                                            @include('livewire.sales.partials.add-product-card')
+                                            @include('livewire.sales.partials.add-product-card', ['inCarousel' => true])
                                         </div>
                                     @endforeach
                                 </x-variation-carousel>

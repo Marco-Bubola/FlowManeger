@@ -46,6 +46,7 @@
         <div class="product-title" title="{{ $product->name }}">
             {{ ucwords($product->name) }}
         </div>
+        @if (!empty($inCarousel)) <x-variation-carousel-nav /> @endif
         <div class="price-area">
             <span class="badge-price" title="Preço de Custo">
                 <i class="bi bi-tag"></i>

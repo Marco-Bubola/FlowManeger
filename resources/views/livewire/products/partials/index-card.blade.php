@@ -75,6 +75,7 @@
         <div class="product-title" title="{{ $product->name }}">
             {{ ucwords($product->name) }}
         </div>
+        @if (!empty($inCarousel)) <x-variation-carousel-nav /> @endif
         @if ($favCount = (int) ($favCounts[$product->id] ?? 0))
             <a href="{{ route('products.interested', ['produto' => $product->id]) }}" class="product-fav-count" title="Clientes que favoritaram no catálogo online" data-testid="fav-count">
                 <i class="bi bi-heart-fill"></i> {{ $favCount }} {{ $favCount === 1 ? 'cliente' : 'clientes' }}

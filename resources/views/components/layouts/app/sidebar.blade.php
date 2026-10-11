@@ -46,25 +46,8 @@
                     <!-- Header Section -->
                     <div class="flex items-center justify-between gap-3 p-5 border-b border-slate-200/50 dark:border-slate-700/50">
                         <a href="{{ route('dashboard.index') }}" class="sidebar-brand flex items-center gap-3 transition-all duration-300 hover:scale-105" wire:navigate.hover>
-                            <span class="sidebar-brand-mark relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-lg shadow-blue-500/30 ring-1 ring-white/40">
-                                <svg viewBox="0 0 40 40" class="h-10 w-10" xmlns="http://www.w3.org/2000/svg" aria-label="FlowManager">
-                                    <defs>
-                                        <linearGradient id="fmLogoGrad" x1="0" y1="0" x2="1" y2="1">
-                                            <stop offset="0%" stop-color="#3b82f6"/>
-                                            <stop offset="50%" stop-color="#8b5cf6"/>
-                                            <stop offset="100%" stop-color="#ec4899"/>
-                                        </linearGradient>
-                                        <linearGradient id="fmLogoGlow" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
-                                            <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
-                                        </linearGradient>
-                                    </defs>
-                                    <rect width="40" height="40" rx="10" fill="url(#fmLogoGrad)"/>
-                                    <rect width="40" height="20" rx="10" fill="url(#fmLogoGlow)"/>
-                                    {{-- Estilizada "F" + flow line --}}
-                                    <path d="M12 11 L28 11 L28 15 L17 15 L17 19 L25 19 L25 23 L17 23 L17 29 L12 29 Z" fill="white" opacity="0.96"/>
-                                    <circle cx="29.5" cy="28" r="2.2" fill="white" opacity="0.9"/>
-                                </svg>
+                            <span class="sidebar-brand-mark relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-lg shadow-purple-500/25 ring-1 ring-white/40">
+                                <x-app-logo-icon class="h-8 w-8" />
                             </span>
                             <span class="sidebar-text font-black text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{{ config('app.name', 'FlowManager') }}</span>
                         </a>
