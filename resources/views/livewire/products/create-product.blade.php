@@ -322,11 +322,11 @@
                                 <input type="text"
                                        wire:model="barcode"
                                        placeholder="Código de barras"
-                                       class="flex-1 px-3 py-2 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                                       class="flex-1 min-w-0 px-3 py-2 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500">
                                 <button type="button"
                                         wire:click="searchMlImages"
                                         wire:loading.attr="disabled"
-                                        class="px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5">
+                                        class="shrink-0 px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5">
                                     <span wire:loading.remove wire:target="searchMlImages">
                                         <i class="fas fa-magnifying-glass text-[10px]"></i> Buscar
                                     </span>

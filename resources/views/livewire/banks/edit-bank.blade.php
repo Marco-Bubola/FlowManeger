@@ -23,7 +23,7 @@ $bankIcons = [
         </x-slot:actions>
     </x-bank-page-header>
     <form id="bank-edit-form" wire:submit.prevent="update" x-data="{ cardNumber: @entangle('description') }" class="flex-1 w-full flex flex-col gap-6 pb-8">
-        <div class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-5 sm:p-7 shadow-sm">
+        <div class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-5 sm:p-7 shadow-sm space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div>
                 <label for="edit_name" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 mb-3">
@@ -61,15 +61,15 @@ $bankIcons = [
             </div>
         </div>
         <div>
-            <label class="block mb-4 text-xl font-bold text-gray-800 dark:text-gray-200">Escolha o ícone do banco/cartão</label>
-            <div class="flex flex-wrap gap-8">
+            <label class="block mb-3 text-lg font-bold text-slate-800 dark:text-slate-200">Escolha o ícone do banco/cartão</label>
+            <div class="grid grid-cols-4 sm:grid-cols-7 gap-3 sm:gap-4">
                 @foreach($bankIcons as $icon)
                 <label class="flex flex-col items-center cursor-pointer group">
                     <input type="radio" wire:model="caminho_icone" value="{{ $icon['icon'] }}" class="sr-only peer" required>
-                    <div class="w-40 h-40 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-700 peer-checked:border-blue-500 dark:peer-checked:border-white bg-gray-100 dark:bg-gray-900 transition">
-                        <img src="{{ $icon['icon'] }}" alt="{{ $icon['name'] }}" title="{{ $icon['name'] }}" class="w-16 h-16">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center rounded-full border-2 border-slate-200 dark:border-slate-700 peer-checked:border-indigo-500 peer-checked:ring-4 peer-checked:ring-indigo-500/20 dark:peer-checked:border-indigo-300 bg-slate-50 dark:bg-slate-900 transition">
+                        <img src="{{ $icon['icon'] }}" alt="{{ $icon['name'] }}" title="{{ $icon['name'] }}" class="w-9 h-9 sm:w-11 sm:h-11 object-contain">
                     </div>
-                    <span class="text-base text-gray-600 dark:text-gray-400 mt-2 text-center group-hover:text-blue-700 dark:group-hover:text-white transition-colors">{{ $icon['name'] }}</span>
+                    <span class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1.5 text-center leading-tight group-hover:text-blue-700 dark:group-hover:text-white transition-colors">{{ $icon['name'] }}</span>
                 </label>
                 @endforeach
             </div>

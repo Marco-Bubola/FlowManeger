@@ -385,9 +385,6 @@ Route::middleware(['auth'])->group(function () {
 
     // --- Outras Rotas ---
     Route::redirect('settings', 'settings/profile');
-    Route::get('tables', function () {
-        return view('tables');
-    })->name('tables');
     // Route::get('user-management', [InfoUserController::class, 'index'])->name('user-management');
     // Route::get('/user-management/create', [InfoUserController::class, 'create'])->name('user.create');
     // Route::post('/user-management/create', [InfoUserController::class, 'store'])->name('user.store');
@@ -613,9 +610,3 @@ require __DIR__.'/auth.php';
 
 
 
-// TEMP-DEV-LOGIN (remover) - apenas ambiente local
-Route::get('/__dev-login/{id}', function ($id) {
-    abort_unless(app()->environment('local'), 404);
-    \Illuminate\Support\Facades\Auth::loginUsingId((int) $id);
-    return redirect(request('to', '/sales'));
-});

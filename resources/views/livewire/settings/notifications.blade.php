@@ -51,8 +51,9 @@ new class extends Component {
             setTimeout(() => this.saved = false, 2200);
         }
     }"
+    {{-- x-init: carrega do banco (vale entre aparelhos) ou cai no localStorage.
+         Sem comentário JS no começo: o Alpine só embrulha em função quando começa com const --}}
     x-init="
-        // Carrega do banco (autoritativo entre dispositivos) ou cai no localStorage
         const dbData = @json($dbNotif ?? null);
         if (dbData) {
             if (dbData.email) Object.assign(email, dbData.email);

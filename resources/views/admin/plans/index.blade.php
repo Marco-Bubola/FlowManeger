@@ -116,7 +116,7 @@
         @include('partials.plan-center-nav', [
             'scope' => 'admin',
             'title' => 'Gerenciar planos',
-            'subtitle' => 'Catálogo, métricas e concessão manual usando a mesma sidebar e tab bar do restante do app.',
+            'subtitle' => 'Planos, assinantes e liberação manual de planos.',
         ])
 
         @if(session('success'))

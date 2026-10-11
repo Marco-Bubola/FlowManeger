@@ -28,7 +28,11 @@ class EditBank extends Component
         }
 
         $this->bank = $bank;
-        $this->fill($bank);
+        // Cartões antigos podem ter descrição ou ícone vazios no banco (null quebrava a tela)
+        $this->fill(array_merge($bank->toArray(), [
+            'description' => (string) ($bank->description ?? ''),
+            'caminho_icone' => (string) ($bank->caminho_icone ?? ''),
+        ]));
         
         $this->bankIcons = [
             ['name' => 'Nubank', 'icon' => asset('assets/img/banks/nubank.svg')],

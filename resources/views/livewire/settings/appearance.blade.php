@@ -541,11 +541,11 @@ new class extends Component {
             ],
             apply(id,css) {
                 this.font = id;
-                localStorage.setItem(\'flowmanager:font\', id);
+                localStorage.setItem('flowmanager:font', id);
                 flowAppearance.save('font_family', id, 'flowmanager:font');
-                document.documentElement.style.setProperty(\'--font-family\', css || \'\');
+                document.documentElement.style.setProperty('--font-family', css || '');
                 if(css) document.body.style.fontFamily = css;
-                else document.body.style.fontFamily = \'\';
+                else document.body.style.fontFamily = '';
             }
         }" x-init="
             const f = fonts.find(x=>x.id===font);
@@ -570,7 +570,7 @@ new class extends Component {
                         :style="'font-family:'+( f.css||'inherit')"
                         :class="font===f.id ? 'settings-font-btn s-on' : 'settings-font-btn'"
                         style="text-align:left;">
-                        <span class="settings-font-sample" x-text="f.sample" :style="'font-family:'+(f.css||'inherit');font-size:1.5rem;font-weight:700;color:#1e293b;display:block;line-height:1;margin-bottom:.3rem'"></span>
+                        <span class="settings-font-sample" x-text="f.sample" style="font-size:1.5rem;font-weight:700;color:#1e293b;display:block;line-height:1;margin-bottom:.3rem" :style="{ fontFamily: f.css || 'inherit' }"></span>
                         <span class="settings-font-name" x-text="f.label" style="font-size:.78rem;font-weight:700;color:#1e293b;display:block"></span>
                         <span class="settings-font-desc" x-text="f.desc" style="font-size:.68rem;color:#94a3b8;display:block;margin-top:.1rem"></span>
                     </button>
@@ -590,13 +590,13 @@ new class extends Component {
             ],
             apply(id,val) {
                 this.radius = id;
-                localStorage.setItem(\'flowmanager:radius\', id);
+                localStorage.setItem('flowmanager:radius', id);
                 flowAppearance.save('corner_radius', id, 'flowmanager:radius');
-                document.documentElement.style.setProperty(\'--border-radius-base\', val);
+                document.documentElement.style.setProperty('--border-radius-base', val);
             }
         }" x-init="
             const r = opts.find(o=>o.id===radius);
-            if(r) document.documentElement.style.setProperty(\'--border-radius-base\', r.val);
+            if(r) document.documentElement.style.setProperty('--border-radius-base', r.val);
         ">
             <div class="settings-card-header">
                 <div class="settings-card-title-row">

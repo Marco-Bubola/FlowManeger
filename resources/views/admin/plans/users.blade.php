@@ -244,7 +244,7 @@
         'scope' => $isAdminView ? 'admin' : 'account',
         'title' => $isAdminView ? 'Usuarios, planos e permissoes' : 'Meu acesso e permissoes',
         'subtitle' => $isAdminView
-            ? 'Tudo agora fica dentro do layout principal, com a mesma sidebar, tab bar e navegação da area de planos.'
+            ? 'Usuários, planos e assinaturas.'
             : 'Aqui voce ve apenas os dados da sua propria conta e os recursos liberados no seu plano atual.',
     ])
 

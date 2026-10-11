@@ -383,18 +383,25 @@ new class extends Component {
     </x-settings.layout>
 </section>
 
-<script src="https://unpkg.com/imask"></script>
+<script src="https://unpkg.com/imask@7.6.1/dist/imask.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    var phoneInput = document.getElementById('phoneInput');
-    if (phoneInput) {
-        IMask(phoneInput, { mask: '+00 (00) 00000-0000', lazy: false, overwrite: true });
+// Máscara do telefone. O script do IMask pode chegar depois desta parte (navegação sem recarregar),
+// então espera ele existir e registra os eventos uma vez só.
+(function () {
+    function maskPhone(tries) {
+        var phoneInput = document.getElementById('phoneInput');
+        if (!phoneInput || phoneInput._imask) return;
+        if (typeof window.IMask === 'undefined') {
+            if ((tries || 0) < 40) setTimeout(function () { maskPhone((tries || 0) + 1); }, 100);
+            return;
+        }
+        phoneInput._imask = window.IMask(phoneInput, { mask: '+00 (00) 00000-0000', lazy: false, overwrite: true });
     }
-});
-document.addEventListener('livewire:navigated', function () {
-    var phoneInput = document.getElementById('phoneInput');
-    if (phoneInput && !phoneInput._imask) {
-        IMask(phoneInput, { mask: '+00 (00) 00000-0000', lazy: false, overwrite: true });
+    if (!window.__fmPhoneMaskBound) {
+        window.__fmPhoneMaskBound = true;
+        document.addEventListener('DOMContentLoaded', function () { maskPhone(0); });
+        document.addEventListener('livewire:navigated', function () { maskPhone(0); });
     }
-});
+    maskPhone(0);
+})();
 </script>

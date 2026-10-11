@@ -71,6 +71,8 @@
 
         .plan-features { list-style: none; flex: 1; margin-bottom: .85rem; display: flex; flex-direction: column; gap: .35rem; }
         .plan-features li { display: flex; align-items: flex-start; gap: .45rem; font-size: .78rem; }
+        .plan-features .feat-off { color: #94a3b8; }
+        .dark .plan-features .feat-off { color: #64748b; }
         .feat-icon.yes { color: #34d399; flex-shrink: 0; margin-top: 1px; }
         .feat-icon.no  { color: rgba(255,255,255,.2); flex-shrink: 0; margin-top: 1px; }
 
@@ -130,10 +132,9 @@
     @include('partials.plan-center-nav', [
         'scope' => 'account',
         'title' => 'Escolha o plano certo para você',
-        'subtitle' => 'O catálogo agora usa a mesma sidebar principal e continua acessível junto da tab bar no mobile.',
+        'subtitle' => 'Sem compromisso. Cancele quando quiser.',
     ])
 
-    <a href="{{ url('/dashboard') }}" class="back-link">← Voltar ao Dashboard</a>
 
     @if(session('activated_plan'))
         <div class="alert alert-success">✓ Plano <strong>{{ session('activated_plan') }}</strong> ativado com sucesso!</div>
@@ -142,8 +143,6 @@
     <div class="page-header">
         <div class="page-header-left">
             <div class="badge-current">Plano atual: <strong>{{ $currentPlan->name }}</strong></div>
-            <div class="page-title">Escolha o plano <span>certo para você</span></div>
-            <div class="page-sub">Sem compromisso. Cancele quando quiser.</div>
         </div>
         <div class="billing-toggle">
             <div class="toggle-pill">
@@ -189,9 +188,14 @@
             <ul class="plan-features">
                 @php $features = $plan->featuresList(); @endphp
                 @foreach($features as $feat)
+                @php
+                    // featuresList() usa 'active'; recursos extras do banco podem vir como texto simples
+                    $featLabel = is_array($feat) ? ($feat['label'] ?? '') : (string) $feat;
+                    $featOn = is_array($feat) ? (bool) ($feat['included'] ?? $feat['active'] ?? true) : true;
+                @endphp
                 <li>
-                    <span class="feat-icon {{ $feat['included'] ? 'yes' : 'no' }}">{{ $feat['included'] ? '✓' : '✕' }}</span>
-                    <span {{ !$feat['included'] ? 'style=color:rgba(255,255,255,.35)' : '' }}>{{ $feat['label'] }}</span>
+                    <span class="feat-icon {{ $featOn ? 'yes' : 'no' }}">{{ $featOn ? '✓' : '✕' }}</span>
+                    <span class="{{ $featOn ? '' : 'feat-off' }}">{{ $featLabel }}</span>
                 </li>
                 @endforeach
             </ul>
