@@ -294,6 +294,19 @@ html body .cs-cart-body .cs-qty-input { -moz-appearance: textfield; }
 }
 html body:has(.app-ph-bell) .mobile-top-bell { display: none !important; }
 
+/* ───────────── Notebook (1025-1366px com mouse) ─────────────
+ * Neste tamanho a sidebar já fica fixa ao lado (responsive-notebook.css), então a barra
+ * inferior do celular/iPad e o sino do cabeçalho não aparecem: antes as duas navegações
+ * ficavam na tela ao mesmo tempo. iPad deitado (toque) continua com a barra inferior. */
+@media (min-width: 1025px) and (max-width: 1366px) and (pointer: fine) {
+    html body .mobile-bottom-tabbar,
+    html body .mobile-action-sheet,
+    html body .app-ph-bell,
+    html body .mobile-top-bell { display: none !important; }
+    html body #mainContent { padding-bottom: 0 !important; }
+    html body #modernSidebar { transform: translateX(0) !important; visibility: visible !important; pointer-events: auto !important; }
+}
+
 /* ───────────── Início (dashboard) ─────────────
  * 10 indicadores: 2 por linha no celular (valores sem cortar), 5 no iPad e no computador
  * (duas linhas cheias, sem sobrar card sozinho) e 10 em telas muito largas. */
