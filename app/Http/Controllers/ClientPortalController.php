@@ -543,7 +543,9 @@ class ClientPortalController extends Controller
 
         $store = User::select('id', 'name', 'phone')->find($client->user_id);
 
-        return view('portal.quotes.create', compact('client', 'products', 'frequentIds', 'store'));
+        $paySettings = \App\Models\PaymentSetting::for((int) $client->user_id);
+
+        return view('portal.quotes.create', compact('client', 'products', 'frequentIds', 'store', 'paySettings'));
     }
 
     // ─── Catálogo Público (sem autenticação) ────────────────────────────────────
@@ -710,10 +712,36 @@ class ClientPortalController extends Controller
             'extra_items.*.qty'   => ['required_with:extra_items', 'integer', 'min:1'],
             'client_notes'        => ['nullable', 'string', 'max:1000'],
             'payment_preference'  => ['nullable', 'string', 'in:pix,dinheiro,credito,debito,boleto,outro'],
+            'checkout'            => ['nullable', 'in:pix,manual'],
+            'delivery_method'     => ['nullable', 'in:retirada,entrega'],
         ]);
 
         if (empty($validated['items']) && empty($validated['extra_items'])) {
             return back()->withErrors(['items' => 'Adicione pelo menos um produto ou item ao orçamento.']);
+        }
+
+        // Pagamento online (Mercado Pago) e entrega, quando a loja ligou.
+        $paySettings = \App\Models\PaymentSetting::for((int) $client->user_id);
+        $payNow = ($validated['checkout'] ?? null) === 'pix' && $paySettings?->pixReady();
+        if (! $payNow && ($validated['checkout'] ?? null) === 'manual' && $paySettings?->pixReady() && ! $paySettings->allow_manual) {
+            return back()->withErrors(['checkout' => 'Esta loja recebe os pedidos pelo Pix.']);
+        }
+        $delivery = $validated['delivery_method'] ?? null;
+        if ($paySettings && $paySettings->enabled) {
+            $delivery = $delivery === 'entrega' && $paySettings->delivery_enabled ? 'entrega' : ($paySettings->pickup_enabled ? 'retirada' : ($paySettings->delivery_enabled ? 'entrega' : null));
+        } else {
+            $delivery = null;
+        }
+        if ($payNow) {
+            if (! empty($validated['extra_items'])) {
+                return back()->withErrors(['checkout' => 'Itens descritos à mão precisam de orçamento da loja. Use "Combinar com a loja".']);
+            }
+            if (strlen(preg_replace('/\D+/', '', (string) $client->cpf_cnpj)) < 11) {
+                return back()->withErrors(['checkout' => 'Para pagar com Pix, cadastre seu CPF em Meus dados.']);
+            }
+        }
+        if ($delivery === 'entrega' && ! $client->hasRequiredPortalProfileData()) {
+            return back()->withErrors(['checkout' => 'Para entrega, complete seu endereço em Meus dados.']);
         }
 
         // Enrich items with product name (snapshot so name changes don't affect history)
@@ -749,8 +777,22 @@ class ClientPortalController extends Controller
             'items'              => $items,
             'extra_items'        => $extraItems ?: null,
             'client_notes'       => $validated['client_notes'] ?? null,
-            'payment_preference' => $validated['payment_preference'] ?? null,
+            'payment_preference' => $payNow ? 'pix' : ($validated['payment_preference'] ?? null),
+            'payment_status'     => $payNow ? 'pending' : null,
+            'delivery_method'    => $delivery,
+            'delivery_fee'       => $delivery === 'entrega' ? (float) $paySettings->delivery_fee : ($delivery ? 0 : null),
+            'shipping_address'   => $delivery === 'entrega' ? [
+                'name' => $client->name, 'phone' => $client->phone, 'cpf' => $client->cpf_cnpj,
+                'cep' => $client->cep, 'street' => $client->street, 'number' => $client->number,
+                'complement' => $client->complement, 'neighborhood' => $client->neighborhood,
+                'city' => $client->city, 'state' => $client->state, 'text' => $client->formattedPortalAddress(),
+            ] : null,
         ]);
+
+        // Pix: a loja é avisada quando o pagamento for aprovado.
+        if ($payNow) {
+            return redirect()->route('portal.quotes.pay', $quote);
+        }
 
         // Notificar o admin (dono da conta) sobre o novo orçamento do portal
         $owner = User::find($client->user_id);
@@ -777,8 +819,9 @@ class ClientPortalController extends Controller
         $orders = app(PortalOrderService::class);
         $products = $this->portalProductsFor($client, collect([$quote]));
         $store = User::select('id', 'name', 'phone')->find($client->user_id);
+        $paySettings = \App\Models\PaymentSetting::for((int) $client->user_id);
 
-        return view('portal.quotes.show', compact('client', 'quote', 'sale', 'isNew', 'orders', 'products', 'store'));
+        return view('portal.quotes.show', compact('client', 'quote', 'sale', 'isNew', 'orders', 'products', 'store', 'paySettings'));
     }
 
     public function respondToQuote(Request $request, ClientQuoteRequest $quote)
@@ -904,6 +947,9 @@ class ClientPortalController extends Controller
         $requiresOnboarding = $client->needsPortalOnboarding();
         $requiresPasswordSetup = (bool) $client->portal_force_password_change;
         $requiresProfileCompletion = ! $client->hasRequiredPortalProfileData();
+        if (request('volta') === 'carrinho') {
+            session()->put('portal_intended', 'cart'); // salvar volta para o carrinho
+        }
 
         $store = User::select('id', 'name', 'phone')->find($client->user_id);
 

@@ -24,6 +24,12 @@
         .pc-pay button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; border: 1px solid var(--ml-line); border-radius: 8px; background: #fff; font-size: 12px; font-weight: 700; color: #555; cursor: pointer; }
         .pc-pay button i { font-size: 16px; color: var(--ml-blue); }
         .pc-pay button.on { border-color: var(--ml-blue); background: var(--ml-blue-soft); color: var(--ml-blue-dark); box-shadow: 0 0 0 1px var(--ml-blue); }
+        .pc-opts { display: grid; gap: 8px; }
+        .pc-opt { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border: 1px solid var(--ml-line); border-radius: 8px; cursor: pointer; background: #fff; }
+        .pc-opt input { margin: 3px 0 0; accent-color: var(--ml-blue); width: 16px; height: 16px; flex-shrink: 0; }
+        .pc-opt strong { display: block; font-size: 14px; color: #222; }
+        .pc-opt small { display: block; font-size: 12px; color: var(--ml-muted); margin-top: 2px; }
+        .pc-opt.on { border-color: var(--ml-blue); box-shadow: 0 0 0 1px var(--ml-blue); background: #faf8ff; }
         .pc-addr { font-size: 13px; color: #444; line-height: 1.45; }
         .pc-addr strong { color: #222; }
         .pc-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: #fff; box-shadow: 0 -2px 12px rgba(0,0,0,.12); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; }
@@ -40,9 +46,24 @@
     $fresh = $products->mapWithKeys(fn ($p) => [$p->id => \App\Http\Controllers\ClientPortalController::cardInfo($p)]);
     $stockMap = $fresh->map(fn ($d) => $d['stock']);
     $address = $client->formattedPortalAddress();
+    // Pagamento online (Mercado Pago) e entrega, quando a loja ligou em Configurações.
+    $online = $paySettings && $paySettings->enabled;
+    $pixReady = $paySettings?->pixReady() ?? false;
+    $allowManual = ! $pixReady || $paySettings->allow_manual;
+    $canPickup = ! $online || $paySettings->pickup_enabled;
+    $canDeliver = $online && $paySettings->delivery_enabled;
+    $checkoutCfg = [
+        'pix'        => $pixReady,
+        'manual'     => $allowManual,
+        'pickup'     => $online && $canPickup,
+        'deliver'    => $canDeliver,
+        'fee'        => $canDeliver ? (float) $paySettings->delivery_fee : 0,
+        'hasCpf'     => strlen(preg_replace('/\D+/', '', (string) $client->cpf_cnpj)) >= 11,
+        'hasAddress' => $client->hasRequiredPortalProfileData(),
+    ];
 @endphp
 
-<div class="po-page" x-data="portalCart(@js($fresh), @js($stockMap))">
+<div class="po-page" x-data="portalCart(@js($fresh), @js($stockMap), @js($checkoutCfg))">
     <div class="po-head">
         <div>
             <h1>Carrinho</h1>
@@ -102,7 +123,7 @@
             <section class="po-card">
                 <div class="pa-sec-head">
                     <h2>Seus dados</h2>
-                    <a href="{{ route('portal.profile') }}">Alterar</a>
+                    <a href="{{ route('portal.profile', ['volta' => 'carrinho']) }}">Alterar</a>
                 </div>
                 <div class="po-card-body pc-addr">
                     <strong>{{ $client->name }}</strong><br>
@@ -111,7 +132,7 @@
                     @if($address)
                         <i class="fas fa-location-dot" style="color:var(--ml-blue)"></i> {{ $address }}
                     @else
-                        <span class="tone-amber">Sem endereço cadastrado.</span> <a href="{{ route('portal.profile') }}" style="color:var(--ml-blue-dark);font-weight:700">Cadastrar endereço</a>
+                        <span class="tone-amber">Sem endereço cadastrado.</span> <a href="{{ route('portal.profile', ['volta' => 'carrinho']) }}" style="color:var(--ml-blue-dark);font-weight:700">Cadastrar endereço</a>
                     @endif
                 </div>
             </section>
@@ -124,11 +145,51 @@
                     <table class="po-sum">
                         <tr><td x-text="'Produtos (' + units + ')'"></td><td x-text="money(totalOld)"></td></tr>
                         <tr x-show="totalOld - $store.cart.total > 0.009"><td>Descontos</td><td style="color:var(--ml-green)" x-text="'− ' + money(totalOld - $store.cart.total)"></td></tr>
-                        <tr class="po-sum-total"><td>Total</td><td x-text="money($store.cart.total)"></td></tr>
+                        <tr x-show="delivery === 'entrega'"><td>Entrega</td><td x-text="cfg.fee > 0 ? money(cfg.fee) : 'Grátis'"></td></tr>
+                        <tr class="po-sum-total"><td>Total</td><td x-text="money(grand)"></td></tr>
                     </table>
-                    <p class="po-hint" style="margin-top:8px">A loja confirma os valores e combina a entrega com você.</p>
+                    <p class="po-hint" style="margin-top:8px" x-show="checkout !== 'pix'">A loja confirma os valores e combina a entrega com você.</p>
                 </div>
+
+                @if($online && ($canPickup || $canDeliver))
                 <div class="po-card-body" style="border-top:1px solid var(--ml-line)">
+                    <p class="po-sec-title" style="font-size:14px;margin-bottom:10px">Entrega</p>
+                    <div class="pc-opts">
+                        @if($canPickup)
+                        <label class="pc-opt" :class="{ on: delivery === 'retirada' }">
+                            <input type="radio" value="retirada" x-model="delivery">
+                            <span><strong>Retirar com a loja</strong><small>Grátis. A loja combina o horário.</small></span>
+                        </label>
+                        @endif
+                        @if($canDeliver)
+                        <label class="pc-opt" :class="{ on: delivery === 'entrega' }">
+                            <input type="radio" value="entrega" x-model="delivery">
+                            <span><strong>Receber em casa</strong><small>{{ (float) $paySettings->delivery_fee > 0 ? 'Taxa de R$ ' . number_format((float) $paySettings->delivery_fee, 2, ',', '.') : 'Entrega grátis' }}@if($paySettings->delivery_note) · {{ $paySettings->delivery_note }}@endif</small></span>
+                        </label>
+                        @endif
+                    </div>
+                    <p class="pf-err" x-show="delivery === 'entrega' && !cfg.hasAddress" style="margin-top:8px">Complete seu endereço em <a href="{{ route('portal.profile', ['volta' => 'carrinho']) }}" style="text-decoration:underline">Meus dados</a> para receber em casa.</p>
+                </div>
+                @endif
+
+                <div class="po-card-body" style="border-top:1px solid var(--ml-line)">
+                    @if($pixReady)
+                    <p class="po-sec-title" style="font-size:14px;margin-bottom:10px">Pagamento</p>
+                    <div class="pc-opts">
+                        <label class="pc-opt" :class="{ on: checkout === 'pix' }">
+                            <input type="radio" value="pix" x-model="checkout">
+                            <span><strong><i class="fas fa-qrcode" style="color:#32bcad"></i> Pagar agora com Pix</strong><small>Aprovação na hora pelo Mercado Pago.</small></span>
+                        </label>
+                        @if($allowManual)
+                        <label class="pc-opt" :class="{ on: checkout === 'manual' }">
+                            <input type="radio" value="manual" x-model="checkout">
+                            <span><strong>Combinar com a loja</strong><small>Você paga quando a loja confirmar o pedido.</small></span>
+                        </label>
+                        @endif
+                    </div>
+                    <p class="pf-err" x-show="checkout === 'pix' && !cfg.hasCpf" style="margin-top:8px">Para pagar com Pix, cadastre seu CPF em <a href="{{ route('portal.profile', ['volta' => 'carrinho']) }}" style="text-decoration:underline">Meus dados</a>.</p>
+                    @endif
+                    <div x-show="checkout !== 'pix'" @if($pixReady) style="margin-top:14px" @endif>
                     <p class="po-sec-title" style="font-size:14px;margin-bottom:10px">Como prefere pagar?</p>
                     <div class="pc-pay">
                         <template x-for="opt in payOptions" :key="opt.val">
@@ -137,12 +198,13 @@
                             </button>
                         </template>
                     </div>
+                    </div>
                     <div class="pf-field" style="margin-top:14px">
                         <label class="pf-label" for="cartNotes">Observação <small>(opcional)</small></label>
                         <textarea id="cartNotes" x-model="notes" rows="2" maxlength="1000" placeholder="Ex.: entregar depois das 18h" class="pf-input"></textarea>
                     </div>
-                    <button type="button" class="po-btn po-btn-primary po-btn-block" style="height:48px;font-size:15px;margin-top:14px" @click="send()" :disabled="sending" data-testid="cart-send">
-                        <i class="fas fa-paper-plane"></i> <span x-text="sending ? 'Enviando…' : 'Enviar pedido'"></span>
+                    <button type="button" class="po-btn po-btn-primary po-btn-block" style="height:48px;font-size:15px;margin-top:14px" @click="send()" :disabled="sending || blocked" data-testid="cart-send">
+                        <i class="fas" :class="checkout === 'pix' ? 'fa-qrcode' : 'fa-paper-plane'"></i> <span x-text="sending ? 'Enviando…' : sendLabel"></span>
                     </button>
                 </div>
             </section>
@@ -152,9 +214,9 @@
     <div class="pc-bar" x-show="$store.cart.count" x-cloak>
         <div>
             <div class="po-total-lbl">Total</div>
-            <div class="po-total" x-text="money($store.cart.total)"></div>
+            <div class="po-total" x-text="money(grand)"></div>
         </div>
-        <button type="button" class="po-btn po-btn-primary" @click="send()" :disabled="sending"><i class="fas fa-paper-plane"></i> Enviar pedido</button>
+        <button type="button" class="po-btn po-btn-primary" @click="send()" :disabled="sending || blocked"><i class="fas" :class="checkout === 'pix' ? 'fa-qrcode' : 'fa-paper-plane'"></i> <span x-text="sendLabel"></span></button>
     </div>
 
     <form method="POST" action="{{ route('portal.quotes.store') }}" x-ref="form" style="display:none">
@@ -165,7 +227,9 @@
                 <input type="hidden" :name="'items[' + i + '][quantity]'" :value="item.qty">
             </span>
         </template>
-        <input type="hidden" name="payment_preference" :value="pay">
+        <input type="hidden" name="payment_preference" :value="checkout === 'pix' ? 'pix' : pay">
+        <input type="hidden" name="checkout" :value="checkout">
+        <input type="hidden" name="delivery_method" :value="delivery">
         <input type="hidden" name="client_notes" :value="notes">
     </form>
 
@@ -174,9 +238,12 @@
 
 @push('scripts')
 <script>
-function portalCart(fresh, stockMap) {
+function portalCart(fresh, stockMap, cfg) {
     return {
         fresh,
+        cfg,
+        checkout: cfg.pix ? 'pix' : 'manual',
+        delivery: cfg.pickup ? 'retirada' : (cfg.deliver ? 'entrega' : ''),
         removed: 0,
         pay: '',
         notes: '',
@@ -206,12 +273,15 @@ function portalCart(fresh, stockMap) {
                 this.flash('Adicionado: ' + fresh[pre].name);
             }
         },
+        get grand() { return Alpine.store('cart').total + (this.delivery === 'entrega' ? (Number(this.cfg.fee) || 0) : 0); },
+        get blocked() { return (this.checkout === 'pix' && !this.cfg.hasCpf) || (this.delivery === 'entrega' && !this.cfg.hasAddress); },
+        get sendLabel() { return this.checkout === 'pix' ? 'Ir para o pagamento' : 'Enviar pedido'; },
         get units() { return Alpine.store('cart').items.reduce((s, i) => s + (i.qty || 1), 0); },
         get totalOld() { return Alpine.store('cart').items.reduce((s, i) => s + ((this.fresh[i.id]?.old || i.price) * (i.qty || 1)), 0); },
         money(v) { return (Number(v) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); },
         flash(msg) { this.toast = msg; clearTimeout(this._t); this._t = setTimeout(() => this.toast = '', 2200); },
         send() {
-            if (!Alpine.store('cart').count || this.sending) return;
+            if (!Alpine.store('cart').count || this.sending || this.blocked) return;
             this.sending = true;
             // O envio monta os campos na hora da chamada; depois o carrinho pode ser limpo.
             this.$refs.form.submit();

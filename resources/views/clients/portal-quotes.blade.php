@@ -340,6 +340,25 @@
                         <i class="fas fa-hourglass-half text-[8px]"></i>
                         válido até {{ $autoValidDate->format('d/m/Y') }}
                     </span>
+                    @if($quote->payment_status === 'approved')
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 text-[10px] font-bold text-emerald-700 dark:text-emerald-300" data-testid="paid-pix">
+                        <i class="bi bi-check-circle-fill text-[9px]"></i> Pago pelo Pix{{ $quote->paid_at ? ' · ' . $quote->paid_at->format('d/m H:i') : '' }}
+                    </span>
+                    @elseif(in_array($quote->payment_status, ['pending', 'expired', 'cancelled', 'rejected'], true) && ! $quote->sale)
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                        <i class="bi bi-hourglass-split text-[9px]"></i> {{ $quote->payment_status === 'pending' ? 'Pix gerado, aguardando pagamento' : 'Pix não pago' }}
+                    </span>
+                    @elseif($quote->payment_status === 'refunded')
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/40 text-[10px] font-bold text-rose-700 dark:text-rose-300">
+                        <i class="bi bi-arrow-counterclockwise text-[9px]"></i> Pix devolvido
+                    </span>
+                    @endif
+                    @if($quote->delivery_method)
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-violet-50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-800/30 text-[10px] font-bold text-violet-600 dark:text-violet-300">
+                        <i class="bi {{ $quote->delivery_method === 'entrega' ? 'bi-truck' : 'bi-shop' }} text-[9px]"></i>
+                        {{ $quote->delivery_method === 'entrega' ? 'Entregar' . ((float) $quote->delivery_fee > 0 ? ' · R$ ' . number_format((float) $quote->delivery_fee, 2, ',', '.') : '') : 'Retira com você' }}
+                    </span>
+                    @endif
                     @if($quote->items)
                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800/30 text-[10px] font-bold text-sky-600 dark:text-sky-300">
                         <i class="fas fa-boxes text-[8px]"></i> {{ count($quote->items) }} produto{{ count($quote->items)!==1?'s':'' }}
@@ -347,6 +366,13 @@
                     @endif
                 </div>
             </div>
+
+            @if($quote->delivery_method === 'entrega' && filled($quote->shipping_address['text'] ?? null))
+            <div class="mx-4 mt-3 flex items-start gap-2 rounded-xl bg-violet-50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-800/30 px-3 py-2.5">
+                <i class="bi bi-geo-alt-fill text-violet-500 text-sm mt-0.5 shrink-0"></i>
+                <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">{{ $quote->shipping_address['text'] }}</p>
+            </div>
+            @endif
 
             {{-- Nota do cliente --}}
             @if($quote->client_notes)

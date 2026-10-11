@@ -14,6 +14,7 @@ class ClientQuoteRequest extends Model
         'client_notes', 'admin_notes',
         'quoted_total', 'valid_until',
         'payment_preference',
+        'payment_status', 'payment_amount', 'paid_at', 'delivery_method', 'delivery_fee', 'shipping_address',
         'responded_at', 'client_seen_status', 'client_notified_at',
     ];
 
@@ -24,6 +25,10 @@ class ClientQuoteRequest extends Model
         'valid_until'  => 'date',
         'responded_at' => 'datetime',
         'client_notified_at' => 'datetime',
+        'paid_at'          => 'datetime',
+        'payment_amount'   => 'decimal:2',
+        'delivery_fee'     => 'decimal:2',
+        'shipping_address' => 'array',
     ];
 
     /** Status em que a loja já deu uma resposta que o cliente precisa ver. */
@@ -59,6 +64,11 @@ class ClientQuoteRequest extends Model
      * Venda criada quando a loja confirmou o pedido. Sem o escopo de equipe
      * porque o portal não tem usuário da loja logado; a busca já é pelo id.
      */
+    public function payments()
+    {
+        return $this->hasMany(PortalPayment::class, 'quote_id');
+    }
+
     public function sale()
     {
         return $this->hasOne(Sale::class, 'portal_quote_id')

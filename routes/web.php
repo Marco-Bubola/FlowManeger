@@ -185,6 +185,10 @@ Route::middleware('portal.auth')->prefix('portal')->name('portal.')->group(funct
     Route::get('/orcamentos/novo', [ClientPortalController::class, 'createQuote'])->name('quotes.create');
     Route::post('/orcamentos', [ClientPortalController::class, 'storeQuote'])->name('quotes.store');
     Route::get('/orcamentos/{quote}', [ClientPortalController::class, 'showQuote'])->name('quotes.show');
+    // Pagamento online do pedido (Pix pelo Mercado Pago)
+    Route::get('/orcamentos/{quote}/pagar', [\App\Http\Controllers\PortalPaymentController::class, 'show'])->name('quotes.pay');
+    Route::get('/orcamentos/{quote}/pagamento', [\App\Http\Controllers\PortalPaymentController::class, 'status'])->name('quotes.pay.status');
+    Route::post('/orcamentos/{quote}/combinar', [\App\Http\Controllers\PortalPaymentController::class, 'manual'])->name('quotes.manual');
     Route::patch('/orcamentos/{quote}/resposta', [ClientPortalController::class, 'respondToQuote'])->name('quotes.respond');
     Route::get('/orcamentos/{quote}/editar', [ClientPortalController::class, 'editQuote'])->name('quotes.edit');
     Route::put('/orcamentos/{quote}', [ClientPortalController::class, 'updateQuote'])->name('quotes.update');
@@ -382,6 +386,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/devices', 'settings.devices')->name('settings.devices');
     Volt::route('settings/plan', 'settings.plan')->name('settings.plan');
     Volt::route('settings/connections', 'settings.connections')->name('settings.connections');
+    Volt::route('settings/pagamentos', 'settings.payments')->name('settings.payments');
 
     // --- Outras Rotas ---
     Route::redirect('settings', 'settings/profile');
@@ -510,6 +515,12 @@ Route::prefix('mercadolivre')->middleware(['auth'])->name('mercadolivre.')->grou
     Route::post('/api/products/{id}/update-price', [MercadoLivreProductController::class, 'updatePrice'])
         ->name('api.products.update-price');
 });
+
+// Aviso do Mercado Pago sobre pagamentos do portal (público; o pagamento é conferido na API)
+Route::post('/pagamentos/mercadopago/{user}/aviso', [\App\Http\Controllers\PortalPaymentController::class, 'webhook'])
+    ->whereNumber('user')
+    ->name('payments.mercadopago.webhook')
+    ->withoutMiddleware(['auth', 'web']);
 
 // Webhook endpoint (sem middleware auth - ML precisa acessar externamente)
 Route::post('/mercadolivre/webhooks', [WebhookController::class, 'handle'])

@@ -125,6 +125,10 @@ class PortalOrderService
             return ['paid', 'Pago', 'green', 'Pagamento recebido pela loja.'];
         }
 
+        if (! $sale && $quote->status === 'pending' && in_array($quote->payment_status, ['pending', 'expired', 'cancelled', 'rejected'], true)) {
+            return ['awaiting_payment', 'Aguardando pagamento', 'amber', 'Pague o Pix para a loja receber o seu pedido.'];
+        }
+
         return match ($quote->status) {
             'approved' => ['confirmed', 'Confirmado', 'green', $sale ? 'A loja confirmou o seu pedido.' : 'Você aceitou a proposta. A loja vai finalizar o pedido.'],
             'rejected' => ['rejected', 'Recusado', 'red', 'A loja não pôde atender este pedido.'],
@@ -175,7 +179,7 @@ class PortalOrderService
         $steps[] = [
             'key' => 'paid', 'label' => 'Pago',
             'state' => $paid ? 'done' : ($confirmed && $sale ? 'current' : 'todo'),
-            'date' => $paid ? $this->paidAt($sale) : null,
+            'date' => $paid ? ($quote->paid_at ?? $this->paidAt($sale)) : null,
             'text' => $paid ? 'Pagamento recebido.' : ($sale && (float) $sale->total_paid > 0
                 ? 'Pago ' . $this->money((float) $sale->total_paid) . ' de ' . $this->money((float) $sale->total_price) . '.'
                 : 'Aguardando pagamento.'),

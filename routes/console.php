@@ -43,6 +43,11 @@ Schedule::command('promotions:refresh')
     ->hourly()
     ->withoutOverlapping();
 
+// Pix do portal: confere os em aberto caso o aviso do Mercado Pago se perca
+Schedule::command('payments:sync')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
+
 // Lançamentos recorrentes do livro-caixa (aluguel, salário, assinaturas...)
 Schedule::command('recorrentes:gerar')
     ->dailyAt('06:00')

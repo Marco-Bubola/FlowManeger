@@ -18,6 +18,11 @@
     $storePhone = app(\App\Services\Collections\CollectionService::class)->whatsappPhone($store?->phone);
     $storeWa = $storePhone ? 'https://wa.me/' . $storePhone . '?text=' . rawurlencode("Oi! Sobre o meu pedido #{$quote->id} no catálogo:") : null;
     $fmt = fn ($d) => $d?->locale('pt_BR')->translatedFormat('j \d\e M. \d\e Y, H:i');
+    $canPay = ! $sale && $quote->status === 'pending' && $paySettings?->pixReady()
+        && in_array($quote->payment_status, ['pending', 'expired', 'cancelled', 'rejected'], true);
+    $paidOnline = $quote->payment_status === 'approved';
+    $deliveryFee = (float) ($quote->delivery_fee ?? 0);
+    $addr = $quote->shipping_address ?? [];
 @endphp
 
 <div class="po-page" x-data="{ deleteModal: false }">
@@ -47,6 +52,15 @@
                     </div>
                     <p class="po-status tone-{{ $tone }}" style="font-size:20px;margin-top:12px">{{ $statusLabel }}</p>
                     <p class="po-hint">{{ $hint }}</p>
+
+                    @if($canPay)
+                        <a href="{{ route('portal.quotes.pay', $quote) }}" class="po-btn po-btn-block" data-testid="pay-pix"
+                           style="margin-top:12px;background:#00a650;color:#fff"><i class="fas fa-qrcode"></i> Pagar com Pix</a>
+                    @elseif($paidOnline)
+                        <div class="po-msg" data-testid="paid-online" style="margin-top:12px;white-space:normal;background:#e6f7ee;color:#00a650;font-weight:600">
+                            <i class="fas fa-circle-check"></i> Pago pelo Pix{{ $quote->paid_at ? ' em ' . $fmt($quote->paid_at) : '' }}
+                        </div>
+                    @endif
 
                     @if($quote->status === 'quoted')
                         <div class="po-msg" style="margin-top:12px;white-space:normal">
@@ -150,9 +164,15 @@
                 <div class="po-card-body">
                     <h2 class="po-sec-title">Resumo</h2>
                     <table class="po-sum" data-testid="summary">
-                        @if($itemsTotal > 0 && abs($itemsTotal - $total) > 0.009)
+                        @php $adjust = $total - $itemsTotal - ($quote->delivery_method === 'entrega' ? $deliveryFee : 0); @endphp
+                        @if($itemsTotal > 0 && (abs($adjust) > 0.009 || $quote->delivery_method === 'entrega'))
                             <tr><td>Produtos</td><td>{{ $orders->money($itemsTotal) }}</td></tr>
-                            <tr><td>{{ $total < $itemsTotal ? 'Desconto' : 'Ajuste da loja' }}</td><td>{{ $total < $itemsTotal ? '− ' : '' }}{{ $orders->money(abs($total - $itemsTotal)) }}</td></tr>
+                        @endif
+                        @if($itemsTotal > 0 && abs($adjust) > 0.009)
+                            <tr><td>{{ $adjust < 0 ? 'Desconto' : 'Ajuste da loja' }}</td><td>{{ $adjust < 0 ? '− ' : '' }}{{ $orders->money(abs($adjust)) }}</td></tr>
+                        @endif
+                        @if($quote->delivery_method)
+                            <tr><td>{{ $quote->delivery_method === 'entrega' ? 'Entrega' : 'Retirada' }}</td><td>{{ $quote->delivery_method === 'entrega' ? ($deliveryFee > 0 ? $orders->money($deliveryFee) : 'Grátis') : 'Com a loja' }}</td></tr>
                         @endif
                         @if($sale?->payment_method || $quote->payment_preference)
                             <tr><td>Pagamento</td><td>
@@ -172,6 +192,15 @@
                     @endif
                 </div>
             </div>
+
+            @if($quote->delivery_method === 'entrega' && ! empty($addr))
+                <div class="po-card">
+                    <div class="po-card-body">
+                        <h2 class="po-sec-title">Endereço de entrega</h2>
+                        <p style="margin:0;font-size:14px;color:#444;line-height:1.5;white-space:pre-line" data-testid="ship-address">{{ $addr['text'] ?? '' }}</p>
+                    </div>
+                </div>
+            @endif
 
             @if(filled($quote->client_notes))
                 <div class="po-card">

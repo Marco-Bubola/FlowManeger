@@ -83,5 +83,9 @@ return [
         'model' => env('ANTHROPIC_MODEL', 'claude-3-5-haiku-latest'),
     ],
 
-];
+    // Pix do portal: as credenciais de cada loja ficam em payment_settings (criptografadas).
+    'mercadopago' => [
+        'base_url' => env('MERCADOPAGO_BASE_URL', 'https://api.mercadopago.com'),
+    ],
 
+];
