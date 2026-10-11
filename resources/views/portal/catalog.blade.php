@@ -7,38 +7,8 @@
     ));
     $cartUrl = Auth::guard('portal')->check() ? route('portal.quotes.create') : route('portal.login', ['redirect' => 'cart']);
 
-    // Dados de cada produto para o card, a ficha e o carrinho.
-    $info = function ($p) {
-        $promo = $p->livePromotion();
-        $imgs = $p->all_images;
-        $price = $promo ? (float) $promo->promo_price : (float) $p->price_sale;
-        $endsIn = null;
-        if ($promo && $promo->ends_at) {
-            $hours = now()->diffInHours($promo->ends_at, false);
-            $endsIn = $hours < 24 ? 'Termina hoje' : 'Termina em ' . (int) ceil($hours / 24) . ' dias';
-        }
-        $name = $p->variation_value && ! str_contains(mb_strtolower($p->name), mb_strtolower($p->variation_value))
-            ? $p->name . ' · ' . $p->variation_value
-            : $p->name;
-
-        return [
-            'id'      => $p->id,
-            'name'    => $name,
-            'price'   => $price,
-            'old'     => $promo ? (float) $promo->original_price : null,
-            'pct'     => $promo ? (int) $promo->discount_percent : null,
-            'ends'    => $endsIn,
-            'stock'   => min((int) $p->stock_quantity, 10), // teto: o cliente não vê o estoque real
-            'img'     => $imgs[0] ?? null,
-            'imgs'    => $imgs,
-            'cat'     => $p->category?->name,
-            'desc'    => trim((string) $p->description),
-            'brand'   => $p->brand,
-            'model'   => $p->model,
-            'code'    => $p->product_code,
-            'specs'   => collect($p->specs ?? [])->filter(fn ($s) => ($s['n'] ?? '') !== '' && ($s['v'] ?? '') !== '')->values()->all(),
-        ];
-    };
+    // Dados de cada produto para o card, a ficha e o carrinho (montados no controller).
+    $info = fn ($p) => \App\Http\Controllers\ClientPortalController::cardInfo($p);
 
     $all = collect();
     foreach ($offers as $o) { $all[$o->id] = $info($o); }
@@ -147,10 +117,11 @@
     .ml-rail .ml-card-body { padding: 8px 10px 12px; }
 
     /* Paginação */
-    .ml-pages { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 22px 0 8px; flex-wrap: wrap; }
-    .ml-pages a, .ml-pages span { min-width: 40px; height: 40px; padding: 0 14px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; background: #fff; box-shadow: var(--ml-shadow); color: var(--ml-blue); }
-    .ml-pages span.cur { background: var(--ml-blue); color: #fff; }
-    .ml-pages span.off { color: #bbb; box-shadow: none; background: transparent; }
+    .ml-more { display: flex; justify-content: center; align-items: center; min-height: 56px; margin: 18px 0 8px; color: var(--ml-muted, #777); font-size: 13px; }
+    .ml-more-load { display: inline-flex; align-items: center; gap: 10px; }
+    .ml-more-end { opacity: .8; }
+    .ml-spin { width: 20px; height: 20px; border-radius: 50%; border: 3px solid rgba(52,131,250,.25); border-top-color: var(--ml-blue); animation: mlspin .8s linear infinite; }
+    @keyframes mlspin { to { transform: rotate(360deg); } }
 
     /* Vazio */
     .ml-empty { padding: 48px 20px; text-align: center; }
@@ -385,21 +356,12 @@
             @endforeach
         </div>
 
-        @if($products->lastPage() > 1)
-            <nav class="ml-pages" aria-label="Páginas">
-                @if($products->onFirstPage())
-                    <span class="off"><i class="fas fa-chevron-left"></i>&nbsp; Anterior</span>
-                @else
-                    <a href="{{ $products->previousPageUrl() }}"><i class="fas fa-chevron-left"></i>&nbsp; Anterior</a>
-                @endif
-                <span class="cur">{{ $products->currentPage() }} de {{ $products->lastPage() }}</span>
-                @if($products->hasMorePages())
-                    <a href="{{ $products->nextPageUrl() }}">Seguinte &nbsp;<i class="fas fa-chevron-right"></i></a>
-                @else
-                    <span class="off">Seguinte &nbsp;<i class="fas fa-chevron-right"></i></span>
-                @endif
-            </nav>
-        @endif
+        {{-- Rolagem infinita: carrega a próxima leva ao chegar perto do fim --}}
+        <div class="ml-more" x-ref="more" data-next="{{ $products->nextPageUrl() }}">
+            <template x-if="moreLoading"><span class="ml-more-load"><span class="ml-spin"></span> Carregando mais produtos…</span></template>
+            <template x-if="moreError && !moreLoading"><button type="button" class="ml-btn ml-btn-sm" @click="loadMore()">Tentar de novo</button></template>
+            <template x-if="!moreNext && !moreLoading"><span class="ml-more-end">Você viu todos os produtos</span></template>
+        </div>
     @endif
 
     {{-- Ficha do produto --}}
@@ -602,6 +564,45 @@ function mlCatalog(products, cartUrl, stockMap, focusId = null) {
             Alpine.store('cart').sync(stockMap);
             // Link direto para um produto (?produto=ID), ex.: aviso do WhatsApp.
             if (focusId && this.products[focusId]) this.$nextTick(() => this.open(focusId));
+            // Rolagem infinita do catálogo.
+            const more = this.$refs.more;
+            if (more) {
+                this.moreNext = more.dataset.next || null;
+                if (this.moreNext && 'IntersectionObserver' in window) {
+                    this.moreObs = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) this.loadMore(); }, { rootMargin: '900px 0px' });
+                    this.moreObs.observe(more);
+                }
+            }
+        },
+        moreNext: null,
+        moreLoading: false,
+        moreError: false,
+        moreObs: null,
+        async loadMore() {
+            if (!this.moreNext || this.moreLoading) return;
+            this.moreLoading = true;
+            this.moreError = false;
+            try {
+                const url = new URL(this.moreNext, location.href);
+                url.searchParams.set('frag', '1');
+                const r = await fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+                if (!r.ok) throw new Error(r.status);
+                const data = await r.json();
+                Object.assign(this.products, data.items || {});
+                const grid = this.$refs.more.previousElementSibling;
+                if (grid && data.html) grid.insertAdjacentHTML('beforeend', data.html);
+                this.moreNext = data.next || null;
+                if (!this.moreNext && this.moreObs) this.moreObs.disconnect();
+            } catch (e) {
+                this.moreError = true;
+            } finally {
+                this.moreLoading = false;
+                // Tela grande pode já mostrar o fim: confere de novo.
+                this.$nextTick(() => {
+                    const m = this.$refs.more;
+                    if (this.moreNext && !this.moreError && m && m.getBoundingClientRect().top < innerHeight + 900) this.loadMore();
+                });
+            }
         },
         products,
         p: null,

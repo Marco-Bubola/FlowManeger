@@ -268,6 +268,34 @@ class PortalOrderService
         ][$method ?? ''] ?? ucfirst((string) $method);
     }
 
+    /**
+     * Situação de uma compra para o cliente: [rótulo, tom, dica]. Tons iguais aos de "Meus pedidos".
+     */
+    public function saleStatus(Sale $sale): array
+    {
+        if (in_array($sale->status, ['cancelada', 'cancelado', 'cancelled'], true)) {
+            return ['Cancelada', 'gray', 'Esta compra foi cancelada pela loja.'];
+        }
+        $remaining = max(0, (float) $sale->total_price - (float) $sale->total_paid);
+        if ($this->isDelivered($sale)) {
+            return ['Entregue', 'green', $remaining > 0.009 ? 'Falta pagar ' . $this->money($remaining) . '.' : 'Compra concluída e paga.'];
+        }
+        if ($this->isPaid($sale)) {
+            return ['Paga', 'green', 'Pagamento recebido. Obrigado!'];
+        }
+        if ((float) $sale->total_paid > 0) {
+            return ['Paga em parte', 'amber', 'Falta pagar ' . $this->money($remaining) . '.'];
+        }
+
+        return ['Aguardando pagamento', 'amber', $remaining > 0 ? 'Total a pagar: ' . $this->money($remaining) . '.' : 'A loja vai combinar o pagamento com você.'];
+    }
+
+    /** Primeira foto de um produto do pedido (ou null). */
+    public function photo($product): ?string
+    {
+        return $this->imageOf($product);
+    }
+
     public function money(float $value): string
     {
         return 'R$ ' . number_format($value, 2, ',', '.');

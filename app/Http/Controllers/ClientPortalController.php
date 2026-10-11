@@ -405,8 +405,8 @@ class ClientPortalController extends Controller
         $client = Auth::guard('portal')->user();
 
         $totalSales    = $this->portalSales($client)->count();
-        $totalPaid     = $this->portalSales($client)->sum('amount_paid');
-        $pendingSales  = $this->portalSales($client)->where('status', 'pending')->count();
+        $totalPaid     = $this->portalSales($client)->with('payments')->get()->sum(fn ($s) => $s->total_paid);
+        $pendingSales  = $this->portalSales($client)->whereIn('status', ['pending', 'pendente', 'orcamento'])->count();
         $recentSales   = $this->portalSales($client)->with(['saleItems.product' => fn ($q) => $q->withoutGlobalScope('team_visibility')])
             ->where('client_id', $client->id)
             ->latest()
@@ -417,8 +417,11 @@ class ClientPortalController extends Controller
             ->limit(3)
             ->get();
 
+        $store = User::select('id', 'name', 'phone')->find($client->user_id);
+        $openOrders = ClientQuoteRequest::where('client_id', $client->id)->whereIn('status', ['pending', 'reviewing', 'quoted'])->count();
+
         return view('portal.dashboard', compact(
-            'client', 'totalSales', 'totalPaid', 'pendingSales', 'recentSales', 'recentQuotes'
+            'client', 'totalSales', 'totalPaid', 'pendingSales', 'recentSales', 'recentQuotes', 'store', 'openOrders'
         ));
     }
 
@@ -441,8 +444,10 @@ class ClientPortalController extends Controller
             ->get()
             ->sum(fn($s) => $s->total_paid);
 
+        $store = User::select('id', 'name', 'phone')->find($client->user_id);
+
         return view('portal.sales', compact(
-            'client', 'sales',
+            'client', 'sales', 'store',
             'kpiTotal', 'kpiTotalValue', 'kpiPending', 'kpiPaid'
         ));
     }
@@ -452,43 +457,12 @@ class ClientPortalController extends Controller
         /** @var \App\Models\Client $client */
         $client = Auth::guard('portal')->user();
 
-        $search   = request('search', '');
-        $category = request('category', '');
-
-        $query = Product::withoutGlobalScope('team_visibility')
-            ->where('user_id', $client->user_id)
-            ->where('stock_quantity', '>', 0)
-            ->whereIn('status', ['active', 'ativo'])
-            ->topOfFamily() // variações: só a mais cara com estoque
-            ->with(['category', 'images']);
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        if ($category) {
-            $query->where('category_id', $category);
-        }
-
-        $categories = Category::where('user_id', $client->user_id)->orderBy('name')->get();
-
-        // Com filtro ativo: lista paginada flat
-        // Sem filtro: todos os produtos agrupados por categoria
-        if ($search || $category) {
-            $products = $query->orderBy('name')->paginate(24);
-            $grouped  = null;
-        } else {
-            $products = null;
-            $all = $query->orderBy('name')->get();
-            // Agrupa preservando ordem: categorias com nome primeiro, sem categoria no fim
-            $grouped = $all->sortBy(fn($p) => $p->category?->name ?? 'ZZZZ')
-                           ->groupBy(fn($p) => $p->category_id ?? 0);
-        }
-
-        return view('portal.products', compact('client', 'products', 'grouped', 'categories', 'search', 'category'));
+        // O catálogo do cliente logado é o mesmo catálogo da loja (mesma tela e busca).
+        return redirect()->route('portal.catalog', array_filter([
+            'userId'   => $client->user_id,
+            'search'   => request('search'),
+            'category' => request('category'),
+        ]));
     }
 
     public function quotes()
@@ -553,7 +527,7 @@ class ClientPortalController extends Controller
             ->where('stock_quantity', '>', 0)
             ->whereIn('status', ['active', 'ativo'])
             ->topOfFamily()
-            ->with('category')
+            ->with(['category', 'images', 'activePromotion'])
             ->orderBy('name')
             ->get();
 
@@ -567,7 +541,9 @@ class ClientPortalController extends Controller
             ->take(10)
             ->toArray();
 
-        return view('portal.quotes.create', compact('client', 'products', 'frequentIds'));
+        $store = User::select('id', 'name', 'phone')->find($client->user_id);
+
+        return view('portal.quotes.create', compact('client', 'products', 'frequentIds', 'store'));
     }
 
     // ─── Catálogo Público (sem autenticação) ────────────────────────────────────
@@ -631,8 +607,22 @@ class ClientPortalController extends Controller
             'nome'  => $query->orderBy('name'),
             default => $query->orderByDesc('updated_at'),
         };
+        $query->orderByDesc('id'); // desempate: a rolagem infinita não repete nem pula produto
 
         $products   = $query->with(['category', 'activePromotion', 'images'])->paginate(30)->withQueryString();
+
+        // Rolagem infinita: as páginas seguintes vêm só com os cards e os dados deles.
+        if ($request->boolean('frag')) {
+            $items = [];
+            $html = '';
+            foreach ($products as $p) {
+                $items[$p->id] = self::cardInfo($p);
+                $html .= view('portal.partials.ml-card', ['d' => $items[$p->id]])->render();
+            }
+            $next = $products->hasMorePages() ? $products->appends('frag', null)->nextPageUrl() : null;
+
+            return response()->json(['html' => $html, 'items' => (object) $items, 'next' => $next]);
+        }
 
         // Tudo que está à venda (com estoque): contagens e conferência do carrinho.
         $inStock = Product::withoutGlobalScope('team_visibility')
@@ -667,6 +657,42 @@ class ClientPortalController extends Controller
             : null;
 
         return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers', 'sort', 'store', 'stockMap', 'unitsInStock', 'countByCategory', 'focus'));
+    }
+
+    /**
+     * Dados de um produto para o card, a ficha e o carrinho do catálogo público.
+     */
+    public static function cardInfo(Product $p): array
+    {
+        $promo = $p->livePromotion();
+        $imgs = $p->all_images;
+        $price = $promo ? (float) $promo->promo_price : (float) $p->price_sale;
+        $endsIn = null;
+        if ($promo && $promo->ends_at) {
+            $hours = now()->diffInHours($promo->ends_at, false);
+            $endsIn = $hours < 24 ? 'Termina hoje' : 'Termina em ' . (int) ceil($hours / 24) . ' dias';
+        }
+        $name = $p->variation_value && ! str_contains(mb_strtolower($p->name), mb_strtolower($p->variation_value))
+            ? $p->name . ' · ' . $p->variation_value
+            : $p->name;
+
+        return [
+            'id'      => $p->id,
+            'name'    => $name,
+            'price'   => $price,
+            'old'     => $promo ? (float) $promo->original_price : null,
+            'pct'     => $promo ? (int) $promo->discount_percent : null,
+            'ends'    => $endsIn,
+            'stock'   => min((int) $p->stock_quantity, 10), // teto: o cliente não vê o estoque real
+            'img'     => $imgs[0] ?? null,
+            'imgs'    => $imgs,
+            'cat'     => $p->category?->name,
+            'desc'    => trim((string) $p->description),
+            'brand'   => $p->brand,
+            'model'   => $p->model,
+            'code'    => $p->product_code,
+            'specs'   => collect($p->specs ?? [])->filter(fn ($s) => ($s['n'] ?? '') !== '' && ($s['v'] ?? '') !== '')->values()->all(),
+        ];
     }
 
     public function storeQuote(Request $request)
@@ -790,11 +816,13 @@ class ClientPortalController extends Controller
             ->where('user_id', $client->user_id)
             ->where('stock_quantity', '>', 0)
             ->whereIn('status', ['active', 'ativo'])
-            ->with('category')
+            ->with(['category', 'images', 'activePromotion'])
             ->orderBy('name')
             ->get();
 
-        return view('portal.quotes.edit', compact('client', 'quote', 'products'));
+        $store = User::select('id', 'name', 'phone')->find($client->user_id);
+
+        return view('portal.quotes.edit', compact('client', 'quote', 'products', 'store'));
     }
 
     public function updateQuote(Request $request, ClientQuoteRequest $quote)
@@ -877,7 +905,9 @@ class ClientPortalController extends Controller
         $requiresPasswordSetup = (bool) $client->portal_force_password_change;
         $requiresProfileCompletion = ! $client->hasRequiredPortalProfileData();
 
-        return view('portal.profile', compact('client', 'requiresOnboarding', 'requiresPasswordSetup', 'requiresProfileCompletion'));
+        $store = User::select('id', 'name', 'phone')->find($client->user_id);
+
+        return view('portal.profile', compact('client', 'requiresOnboarding', 'requiresPasswordSetup', 'requiresProfileCompletion', 'store'));
     }
 
     public function updateProfile(Request $request)
