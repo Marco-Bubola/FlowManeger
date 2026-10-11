@@ -1,11 +1,4 @@
 <div class="client-resumo-page w-full mobile-393-base">
-    <!-- Responsive CSS -->
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-mobile.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-iphone15.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-ipad-portrait.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-ipad-landscape.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-notebook.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-ultrawide.css') }}">
     <x-client-page-header :client="$client" title="Resumo financeiro" icon="bi-graph-up" active="resumo">
         @if($client->portal_active)
             <x-slot name="actions">
@@ -17,478 +10,217 @@
         @endif
     </x-client-page-header>
 
-        <!-- Cards de Resumo Financeiro (linha única, mais compactos) -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6">
-            <!-- Total Recebido -->
-            <div class="group relative bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 rounded-xl shadow-lg border border-green-200 dark:border-green-800 p-3 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div class="absolute top-0 right-0 w-14 h-14 bg-green-400/10 rounded-full transform translate-x-5 -translate-y-5"></div>
-                <div class="relative">
-                    <div class="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-9 h-9 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                                <i class="fas fa-arrow-down text-white text-base"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="text-sm font-medium text-green-800 dark:text-green-300 truncate">Total Recebido</p>
-                            </div>
-                        </div>
+    @php
+        $movimentado = max($totalRecebido + $totalEnviado, 1);
+        $money = fn ($v) => 'R$ ' . number_format((float) $v, 2, ',', '.');
+        // Listas de transferências: mesmo cartão para recebidas e enviadas.
+        $listas = [
+            ['key' => 'recebidas', 'title' => 'Recebidas', 'icon' => 'bi-arrow-down-left', 'tone' => 'is-in', 'sign' => '+',
+             'items' => $transferenciasRecebidas, 'total' => $recebidasTotal, 'page' => $recebidasPage,
+             'prev' => 'prevRecebidasPage', 'next' => 'nextRecebidasPage', 'empty' => 'Nenhuma transferência recebida'],
+            ['key' => 'enviadas', 'title' => 'Enviadas', 'icon' => 'bi-arrow-up-right', 'tone' => 'is-out', 'sign' => '−',
+             'items' => $transferenciasEnviadas, 'total' => $enviadasTotal, 'page' => $enviadasPage,
+             'prev' => 'prevEnviadasPage', 'next' => 'nextEnviadasPage', 'empty' => 'Nenhuma transferência enviada'],
+        ];
+        $catTotal = max(collect($categories)->sum(fn ($c) => (float) ((array) $c)['value']), 1);
+        $catColors = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-sky-500', 'bg-purple-500', 'bg-teal-500', 'bg-orange-500'];
+    @endphp
 
-                        <div class="flex items-center gap-2">
-                            <p class="text-base font-bold text-green-700 dark:text-green-400 whitespace-nowrap">R$ {{ number_format($totalRecebido, 2, ',', '.') }}</p>
-                            <span class="text-xs font-semibold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">+{{ number_format((($totalRecebido / max($totalRecebido + $totalEnviado, 1)) * 100), 0) }}%</span>
-                        </div>
-                    </div>
-                </div>
+    <div class="w-full px-4 sm:px-6 lg:px-8 pt-4 pb-16 space-y-5">
+        @if(session('success'))
+            <div class="flex items-center gap-3 rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                <i class="bi bi-check-circle-fill text-lg"></i>{{ session('success') }}
             </div>
+        @endif
 
-            <!-- Total Enviado -->
-            <div class="group relative bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/30 rounded-xl shadow-lg border border-red-200 dark:border-red-800 p-3 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div class="absolute top-0 right-0 w-14 h-14 bg-red-400/10 rounded-full transform translate-x-5 -translate-y-5"></div>
-                <div class="relative">
-                    <div class="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-9 h-9 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                                <i class="fas fa-arrow-up text-white text-base"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="text-sm font-medium text-red-800 dark:text-red-300 truncate">Total Enviado</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <p class="text-base font-bold text-red-700 dark:text-red-400 whitespace-nowrap">R$ {{ number_format($totalEnviado, 2, ',', '.') }}</p>
-                            <span class="text-xs font-semibold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-full">{{ number_format((($totalEnviado / max($totalRecebido + $totalEnviado, 1)) * 100), 0) }}%</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Faturas -->
-            <div class="group relative bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-900/30 rounded-xl shadow-lg border border-orange-200 dark:border-orange-800 p-3 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div class="absolute top-0 right-0 w-14 h-14 bg-orange-400/10 rounded-full transform translate-x-5 -translate-y-5"></div>
-                <div class="relative">
-                    <div class="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-9 h-9 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                                <i class="fas fa-file-invoice-dollar text-white text-base"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="text-sm font-medium text-orange-800 dark:text-orange-300 truncate">Total Faturas</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <p class="text-base font-bold text-orange-700 dark:text-orange-400 whitespace-nowrap">R$ {{ number_format($totalFaturas, 2, ',', '.') }}</p>
-                            <span class="text-xs font-semibold text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 rounded-full"><i class="fas fa-receipt"></i></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Saldo Atual -->
-            <div class="group relative bg-gradient-to-br from-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-50 to-{{ $saldoAtual >= 0 ? 'indigo' : 'rose' }}-100 dark:from-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-900/20 dark:to-{{ $saldoAtual >= 0 ? 'indigo' : 'rose' }}-900/30 rounded-xl shadow-lg border border-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-200 dark:border-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-800 p-3 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div class="absolute top-0 right-0 w-14 h-14 bg-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-400/10 rounded-full transform translate-x-5 -translate-y-5"></div>
-                <div class="relative">
-                    <div class="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-9 h-9 bg-gradient-to-br from-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-500 to-{{ $saldoAtual >= 0 ? 'indigo' : 'rose' }}-600 rounded-lg flex items-center justify-center shadow-md shadow-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-500/25 group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                                <i class="fas fa-wallet text-white text-base"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="text-sm font-medium text-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-800 dark:text-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-300 truncate">Saldo Atual</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <p class="text-base font-bold text-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-700 dark:text-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-400 whitespace-nowrap">R$ {{ number_format($saldoAtual, 2, ',', '.') }}</p>
-                            <span class="text-xs font-semibold text-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-600 dark:text-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-400 bg-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-100 dark:bg-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-900/30 px-2 py-0.5 rounded-full">{{ $saldoAtual >= 0 ? 'Positivo' : 'Negativo' }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="grid grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3">
+            <x-gestao-stat label="Recebido" :value="$money($totalRecebido)" icon="bi-arrow-down-left" tone="emerald" :hint="number_format($totalRecebido / $movimentado * 100, 0) . '% do movimentado'" />
+            <x-gestao-stat label="Enviado" :value="$money($totalEnviado)" icon="bi-arrow-up-right" tone="rose" :hint="number_format($totalEnviado / $movimentado * 100, 0) . '% do movimentado'" />
+            <x-gestao-stat label="Faturas" :value="$money($totalFaturas)" icon="bi-receipt" tone="amber" :hint="$faturasTotal . ' ' . ($faturasTotal == 1 ? 'fatura' : 'faturas')" />
+            <x-gestao-stat label="Saldo" :value="$money($saldoAtual)" icon="bi-wallet2" :tone="$saldoAtual >= 0 ? 'sky' : 'rose'" :hint="$saldoAtual >= 0 ? 'Positivo' : 'Negativo'" />
         </div>
 
-
-        <!-- Cards com Lists Paginadas -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Faturas -->
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-bold text-white flex items-center">
-                            <i class="fas fa-file-invoice mr-2"></i>
-                            Faturas ({{ $faturasTotal }})
-                        </h3>
-                        <a href="{{ route('clients.faturas', $client->id) }}"
-                           class="text-sm text-blue-100 hover:text-white font-medium transition-colors group flex items-center">
-                            Ver todas
-                            <i class="fas fa-arrow-right ml-1 group-hover:translate-x-1 transition-transform duration-200"></i>
-                        </a>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+            {{-- Faturas --}}
+            <section class="crs-card">
+                <div class="crs-head">
+                    <span class="crs-head-icon bg-gradient-to-br from-indigo-500 to-purple-600"><i class="bi bi-receipt"></i></span>
+                    <div class="min-w-0 flex-1">
+                        <h2 class="crs-title">Faturas <span class="crs-count">{{ $faturasTotal }}</span></h2>
+                        <p class="crs-sub">Toque no botão para dividir a fatura</p>
                     </div>
-
-                    <!-- Paginação Faturas -->
-                    @if($faturasTotal > $perPage)
-                        <div class="flex items-center justify-center space-x-1 mt-3">
-                            @php
-                                $maxFaturasPage = ceil($faturasTotal / $perPage);
-                            @endphp
-
-                            <!-- Primeira página -->
-                            <button wire:click="$set('faturasPage', 1)"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all duration-200 {{ $faturasPage == 1 ? 'text-blue-300 cursor-not-allowed' : 'text-white hover:bg-white/20' }}">
-                                <i class="fas fa-angle-double-left"></i>
-                            </button>
-
-                            <!-- Página anterior -->
-                            <button wire:click="prevFaturasPage"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all duration-200 {{ $faturasPage == 1 ? 'text-blue-300 cursor-not-allowed' : 'text-white hover:bg-white/20' }}">
-                                <i class="fas fa-angle-left"></i>
-                            </button>
-
-                            <!-- Páginas numeradas -->
-                            @for($i = max(1, $faturasPage - 2); $i <= min($maxFaturasPage, $faturasPage + 2); $i++)
-                                <button wire:click="$set('faturasPage', {{ $i }})"
-                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-semibold transition-all duration-200 {{ $i == $faturasPage ? 'bg-white text-indigo-600 shadow-md' : 'text-white hover:bg-white/20' }}">
-                                    {{ $i }}
+                    <a href="{{ route('clients.faturas', $client->id) }}" class="crs-link">Ver todas<i class="bi bi-chevron-right"></i></a>
+                </div>
+                <div class="crs-list">
+                    @forelse($faturas as $fatura)
+                        <div class="crs-row" wire:key="fat-{{ $fatura['id'] }}">
+                            <span class="crs-row-icon bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+                                <i class="{{ $fatura['category']['icone'] ?? 'bi bi-receipt' }}"></i>
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <p class="crs-row-title">{{ $fatura['description'] }}</p>
+                                <p class="crs-row-meta">
+                                    {{ \Carbon\Carbon::parse($fatura['invoice_date'])->format('d/m/Y') }}
+                                    @if($fatura['category']) · {{ $fatura['category']['name'] }} @endif
+                                </p>
+                            </div>
+                            <div class="flex flex-col items-end gap-1 shrink-0">
+                                <span class="crs-row-value">{{ $money($fatura['dividida'] ? $fatura['value'] / 2 : $fatura['value']) }}</span>
+                                <button type="button" wire:click="toggleDividida({{ $fatura['id'] }})"
+                                        class="crs-split {{ $fatura['dividida'] ? 'is-on' : '' }}" title="Dividir fatura ao meio">
+                                    <span class="crs-split-dot"></span>{{ $fatura['dividida'] ? 'Dividida' : 'Integral' }}
                                 </button>
-                            @endfor
-
-                            <!-- Próxima página -->
-                            <button wire:click="nextFaturasPage"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all duration-200 {{ $faturasPage == $maxFaturasPage ? 'text-blue-300 cursor-not-allowed' : 'text-white hover:bg-white/20' }}">
-                                <i class="fas fa-angle-right"></i>
-                            </button>
-
-                            <!-- Última página -->
-                            <button wire:click="$set('faturasPage', {{ $maxFaturasPage }})"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all duration-200 {{ $faturasPage == $maxFaturasPage ? 'text-blue-300 cursor-not-allowed' : 'text-white hover:bg-white/20' }}">
-                                <i class="fas fa-angle-double-right"></i>
-                            </button>
+                            </div>
                         </div>
-                    @endif
+                    @empty
+                        <div class="crs-empty"><i class="bi bi-receipt"></i><p>Nenhuma fatura deste cliente</p></div>
+                    @endforelse
                 </div>
-
-                <div class="p-6">
-                    @if($faturas && is_array($faturas) && count($faturas) > 0)
-                        <div class="space-y-3">
-                            @foreach($faturas as $fatura)
-                                <div class="group p-4 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-700 dark:to-slate-600 rounded-xl border border-slate-200 dark:border-slate-600 hover:shadow-md transition-all duration-200">
-                                    <div class="flex items-center justify-between gap-3">
-                                        <!-- Informações da fatura -->
-                                        <div class="flex items-center space-x-3 flex-1 min-w-0">
-                                            @if($fatura['category'] && $fatura['category']['icone'])
-                                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-200">
-                                                    <i class="{{ $fatura['category']['icone'] }} text-white"></i>
-                                                </div>
-                                            @endif
-                                            <div class="min-w-0 flex-1">
-                                                <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ $fatura['description'] }}</p>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
-                                                    <i class="fas fa-calendar-alt mr-1"></i>
-                                                    {{ \Carbon\Carbon::parse($fatura['invoice_date'])->format('d/m/Y') }}
-                                                    @if($fatura['category'])
-                                                        <span class="mx-1">•</span>
-                                                        {{ $fatura['category']['name'] }}
-                                                    @endif
-                                                </p>
-                                                <p class="text-sm font-bold text-indigo-600 dark:text-indigo-400 mt-1">
-                                                    R$ {{ number_format($fatura['dividida'] ? $fatura['value'] / 2 : $fatura['value'], 2, ',', '.') }}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Toggle dividida -->
-                                        <div class="flex flex-col items-end space-y-2 flex-shrink-0">
-                                            <span class="text-xs font-semibold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
-                                                {{ $fatura['dividida'] ? 'Dividida' : 'Integral' }}
-                                            </span>
-                                            <button wire:click="toggleDividida({{ $fatura['id'] }})"
-                                                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shadow-sm {{ $fatura['dividida'] ? 'bg-gradient-to-r from-indigo-500 to-purple-600' : 'bg-gray-300 dark:bg-gray-600' }}">
-                                                <span class="inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform {{ $fatura['dividida'] ? 'translate-x-6' : 'translate-x-1' }}"></span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500">
-                            <i class="fas fa-file-invoice text-5xl mb-3 opacity-30"></i>
-                            <p class="text-sm font-medium">Nenhuma fatura encontrada</p>
-                            <p class="text-xs mt-1">As faturas aparecerão aqui</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Transferências Recebidas -->
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div class="bg-gradient-to-r from-green-500 to-emerald-600 dark:from-green-600 dark:to-emerald-700 px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-bold text-white flex items-center">
-                            <i class="fas fa-arrow-down mr-2"></i>
-                            Recebidas ({{ $recebidasTotal }})
-                        </h3>
-                        <a href="{{ route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'recebidas']) }}"
-                           class="text-sm text-green-100 hover:text-white font-medium transition-colors group flex items-center">
-                            Ver todas
-                            <i class="fas fa-arrow-right ml-1 group-hover:translate-x-1 transition-transform duration-200"></i>
-                        </a>
+                @if($faturasTotal > $perPage)
+                    <div class="crs-pager">
+                        <button type="button" wire:click="prevFaturasPage" @disabled($faturasPage <= 1)><i class="bi bi-chevron-left"></i></button>
+                        <span>Página {{ $faturasPage }} de {{ (int) ceil($faturasTotal / $perPage) }}</span>
+                        <button type="button" wire:click="nextFaturasPage" @disabled($faturasPage >= ceil($faturasTotal / $perPage))><i class="bi bi-chevron-right"></i></button>
                     </div>
+                @endif
+            </section>
 
-                    <!-- Paginação Recebidas -->
-                    @if($recebidasTotal > $perPage)
-                        <div class="flex items-center justify-center space-x-1 mt-3">
-                            @php
-                                $maxRecebidasPage = ceil($recebidasTotal / $perPage);
-                            @endphp
-
-                            <!-- Primeira página -->
-                            <button wire:click="$set('recebidasPage', 1)"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all duration-200 {{ $recebidasPage == 1 ? 'text-green-300 cursor-not-allowed' : 'text-white hover:bg-white/20' }}">
-                                <i class="fas fa-angle-double-left"></i>
-                            </button>
-
-                            <!-- Página anterior -->
-                            <button wire:click="prevRecebidasPage"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all duration-200 {{ $recebidasPage == 1 ? 'text-green-300 cursor-not-allowed' : 'text-white hover:bg-white/20' }}">
-                                <i class="fas fa-angle-left"></i>
-                            </button>
-
-                            <!-- Páginas numeradas -->
-                            @for($i = max(1, $recebidasPage - 2); $i <= min($maxRecebidasPage, $recebidasPage + 2); $i++)
-                                <button wire:click="$set('recebidasPage', {{ $i }})"
-                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-semibold transition-all duration-200 {{ $i == $recebidasPage ? 'bg-white text-emerald-600 shadow-md' : 'text-white hover:bg-white/20' }}">
-                                    {{ $i }}
-                                </button>
-                            @endfor
-
-                            <!-- Próxima página -->
-                            <button wire:click="nextRecebidasPage"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all duration-200 {{ $recebidasPage == $maxRecebidasPage ? 'text-green-300 cursor-not-allowed' : 'text-white hover:bg-white/20' }}">
-                                <i class="fas fa-angle-right"></i>
-                            </button>
-
-                            <!-- Última página -->
-                            <button wire:click="$set('recebidasPage', {{ $maxRecebidasPage }})"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all duration-200 {{ $recebidasPage == $maxRecebidasPage ? 'text-green-300 cursor-not-allowed' : 'text-white hover:bg-white/20' }}">
-                                <i class="fas fa-angle-double-right"></i>
-                            </button>
+            {{-- Transferências recebidas e enviadas --}}
+            @foreach($listas as $lista)
+                <section class="crs-card">
+                    <div class="crs-head">
+                        <span class="crs-head-icon {{ $lista['tone'] === 'is-in' ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-rose-500 to-pink-600' }}"><i class="bi {{ $lista['icon'] }}"></i></span>
+                        <div class="min-w-0 flex-1">
+                            <h2 class="crs-title">{{ $lista['title'] }} <span class="crs-count">{{ $lista['total'] }}</span></h2>
+                            <p class="crs-sub">Transferências no livro caixa</p>
                         </div>
-                    @endif
-                </div>
-
-                <div class="p-6">
-                    @if($transferenciasRecebidas && is_array($transferenciasRecebidas) && count($transferenciasRecebidas) > 0)
-                        <div class="space-y-3">
-                            @foreach($transferenciasRecebidas as $transferencia)
-                                <div class="group p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/30 rounded-xl border border-green-200 dark:border-green-800 hover:shadow-md transition-all duration-200">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center space-x-3 flex-1">
-                                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200">
-                                                <i class="fas fa-arrow-down text-white"></i>
-                                            </div>
-                                            <div class="min-w-0 flex-1">
-                                                <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ $transferencia['description'] }}</p>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
-                                                    <i class="fas fa-calendar-alt mr-1"></i>
-                                                    {{ \Carbon\Carbon::parse($transferencia['date'])->format('d/m/Y') }}
-                                                </p>
-                                                <p class="text-sm font-bold text-green-600 dark:text-green-400 mt-1 flex items-center">
-                                                    <i class="fas fa-plus mr-1"></i>
-                                                    R$ {{ number_format($transferencia['value'], 2, ',', '.') }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500">
-                            <i class="fas fa-arrow-down text-5xl mb-3 opacity-30"></i>
-                            <p class="text-sm font-medium">Nenhuma transferência recebida</p>
-                            <p class="text-xs mt-1">As transferências aparecerão aqui</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Transferências Enviadas -->
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div class="bg-gradient-to-r from-red-500 to-rose-600 dark:from-red-600 dark:to-rose-700 px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-bold text-white flex items-center">
-                            <i class="fas fa-arrow-up mr-2"></i>
-                            Enviadas ({{ $enviadasTotal }})
-                        </h3>
-                        <a href="{{ route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'enviadas']) }}"
-                           class="text-sm text-red-100 hover:text-white font-medium transition-colors group flex items-center">
-                            Ver todas
-                            <i class="fas fa-arrow-right ml-1 group-hover:translate-x-1 transition-transform duration-200"></i>
-                        </a>
+                        <a href="{{ route('clients.transferencias', ['cliente' => $client->id, 'tipo' => $lista['key']]) }}" class="crs-link">Ver todas<i class="bi bi-chevron-right"></i></a>
                     </div>
-
-                    <!-- Paginação Enviadas -->
-                    @if($enviadasTotal > $perPage)
-                        <div class="flex items-center justify-center space-x-1 mt-3">
-                            @php
-                                $maxEnviadasPage = ceil($enviadasTotal / $perPage);
-                            @endphp
-
-                            <!-- Primeira página -->
-                            <button wire:click="$set('enviadasPage', 1)"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all duration-200 {{ $enviadasPage == 1 ? 'text-red-300 cursor-not-allowed' : 'text-white hover:bg-white/20' }}">
-                                <i class="fas fa-angle-double-left"></i>
-                            </button>
-
-                            <!-- Página anterior -->
-                            <button wire:click="prevEnviadasPage"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all duration-200 {{ $enviadasPage == 1 ? 'text-red-300 cursor-not-allowed' : 'text-white hover:bg-white/20' }}">
-                                <i class="fas fa-angle-left"></i>
-                            </button>
-
-                            <!-- Páginas numeradas -->
-                            @for($i = max(1, $enviadasPage - 2); $i <= min($maxEnviadasPage, $enviadasPage + 2); $i++)
-                                <button wire:click="$set('enviadasPage', {{ $i }})"
-                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-semibold transition-all duration-200 {{ $i == $enviadasPage ? 'bg-white text-rose-600 shadow-md' : 'text-white hover:bg-white/20' }}">
-                                    {{ $i }}
-                                </button>
-                            @endfor
-
-                            <!-- Próxima página -->
-                            <button wire:click="nextEnviadasPage"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all duration-200 {{ $enviadasPage == $maxEnviadasPage ? 'text-red-300 cursor-not-allowed' : 'text-white hover:bg-white/20' }}">
-                                <i class="fas fa-angle-right"></i>
-                            </button>
-
-                            <!-- Última página -->
-                            <button wire:click="$set('enviadasPage', {{ $maxEnviadasPage }})"
-                                    class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-all duration-200 {{ $enviadasPage == $maxEnviadasPage ? 'text-red-300 cursor-not-allowed' : 'text-white hover:bg-white/20' }}">
-                                <i class="fas fa-angle-double-right"></i>
-                            </button>
-                        </div>
-                    @endif
-                </div>
-
-                <div class="p-6">
-                    @if($transferenciasEnviadas && is_array($transferenciasEnviadas) && count($transferenciasEnviadas) > 0)
-                        <div class="space-y-3">
-                            @foreach($transferenciasEnviadas as $transferencia)
-                                <div class="group p-4 bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/30 rounded-xl border border-red-200 dark:border-red-800 hover:shadow-md transition-all duration-200">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center space-x-3 flex-1">
-                                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200">
-                                                <i class="fas fa-arrow-up text-white"></i>
-                                            </div>
-                                            <div class="min-w-0 flex-1">
-                                                <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ $transferencia['description'] }}</p>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
-                                                    <i class="fas fa-calendar-alt mr-1"></i>
-                                                    {{ \Carbon\Carbon::parse($transferencia['date'])->format('d/m/Y') }}
-                                                </p>
-                                                <p class="text-sm font-bold text-red-600 dark:text-red-400 mt-1 flex items-center">
-                                                    <i class="fas fa-minus mr-1"></i>
-                                                    R$ {{ number_format($transferencia['value'], 2, ',', '.') }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
+                    <div class="crs-list">
+                        @forelse($lista['items'] as $t)
+                            <div class="crs-row" wire:key="{{ $lista['key'] }}-{{ $t['id'] }}">
+                                <span class="crs-row-icon {{ $lista['tone'] === 'is-in' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300' }}">
+                                    <i class="bi {{ $lista['icon'] }}"></i>
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="crs-row-title">{{ $t['description'] ?: 'Sem descrição' }}</p>
+                                    <p class="crs-row-meta">{{ \Carbon\Carbon::parse($t['date'])->format('d/m/Y') }}</p>
                                 </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500">
-                            <i class="fas fa-arrow-up text-5xl mb-3 opacity-30"></i>
-                            <p class="text-sm font-medium">Nenhuma transferência enviada</p>
-                            <p class="text-xs mt-1">As transferências aparecerão aqui</p>
+                                <span class="crs-row-value {{ $lista['tone'] === 'is-in' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">{{ $lista['sign'] }} {{ $money($t['value']) }}</span>
+                            </div>
+                        @empty
+                            <div class="crs-empty"><i class="bi {{ $lista['icon'] }}"></i><p>{{ $lista['empty'] }}</p></div>
+                        @endforelse
+                    </div>
+                    @if($lista['total'] > $perPage)
+                        @php $maxPage = (int) ceil($lista['total'] / $perPage); @endphp
+                        <div class="crs-pager">
+                            <button type="button" wire:click="{{ $lista['prev'] }}" @disabled($lista['page'] <= 1)><i class="bi bi-chevron-left"></i></button>
+                            <span>Página {{ $lista['page'] }} de {{ $maxPage }}</span>
+                            <button type="button" wire:click="{{ $lista['next'] }}" @disabled($lista['page'] >= $maxPage)><i class="bi bi-chevron-right"></i></button>
                         </div>
                     @endif
-                </div>
-            </div>
+                </section>
+            @endforeach
         </div>
 
-        <!-- Gráfico de Categorias e Ações Rápidas -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-            <!-- Gráfico de Categorias -->
-            <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 px-6 py-4">
-                    <h3 class="text-lg font-bold text-white flex items-center">
-                        <i class="fas fa-chart-pie mr-2"></i>
-                        Gastos por Categoria
-                    </h3>
-                    <p class="text-indigo-100 text-sm mt-1">Análise detalhada dos seus gastos</p>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+            {{-- Gastos por categoria (barras simples; antes era um gráfico que nunca carregava) --}}
+            <section class="crs-card lg:col-span-2">
+                <div class="crs-head">
+                    <span class="crs-head-icon bg-gradient-to-br from-amber-400 to-orange-500"><i class="bi bi-pie-chart"></i></span>
+                    <div class="min-w-0 flex-1">
+                        <h2 class="crs-title">Gastos por categoria</h2>
+                        <p class="crs-sub">Faturas deste cliente, somando metade das divididas</p>
+                    </div>
                 </div>
-                <div class="p-6">
-                    @if(count($categories) > 0)
-                        <div wire:ignore id="category-chart" class="w-full h-64"></div>
-                    @else
-                        <div class="flex flex-col items-center justify-center h-64 text-slate-400 dark:text-slate-500">
-                            <i class="fas fa-chart-pie text-6xl mb-4 opacity-30"></i>
-                            <p class="text-lg font-medium">Nenhuma categoria com gastos</p>
-                            <p class="text-sm">Os dados aparecerão quando houver transações</p>
-                        </div>
-                    @endif
+                @if(count($categories) > 0)
+                    <div class="p-4 space-y-3">
+                        @foreach(collect($categories)->map(fn ($c) => (array) $c)->sortByDesc('value')->values() as $i => $cat)
+                            @php $pct = (float) $cat['value'] / $catTotal * 100; @endphp
+                            <div>
+                                <div class="flex items-center justify-between gap-3 text-sm">
+                                    <span class="flex items-center gap-2 min-w-0 font-semibold text-slate-700 dark:text-slate-200">
+                                        <span class="h-2.5 w-2.5 shrink-0 rounded-full {{ $catColors[$i % count($catColors)] }}"></span>
+                                        <span class="truncate">{{ $cat['label'] }}</span>
+                                    </span>
+                                    <span class="shrink-0 font-bold text-slate-900 dark:text-white">{{ $money($cat['value']) }} <span class="text-xs font-semibold text-slate-400">{{ number_format($pct, 0) }}%</span></span>
+                                </div>
+                                <div class="mt-1.5 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                    <div class="h-full rounded-full {{ $catColors[$i % count($catColors)] }}" style="width: {{ max(2, $pct) }}%"></div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="crs-empty"><i class="bi bi-pie-chart"></i><p>Nenhum gasto com faturas ainda</p></div>
+                @endif
+            </section>
+
+            {{-- Atalhos --}}
+            <section class="crs-card">
+                <div class="crs-head">
+                    <span class="crs-head-icon bg-gradient-to-br from-sky-500 to-indigo-600"><i class="bi bi-lightning-charge"></i></span>
+                    <div class="min-w-0 flex-1">
+                        <h2 class="crs-title">Atalhos</h2>
+                        <p class="crs-sub">Outras telas deste cliente</p>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Ações Rápidas -->
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div class="bg-gradient-to-r from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 px-6 py-4">
-                    <h3 class="text-lg font-bold text-white flex items-center">
-                        <i class="fas fa-bolt mr-2"></i>
-                        Ações Rápidas
-                    </h3>
-                    <p class="text-emerald-100 text-sm mt-1">Acesso rápido às funcionalidades</p>
+                <div class="crs-list">
+                    @foreach([
+                        [route('clients.faturas', $client->id), 'bi-receipt', 'Todas as faturas', 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300'],
+                        [route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'recebidas']), 'bi-arrow-down-left', 'Transferências recebidas', 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300'],
+                        [route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'enviadas']), 'bi-arrow-up-right', 'Transferências enviadas', 'bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300'],
+                        [route('clients.edit', $client->id), 'bi-pencil', 'Editar cliente', 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'],
+                    ] as [$href, $icon, $label, $tone])
+                        <a href="{{ $href }}" class="crs-row crs-row-link">
+                            <span class="crs-row-icon {{ $tone }}"><i class="bi {{ $icon }}"></i></span>
+                            <span class="crs-row-title flex-1">{{ $label }}</span>
+                            <i class="bi bi-chevron-right text-slate-400"></i>
+                        </a>
+                    @endforeach
                 </div>
-                <div class="p-6 space-y-3">
-                    <a href="{{ route('clients.faturas', $client->id) }}"
-                       class="group flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/30 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-900/30 dark:hover:to-indigo-900/40 rounded-xl border border-blue-200 dark:border-blue-800 transition-all duration-300 hover:shadow-md">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                <i class="fas fa-file-invoice text-white"></i>
-                            </div>
-                            <span class="ml-3 text-blue-800 dark:text-blue-200 font-semibold">Ver Todas as Faturas</span>
-                        </div>
-                        <i class="fas fa-arrow-right text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform duration-200"></i>
-                    </a>
-
-                    <a href="{{ route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'recebidas']) }}"
-                       class="group flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/30 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/30 dark:hover:to-emerald-900/40 rounded-xl border border-green-200 dark:border-green-800 transition-all duration-300 hover:shadow-md">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                <i class="fas fa-arrow-down text-white"></i>
-                            </div>
-                            <span class="ml-3 text-green-800 dark:text-green-200 font-semibold">Transferências Recebidas</span>
-                        </div>
-                        <i class="fas fa-arrow-right text-green-600 dark:text-green-400 group-hover:translate-x-1 transition-transform duration-200"></i>
-                    </a>
-
-                    <a href="{{ route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'enviadas']) }}"
-                       class="group flex items-center justify-between p-4 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/30 hover:from-orange-100 hover:to-amber-100 dark:hover:from-orange-900/30 dark:hover:to-amber-900/40 rounded-xl border border-orange-200 dark:border-orange-800 transition-all duration-300 hover:shadow-md">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                <i class="fas fa-arrow-up text-white"></i>
-                            </div>
-                            <span class="ml-3 text-orange-800 dark:text-orange-200 font-semibold">Transferências Enviadas</span>
-                        </div>
-                        <i class="fas fa-arrow-right text-orange-600 dark:text-orange-400 group-hover:translate-x-1 transition-transform duration-200"></i>
-                    </a>
-
-                    <a href="{{ route('clients.edit', $client->id) }}"
-                       class="group flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-gray-100 dark:from-slate-700 dark:to-slate-600 hover:from-slate-100 hover:to-gray-200 dark:hover:from-slate-600 dark:hover:to-slate-500 rounded-xl border border-slate-200 dark:border-slate-600 transition-all duration-300 hover:shadow-md">
-                        <div class="flex items-center">
-                            <div class="w-10 h-10 bg-gradient-to-br from-slate-500 to-gray-600 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                <i class="fas fa-edit text-white"></i>
-                            </div>
-                            <span class="ml-3 text-slate-800 dark:text-slate-200 font-semibold">Editar Cliente</span>
-                        </div>
-                        <i class="fas fa-arrow-right text-slate-600 dark:text-slate-400 group-hover:translate-x-1 transition-transform duration-200"></i>
-                    </a>
-                </div>
-            </div>
+            </section>
         </div>
-
     </div>
 
+    <style>
+        .crs-card { border-radius: 1rem; border: 1px solid rgb(226 232 240 / .8); background: #fff; box-shadow: 0 1px 2px rgb(15 23 42 / .05); overflow: hidden; min-width: 0; }
+        .dark .crs-card { border-color: rgb(51 65 85 / .7); background: rgb(15 23 42 / .8); }
+        .crs-head { display: flex; align-items: center; gap: .75rem; padding: .85rem 1rem; border-bottom: 1px solid rgb(241 245 249); }
+        .dark .crs-head { border-bottom-color: rgb(30 41 59); }
+        .crs-head-icon { width: 2.25rem; height: 2.25rem; flex-shrink: 0; border-radius: .75rem; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1rem; box-shadow: 0 6px 14px -8px rgb(15 23 42 / .5); }
+        .crs-title { font-weight: 800; font-size: .95rem; color: rgb(15 23 42); display: flex; align-items: center; gap: .4rem; }
+        .dark .crs-title { color: #fff; }
+        .crs-count { font-size: .7rem; font-weight: 700; padding: .05rem .45rem; border-radius: 999px; background: rgb(241 245 249); color: rgb(71 85 105); }
+        .dark .crs-count { background: rgb(30 41 59); color: rgb(148 163 184); }
+        .crs-sub { font-size: .72rem; color: rgb(100 116 139); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .crs-link { flex-shrink: 0; display: inline-flex; align-items: center; gap: .2rem; font-size: .75rem; font-weight: 700; color: rgb(79 70 229); padding: .35rem .6rem; border-radius: .6rem; background: rgb(238 242 255); }
+        .dark .crs-link { color: rgb(165 180 252); background: rgb(49 46 129 / .35); }
+        .crs-list > * + * { border-top: 1px solid rgb(241 245 249); }
+        .dark .crs-list > * + * { border-top-color: rgb(30 41 59); }
+        .crs-row { display: flex; align-items: center; gap: .75rem; padding: .7rem 1rem; }
+        .crs-row-link:hover { background: rgb(248 250 252); }
+        .dark .crs-row-link:hover { background: rgb(30 41 59 / .5); }
+        .crs-row-icon { width: 2.25rem; height: 2.25rem; flex-shrink: 0; border-radius: .7rem; display: flex; align-items: center; justify-content: center; font-size: .95rem; }
+        .crs-row-title { font-size: .875rem; font-weight: 600; color: rgb(15 23 42); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dark .crs-row-title { color: rgb(241 245 249); }
+        .crs-row-meta { font-size: .72rem; color: rgb(100 116 139); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .crs-row-value { flex-shrink: 0; font-size: .875rem; font-weight: 800; color: rgb(15 23 42); white-space: nowrap; }
+        .dark .crs-row-value { color: #fff; }
+        .crs-split { display: inline-flex; align-items: center; gap: .35rem; font-size: .68rem; font-weight: 700; padding: .2rem .5rem; border-radius: 999px; color: rgb(100 116 139); background: rgb(241 245 249); }
+        .crs-split-dot { width: .5rem; height: .5rem; border-radius: 999px; background: rgb(148 163 184); }
+        .crs-split.is-on { color: rgb(67 56 202); background: rgb(224 231 255); }
+        .crs-split.is-on .crs-split-dot { background: rgb(79 70 229); }
+        .dark .crs-split { background: rgb(30 41 59); color: rgb(148 163 184); }
+        .dark .crs-split.is-on { background: rgb(49 46 129 / .5); color: rgb(199 210 254); }
+        .crs-empty { display: flex; flex-direction: column; align-items: center; gap: .4rem; padding: 2rem 1rem; color: rgb(148 163 184); font-size: .85rem; text-align: center; }
+        .crs-empty i { font-size: 1.75rem; opacity: .6; }
+        .crs-pager { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .6rem 1rem; border-top: 1px solid rgb(241 245 249); font-size: .75rem; font-weight: 600; color: rgb(100 116 139); }
+        .dark .crs-pager { border-top-color: rgb(30 41 59); }
+        .crs-pager button { width: 2rem; height: 2rem; border-radius: .6rem; display: flex; align-items: center; justify-content: center; background: rgb(241 245 249); color: rgb(51 65 85); }
+        .dark .crs-pager button { background: rgb(30 41 59); color: rgb(226 232 240); }
+        .crs-pager button:disabled { opacity: .4; }
+        @media (max-width: 640px) { .crs-sub { display: none; } }
+    </style>
 </div>
