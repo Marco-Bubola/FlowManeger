@@ -44,7 +44,7 @@
                     <span class="fm-dz-file-name" title="{{ $fileName }}">{{ $fileName }}</span>
                     <span class="fm-dz-file-meta">
                         <span><i class="bi bi-check-circle-fill"></i> Pronto para processar</span>
-                        <span>{{ strtoupper($extension) }} · {{ number_format($newFile->getSize() / 1024, 0, ',', '.') }} KB</span>
+                        <span>{{ strtoupper($extension) }} · {{ number_format(max(1, $newFile->getSize() / 1024), 0, ',', '.') }} KB</span>
                     </span>
                 </span>
                 <span class="fm-dz-change"><i class="bi bi-arrow-repeat"></i><span>Trocar</span></span>
