@@ -231,39 +231,11 @@
         </div>
     </div>
 
-    <!-- Modal de Confirmação de Exclusão -->
+    <!-- Confirmação de arquivamento -->
     @if ($showDeleteModal)
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-bounce-in">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                        <i class="bi bi-exclamation-triangle text-2xl text-red-600"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800">Confirmar Arquivamento</h3>
-                </div>
-
-                <p class="text-gray-600 mb-6">
-                    Tem certeza que deseja arquivar esta meta? Ela será movida para o status arquivado.
-                </p>
-
-                <div class="flex gap-3">
-                    <button wire:click="deleteGoal"
-                        class="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-semibold rounded-xl hover:from-red-600 hover:to-rose-700 transition-all"
-                        wire:loading.attr="disabled">
-                        <span wire:loading.remove>
-                            <i class="bi bi-check-circle mr-2"></i>Sim, Arquivar
-                        </span>
-                        <span wire:loading>
-                            <i class="bi bi-arrow-repeat animate-spin mr-2"></i>Arquivando...
-                        </span>
-                    </button>
-                    <button wire:click="$set('showDeleteModal', false)"
-                        class="flex-1 px-4 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-all">
-                        <i class="bi bi-x-circle mr-2"></i>Cancelar
-                    </button>
-                </div>
-            </div>
-        </div>
+        <x-delete-dialog confirm="deleteGoal" cancel="$set('showDeleteModal', false)" title="Arquivar meta?" confirm-label="Arquivar" icon="bi-archive" loading-label="Arquivando...">
+            A meta vai para o status arquivado e pode ser vista depois.
+        </x-delete-dialog>
     @endif
 
 

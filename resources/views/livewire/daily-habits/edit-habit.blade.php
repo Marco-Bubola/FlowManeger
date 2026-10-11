@@ -205,44 +205,11 @@
 @endif
 </div>
 
-<!-- Modal de Confirmação de Exclusão -->
+<!-- Confirmação de arquivamento -->
 @if ($showDeleteModal)
-<div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-<div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-bounce-in">
-    <div class="flex items-center gap-3 mb-4">
-        <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-            <i class="bi bi-exclamation-triangle text-2xl text-red-600"></i>
-        </div>
-        <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200\">Confirmar Arquivamento</h3>
-                </div>
-
-                <p class="text-gray-600
-            dark:text-gray-400 mb-6\">
-            Tem certeza que deseja arquivar este hábito? Ele será removido da sua lista ativa, mas os dados
-            serão mantidos.
-            </p>
-
-            <div class="flex gap-3">
-                <button wire:click="deleteHabit"
-                    class="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-semibold rounded-xl hover:from-red-600 hover:to-rose-700 transition-all"
-                    wire:loading.attr="disabled">
-                    <span wire:loading.remove>
-                        <i class="bi bi-check-circle mr-2"></i>
-                        Sim, Arquivar
-                    </span>
-                    <span wire:loading>
-                        <i class="bi bi-arrow-repeat animate-spin mr-2"></i>
-                        Arquivando...
-                    </span>
-                </button>
-                <button wire:click="$set('showDeleteModal', false)"
-                    class="flex-1 px-4 py-3 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-300 transition-all">
-                    <i class="bi bi-x-circle mr-2"></i>
-                    Cancelar
-                </button>
-            </div>
-    </div>
-</div>
+    <x-delete-dialog confirm="deleteHabit" cancel="$set('showDeleteModal', false)" title="Arquivar hábito?" confirm-label="Arquivar" icon="bi-archive" loading-label="Arquivando...">
+        Ele sai da sua lista ativa, mas o histórico fica guardado.
+    </x-delete-dialog>
 @endif
 </div>
 

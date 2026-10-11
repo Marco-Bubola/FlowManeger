@@ -6,6 +6,7 @@
     'confirmLabel' => 'Excluir',
     'cancelLabel' => 'Cancelar',
     'icon' => 'bi-trash3',
+    'loadingLabel' => 'Excluindo...',
 ])
 
 @php
@@ -25,8 +26,8 @@
         <div class="fm-dialog-actions">
             <button type="button" class="fm-dialog-btn" wire:click="{{ $cancel }}">{{ $cancelLabel }}</button>
             <button type="button" class="fm-dialog-btn is-danger" wire:click="{{ $confirm }}" wire:loading.attr="disabled" wire:target="{{ \Illuminate\Support\Str::before($confirm, '(') }}">
-                <span wire:loading.remove wire:target="{{ \Illuminate\Support\Str::before($confirm, '(') }}"><i class="bi bi-trash3"></i> {{ $confirmLabel }}</span>
-                <span wire:loading wire:target="{{ \Illuminate\Support\Str::before($confirm, '(') }}"><i class="bi bi-arrow-repeat animate-spin"></i> Excluindo...</span>
+                <span wire:loading.remove wire:target="{{ \Illuminate\Support\Str::before($confirm, '(') }}"><i class="bi {{ $icon }}"></i> {{ $confirmLabel }}</span>
+                <span wire:loading wire:target="{{ \Illuminate\Support\Str::before($confirm, '(') }}"><i class="bi bi-arrow-repeat animate-spin"></i> {{ $loadingLabel }}</span>
             </button>
         </div>
     </div>
