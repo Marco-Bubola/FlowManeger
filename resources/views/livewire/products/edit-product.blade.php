@@ -16,7 +16,7 @@
                 class="inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
                 <i class="bi bi-x-lg"></i>Cancelar
             </a>
-            <button type="submit" form="edit-product-form" wire:loading.attr="disabled"
+            <button data-mobile-save type="submit" form="edit-product-form" wire:loading.attr="disabled"
                 class="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-500/25 transition disabled:opacity-60">
                 <span wire:loading.remove wire:target="update"><i class="bi bi-check2-circle mr-1"></i>Salvar alterações</span>
                 <span wire:loading wire:target="update"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Salvando...</span>

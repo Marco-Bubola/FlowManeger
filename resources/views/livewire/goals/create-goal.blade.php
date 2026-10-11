@@ -273,7 +273,7 @@
                         Ações
                     </h3>
 
-                    <button
+                    <button data-mobile-save
                         type="submit"
                         class="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl"
                         wire:loading.attr="disabled"

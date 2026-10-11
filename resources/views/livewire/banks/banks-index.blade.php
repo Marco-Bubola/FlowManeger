@@ -45,6 +45,13 @@
         <x-gestao-stat label="Média por compra" :value="'R$ ' . number_format($invCount > 0 ? $displayTotal / $invCount : 0, 2, ',', '.')" icon="bi-calculator" tone="emerald" />
     </div>
 
+    @if ($paginatedBanks->isEmpty() && $paginatedBanks->currentPage() === 1)
+        <x-empty-state class="mb-4" icon="bi-credit-card" title="Nenhum cartão cadastrado"
+            text="Cadastre seu cartão para lançar as compras, importar a fatura e ver quanto vence em cada mês.">
+            <a href="{{ route('banks.create') }}" wire:navigate class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md"><i class="bi bi-plus-lg"></i> Novo cartão</a>
+        </x-empty-state>
+    @endif
+
     <!-- Main Content Layout -->
     <div class="w-full">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">

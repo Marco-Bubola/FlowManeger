@@ -298,27 +298,11 @@
         <!-- Grid de clientes -->
         <div class="clients-grid-wrap p-3">
             @if($clients->isEmpty())
-            <div
-                class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-8 text-center border border-dashed border-gray-300 dark:border-gray-700">
-                <div class="mx-auto w-16 h-16 text-purple-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="w-16 h-16">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                    </svg>
-                </div>
-                <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">Nenhum cliente encontrado</h3>
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                    Tente ajustar sua busca ou adicione um novo cliente para começar.
-                </p>
-                <div class="mt-6">
-                    <a href="{{ route('clients.create') }}"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-md transition-all duration-300 transform hover:scale-105">
-                        <i class="bi bi-plus-circle"></i>
-                        <span>Adicionar Novo Cliente</span>
-                    </a>
-                </div>
-            </div>
+            @php $temClientes = \App\Models\Client::query()->exists(); @endphp
+            <x-empty-state icon="bi-people" :title="$temClientes ? 'Nenhum cliente com esses filtros' : 'Nenhum cliente ainda'"
+                :text="$temClientes ? 'Tente outro nome, e-mail ou telefone.' : 'Cadastre o primeiro cliente para acompanhar compras e pagamentos.'">
+                <a href="{{ route('clients.create') }}" wire:navigate class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md"><i class="bi bi-person-plus"></i> Novo cliente</a>
+            </x-empty-state>
             @else
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 clients-grid">
                 @foreach ($clients as $client)

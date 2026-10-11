@@ -324,78 +324,16 @@
 
     <!-- Lista de Produtos -->
     @if ($products->isEmpty())
-        <!-- Estado vazio aprimorado -->
-        <div
-            class="empty-state flex flex-col items-center justify-center py-20 bg-gradient-to-br from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-700 rounded-2xl border-2 border-dashed border-neutral-300 dark:border-neutral-600">
-            <div class="relative">
-                <!-- Ícone animado -->
-                <div class="w-32 h-32 mx-auto mb-6 text-neutral-400 relative">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-br from-purple-200 to-blue-200 dark:from-purple-800 dark:to-blue-800 rounded-full opacity-20 animate-pulse">
-                    </div>
-                    <svg class="w-full h-full relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 5l7 7" />
-                    </svg>
-                </div>
-
-                <!-- Elementos decorativos -->
-                <div class="absolute top-0 left-0 w-4 h-4 bg-purple-300 rounded-full opacity-50 animate-bounce"></div>
-                <div class="absolute top-4 right-0 w-3 h-3 bg-blue-300 rounded-full opacity-50 animate-bounce"
-                    style="animation-delay: 0.5s;"></div>
-                <div class="absolute bottom-0 left-4 w-2 h-2 bg-pink-300 rounded-full opacity-50 animate-bounce"
-                    style="animation-delay: 1s;"></div>
-            </div>
-
-            <h3 class="text-3xl font-bold text-neutral-800 dark:text-neutral-100 mb-3">📦 Nenhum produto encontrado</h3>
-            <p class="text-neutral-600 dark:text-neutral-400 text-center mb-8 max-w-md text-lg">
-                @if (
-                    $search ||
-                        $category ||
-                        $tipo ||
-                        $status_filtro ||
-                        $preco_min ||
-                        $preco_max ||
-                        $estoque ||
-                        $data_inicio ||
-                        $data_fim)
-                    Nenhum produto corresponde aos filtros aplicados. Tente ajustar os critérios de busca.
-                @else
-                    Sua prateleira está vazia! Que tal começar adicionando seu primeiro produto ao catálogo?
-                @endif
-            </p>
-
-            <div class="flex flex-col sm:flex-row gap-4">
-                @if (
-                    $search ||
-                        $category ||
-                        $tipo ||
-                        $status_filtro ||
-                        $preco_min ||
-                        $preco_max ||
-                        $estoque ||
-                        $data_inicio ||
-                        $data_fim)
-                    <button wire:click="clearFilters"
-                        class="btn-gradient inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
-                        <i class="bi bi-x-circle mr-2 icon-rotate"></i>
-                        🔄 Limpar Filtros
-                    </button>
-                @else
-                    <a href="{{ route('products.create') }}"
-                        class="btn-gradient inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
-                        <i class="bi bi-plus-square mr-3 text-xl floating-badge"></i>
-                        ✨ Criar Primeiro Produto
-                    </a>
-                @endif
-
-                <a href="{{ route('products.upload') }}"
-                    class="btn-gradient inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
-                    <i class="bi bi-file-earmark-arrow-up mr-2 icon-pulse"></i>
-                    📂 Upload em Lote
-                </a>
-            </div>
-        </div>
+        @php $temFiltro = $search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim; @endphp
+        <x-empty-state icon="bi-box-seam" :title="$temFiltro ? 'Nenhum produto com esses filtros' : 'Nenhum produto ainda'"
+            :text="$temFiltro ? 'Tente outros filtros ou limpe a busca.' : 'Cadastre o primeiro produto ou envie um PDF com vários de uma vez.'">
+            @if ($temFiltro)
+                <button type="button" wire:click="clearFilters" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md"><i class="bi bi-x-circle"></i> Limpar filtros</button>
+            @else
+                <a href="{{ route('products.create') }}" wire:navigate class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md"><i class="bi bi-plus-lg"></i> Novo produto</a>
+                <a href="{{ route('products.upload') }}" wire:navigate class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-500/10"><i class="bi bi-file-earmark-arrow-up"></i> Enviar em lote</a>
+            @endif
+        </x-empty-state>
     @else
         <!-- Grid de Produtos com CSS customizado mantido -->
         <form>

@@ -11,7 +11,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // Traduções (validação etc.) ficam em app/Lang, que o deploy envia ao servidor
+        $this->app->useLangPath(app_path('Lang'));
     }
 
     public function boot(): void
@@ -27,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Datas relativas ("há 2 dias") em português em todo o app
         \Carbon\Carbon::setLocale('pt_BR');
+
+        // O app é todo em português: mensagens de validação e textos do Laravel em pt_BR
+        app()->setLocale('pt_BR');
 
         // Mensagens flash de ações Livewire aparecem no aviso global
         \App\Livewire\Hooks\FlashToNotify::register();

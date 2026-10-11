@@ -834,29 +834,6 @@
 
 <!-- Removido Alpine.js daqui pois já está no layout principal -->
 
-<script>
-// Listener para eventos de debug do Livewire
-document.addEventListener('livewire:init', () => {
-    Livewire.on('debug-info', (message) => {
-        console.log('Debug Event:', message);
-        alert('Debug: ' + message);
-    });
-
-    Livewire.on('teste-realizado', (message) => {
-        console.log('Teste Event:', message);
-        alert('Teste: ' + message);
-    });
-});
-
-// Debug de cliques nos botões
-document.addEventListener('DOMContentLoaded', function() {
-    document.addEventListener('click', function(e) {
-        if (e.target.hasAttribute('wire:click')) {
-            console.log('Botão clicado:', e.target.getAttribute('wire:click'));
-        }
-    });
-});
-</script>
 
 <!-- Scripts para Gráficos -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

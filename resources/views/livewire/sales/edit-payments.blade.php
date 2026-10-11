@@ -2,7 +2,7 @@
     <x-sale-page-header :sale="$sale" title="Pagamentos" active="pagamentos" :back-route="route('sales.show', $sale->id)">
         @if(count($payments) > 0)
             <x-slot:actions>
-                <button type="button" wire:click="updatePayments" wire:loading.attr="disabled"
+                <button data-mobile-save type="button" wire:click="updatePayments" wire:loading.attr="disabled"
                         class="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-500/25 transition disabled:opacity-60">
                     <i class="bi bi-check2-circle"></i>Salvar alterações
                 </button>

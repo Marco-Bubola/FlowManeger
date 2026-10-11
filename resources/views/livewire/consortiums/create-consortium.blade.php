@@ -11,7 +11,7 @@
            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white/90 dark:bg-slate-900/70 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold shadow-sm transition">
             <i class="bi bi-x-lg"></i>Cancelar
         </a>
-        <button type="submit" form="consortium-form" wire:loading.attr="disabled"
+        <button data-mobile-save type="submit" form="consortium-form" wire:loading.attr="disabled"
             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold shadow-md shadow-indigo-500/25 transition disabled:opacity-60">
             <i class="bi bi-check2-circle"></i>Criar consórcio
         </button>

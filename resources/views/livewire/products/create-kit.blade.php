@@ -26,7 +26,7 @@
                 </button>
             @endif
             @if($currentStep == 2)
-                <button type="button" wire:click="store" wire:loading.attr="disabled" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-500/25 transition disabled:opacity-50">
+                <button data-mobile-save type="button" wire:click="store" wire:loading.attr="disabled" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-500/25 transition disabled:opacity-50">
                     <span wire:loading.remove wire:target="store"><i class="bi bi-check-circle mr-1"></i>Criar kit</span>
                     <span wire:loading wire:target="store"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Criando...</span>
                 </button>

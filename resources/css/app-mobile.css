@@ -467,3 +467,28 @@ html body .pes-rarity.pes-rarity > div { padding: 0.5rem !important; min-height:
 @media (min-width: 768px) { html body .ini-kpis-btn { display: none !important; } }
 html body .ini-kpis .dash-kpi-label { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.2 !important; }
 html body .dash-grid > .ini-mais-btn { grid-column: 1 / -1 !important; }
+
+/* ===== Botão Salvar fixo no celular/iPad (resources/js/mobile-save-bar.js) ===== */
+#fm-save-bar {
+    position: fixed; left: 0.75rem; right: 0.75rem; z-index: 59;
+    display: flex; justify-content: center;
+    transform: translateY(1rem); opacity: 0; pointer-events: none;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+#fm-save-bar.is-visible { transform: none; opacity: 1; pointer-events: auto; }
+#fm-save-bar .fm-save-bar-btn {
+    width: 100%; max-width: 32rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.8rem 1rem; border-radius: 1rem;
+    font-weight: 700; font-size: 0.95rem; color: #fff;
+    background: linear-gradient(90deg, #6366f1, #a855f7);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.35);
+}
+#fm-save-bar .fm-save-bar-btn:disabled { opacity: 0.75; }
+@media (min-width: 1181px) { #fm-save-bar { display: none !important; } }
+@media (max-width: 1180px) { html body.has-save-bar main, html body.has-save-bar [data-flux-main] { padding-bottom: 5.5rem !important; } }
+
+/* Lista vazia padrão: mesmo tamanho em todas as telas, mesmo onde o CSS antigo reduz a fonte */
+html body .fm-empty h3 { font-size: 1.125rem !important; line-height: 1.6rem !important; }
+html body .fm-empty p { font-size: .9rem !important; line-height: 1.35rem !important; }
+html body .fm-empty a, html body .fm-empty button { font-size: .9rem !important; }

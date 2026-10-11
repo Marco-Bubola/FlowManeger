@@ -220,7 +220,7 @@
 
                 <!-- Botões de Ação -->
                 <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700 space-y-3">
-                    <button
+                    <button data-mobile-save
                         type="submit"
                         class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl"
                         wire:loading.attr="disabled"

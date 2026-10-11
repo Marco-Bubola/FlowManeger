@@ -10,7 +10,7 @@
         :back-route="$hdrBank ? route('invoices.index', $hdrBank->id_bank) : route('banks.index')">
         <x-slot:actions>
             <a href="{{ $hdrBank ? route('invoices.index', $hdrBank->id_bank) : route('banks.index') }}" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-x-lg"></i>Cancelar</a>
-            <button type="submit" form="create-invoice-form" wire:loading.attr="disabled" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition disabled:opacity-50">
+            <button data-mobile-save type="submit" form="create-invoice-form" wire:loading.attr="disabled" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition disabled:opacity-50">
                 <span wire:loading.remove wire:target="save"><i class="bi bi-check-lg mr-1"></i>Salvar compra</span>
                 <span wire:loading wire:target="save"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Salvando...</span>
             </button>

@@ -19,7 +19,7 @@ $bankIcons = [
     <x-bank-page-header title="Editar cartão" :subtitle="e($bank->name)" icon="bi-pencil-square" active="editar" :bank="$bank">
         <x-slot:actions>
             <a href="{{ route('banks.index') }}" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-x-lg"></i>Cancelar</a>
-            <button type="submit" form="bank-edit-form" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition disabled:opacity-50"><i class="bi bi-check-lg"></i>Salvar alterações</button>
+            <button data-mobile-save type="submit" form="bank-edit-form" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition disabled:opacity-50"><i class="bi bi-check-lg"></i>Salvar alterações</button>
         </x-slot:actions>
     </x-bank-page-header>
     <form id="bank-edit-form" wire:submit.prevent="update" x-data="{ cardNumber: @entangle('description') }" class="flex-1 w-full flex flex-col gap-6 pb-8">

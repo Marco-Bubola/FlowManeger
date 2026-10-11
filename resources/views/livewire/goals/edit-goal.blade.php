@@ -206,7 +206,7 @@
 
                 <!-- Botões -->
                 <div class="pes-form-actions grid grid-cols-2 sm:flex gap-3 mt-8">
-                    <button type="submit"
+                    <button data-mobile-save type="submit"
                         class="col-span-2 sm:col-span-1 flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg"
                         wire:loading.attr="disabled">
                         <span wire:loading.remove>
