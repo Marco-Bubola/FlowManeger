@@ -140,12 +140,29 @@
                 </div>
             @else
                 <div x-ref="grid" class="mps-grid grid gap-3">
-                    @foreach($products as $product)
-                        <x-modern-product-card
-                            :product="$product"
-                            :selected="collect($selectedProducts)->pluck('id')->contains($product->id)"
-                            clickAction="toggleProduct({{ $product->id }})"
-                        />
+                    @php $pickedIds = collect($selectedProducts)->pluck('id'); @endphp
+                    @foreach(\App\Models\Product::groupByFamily($products) as $group)
+                        @if($group->count() > 1)
+                            {{-- Variações: um card só, em carrossel --}}
+                            @php
+                                $start = \App\Models\Product::familyStart($group);
+                                $picked = $group->pluck('id')->intersect($pickedIds)->count();
+                            @endphp
+                            <x-variation-carousel :items="$group" :start="$start" :note="$picked ? ($picked === 1 ? '1 escolhida' : $picked . ' escolhidas') : null" wire:key="fam-{{ $group->first()->id }}">
+                                @foreach($group as $k => $product)
+                                    <div class="vc-slide" x-show="vi === {{ $k }}" @if($k !== $start) x-cloak @endif>
+                                        <x-modern-product-card :product="$product" :selected="$pickedIds->contains($product->id)" clickAction="toggleProduct({{ $product->id }})" />
+                                    </div>
+                                @endforeach
+                            </x-variation-carousel>
+                        @else
+                            @php $product = $group->first(); @endphp
+                            <x-modern-product-card
+                                :product="$product"
+                                :selected="$pickedIds->contains($product->id)"
+                                clickAction="toggleProduct({{ $product->id }})"
+                            />
+                        @endif
                     @endforeach
                 </div>
                 {{-- Páginas: no iPad e no computador a lista cabe numa tela só, sem rolagem --}}

@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\ProductImage;
 use App\Services\MercadoLivre\ProductService;
 use App\Services\Products\VariationService;
+use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +16,7 @@ use Livewire\WithFileUploads;
 
 class CreateProduct extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, HasNotifications, Concerns\ImportsFromMlCatalog;
 
     // Propriedades do formulário
     public string $name = '';
@@ -40,17 +41,15 @@ class CreateProduct extends Component
     // Modal de dicas
     public bool $showTipsModal = false;
 
-    // ML image importer (importadas após salvar o produto)
-    public array $mlImageResults = [];
-    public array $selectedMlImages = [];
-    public bool $mlSearching = false;
-    public string $mlSearchError = '';
 
     public function rules(): array
     {
         return [
             'name' => 'required|max:255',
-            'description' => 'nullable|max:1000',
+            'description' => 'nullable|max:5000',
+            'specs' => 'array|max:60',
+            'specs.*.n' => 'nullable|string|max:80',
+            'specs.*.v' => 'nullable|string|max:255',
             'price' => 'required|numeric',
             'price_sale' => 'required|numeric',
             'stock_quantity' => 'required|integer',
@@ -222,8 +221,14 @@ class CreateProduct extends Component
             'condition'       => $this->condition ?: 'new',
         ]);
 
-        // Importa imagens ML selecionadas para o produto resultante
-        $this->importPendingMlImages($result['product']->id);
+        // Ficha técnica no produto novo (não mexe num produto que só ganhou estoque)
+        $specs = $this->cleanSpecs();
+        if ($specs && $result['action'] !== 'stock') {
+            $result['product']->update(['specs' => $specs]);
+        }
+
+        // Fotos e capa trazidas do catálogo do ML
+        $this->attachPendingMlMedia($result['product']);
 
         session()->flash('success', match ($result['action']) {
             'stock'     => 'Produto já existia com esse preço — estoque somado!',
@@ -291,72 +296,10 @@ class CreateProduct extends Component
         ]);
     }
 
-    // ─── ML barcode image importer ────────────────────────────────────────────
-
-    public function searchMlImages(): void
+    // Produto novo: fotos e capa do ML esperam o produto ser salvo.
+    protected function mlTargetProduct(): ?Product
     {
-        if (empty($this->barcode)) {
-            $this->mlSearchError = 'Informe o código de barras antes de buscar.';
-            return;
-        }
-
-        $this->mlSearchError = '';
-        $this->mlImageResults = [];
-        $this->selectedMlImages = [];
-        $this->mlSearching = true;
-
-        try {
-            $service = new ProductService();
-            $result = $service->searchCatalogByBarcode($this->barcode, Auth::id());
-
-            if (!($result['success'] ?? false) || empty($result['results'])) {
-                $this->mlSearchError = 'Nenhum produto encontrado no catálogo do ML para este código.';
-                $this->mlSearching = false;
-                return;
-            }
-
-            $productId = $result['results'][0]['id'];
-            $details = $service->getCategoryFromCatalogProduct($productId, Auth::id());
-            $pictures = $details['product_info']['pictures'] ?? [];
-
-            $urls = [];
-            foreach ($pictures as $pic) {
-                $url = $pic['url'] ?? ($pic['secure_url'] ?? null);
-                if ($url) $urls[] = $url;
-            }
-
-            if (empty($urls)) {
-                $this->mlSearchError = 'Produto encontrado mas sem imagens disponíveis.';
-            } else {
-                $this->mlImageResults = $urls;
-                $this->selectedMlImages = array_fill(0, count($urls), false);
-            }
-        } catch (\Exception $e) {
-            Log::error('CreateProduct::searchMlImages error', ['e' => $e->getMessage()]);
-            $this->mlSearchError = 'Erro ao buscar imagens: ' . $e->getMessage();
-        } finally {
-            $this->mlSearching = false;
-        }
-    }
-
-    private function importPendingMlImages(int $productId): void
-    {
-        $sort = 0;
-        foreach ($this->selectedMlImages as $i => $selected) {
-            if (!$selected) continue;
-            $url = $this->mlImageResults[$i] ?? null;
-            if (!$url) continue;
-
-            $sort++;
-            ProductImage::create([
-                'product_id' => $productId,
-                'filename'   => basename(parse_url($url, PHP_URL_PATH)),
-                'alt_text'   => $this->name,
-                'source'     => 'mercadolivre',
-                'source_url' => $url,
-                'sort_order' => $sort,
-            ]);
-        }
+        return null;
     }
 
     public function updatedImage()

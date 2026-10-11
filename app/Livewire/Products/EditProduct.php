@@ -16,7 +16,7 @@ use Livewire\WithFileUploads;
 
 class EditProduct extends Component
 {
-    use WithFileUploads, HasNotifications;
+    use WithFileUploads, HasNotifications, Concerns\ImportsFromMlCatalog;
 
     public Product $product;
     public int $currentStep = 1;
@@ -58,17 +58,6 @@ class EditProduct extends Component
     // Galeria de imagens adicionais
     public array $extraImages = [];
 
-    // Ficha técnica [{n: nome, v: valor}]
-    public array $specs = [];
-
-    // Importar do catálogo do Mercado Livre (fotos, descrição, ficha técnica...)
-    public bool $showMlImport = false;
-    public string $mlQuery = '';
-    public array $mlCandidates = [];
-    public array $mlData = [];          // produto do catálogo escolhido
-    public array $mlPhotos = [];        // [índice => bool] fotos marcadas
-    public array $mlTake = [];          // o que levar: desc, specs, brand, name, cover
-    public string $mlSearchError = '';
 
     public function mount(Product $product)
     {
@@ -434,242 +423,23 @@ class EditProduct extends Component
         $this->notifySuccess('Imagem removida.');
     }
 
-    // ─── Ficha técnica ───────────────────────────────────────────────────────
-
-    public function addSpec(): void
-    {
-        $this->specs[] = ['n' => '', 'v' => ''];
-    }
-
-    public function removeSpec(int $i): void
-    {
-        unset($this->specs[$i]);
-        $this->specs = array_values($this->specs);
-    }
-
-    private function cleanSpecs(): array
-    {
-        return collect($this->specs)
-            ->map(fn ($s) => ['n' => trim((string) ($s['n'] ?? '')), 'v' => trim((string) ($s['v'] ?? ''))])
-            ->filter(fn ($s) => $s['n'] !== '' && $s['v'] !== '')
-            ->unique('n')
-            ->values()
-            ->all();
-    }
-
-    // ─── Importar do catálogo do Mercado Livre ───────────────────────────────
-
-    public function openMlImport(): void
-    {
-        $this->resetMlImport();
-        $this->mlQuery = $this->barcode ?: $this->name;
-        $this->showMlImport = true;
-        if (trim($this->mlQuery) !== '') {
-            $this->searchMlCatalog();
-        }
-    }
-
-    public function closeMlImport(): void
-    {
-        $this->showMlImport = false;
-        $this->resetMlImport();
-    }
-
-    private function resetMlImport(): void
-    {
-        $this->mlCandidates = [];
-        $this->mlData = [];
-        $this->mlPhotos = [];
-        $this->mlTake = [];
-        $this->mlSearchError = '';
-    }
-
-    public function searchMlCatalog(): void
-    {
-        $term = trim($this->mlQuery);
-        $this->resetMlImport();
-        if (mb_strlen($term) < 3) {
-            $this->mlSearchError = 'Digite o código de barras ou o nome do produto.';
-            return;
-        }
-
-        try {
-            $res = (new ProductService())->catalogCandidates($term, Auth::id());
-            if (!$res['success']) {
-                $this->mlSearchError = 'Não deu para buscar no Mercado Livre agora. Confira se a conta do ML está conectada.';
-                return;
-            }
-            $this->mlCandidates = $res['items'];
-            if (empty($this->mlCandidates)) {
-                $this->mlSearchError = 'Nada encontrado no catálogo do ML. Tente pelo nome do produto.';
-            } elseif (count($this->mlCandidates) === 1) {
-                $this->pickMlProduct($this->mlCandidates[0]['id']);
-            }
-        } catch (\Throwable $e) {
-            Log::error('EditProduct::searchMlCatalog', ['e' => $e->getMessage()]);
-            $this->mlSearchError = 'Erro ao buscar no Mercado Livre.';
-        }
-    }
-
-    public function pickMlProduct(string $catalogId): void
-    {
-        if (!collect($this->mlCandidates)->contains('id', $catalogId)) {
-            return;
-        }
-
-        try {
-            $data = (new ProductService())->catalogDetails($catalogId, Auth::id());
-        } catch (\Throwable $e) {
-            Log::error('EditProduct::pickMlProduct', ['e' => $e->getMessage()]);
-            $data = ['success' => false];
-        }
-
-        if (!($data['success'] ?? false)) {
-            $this->mlSearchError = 'Não deu para abrir esse produto do catálogo.';
-            return;
-        }
-
-        $this->mlSearchError = '';
-        $this->mlData = $data;
-        // Fotos que o produto já tem não aparecem marcadas de novo.
-        $have = collect($this->extraImages)->pluck('url')->all();
-        $this->mlPhotos = collect($data['pictures'])->map(fn ($u) => !in_array($u, $have, true))->all();
-        $this->mlTake = [
-            'desc'  => ($data['description'] !== '' || !empty($data['features'])),
-            'specs' => !empty($data['specs']),
-            'brand' => (bool) ($data['brand'] || $data['model'] || $data['gtin']),
-            'name'  => false,
-            'cover' => !$this->existingImageUrl && !empty($data['pictures']),
-        ];
-    }
-
-    public function backToMlResults(): void
-    {
-        $this->mlData = [];
-        $this->mlPhotos = [];
-        $this->mlTake = [];
-    }
-
-    /** Texto da descrição montado com o que veio do catálogo. */
-    public function mlDescriptionText(): string
-    {
-        $parts = [];
-        if (($this->mlData['description'] ?? '') !== '') {
-            $parts[] = $this->mlData['description'];
-        }
-        if (!empty($this->mlData['features'])) {
-            $parts[] = collect($this->mlData['features'])->map(fn ($f) => '• ' . $f)->implode("\n");
-        }
-        return mb_substr(implode("\n\n", $parts), 0, 5000);
-    }
-
-    public function applyMlImport(): void
-    {
-        if (empty($this->mlData)) {
-            return;
-        }
-        $d = $this->mlData;
-        $t = $this->mlTake;
-        $done = [];
-
-        if (!empty($t['name']) && $d['name'] !== '') {
-            $this->name = mb_substr($d['name'], 0, 255);
-            $done[] = 'nome';
-        }
-        if (!empty($t['desc'])) {
-            $text = $this->mlDescriptionText();
-            if ($text !== '') {
-                $this->description = $text;
-                $done[] = 'descrição';
-            }
-        }
-        if (!empty($t['specs']) && !empty($d['specs'])) {
-            // Junta com a ficha atual: o que veio do ML atualiza os campos de mesmo nome.
-            $merged = collect($this->cleanSpecs())->keyBy(fn ($s) => mb_strtolower($s['n']));
-            foreach ($d['specs'] as $s) {
-                $merged[mb_strtolower($s['n'])] = ['n' => $s['n'], 'v' => mb_substr($s['v'], 0, 255)];
-            }
-            $this->specs = $merged->values()->take(60)->all();
-            $done[] = 'ficha técnica';
-        }
-        if (!empty($t['brand'])) {
-            if ($d['brand']) { $this->brand = mb_substr($d['brand'], 0, 100); }
-            if ($d['model']) { $this->model = mb_substr($d['model'], 0, 100); }
-            if ($d['gtin'] && !$this->barcode) { $this->barcode = mb_substr($d['gtin'], 0, 15); }
-            $done[] = 'marca e modelo';
-        }
-
-        // Fotos entram na galeria na hora (são links do ML, não ocupam espaço).
-        $chosen = collect($d['pictures'])->filter(fn ($u, $i) => !empty($this->mlPhotos[$i]))->values();
-        $have = $this->product->images()->pluck('source_url')->filter()->all();
-        $maxSort = (int) ($this->product->images()->max('sort_order') ?? 0);
-        $added = 0;
-        foreach ($chosen as $url) {
-            if (in_array($url, $have, true)) {
-                continue;
-            }
-            ProductImage::create([
-                'product_id' => $this->product->id,
-                'filename'   => basename((string) parse_url($url, PHP_URL_PATH)),
-                'alt_text'   => $this->product->name,
-                'source'     => 'mercadolivre',
-                'source_url' => $url,
-                'sort_order' => ++$maxSort,
-            ]);
-            $added++;
-        }
-        if ($added) {
-            $done[] = $added . ($added === 1 ? ' foto' : ' fotos');
-        }
-
-        // Capa: baixa a primeira foto escolhida para virar a imagem principal.
-        if (!empty($t['cover']) && ($cover = $chosen->first() ?? ($d['pictures'][0] ?? null))) {
-            if ($this->saveCoverFromUrl($cover)) {
-                $done[] = 'imagem principal';
-            }
-        }
-
-        $this->loadExtraImages();
-        $this->showMlImport = false;
-        $this->resetMlImport();
-
-        if ($done) {
-            $this->notifySuccess('Trazido do Mercado Livre: ' . implode(', ', $done) . '. Confira e toque em Salvar.');
-        } else {
-            $this->notifyError('Nada marcado para trazer.');
-        }
-    }
-
-    private function saveCoverFromUrl(string $url): bool
-    {
-        try {
-            $resp = \Illuminate\Support\Facades\Http::timeout(15)->get($url);
-            $type = (string) $resp->header('Content-Type');
-            if (!$resp->successful() || !str_starts_with($type, 'image/') || strlen($resp->body()) > 5 * 1024 * 1024) {
-                return false;
-            }
-            $ext = match (true) {
-                str_contains($type, 'png')  => 'png',
-                str_contains($type, 'webp') => 'webp',
-                default                     => 'jpg',
-            };
-            $file = 'ml_' . $this->product->id . '_' . \Illuminate\Support\Str::random(8) . '.' . $ext;
-            Storage::disk('public')->put('products/' . $file, $resp->body());
-
-            // A imagem antiga fica no disco: pode ser a mesma de outra variação.
-            $this->product->update(['image' => $file]);
-            return true;
-        } catch (\Throwable $e) {
-            Log::warning('EditProduct::saveCoverFromUrl', ['e' => $e->getMessage()]);
-            return false;
-        }
-    }
-
     // ─── Variações ────────────────────────────────────────────────────────────
 
     /**
      * Variantes já vinculadas a este produto (quando ele é pai).
      */
+    // ─── Importar do ML: onde ficam fotos e capa ────────────────────────────
+
+    protected function mlTargetProduct(): ?Product
+    {
+        return $this->product;
+    }
+
+    protected function mlAfterApply(): void
+    {
+        $this->loadExtraImages();
+    }
+
     public function getVariantsProperty()
     {
         // Numa variação, mostra o resto do grupo (principal + irmãs).
