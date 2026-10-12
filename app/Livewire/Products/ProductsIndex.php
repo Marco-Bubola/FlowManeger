@@ -37,6 +37,8 @@ class ProductsIndex extends Component
     public bool $ipadLandscapeLayout = false;
     public int $perPage = 18;
     public int $page = 1;
+    // Rolagem infinita: quantos blocos de $perPage já aparecem na tela
+    public int $pages = 1;
 
     // Modal de exclusão
     public ?Product $deletingProduct = null;
@@ -109,9 +111,36 @@ class ProductsIndex extends Component
         'data_fim' => ['except' => ''],
         'ordem' => ['except' => ''],
         'perPage' => ['except' => 18],
-        'page' => ['except' => 1],
         'ultraLayout' => ['except' => false],
     ];
+
+    /** Qualquer filtro, busca ou ordem novo volta ao começo da lista. */
+    public function updating($name, $value): void
+    {
+        if (in_array($name, ['search', 'category', 'status_filtro', 'tipo', 'preco_min', 'preco_max', 'estoque',
+            'estoque_valor', 'data_inicio', 'data_fim', 'ordem', 'sem_imagem', 'em_promocao', 'semEstoque', 'perPage'], true)) {
+            $this->pages = 1;
+        }
+    }
+
+    /** Rolagem infinita: mostra o próximo bloco quando chega perto do fim. */
+    public function loadMore(): void
+    {
+        if ($this->pages * $this->chunk() < $this->products->total()) {
+            $this->pages++;
+        }
+    }
+
+    /** Ao voltar de editar/ver um produto: carrega até ele aparecer de novo. */
+    public function restoreTo(int $count): void
+    {
+        $this->pages = max(1, min(60, (int) ceil($count / max(1, $this->chunk()))));
+    }
+
+    private function chunk(): int
+    {
+        return $this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 18;
+    }
 
     public function updatingPerPage($value): void
     {
@@ -202,6 +231,13 @@ class ProductsIndex extends Component
     {
         $currentOrder = $this->ordem;
 
+        // Código: crescente (padrão) ⇄ decrescente
+        if ($field === 'codigo') {
+            $this->ordem = $currentOrder === '' ? 'codigo_desc' : '';
+            $this->pages = 1;
+            return;
+        }
+
         // Se clicar no mesmo campo, inverte a direção
         if (str_contains($currentOrder, $field)) {
             // Se termina com _asc, muda para _desc
@@ -220,6 +256,7 @@ class ProductsIndex extends Component
                 $this->ordem = 'atualizados'; // ou 'updated_desc'
             } elseif ($field === 'nome') {
                 $this->ordem = 'az'; // ou 'nome_asc'
+
             } else {
                 $this->ordem = $field . '_desc';
             }
@@ -615,51 +652,68 @@ class ProductsIndex extends Component
             $query->where('tipo', 'simples')->where('stock_quantity', '<=', 0);
         }
 
-        // Ordenação
-        if (!empty($this->ordem)) {
-            switch ($this->ordem) {
-                case 'recentes':
-                case 'data_desc':
-                    $query->orderBy('created_at', 'desc');
-                    break;
-                case 'antigas':
-                case 'data_asc':
-                    $query->orderBy('created_at', 'asc');
-                    break;
-                case 'atualizados':
-                case 'updated_desc':
-                    $query->orderBy('updated_at', 'desc');
-                    break;
-                case 'updated_asc':
-                    $query->orderBy('updated_at', 'asc');
-                    break;
-                case 'az':
-                case 'nome_asc':
-                    $query->orderBy('name', 'asc');
-                    break;
-                case 'za':
-                case 'nome_desc':
-                    $query->orderBy('name', 'desc');
-                    break;
-                case 'preco_asc':
-                    $query->orderBy('price', 'asc');
-                    break;
-                case 'preco_desc':
-                    $query->orderBy('price', 'desc');
-                    break;
-                case 'estoque_asc':
-                    $query->orderBy('stock_quantity', 'asc');
-                    break;
-                case 'estoque_desc':
-                    $query->orderBy('stock_quantity', 'desc');
-                    break;
-            }
-        } else {
-            // Ordenar produtos fora de estoque para o final se nenhuma ordenação for aplicada
-            $query->orderByRaw('stock_quantity > 0 DESC');
-        }
+        // Com estoque primeiro: kit (estoque vem dos itens) e família com alguma
+        // variação com estoque contam como "com estoque".
+        $inStock = "CASE WHEN products.tipo = 'kit' OR products.stock_quantity > 0 OR EXISTS ("
+            . "SELECT 1 FROM products v WHERE v.parent_id = products.id AND v.stock_quantity > 0"
+            . ") THEN 0 ELSE 1 END";
+        // Código em ordem de número (95.691 antes de 1234.567); códigos sem número no fim.
+        $codeNum = "CAST(REPLACE(products.product_code, '.', '') AS DECIMAL(20,0))";
 
-        $products = $query->with('activePromotion')->paginate($this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 18);
+        // Ordenação
+        switch ($this->ordem) {
+            case 'recentes':
+            case 'data_desc':
+                $query->orderBy('created_at', 'desc');
+                break;
+            case 'antigas':
+            case 'data_asc':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'atualizados':
+            case 'updated_desc':
+                $query->orderBy('updated_at', 'desc');
+                break;
+            case 'updated_asc':
+                $query->orderBy('updated_at', 'asc');
+                break;
+            case 'az':
+            case 'nome_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'za':
+            case 'nome_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            case 'preco_asc':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'preco_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'estoque_asc':
+                $query->orderBy('stock_quantity', 'asc');
+                break;
+            case 'estoque_desc':
+                $query->orderBy('stock_quantity', 'desc');
+                break;
+            case 'codigo_desc':
+                $query->orderByRaw($inStock)
+                    ->orderByRaw("$codeNum = 0")
+                    ->orderByRaw("$codeNum DESC")
+                    ->orderBy('product_code', 'desc');
+                break;
+            default:
+                // Padrão: código crescente, sem estoque por último
+                $query->orderByRaw($inStock)
+                    ->orderByRaw("$codeNum = 0")
+                    ->orderByRaw($codeNum)
+                    ->orderBy('product_code');
+        }
+        $query->orderBy('products.id');
+
+        // Rolagem infinita: uma "página" só, que cresce de $perPage em $perPage
+        $products = $query->with('activePromotion')->paginate($this->chunk() * max(1, $this->pages), ['*'], 'page', 1);
 
         // Garante que os links de paginação apontem para a rota pública (evita herdar
         // o caminho interno do Livewire como `/livewire/update`) e preserva os filtros

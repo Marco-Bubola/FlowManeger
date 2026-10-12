@@ -1,5 +1,5 @@
 {{-- Card de produto simples da lista de produtos (sozinho ou como slide do carrossel de variações). --}}
-<div class="product-card-modern">
+<div class="product-card-modern" data-pid="{{ $product->id }}">
     <!-- Botões flutuantes -->
     <div class="btn-action-group">
 

@@ -168,6 +168,11 @@
         /* Botões do card: WhatsApp e Desmembrar kit */
         .product-card-modern .btn-action-group .btn-wa { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; border: 2px solid #86efac; }
         .product-card-modern .btn-action-group .btn-breakdown { background: linear-gradient(135deg, #f59e0b, #ea580c); color: #fff; border: 2px solid #fcd34d; }
+        /* 6 botões cabem na foto do card em qualquer tela */
+        .products-index-page .products-grid .product-card-modern .btn-action-group { gap: .22rem !important; }
+        @media (max-width: 1100px) {
+            .products-index-page .products-grid .product-card-modern .btn-action-group .btn { width: 1.45rem !important; height: 1.45rem !important; font-size: .62rem !important; }
+        }
         .product-card-modern .btn-action-group .btn-wa:hover, .product-card-modern .btn-action-group .btn-breakdown:hover { filter: brightness(1.08); transform: translateY(-2px); }
         .dark .product-card-modern a.product-fav-count { color: #f9a8d4; background: rgba(236,72,153,.12); border-color: rgba(236,72,153,.3); }
     </style>
@@ -214,25 +219,13 @@
 
             <div class="inline-flex shrink-0 items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
                 <span class="px-1.5 text-xs text-slate-400"><i class="bi bi-arrow-down-up"></i></span>
+                <button type="button" wire:click="toggleSort('codigo')" title="Ordenar por código (sem estoque no fim)" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ in_array($ordem, ['', 'codigo_desc']) ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">Código <i class="bi {{ $ordem === 'codigo_desc' ? 'bi-sort-numeric-down-alt' : 'bi-sort-numeric-down' }}"></i></button>
                 <button type="button" wire:click="toggleSort('data')" title="Ordenar por data" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ in_array($ordem, ['recentes','data_desc','data_asc']) ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">Recentes</button>
                 <button type="button" wire:click="toggleSort('nome')" title="Ordenar A-Z" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ in_array($ordem, ['az','nome_asc','nome_desc']) ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">A-Z</button>
                 <button type="button" wire:click="toggleSort('preco')" title="Ordenar por preço" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ in_array($ordem, ['preco_desc','preco_asc']) ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">Preço</button>
             </div>
 
-            @php $currentPerPage = $products->perPage(); @endphp
-            <div class="inline-flex shrink-0 items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1" title="Produtos por página">
-                @foreach(array_slice($perPageOptions, 0, 5) as $pp)
-                <button type="button" wire:click="$set('perPage', {{ $pp }})" title="{{ $pp }} por página" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $currentPerPage == $pp ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">{{ $pp }}</button>
-                @endforeach
-            </div>
-
-            @if ($products->hasPages())
-            <div class="inline-flex shrink-0 items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
-                <button type="button" wire:click.prevent="previousPage" @disabled($products->onFirstPage()) title="Página anterior" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-40"><i class="bi bi-chevron-left"></i></button>
-                <span class="px-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">{{ $products->currentPage() }} / {{ $products->lastPage() }}</span>
-                <button type="button" wire:click.prevent="nextPage" @disabled(!$products->hasMorePages()) title="Próxima página" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-40"><i class="bi bi-chevron-right"></i></button>
-            </div>
-            @endif
+            <span class="shrink-0 px-1 text-xs font-semibold text-slate-500 dark:text-slate-400" title="Produtos na lista">{{ number_format($products->total(), 0, ',', '.') }} {{ $products->total() === 1 ? 'produto' : 'produtos' }}</span>
         </div>
     </div>
 
@@ -341,7 +334,7 @@
     @else
         <!-- Grid de Produtos com CSS customizado mantido -->
         <form>
-            <div class="products-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 ultrawind:grid-cols-8 gap-6"
+            <div data-loaded="{{ $products->count() }}" class="products-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 ultrawind:grid-cols-8 gap-6"
                 data-ultrawind="{{ $ultraLayout ?? false ? 'true' : 'false' }}"
                 data-full-hd="{{ $fullHdLayout ?? false ? 'true' : 'false' }}"
                 x-bind:data-ultrawind="ultra ? 'true' : 'false'" x-bind:data-full-hd="fullHd ? 'true' : 'false'">
@@ -367,7 +360,7 @@
                 @foreach ($products as $product)
                     @if ($product->tipo === 'kit')
                         <!-- Kit Card no estilo produto simples -->
-                        <div class="product-card-modern">
+                        <div class="product-card-modern" data-pid="{{ $product->id }}" wire:key="pc-{{ $product->id }}">
                             <!-- Botões flutuantes -->
                             <div class="btn-action-group">
                                 <a href="{{ route('products.show', $product->product_code) }}"
@@ -488,7 +481,17 @@
             </div>
         </form>
 
-        <x-pagination-bar :paginator="$products" :per-page-options="$perPageOptions" label="produtos" fit-grid=".products-grid" />
+        {{-- Rolagem infinita: o próximo bloco entra quando o fim da lista aparece --}}
+        <div class="products-feed-end mt-6 mb-4 flex flex-col items-center gap-2" x-data="productsFeed({{ $products->hasMorePages() ? 'true' : 'false' }})" wire:key="feed-{{ $products->count() }}-{{ $products->total() }}">
+            @if ($products->hasMorePages())
+                <div class="inline-flex items-center gap-2 rounded-full bg-white/80 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 shadow-sm">
+                    <span class="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent"></span>
+                    Carregando mais produtos...
+                </div>
+                <button type="button" wire:click="loadMore" class="text-xs font-semibold text-indigo-600 dark:text-indigo-300 underline-offset-2 hover:underline">Mostrar mais</button>
+            @endif
+            <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Mostrando {{ number_format($products->count(), 0, ',', '.') }} de {{ number_format($products->total(), 0, ',', '.') }} produtos</p>
+        </div>
     @endif
 
     <!-- Modal de Confirmação de Exclusão Ultra Moderno -->
@@ -719,4 +722,98 @@
 
     {{-- Botão de WhatsApp dos cards (com ou sem promoção) --}}
     <livewire:products.product-share />
+
+    <style>
+        .products-index-page .pf-flash { animation: pfFlash 2.2s ease; border-radius: 1.25rem; }
+        @keyframes pfFlash { 0%, 60% { box-shadow: 0 0 0 4px rgba(99,102,241,.55), 0 10px 30px rgba(99,102,241,.25); } 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); } }
+    </style>
+    <script>
+        /**
+         * Lista de produtos sem páginas: o próximo bloco entra quando o fim aparece.
+         * Ao abrir/editar um produto e voltar, a lista carrega até ele e rola até o card.
+         */
+        (function () {
+            const KEY = 'fm-products-return';
+            window.__pfRestorePending = true;
+
+            if (!window.__pfClickBound) {
+                window.__pfClickBound = true;
+                document.addEventListener('click', (e) => {
+                    const card = e.target.closest('.products-index-page [data-pid]');
+                    if (!card || !e.target.closest('a[href], button')) return;
+                    const grid = card.closest('.products-grid');
+                    try {
+                        sessionStorage.setItem(KEY, JSON.stringify({
+                            q: location.search, pid: card.dataset.pid,
+                            n: parseInt(grid?.dataset.loaded || '0', 10), t: Date.now(),
+                        }));
+                    } catch (err) {}
+                }, true);
+            }
+
+            function topCard(el) {
+                let top = el;
+                while (top.parentElement && !top.parentElement.classList.contains('products-grid')) top = top.parentElement;
+                return top;
+            }
+
+            function restore(wire) {
+                let s = null;
+                try { s = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (err) {}
+                if (!s) return;
+                if (Date.now() - s.t > 3 * 3600 * 1000) { sessionStorage.removeItem(KEY); return; }
+                if (location.search !== s.q) {
+                    // Salvar no editar volta para /products sem os filtros: reaplica os filtros de antes
+                    if (!location.search && s.q) { location.replace(location.pathname + s.q); return; }
+                    sessionStorage.removeItem(KEY);
+                    return;
+                }
+                sessionStorage.removeItem(KEY);
+                const go = () => {
+                    const el = document.querySelector('.products-index-page .products-grid [data-pid="' + s.pid + '"]');
+                    if (!el) return false;
+                    const top = topCard(el);
+                    top.scrollIntoView({ block: 'center' });
+                    top.classList.add('pf-flash');
+                    setTimeout(() => top.classList.remove('pf-flash'), 2400);
+                    return true;
+                };
+                if (go()) return;
+                if (s.n > 0) wire.restoreTo(s.n).then(() => setTimeout(go, 120));
+            }
+
+            window.productsFeed = (hasMore) => ({
+                busy: false,
+                onScroll: null,
+                init() {
+                    if (window.__pfRestorePending) {
+                        window.__pfRestorePending = false;
+                        this.$nextTick(() => restore(this.$wire));
+                    }
+                    if (!hasMore) return;
+                    // Checa pela posição (o layout tem áreas com overflow que atrapalham o IntersectionObserver)
+                    let raf = 0;
+                    this.onScroll = () => {
+                        if (raf) return;
+                        raf = requestAnimationFrame(() => { raf = 0; this.check(); });
+                    };
+                    window.addEventListener('scroll', this.onScroll, { passive: true, capture: true });
+                    window.addEventListener('resize', this.onScroll, { passive: true });
+                    setTimeout(() => this.check(), 300);
+                },
+                check() {
+                    if (this.busy || !this.$el.isConnected) return;
+                    const r = this.$el.getBoundingClientRect();
+                    if (r.top - window.innerHeight > 900 || r.height === 0) return;
+                    this.busy = true;
+                    this.$wire.loadMore().finally(() => { this.busy = false; });
+                },
+                destroy() {
+                    if (!this.onScroll) return;
+                    window.removeEventListener('scroll', this.onScroll, { capture: true });
+                    window.removeEventListener('resize', this.onScroll);
+                },
+            });
+        })();
+    </script>
 </div>
