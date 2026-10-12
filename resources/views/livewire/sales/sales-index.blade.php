@@ -112,108 +112,87 @@
             :seller-filter="$sellerFilter" :quick-filter="$quickFilter" :sort-by="$sortBy" :sort-direction="$sortDirection" :per-page-options="$perPageOptions"
             :per-page="$perPage" :search="$search" />
 
-        <!-- Orçamentos do Portal -->
+        <!-- Pedidos do portal em aberto -->
         @if(isset($portalQuotes) && $portalQuotes->count() > 0)
-        <div class="mb-6 mx-4 sm:mx-0">
-            <div class="relative overflow-hidden rounded-2xl border border-sky-200 dark:border-sky-800/50 bg-gradient-to-r from-sky-50 via-indigo-50 to-violet-50 dark:from-sky-900/20 dark:via-indigo-900/20 dark:to-violet-900/20 shadow-lg">
-                {{-- Decoração --}}
-                <div class="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-sky-400 to-indigo-600 rounded-l-2xl"></div>
-                <div class="absolute -right-10 -top-10 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl pointer-events-none"></div>
-
-                {{-- Header --}}
-                <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-sky-200/60 dark:border-sky-700/40">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
-                            <i class="fas fa-file-invoice text-white text-sm"></i>
-                        </div>
-                        <div>
-                            <h3 class="font-black text-sm text-gray-900 dark:text-slate-100">Orçamentos do Portal</h3>
-                            <p class="text-[10px] text-gray-500 dark:text-slate-400">Solicitações pendentes de confirmação</p>
-                        </div>
-                        <span class="ml-1 inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 bg-sky-500 text-white text-[10px] font-black rounded-full shadow animate-pulse">
-                            {{ $portalQuotes->count() }}
-                        </span>
-                    </div>
+        @php $po = app(\App\Services\Portal\PortalOrderService::class); @endphp
+        <section class="spo mb-5" data-testid="sales-portal-orders">
+            <div class="spo-head">
+                <span class="spo-icon"><i class="bi bi-bag-heart"></i></span>
+                <div class="min-w-0 flex-1">
+                    <h3>Pedidos do portal <span class="spo-badge">{{ $portalQuotes->count() }}</span></h3>
+                    <p>Clientes que pediram pelo catálogo e esperam sua confirmação</p>
                 </div>
-
-                {{-- Tabela de orçamentos --}}
-                <div class="overflow-x-auto">
-                    <table class="w-full text-xs">
-                        <thead>
-                            <tr class="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-slate-400 bg-sky-50/50 dark:bg-sky-900/10">
-                                <th class="text-left px-5 py-2.5">Cliente</th>
-                                <th class="text-center px-3 py-2.5">Itens</th>
-                                <th class="text-center px-3 py-2.5">Pagamento</th>
-                                <th class="text-center px-3 py-2.5">Status</th>
-                                <th class="text-center px-3 py-2.5">Data</th>
-                                <th class="text-right px-5 py-2.5">Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-sky-100/80 dark:divide-sky-800/30">
-                            @foreach($portalQuotes as $pq)
-                            <tr class="hover:bg-sky-50/60 dark:hover:bg-sky-900/10 transition-colors group">
-                                <td class="px-5 py-3">
-                                    <div class="flex items-center gap-2.5">
-                                        <div class="w-7 h-7 bg-gradient-to-br from-sky-400 to-indigo-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-user text-white text-[9px]"></i>
-                                        </div>
-                                        <div>
-                                            <p class="font-black text-gray-900 dark:text-slate-200">{{ $pq->client?->name ?? '—' }}</p>
-                                            <p class="text-[9px] text-gray-400 dark:text-slate-500">#ORC-{{ $pq->id }}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-3 py-3 text-center">
-                                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg font-black">
-                                        <i class="fas fa-boxes-stacked text-[9px]"></i>
-                                        {{ count($pq->items ?? []) }}
-                                    </span>
-                                </td>
-                                <td class="px-3 py-3 text-center">
-                                    @if($pq->payment_preference)
-                                    @php
-                                    $payLabels = ['pix'=>'PIX','dinheiro'=>'Dinheiro','credito'=>'Crédito','debito'=>'Débito','boleto'=>'Boleto','outro'=>'Outro'];
-                                    $payIcons = ['pix'=>'fa-qrcode','dinheiro'=>'fa-money-bill-wave','credito'=>'fa-credit-card','debito'=>'fa-credit-card','boleto'=>'fa-barcode','outro'=>'fa-ellipsis-h'];
-                                    @endphp
-                                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 rounded-lg font-bold text-[10px]">
-                                        <i class="fas {{ $payIcons[$pq->payment_preference] ?? 'fa-credit-card' }} text-[9px]"></i>
-                                        {{ $payLabels[$pq->payment_preference] ?? $pq->payment_preference }}
-                                    </span>
-                                    @else
-                                    <span class="text-gray-400 dark:text-slate-500">—</span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-3 text-center">
-                                    @php
-                                    $stColors = ['pending'=>'amber','reviewing'=>'blue','quoted'=>'violet'];
-                                    $stLabels = ['pending'=>'Aguardando','reviewing'=>'Em análise','quoted'=>'Cotado'];
-                                    $sc = $stColors[$pq->status] ?? 'gray';
-                                    @endphp
-                                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-{{ $sc }}-100 dark:bg-{{ $sc }}-900/20 text-{{ $sc }}-700 dark:text-{{ $sc }}-300 rounded-lg font-black text-[10px]">
-                                        @if($pq->status === 'pending') <i class="fas fa-clock text-[8px]"></i>
-                                        @elseif($pq->status === 'reviewing') <i class="fas fa-magnifying-glass text-[8px]"></i>
-                                        @else <i class="fas fa-check text-[8px]"></i>
-                                        @endif
-                                        {{ $stLabels[$pq->status] ?? $pq->status }}
-                                    </span>
-                                </td>
-                                <td class="px-3 py-3 text-center text-gray-500 dark:text-slate-400">
-                                    {{ $pq->created_at->format('d/m/Y') }}
-                                </td>
-                                <td class="px-5 py-3 text-right">
-                                    <a href="{{ route('clients.portal.quotes', $pq->client_id) }}"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-black text-[10px] rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
-                                        <i class="fas fa-eye text-[9px]"></i>
-                                        Confirmar
-                                    </a>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                <a href="{{ route('sales.portal-orders') }}" class="spo-all" wire:navigate>{{ $portalQuotes->count() > 4 ? 'Ver todos os ' . $portalQuotes->count() : 'Abrir' }}<i class="bi bi-arrow-right"></i></a>
             </div>
-        </div>
+            <div class="spo-row">
+                @foreach($portalQuotes->take(4) as $pq)
+                    @php
+                        $pItems = $po->items($pq, null, $portalProducts);
+                        $pTotal = $po->total($pq);
+                        $pUnits = array_sum(array_column($pItems, 'quantity'));
+                        [$pLabel, $pTone] = match ($pq->status) { 'reviewing' => ['Em análise', 'sky'], 'quoted' => ['Orçamento enviado', 'violet'], default => ['Novo', 'amber'] };
+                    @endphp
+                    <a href="{{ route('sales.portal-orders', ['pedido' => $pq->id]) }}" class="spo-card" wire:navigate>
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <x-client-avatar :name="$pq->client->name ?? '?'" :photo="$pq->client->caminho_foto ?? null" size="w-9 h-9 text-xs" rounded="rounded-xl" />
+                            <div class="min-w-0 flex-1">
+                                <p class="spo-name truncate">{{ $pq->client?->name ?? 'Cliente' }}</p>
+                                <p class="spo-dim truncate">#{{ $pq->id }} · {{ $pq->created_at->diffForHumans() }}</p>
+                            </div>
+                            <span class="spo-tag is-{{ $pTone }}">{{ $pLabel }}</span>
+                        </div>
+                        <div class="spo-bottom">
+                            <div class="spo-thumbs">
+                                @foreach(array_slice($pItems, 0, 4) as $it)
+                                    <span>@if($it['image'])<img src="{{ $it['image'] }}" alt="" loading="lazy">@else<i class="bi bi-box-seam"></i>@endif</span>
+                                @endforeach
+                                @if(count($pItems) > 4)<span class="is-more">+{{ count($pItems) - 4 }}</span>@endif
+                            </div>
+                            <div class="text-right">
+                                <strong>{{ $pTotal > 0 ? $po->money($pTotal) : 'A definir' }}</strong>
+                                <p class="spo-dim">{{ $pUnits }} {{ $pUnits === 1 ? 'item' : 'itens' }}@if($pq->payment_preference) · {{ $po->paymentLabel($pq->payment_preference) }}@endif</p>
+                            </div>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+            <style>
+                .spo { border-radius: 22px; border: 1px solid rgb(226 232 240 / .9); background: linear-gradient(135deg, rgb(255 255 255), rgb(245 243 255)); padding: 14px; box-shadow: 0 1px 2px rgb(15 23 42 / .04); }
+                .dark .spo { background: linear-gradient(135deg, rgb(15 23 42 / .85), rgb(30 27 75 / .55)); border-color: rgb(51 65 85 / .7); }
+                .spo-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+                .spo-icon { width: 40px; height: 40px; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.1rem; background: linear-gradient(135deg, rgb(99 102 241), rgb(147 51 234)); box-shadow: 0 6px 16px -6px rgb(99 102 241 / .6); flex-shrink: 0; }
+                .spo-head h3 { font-weight: 800; font-size: .98rem; color: rgb(15 23 42); display: flex; align-items: center; gap: 6px; }
+                .dark .spo-head h3 { color: #fff; }
+                .spo-head p { font-size: .74rem; color: rgb(100 116 139); }
+                @media (max-width: 639px) { .spo-head p { display: none; } }
+                .spo-badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: rgb(245 158 11); color: #fff; font-size: .7rem; display: inline-flex; align-items: center; justify-content: center; }
+                .spo-all { display: inline-flex; align-items: center; gap: 6px; border-radius: 12px; padding: 8px 12px; font-size: .78rem; font-weight: 700; color: #fff; background: linear-gradient(90deg, rgb(79 70 229), rgb(147 51 234)); white-space: nowrap; }
+                .spo-row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(260px, 82%); gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 2px; }
+                @media (min-width: 768px) { .spo-row { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; } }
+                @media (min-width: 1280px) { .spo-row { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+                .spo-card { scroll-snap-align: start; display: flex; flex-direction: column; gap: 10px; border-radius: 16px; background: #fff; border: 1px solid rgb(226 232 240); padding: 12px; transition: box-shadow .2s, transform .2s; min-width: 0; }
+                .spo-card:hover { box-shadow: 0 10px 24px -14px rgb(79 70 229 / .6); transform: translateY(-1px); }
+                .dark .spo-card { background: rgb(15 23 42 / .9); border-color: rgb(51 65 85); }
+                .spo-card.is-more { align-items: center; justify-content: center; flex-direction: row; font-weight: 700; font-size: .85rem; color: rgb(79 70 229); border-style: dashed; }
+                .spo-name { font-weight: 700; font-size: .86rem; color: rgb(15 23 42); }
+                .dark .spo-name { color: #fff; }
+                .spo-dim { font-size: .7rem; color: rgb(100 116 139); }
+                .spo-tag { border-radius: 999px; padding: 2px 8px; font-size: .66rem; font-weight: 700; white-space: nowrap; background: rgb(255 251 235); color: rgb(180 83 9); }
+                .spo-tag.is-sky { background: rgb(240 249 255); color: rgb(3 105 161); }
+                .spo-tag.is-violet { background: rgb(245 243 255); color: rgb(109 40 217); }
+                .dark .spo-tag { background: rgb(245 158 11 / .14); color: rgb(252 211 77); }
+                .dark .spo-tag.is-sky { background: rgb(14 165 233 / .14); color: rgb(125 211 252); }
+                .dark .spo-tag.is-violet { background: rgb(139 92 246 / .16); color: rgb(196 181 253); }
+                .spo-bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+                .spo-bottom strong { font-size: 1rem; font-weight: 900; color: rgb(15 23 42); white-space: nowrap; }
+                .dark .spo-bottom strong { color: #fff; }
+                .spo-thumbs { display: flex; }
+                .spo-thumbs span { width: 34px; height: 34px; border-radius: 10px; border: 2px solid #fff; background: rgb(248 250 252); margin-right: -8px; overflow: hidden; display: flex; align-items: center; justify-content: center; color: rgb(148 163 184); font-size: .7rem; font-weight: 800; }
+                .dark .spo-thumbs span { border-color: rgb(15 23 42); background: rgb(30 41 59); }
+                .spo-thumbs img { width: 100%; height: 100%; object-fit: contain; background: #fff; }
+                .spo-thumbs .is-more { color: rgb(79 70 229); }
+            </style>
+        </section>
         @endif
 
         <!-- Grid de Cards de Vendas -->

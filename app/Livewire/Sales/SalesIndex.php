@@ -568,12 +568,17 @@ class SalesIndex extends Component
         $clients = Client::query()->get();
         $sellers = collect(); // Implementar se houver tabela de vendedores
 
+        // Pedidos do portal em aberto (os mais novos); a lista completa fica em Pedidos do portal.
         $portalQuotes = ClientQuoteRequest::query()
-            ->with('client')
+            ->with(['client' => fn ($q) => $q->withoutGlobalScope('team_visibility')])
             ->where('user_id', Auth::id())
             ->whereIn('status', ['pending', 'reviewing', 'quoted'])
             ->latest()
             ->get();
+        $portalProducts = \App\Models\Product::withoutGlobalScope('team_visibility')
+            ->where('user_id', Auth::id())
+            ->whereIn('id', $portalQuotes->take(4)->flatMap(fn ($q) => collect($q->items ?? [])->pluck('product_id'))->filter()->unique())
+            ->get()->keyBy('id');
 
         return view('livewire.sales.sales-index', [
             'sales' => $this->sales,
@@ -586,6 +591,7 @@ class SalesIndex extends Component
             'perPageOptions' => $this->getPerPageOptions(),
             'ultraWindClient' => $this->ultraWindClient,
             'portalQuotes' => $portalQuotes,
+            'portalProducts' => $portalProducts,
         ]);
     }
 

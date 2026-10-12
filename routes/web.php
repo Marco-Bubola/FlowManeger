@@ -279,6 +279,7 @@ Route::middleware(['auth'])->group(function () {
     // --- Rotas de Vendas (Livewire) ---
     Route::get('/sales', SalesIndex::class)->name('sales.index');
     Route::get('/sales/create', CreateSale::class)->name('sales.create');
+    Route::get('/sales/pedidos-do-portal', \App\Livewire\Sales\PortalOrders::class)->name('sales.portal-orders');
     Route::get('/sales/{id}', ShowSale::class)->name('sales.show');
     Route::get('/sales/{id}/edit', EditSale::class)->name('sales.edit');
     Route::get('/sales/{sale}/add-products', AddProducts::class)->name('sales.add-products');

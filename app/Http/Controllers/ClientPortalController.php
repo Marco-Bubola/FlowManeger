@@ -1240,7 +1240,12 @@ class ClientPortalController extends Controller
         $client = $quote->client;
         $mailed = $orders->mailClient($quote, $client);
 
-        return redirect()->route('clients.portal.quotes', $quote->client_id)
+        // Quem confirmou/recusou pela tela Pedidos do portal volta para ela, já no pedido.
+        $back = request()->input('voltar') === 'pedidos'
+            ? redirect()->route('sales.portal-orders', ['pedido' => $quote->id])
+            : redirect()->route('clients.portal.quotes', $quote->client_id);
+
+        return $back
             ->with('success', $message)
             ->with('portal_notify', [
                 'quote_id'  => $quote->id,

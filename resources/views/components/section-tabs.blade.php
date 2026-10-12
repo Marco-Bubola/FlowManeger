@@ -14,6 +14,7 @@
         'vendas' => [
             'lista' => ['label' => 'Vendas', 'icon' => 'bi-cart3', 'route' => 'sales.index'],
             'nova' => ['label' => 'Nova venda', 'icon' => 'bi-plus-circle', 'route' => 'sales.create'],
+            'portal' => ['label' => 'Pedidos do portal', 'icon' => 'bi-bag-heart', 'route' => 'sales.portal-orders'],
             'receber' => ['label' => 'A receber', 'icon' => 'bi-cash-coin', 'route' => 'gestao.receivables'],
             'lucro' => ['label' => 'Lucro por venda', 'icon' => 'bi-graph-up-arrow', 'route' => 'gestao.profit'],
         ],

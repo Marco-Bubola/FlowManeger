@@ -243,6 +243,17 @@
                                     <div class="{{ Request::is('promotions*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-rose-500 to-pink-600 rounded-l-full"></div>
                                 </a>
 
+                                @php $portalNew = auth()->check() ? \App\Models\ClientQuoteRequest::where('user_id', auth()->id())->where('status', 'pending')->count() : 0; @endphp
+                                <a href="{{ route('sales.portal-orders') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('sales/pedidos-do-portal') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('sales/pedidos-do-portal') ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-bag-heart text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Pedidos do portal</span>
+                                    @if($portalNew > 0)
+                                        <span class="sidebar-text inline-flex min-w-[20px] h-5 px-1.5 items-center justify-center rounded-full bg-amber-500 text-white text-[11px] font-bold" title="{{ $portalNew }} pedido(s) novo(s)">{{ $portalNew }}</span>
+                                    @endif
+                                </a>
+
                                 <a href="{{ route('gestao.receivables') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/a-receber') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
                                     <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/a-receber') ? 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg' : '' }}">
                                         <i class="bi bi-cash-coin text-lg"></i>
@@ -1652,6 +1663,12 @@
                             <i class="bi bi-box-seam text-white"></i>
                         </div>
                         <span class="more-app-label">Repor Estoque</span>
+                    </a>
+                    <a href="{{ route('sales.portal-orders') }}" class="more-app-card {{ Request::is('sales/pedidos-do-portal') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#6366f1,#9333ea)">
+                            <i class="bi bi-bag-heart text-white"></i>
+                        </div>
+                        <span class="more-app-label">Pedidos do portal</span>
                     </a>
                     <a href="{{ route('gestao.receivables') }}" class="more-app-card {{ Request::is('gestao/a-receber') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
                         <div class="more-app-icon" style="background:linear-gradient(135deg,#10b981,#16a34a)">
