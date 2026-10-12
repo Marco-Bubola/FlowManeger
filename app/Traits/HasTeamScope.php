@@ -23,10 +23,8 @@ trait HasTeamScope
                 return;
             }
 
-            // Admin vê todos os registros (bypass intencional).
-            if ($viewer->isAdmin()) {
-                return;
-            }
+            // Admin também vê só os próprios registros e os da equipe conectada
+            // (antes via tudo de todos os usuários, e não conseguia editar).
 
             $model = $builder->getModel();
             $module = $model->getTeamScopeModule();
@@ -42,7 +40,7 @@ trait HasTeamScope
     {
         $viewer = $viewer ?? Auth::user();
 
-        if (!$viewer instanceof User || $viewer->isAdmin()) {
+        if (!$viewer instanceof User) {
             return $query;
         }
 
