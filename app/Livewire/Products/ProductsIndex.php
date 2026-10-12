@@ -32,6 +32,8 @@ class ProductsIndex extends Component
     public bool $sem_imagem = false;
     public bool $em_promocao = false;
     public bool $semEstoque = false;
+    // Filtro rápido por letra inicial do nome ('' = todas, '#' = número/símbolo)
+    public string $letra = '';
     public bool $fullHdLayout = false;
     public bool $ultraLayout = false;
     public bool $ipadLandscapeLayout = false;
@@ -107,6 +109,7 @@ class ProductsIndex extends Component
         'sem_imagem' => ['except' => false],
         'em_promocao' => ['except' => false],
         'semEstoque' => ['except' => false],
+        'letra' => ['except' => ''],
         'data_inicio' => ['except' => ''],
         'data_fim' => ['except' => ''],
         'ordem' => ['except' => ''],
@@ -118,7 +121,7 @@ class ProductsIndex extends Component
     public function updating($name, $value): void
     {
         if (in_array($name, ['search', 'category', 'status_filtro', 'tipo', 'preco_min', 'preco_max', 'estoque',
-            'estoque_valor', 'data_inicio', 'data_fim', 'ordem', 'sem_imagem', 'em_promocao', 'semEstoque', 'perPage'], true)) {
+            'estoque_valor', 'data_inicio', 'data_fim', 'ordem', 'sem_imagem', 'em_promocao', 'semEstoque', 'perPage', 'letra'], true)) {
             $this->pages = 1;
         }
     }
@@ -131,10 +134,47 @@ class ProductsIndex extends Component
         }
     }
 
-    /** Ao voltar de editar/ver um produto: carrega até ele aparecer de novo. */
-    public function restoreTo(int $count): void
+    /**
+     * Ao voltar de editar/ver um produto: carrega até ele aparecer de novo.
+     * Procura a posição atual do produto (ou da família dele) na lista, porque
+     * depois de editar ele pode ter mudado de lugar (ex.: ficou sem estoque e foi
+     * para o fim). Sem achar, usa quantos cards estavam carregados antes.
+     */
+    public function restoreTo(int $count, ?int $pid = null): void
     {
-        $this->pages = max(1, min(60, (int) ceil($count / max(1, $this->chunk()))));
+        $target = null;
+        if ($pid) {
+            $p = Product::query()->select('id', 'parent_id')->find($pid);
+            $target = $p ? ($p->parent_id ?: $p->id) : null;
+        }
+
+        if ($target) {
+            $ids = $this->productsQuery()->pluck('products.id');
+            $idx = $ids->search($target);
+            if ($idx !== false) {
+                $count = $idx + 1;
+            }
+        }
+
+        $this->pages = max(1, min(150, (int) ceil(max(1, $count) / max(1, $this->chunk()))));
+    }
+
+    /** Letra → quantos produtos começam com ela (para o filtro rápido A-Z). */
+    public function getLettersProperty(): array
+    {
+        $rows = Product::query()->whereNull('parent_id')
+            ->selectRaw('UPPER(SUBSTR(TRIM(name), 1, 1)) as l, COUNT(*) as n')
+            ->groupByRaw('UPPER(SUBSTR(TRIM(name), 1, 1))')
+            ->pluck('n', 'l');
+
+        $out = array_fill_keys(array_merge(range('A', 'Z'), ['#']), 0);
+        foreach ($rows as $l => $n) {
+            $k = strtoupper(\Illuminate\Support\Str::ascii((string) $l));
+            $k = preg_match('/^[A-Z]$/', $k) ? $k : '#';
+            $out[$k] += (int) $n;
+        }
+
+        return $out;
     }
 
     private function chunk(): int
@@ -573,22 +613,45 @@ class ProductsIndex extends Component
 
     public function getProductsProperty()
     {
+        // Rolagem infinita: uma "página" só, que cresce de $perPage em $perPage
+        $products = $this->productsQuery()->with('activePromotion')->paginate($this->chunk() * max(1, $this->pages), ['*'], 'page', 1);
+
+        return $this->finishPaginator($products);
+    }
+
+    /** Lista com todos os filtros e a ordem atuais (sem paginar). */
+    private function productsQuery()
+    {
         $query = Product::query();
 
-        // Variações: ocultar variantes filhas da listagem principal.
-        // Mostra apenas produtos-pai e standalone (parent_id NULL).
-        // Exceção: ao pesquisar, permitimos encontrar variantes diretamente.
-        if (empty($this->search)) {
-            $query->whereNull('parent_id');
+        // Variações: o card do principal mostra as variações (carrossel), então a
+        // lista só traz principais e produtos sem variação, inclusive na busca.
+        $query->whereNull('parent_id');
+
+        // Busca por nome ou código; se bater numa variação, aparece o principal dela.
+        if (trim($this->search) !== '') {
+            $term = '%' . trim($this->search) . '%';
+            $code = '%' . str_replace('.', '', trim($this->search)) . '%';
+            $query->where(function ($q) use ($term, $code) {
+                $q->where('products.name', 'like', $term)
+                    ->orWhere(DB::raw("REPLACE(products.product_code, '.', '')"), 'like', $code)
+                    ->orWhereExists(function ($v) use ($term, $code) {
+                        $v->select(DB::raw(1))->from('products as pv')
+                            ->whereColumn('pv.parent_id', 'products.id')
+                            ->where(fn ($w) => $w->where('pv.name', 'like', $term)
+                                ->orWhere('pv.variation_value', 'like', $term)
+                                ->orWhere(DB::raw("REPLACE(pv.product_code, '.', '')"), 'like', $code));
+                    });
+            });
         }
 
-        // Filtro de pesquisa por nome ou código
-        if (!empty($this->search)) {
-            $searchTerm = str_replace('.', '', $this->search);
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('name', 'like', '%' . $searchTerm . '%')
-                    ->orWhere(DB::raw("REPLACE(product_code, '.', '')"), 'like', '%' . $searchTerm . '%');
-            });
+        // Filtro rápido por letra
+        if ($this->letra !== '') {
+            if ($this->letra === '#') {
+                $query->whereRaw("UPPER(SUBSTR(TRIM(products.name), 1, 1)) NOT BETWEEN 'A' AND 'Z'");
+            } elseif (preg_match('/^[A-Z]$/', $this->letra)) {
+                $query->whereRaw('UPPER(SUBSTR(TRIM(products.name), 1, 1)) = ?', [$this->letra]);
+            }
         }
 
         // Filtro por categoria
@@ -712,8 +775,11 @@ class ProductsIndex extends Component
         }
         $query->orderBy('products.id');
 
-        // Rolagem infinita: uma "página" só, que cresce de $perPage em $perPage
-        $products = $query->with('activePromotion')->paginate($this->chunk() * max(1, $this->pages), ['*'], 'page', 1);
+        return $query;
+    }
+
+    private function finishPaginator($products)
+    {
 
         // Garante que os links de paginação apontem para a rota pública (evita herdar
         // o caminho interno do Livewire como `/livewire/update`) e preserva os filtros

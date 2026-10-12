@@ -170,6 +170,18 @@
         .product-card-modern .btn-action-group .btn-breakdown { background: linear-gradient(135deg, #f59e0b, #ea580c); color: #fff; border: 2px solid #fcd34d; }
         /* 6 botões cabem na foto do card em qualquer tela */
         .products-index-page .products-grid .product-card-modern .btn-action-group { gap: .22rem !important; }
+        .pl-letters { display: flex; gap: .3rem; margin: -.25rem 0 1rem; padding: .35rem; overflow-x: auto; scrollbar-width: thin;
+            border-radius: 1rem; background: rgb(255 255 255 / .7); border: 1px solid rgb(226 232 240 / .8); }
+        .dark .pl-letters { background: rgb(15 23 42 / .6); border-color: rgb(51 65 85 / .6); }
+        .pl-letter { flex: 1 0 auto; min-width: 1.9rem; height: 1.9rem; padding: 0 .35rem; border-radius: .6rem; font-size: .74rem; font-weight: 800;
+            color: rgb(71 85 105); transition: all .15s; }
+        .pl-letter:hover:not(:disabled) { background: rgb(238 242 255); color: rgb(79 70 229); }
+        .pl-letter:disabled { opacity: .3; cursor: default; }
+        .pl-letter.is-all { padding: 0 .7rem; flex: 0 0 auto; }
+        .pl-letter.is-on { background: linear-gradient(90deg, #4f46e5, #9333ea); color: #fff; box-shadow: 0 3px 10px -3px rgb(79 70 229 / .6); }
+        .dark .pl-letter { color: rgb(203 213 225); }
+        .dark .pl-letter:hover:not(:disabled) { background: rgb(79 70 229 / .2); color: #c7d2fe; }
+        @media (max-width: 640px) { .pl-letter { min-width: 2.1rem; height: 2.1rem; } }
         @media (max-width: 1100px) {
             .products-index-page .products-grid .product-card-modern .btn-action-group .btn { width: 1.45rem !important; height: 1.45rem !important; font-size: .62rem !important; }
         }
@@ -227,6 +239,16 @@
 
             <span class="shrink-0 px-1 text-xs font-semibold text-slate-500 dark:text-slate-400" title="Produtos na lista">{{ number_format($products->total(), 0, ',', '.') }} {{ $products->total() === 1 ? 'produto' : 'produtos' }}</span>
         </div>
+    </div>
+
+    {{-- Filtro rápido por letra inicial do nome --}}
+    @php $letterCounts = $this->letters; @endphp
+    <div class="pl-letters" role="toolbar" aria-label="Filtrar por letra">
+        <button type="button" wire:click="$set('letra', '')" class="pl-letter is-all {{ $letra === '' ? 'is-on' : '' }}">Todas</button>
+        @foreach ($letterCounts as $l => $n)
+            <button type="button" wire:click="$set('letra', '{{ $letra === $l ? '' : $l }}')" @disabled($n === 0)
+                class="pl-letter {{ $letra === $l ? 'is-on' : '' }}" title="{{ $n }} {{ $n === 1 ? 'produto' : 'produtos' }} com {{ $l === '#' ? 'número ou símbolo' : $l }}">{{ $l }}</button>
+        @endforeach
     </div>
 
 
@@ -346,7 +368,10 @@
                         : collect();
 
                     // Variações: o principal e as variações entram num card só, como carrossel.
-                    $parentIds = empty($search) ? $products->where('is_variation_parent', true)->pluck('id') : collect();
+                    $parentIds = $products->where('is_variation_parent', true)->pluck('id');
+                    // Na busca, o carrossel abre na variação que bateu com o que foi digitado.
+                    $needle = trim((string) $search) !== '' ? \Illuminate\Support\Str::lower(\Illuminate\Support\Str::ascii(trim($search))) : null;
+                    $needleCode = $needle !== null ? str_replace('.', '', $needle) : null;
                     $families = $parentIds->isEmpty() ? collect() : \App\Models\Product::groupByFamily(
                         \App\Models\Product::where(fn ($q) => $q->whereIn('id', $parentIds)->orWhereIn('parent_id', $parentIds))
                             ->with(['category', 'activePromotion'])->get()
@@ -465,7 +490,16 @@
                     @else
                         @php $group = $families[$product->id] ?? null; @endphp
                         @if ($group && $group->count() > 1)
-                            @php $start = \App\Models\Product::familyStart($group); @endphp
+                            @php
+                                $start = \App\Models\Product::familyStart($group);
+                                if ($needle !== null) {
+                                    $hit = $group->values()->search(function ($m) use ($needle, $needleCode) {
+                                        $hay = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::ascii($m->name . ' ' . $m->variation_value));
+                                        return ! $m->is_variation_parent && (str_contains($hay, $needle) || ($needleCode !== '' && str_contains(str_replace('.', '', (string) $m->product_code), $needleCode)));
+                                    });
+                                    if ($hit !== false) $start = (int) $hit;
+                                }
+                            @endphp
                             <x-variation-carousel :items="$group" :start="$start" wire:key="fam-{{ $product->id }}">
                                 @foreach ($group as $k => $member)
                                     <div class="vc-slide" x-show="vi === {{ $k }}" @if ($k !== $start) x-cloak @endif wire:key="fam-{{ $product->id }}-{{ $member->id }}">
@@ -772,6 +806,13 @@
                 const go = () => {
                     const el = document.querySelector('.products-index-page .products-grid [data-pid="' + s.pid + '"]');
                     if (!el) return false;
+                    // Produto dentro do carrossel de variações: abre o carrossel nele
+                    const slide = el.closest('.vc-slide');
+                    const vc = slide && slide.closest('.vc');
+                    if (vc && window.Alpine) {
+                        const i = [...vc.querySelectorAll(':scope > .vc-slide')].indexOf(slide);
+                        try { if (i >= 0) Alpine.$data(vc).vi = i; } catch (err) {}
+                    }
                     const top = topCard(el);
                     top.scrollIntoView({ block: 'center' });
                     top.classList.add('pf-flash');
@@ -779,7 +820,7 @@
                     return true;
                 };
                 if (go()) return;
-                if (s.n > 0) wire.restoreTo(s.n).then(() => setTimeout(go, 120));
+                wire.restoreTo(s.n || 0, parseInt(s.pid, 10) || null).then(() => setTimeout(go, 150));
             }
 
             window.productsFeed = (hasMore) => ({
