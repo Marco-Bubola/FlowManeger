@@ -1,4 +1,4 @@
-@props(['title' => 'Catálogo de Produtos', 'store' => null, 'ownerId' => null, 'search' => '', 'cartHref' => null])
+@props(['title' => 'Catálogo de Produtos', 'store' => null, 'ownerId' => null, 'search' => '', 'cartHref' => null, 'og' => null])
 @php
     $storeName = $store?->name ?: config('app.name');
     // Cores da logo do app (rosa, roxo e azul), escolhidas pelo dono.
@@ -25,8 +25,19 @@
     <meta name="theme-color" content="{{ $theme['meta'] }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title }} · {{ $storeName }}</title>
-    <meta property="og:title" content="{{ $storeName }} · Catálogo">
-    <meta property="og:description" content="Veja os produtos e ofertas de {{ $storeName }}.">
+    {{-- Prévia do link no WhatsApp: com ?produto= mostra a foto, o nome e o preço do produto. --}}
+    <meta property="og:type" content="{{ $og ? 'product' : 'website' }}">
+    <meta property="og:site_name" content="{{ $storeName }}">
+    <meta property="og:title" content="{{ $og['title'] ?? $storeName . ' · Catálogo' }}">
+    <meta property="og:description" content="{{ $og['description'] ?? 'Veja os produtos e ofertas de ' . $storeName . '.' }}">
+    @if (!empty($og['image']))
+        <meta property="og:image" content="{{ $og['image'] }}">
+        <meta property="og:image:alt" content="{{ $og['title'] }}">
+        <meta name="twitter:card" content="summary_large_image">
+    @endif
+    @if (!empty($og['url']))
+        <meta property="og:url" content="{{ $og['url'] }}">
+    @endif
     @include('partials.favicons')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

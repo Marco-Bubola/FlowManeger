@@ -155,6 +155,8 @@ Route::get('/dashboard', DashboardIndex::class)
 // Rotas públicas do portal — sem autenticação (deve vir antes dos grupos com middleware)
 Route::prefix('portal')->name('portal.')->group(function () {
     Route::get('/catalogo/{userId?}', [ClientPortalController::class, 'publicCatalog'])->name('catalog');
+    // Foto do produto em JPG para a prévia do link no WhatsApp (que não mostra .webp).
+    Route::get('/catalogo/{userId}/foto/{product}.jpg', [ClientPortalController::class, 'previewImage'])->whereNumber(['userId', 'product'])->name('catalog.preview-image');
     // Entrada do portal sem login: redireciona autenticados ao dashboard, convidados ao catálogo (via cookie) ou login
     Route::get('/', [ClientPortalController::class, 'portalHome'])->name('home');
     // Meus favoritos (sem login: ids do aparelho pela URL) e "Avise-me". O JSON confere o login no controller.

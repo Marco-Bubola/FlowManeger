@@ -18,10 +18,27 @@
 
     $phone = preg_replace('/\D+/', '', (string) ($store?->phone ?? ''));
     if ($phone && strlen($phone) <= 11) { $phone = '55' . $phone; }
+    $og = null;
+    if ($focus) {
+        $fi = $all[$focus->id];
+        $ogImg = $fi['img'] ?? null;
+        if ($ogImg && ! str_starts_with($ogImg, 'http')) { $ogImg = url($ogImg); }
+        // Foto própria vira JPG (o WhatsApp não mostra .webp na prévia).
+        if ($focus->image && $focus->image !== 'product-placeholder.png') {
+            $ogImg = route('portal.catalog.preview-image', ['userId' => $owner, 'product' => $focus->id]);
+        }
+        $og = [
+            'title' => $fi['name'],
+            'description' => ($fi['old'] ? 'De R$ ' . number_format($fi['old'], 2, ',', '.') . ' por ' : '') . 'R$ ' . number_format($fi['price'], 2, ',', '.')
+                . ($fi['pct'] ? ' (' . $fi['pct'] . '% OFF)' : '') . ' · ' . ($store?->name ?: config('app.name')),
+            'image' => $ogImg && ! str_ends_with($ogImg, 'product-placeholder.png') ? $ogImg : null,
+            'url' => route('portal.catalog', ['userId' => $owner, 'produto' => $focus->id]),
+        ];
+    }
     $showOffers = $offers->isNotEmpty() && ! $search && ! $category && ! $onlyOffers && $products->currentPage() === 1;
 @endphp
 
-<x-portal-catalog-layout title="Catálogo" :store="$store" :owner-id="$owner" :search="$search">
+<x-portal-catalog-layout :title="$og['title'] ?? 'Catálogo'" :store="$store" :owner-id="$owner" :search="$search" :og="$og">
 
 @push('styles')
 <style>

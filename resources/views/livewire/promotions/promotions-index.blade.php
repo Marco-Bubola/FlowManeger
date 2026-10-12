@@ -804,7 +804,7 @@
             if (win) { win.location.href = url; } else { window.location.href = url; }
             if (await copying) {
                 window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'info', duration: 9000,
-                    message: 'O texto já está no WhatsApp. A imagem foi copiada: clique na conversa e aperte Ctrl+V (ou segure e "Colar" no celular) para mandar a foto.' } }));
+                    message: 'Antes de enviar, clique na conversa e aperte Ctrl+V (no celular, segure e "Colar"): a foto vai em cima e o texto já escrito vira a legenda.' } }));
             } else {
                 this.download();
                 this.toast('O WhatsApp só recebe texto pelo link. Baixei a imagem para você anexar na conversa.');

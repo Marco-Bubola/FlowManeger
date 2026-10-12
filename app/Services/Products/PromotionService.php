@@ -522,7 +522,7 @@ class PromotionService
             $body = 'Oi, ' . $this->firstName($client) . "! 💜\n" . $body;
         }
 
-        return $this->withFooter($body, $promotion->user_id, $settings, $client);
+        return $this->withFooter($body, $promotion->user_id, $settings, $client, $this->productLink($promotion->user_id, $promotion->product_id));
     }
 
     /** "Ofertas da semana": várias promoções numa mensagem só. */
@@ -642,14 +642,14 @@ class PromotionService
             '{preco}'   => $this->money((float) $product->price_sale),
             '{estoque}' => (string) max(0, (int) $product->stock_quantity),
             '{cliente}' => $client ? $this->firstName($client) : '',
-            '{link}'    => $this->catalogLink($product->user_id),
+            '{link}'    => $this->productLink($product->user_id, $product->id),
         ]);
         $body = trim(preg_replace("/\n{3,}/", "\n\n", $body));
         if ($client && ($settings->greet_client ?? true) && !str_contains($template, '{cliente}')) {
             $body = 'Oi, ' . $this->firstName($client) . "! 💜\n" . $body;
         }
 
-        return $this->withFooter($body, $product->user_id, $settings, $client);
+        return $this->withFooter($body, $product->user_id, $settings, $client, $this->productLink($product->user_id, $product->id));
     }
 
     public function recordSend(int $userId, array $promotionIds, ?int $clientId, string $channel, string $kind = 'produto'): PromotionSend
@@ -741,6 +741,14 @@ class PromotionService
         return route('portal.catalog', ['userId' => $userId]);
     }
 
+    /** Link que abre o catálogo já na ficha do produto (?produto=ID). Sem produto, é o catálogo. */
+    public function productLink(int $userId, ?int $productId): string
+    {
+        return $productId
+            ? route('portal.catalog', ['userId' => $userId, 'produto' => $productId])
+            : $this->catalogLink($userId);
+    }
+
     public function money(float $value): string
     {
         return 'R$ ' . number_format($value, 2, ',', '.');
@@ -764,20 +772,21 @@ class PromotionService
             '{validade}' => $validity,
             '{estoque}'  => (string) $stock,
             '{cliente}'  => $client ? $this->firstName($client) : '',
-            '{link}'     => $this->catalogLink($promotion->user_id),
+            '{link}'     => $this->productLink($promotion->user_id, $promotion->product_id),
         ]);
 
         return trim(preg_replace("/\n{3,}/", "\n\n", $text));
     }
 
-    private function withFooter(string $body, int $userId, PromotionSetting $settings, ?Client $client): string
+    private function withFooter(string $body, int $userId, PromotionSetting $settings, ?Client $client, ?string $link = null): string
     {
+        $link ??= $this->catalogLink($userId);
         $footer = [];
         if (trim((string) $settings->footer) !== '') {
             $footer[] = trim($settings->footer);
         }
         if ($settings->footer_catalog_link && !str_contains($body, $this->catalogLink($userId))) {
-            $footer[] = 'Veja mais no catálogo: ' . $this->catalogLink($userId);
+            $footer[] = ($link === $this->catalogLink($userId) ? 'Veja mais no catálogo: ' : 'Veja o produto e compre aqui: ') . $link;
         }
 
         return $footer ? $body . "\n\n" . implode("\n", $footer) : $body;

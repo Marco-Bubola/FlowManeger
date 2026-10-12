@@ -662,6 +662,48 @@ class ClientPortalController extends Controller
     }
 
     /**
+     * Foto do produto em JPG (fundo branco, até 1200px) para a prévia do link no
+     * WhatsApp. Fica guardada em storage/app/public/og; sem GD, manda a foto original.
+     */
+    public function previewImage(int $userId, int $product)
+    {
+        $p = Product::withoutGlobalScope('team_visibility')->where('user_id', $userId)->findOrFail($product);
+        $src = $p->image && $p->image !== 'product-placeholder.png' ? storage_path('app/public/products/' . $p->image) : null;
+        if (! $src || ! is_file($src)) {
+            $first = $p->all_images[0] ?? null;
+            abort_unless($first, 404);
+
+            return redirect()->away($first);
+        }
+
+        $out = storage_path('app/public/og/' . $p->id . '-' . filemtime($src) . '.jpg');
+        if (! is_file($out)) {
+            $data = @file_get_contents($src);
+            $img = $data !== false && function_exists('imagecreatefromstring') ? @imagecreatefromstring($data) : false;
+            if (! $img) {
+                return response()->file($src, ['Cache-Control' => 'public, max-age=86400']);
+            }
+            $w = imagesx($img);
+            $h = imagesy($img);
+            $scale = min(1, 1200 / max($w, $h));
+            $nw = max(1, (int) round($w * $scale));
+            $nh = max(1, (int) round($h * $scale));
+            $canvas = imagecreatetruecolor($nw, $nh);
+            imagefill($canvas, 0, 0, imagecolorallocate($canvas, 255, 255, 255));
+            imagecopyresampled($canvas, $img, 0, 0, 0, 0, $nw, $nh, $w, $h);
+            @mkdir(dirname($out), 0775, true);
+            foreach (glob(storage_path('app/public/og/' . $p->id . '-*.jpg')) ?: [] as $old) {
+                @unlink($old);
+            }
+            imagejpeg($canvas, $out, 85);
+            imagedestroy($img);
+            imagedestroy($canvas);
+        }
+
+        return response()->file($out, ['Content-Type' => 'image/jpeg', 'Cache-Control' => 'public, max-age=86400']);
+    }
+
+    /**
      * Dados de um produto para o card, a ficha e o carrinho do catálogo público.
      */
     public static function cardInfo(Product $p): array

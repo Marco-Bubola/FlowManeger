@@ -117,7 +117,7 @@
                 <div class="flex gap-2 p-2.5 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 text-[11.5px] text-green-800 dark:text-green-200">
                     <i class="bi bi-lightbulb-fill mt-0.5"></i>
                     <span><b>Celular:</b> "Enviar foto + texto" abre a lista de apps; escolha o WhatsApp e a foto vai junto.<br>
-                    <b>Computador:</b> o WhatsApp só aceita texto pelo link. A foto é copiada sozinha: na conversa, aperte <b>Ctrl+V</b> para colar e envie.</span>
+                    <b>Computador:</b> o texto já abre escrito e a foto vai copiada. Na conversa, aperte <b>Ctrl+V</b> antes de enviar: a foto vai em cima e o texto como legenda.</span>
                 </div>
 
                 @if($share['clients']->count())

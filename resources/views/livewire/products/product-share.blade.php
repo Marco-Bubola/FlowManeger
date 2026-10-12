@@ -131,7 +131,7 @@
                     <div class="flex gap-2 p-2.5 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 text-[11.5px] text-green-800 dark:text-green-200">
                         <i class="bi bi-lightbulb-fill mt-0.5"></i>
                         <span><b>Celular:</b> "Enviar foto + texto" abre a lista de apps; escolha o WhatsApp e a foto vai junto.<br>
-                        <b>Computador:</b> o WhatsApp só aceita texto pelo link. A foto é copiada sozinha: na conversa, aperte <b>Ctrl+V</b> para colar e envie.</span>
+                        <b>Computador:</b> o texto já abre escrito e a foto vai copiada. Na conversa, aperte <b>Ctrl+V</b> antes de enviar: a foto vai em cima e o texto como legenda.</span>
                     </div>
 
                     @if($data['clients']->count())
@@ -424,7 +424,7 @@
             if (win) { win.location.href = url; } else { window.location.href = url; }
             if (await copying) {
                 window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'info', duration: 9000,
-                    message: 'O texto já está no WhatsApp. A imagem foi copiada: clique na conversa e aperte Ctrl+V (ou segure e "Colar" no celular) para mandar a foto.' } }));
+                    message: 'Antes de enviar, clique na conversa e aperte Ctrl+V (no celular, segure e "Colar"): a foto vai em cima e o texto já escrito vira a legenda.' } }));
             } else {
                 this.download();
                 this.toast('O WhatsApp só recebe texto pelo link. Baixei a imagem para você anexar na conversa.');
