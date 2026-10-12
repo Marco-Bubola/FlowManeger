@@ -113,6 +113,8 @@ class AddPayments extends Component
                 ];
 
                 $this->sale->update($updateData);
+                // Valor livre (mais ou menos que a parcela): acerta as parcelas pendentes
+                app(\App\Services\Sales\SaleInstallmentService::class)->reconcile($this->sale->refresh());
             });
 
             $this->sale->refresh()->applyStockIfPaid();

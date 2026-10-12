@@ -143,7 +143,12 @@ class ShowSale extends Component
 
         // Recarregar os dados da venda e relacionamentos
         $this->sale->refresh();
+        // Valor livre (mais ou menos que a parcela): acerta as parcelas e o total pago
+        app(\App\Services\Sales\SaleInstallmentService::class)->reconcile($this->sale);
+        $this->sale->amount_paid = $this->sale->total_paid;
+        $this->sale->save();
         $this->sale->load(['payments', 'parcelasVenda']);
+        $this->parcelas = VendaParcela::where('sale_id', $this->sale->id)->orderBy('numero_parcela')->get();
 
         // Atualizar status se necessário
         if ($this->sale->total_paid >= $this->sale->total_price) {
@@ -361,6 +366,7 @@ class ShowSale extends Component
             $this->sale->amount_paid = (float) $this->sale->payments()->sum('amount_paid');
             $this->sale->status = ($this->sale->total_paid >= $this->sale->total_price) ? 'pago' : 'pendente';
             $this->sale->save();
+            app(\App\Services\Sales\SaleInstallmentService::class)->reconcile($this->sale);
             $this->sale->applyStockIfPaid();
 
             // Atualizar parcelas e relacionamentos

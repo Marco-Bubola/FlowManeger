@@ -140,6 +140,53 @@ class SaleInstallmentService
     }
 
     /**
+     * Acerta as parcelas pendentes com o que realmente falta pagar (total − pagamentos),
+     * para quando o cliente paga um valor livre, mais ou menos que a parcela.
+     * Da mais antiga para a mais nova: as que já estão cobertas viram pagas e a
+     * sobra desconta da próxima. Se faltar mais do que as pendentes somam, a
+     * diferença vai para a última. Pode ser chamado quantas vezes quiser.
+     */
+    public function reconcile(Sale $sale, ?string $date = null): void
+    {
+        if ($sale->tipo_pagamento !== 'parcelado') {
+            return;
+        }
+
+        $pago = (float) $sale->payments()->where('payment_method', '<>', 'desconto')->sum('amount_paid');
+        $faltaCentavos = max(0, (int) round(((float) $sale->total_price - $pago) * 100));
+
+        $pendentes = VendaParcela::where('sale_id', $sale->id)
+            ->where('status', '!=', 'paga')
+            ->orderBy('numero_parcela')
+            ->get();
+        if ($pendentes->isEmpty()) {
+            return;
+        }
+
+        $sobra = (int) round((float) $pendentes->sum('valor') * 100) - $faltaCentavos;
+
+        if ($sobra < 0) {
+            $ultima = $pendentes->last();
+            $ultima->update(['valor' => round(((int) round((float) $ultima->valor * 100) - $sobra) / 100, 2)]);
+            return;
+        }
+
+        foreach ($pendentes as $parcela) {
+            if ($sobra <= 0) {
+                break;
+            }
+            $valor = (int) round((float) $parcela->valor * 100);
+            if ($sobra >= $valor) {
+                $parcela->update(['status' => 'paga', 'pago_em' => $date ?: now()->format('Y-m-d')]);
+                $sobra -= $valor;
+            } else {
+                $parcela->update(['valor' => round(($valor - $sobra) / 100, 2)]);
+                $sobra = 0;
+            }
+        }
+    }
+
+    /**
      * A tabela `sales` não tem coluna `sale_date`: a data da venda é o created_at.
      */
     private function primeiroVencimento(Sale $sale): Carbon
