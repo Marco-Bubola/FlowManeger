@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
-/** Pagamento do pedido pelo cliente no portal (Pix do Mercado Pago) e o aviso do Mercado Pago. */
+/** Pagamento do pedido pelo cliente no portal (Pix, cartão e boleto do Mercado Pago) e o aviso do Mercado Pago. */
 class PortalPaymentController extends Controller
 {
     public function __construct(private PortalCheckoutService $checkout) {}
@@ -25,8 +25,11 @@ class PortalPaymentController extends Controller
         return $quote;
     }
 
-    /** Tela do Pix: gera (ou mostra) o QR code do pedido. */
-    public function show(ClientQuoteRequest $quote)
+    /**
+     * Tela de pagamento do pedido: Pix (gera o QR na hora), cartão (formulário seguro do
+     * Mercado Pago) ou boleto (gerado ao tocar no botão). ?metodo= escolhe a aba.
+     */
+    public function show(Request $request, ClientQuoteRequest $quote)
     {
         $quote = $this->ownQuote($quote);
         $client = Auth::guard('portal')->user();
@@ -37,26 +40,97 @@ class PortalPaymentController extends Controller
             return redirect()->route('portal.quotes.show', $quote)->with('success', 'Pagamento aprovado! A loja já recebeu seu pedido.');
         }
 
+        $methods = $settings?->methods() ?? [];
+        $method = $request->query('metodo');
+        if (! in_array($method, $methods, true)) {
+            $last = $quote->payments()->latest('id')->value('method');
+            $method = in_array($last, $methods, true) ? $last : ($methods[0] ?? null);
+        }
+
         $payment = null;
         $error = null;
-        if (! $settings?->pixReady()) {
-            $error = 'A loja não está recebendo Pix pelo site agora.';
+        if (! $method) {
+            $error = 'A loja não está recebendo pagamentos pelo site agora.';
         } elseif ($quote->status === 'rejected' || $quote->sale) {
             $error = 'Este pedido não pode mais ser pago pelo site.';
-        } else {
+        } elseif ($method === 'pix') {
             try {
                 $payment = $this->checkout->startPix($quote, $client, $settings);
             } catch (\Throwable $e) {
                 Log::warning('Pix do portal não gerado', ['quote' => $quote->id, 'erro' => $e->getMessage()]);
-                $error = str_starts_with($e->getMessage(), 'Sem estoque') || str_starts_with($e->getMessage(), 'Este pedido')
-                    ? $e->getMessage()
-                    : 'Não conseguimos gerar o Pix agora. Tente de novo em instantes.';
+                $error = $this->friendly($e, 'Não conseguimos gerar o Pix agora. Tente de novo em instantes.');
             }
+        } elseif ($method === 'boleto') {
+            $payment = $this->checkout->openPayment($quote, 'boleto');
+        } elseif ($problems = $this->checkout->stockProblems($quote)) {
+            $error = 'Sem estoque suficiente agora: ' . implode(', ', array_keys($problems)) . '.';
         }
 
         return view('portal.quotes.pay', [
             'quote' => $quote, 'client' => $client, 'store' => $store, 'payment' => $payment,
             'error' => $error, 'settings' => $settings, 'orders' => app(\App\Services\Portal\PortalOrderService::class),
+            'method' => $method, 'methods' => $methods, 'amount' => $this->checkout->amount($quote),
+        ]);
+    }
+
+    private function friendly(\Throwable $e, string $fallback): string
+    {
+        $m = $e->getMessage();
+
+        return str_starts_with($m, 'Sem estoque') || str_starts_with($m, 'Este pedido') || str_starts_with($m, 'Para gerar')
+            ? $m : $fallback;
+    }
+
+    /** Gera o boleto do pedido. */
+    public function boleto(ClientQuoteRequest $quote)
+    {
+        $quote = $this->ownQuote($quote);
+        $settings = PaymentSetting::for((int) $quote->user_id);
+        abort_unless($settings?->boletoReady() && ! $quote->sale && $quote->status !== 'rejected', 422);
+
+        try {
+            $this->checkout->startBoleto($quote, Auth::guard('portal')->user(), $settings);
+        } catch (\Throwable $e) {
+            Log::warning('Boleto do portal não gerado', ['quote' => $quote->id, 'erro' => $e->getMessage()]);
+
+            return redirect()->route('portal.quotes.pay', [$quote, 'metodo' => 'boleto'])
+                ->withErrors(['boleto' => $this->friendly($e, 'Não conseguimos gerar o boleto agora. Tente de novo em instantes.')]);
+        }
+
+        return redirect()->route('portal.quotes.pay', [$quote, 'metodo' => 'boleto']);
+    }
+
+    /** Cobra o cartão (dados vindos do formulário seguro do Mercado Pago, em JSON). */
+    public function card(Request $request, ClientQuoteRequest $quote)
+    {
+        $quote = $this->ownQuote($quote);
+        $settings = PaymentSetting::for((int) $quote->user_id);
+        if (! $settings?->cardReady() || $quote->sale || $quote->status === 'rejected') {
+            return response()->json(['status' => 'error', 'message' => 'Este pedido não pode ser pago com cartão agora.'], 422);
+        }
+        $data = $request->validate([
+            'token'             => ['required', 'string', 'max:100'],
+            'payment_method_id' => ['required', 'string', 'max:40'],
+            'issuer_id'         => ['nullable'],
+            'installments'      => ['required', 'integer', 'min:1', 'max:24'],
+            'payer'             => ['nullable', 'array'],
+            'payer.email'       => ['nullable', 'email'],
+            'payer.identification.number' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        try {
+            [$payment, $message] = $this->checkout->payCard($quote, Auth::guard('portal')->user(), $settings, $data);
+        } catch (\Throwable $e) {
+            Log::warning('Cartão do portal não cobrado', ['quote' => $quote->id, 'erro' => $e->getMessage()]);
+
+            return response()->json(['status' => 'error', 'message' => $this->friendly($e, 'Não conseguimos processar o cartão. Confira os dados ou tente o Pix.')], 422);
+        }
+        $quote->refresh();
+
+        return response()->json([
+            'status'   => $quote->payment_status === 'approved' ? 'approved' : $payment->status,
+            'message'  => $message,
+            'redirect' => $quote->payment_status === 'approved' ? route('portal.quotes.show', $quote) : null,
         ]);
     }
 
@@ -66,7 +140,8 @@ class PortalPaymentController extends Controller
         $quote = $this->ownQuote($quote);
         $payment = $quote->payments()->latest('id')->first();
 
-        if ($payment && $payment->isPending() && $payment->updated_at->lt(now()->subSeconds(4))) {
+        $wait = $payment?->method === 'boleto' ? 60 : 4;
+        if ($payment && $payment->isPending() && $payment->updated_at->lt(now()->subSeconds($wait))) {
             try {
                 $payment = $this->checkout->refresh($payment);
             } catch (\Throwable $e) {
@@ -82,14 +157,14 @@ class PortalPaymentController extends Controller
         ]);
     }
 
-    /** Desiste do Pix e manda o pedido para a loja combinar o pagamento. */
+    /** Desiste de pagar pelo site e manda o pedido para a loja combinar o pagamento. */
     public function manual(ClientQuoteRequest $quote)
     {
         $quote = $this->ownQuote($quote);
         abort_if($quote->payment_status === 'approved', 422);
         $settings = PaymentSetting::for((int) $quote->user_id);
-        if ($settings?->pixReady() && ! $settings->allow_manual) {
-            return back()->withErrors(['checkout' => 'Esta loja recebe os pedidos pelo Pix.']);
+        if ($settings?->onlineReady() && ! $settings->allow_manual) {
+            return back()->withErrors(['checkout' => 'Esta loja recebe os pedidos com pagamento pelo site.']);
         }
 
         foreach ($quote->payments()->whereIn('status', ['pending', 'in_process'])->get() as $p) {
@@ -155,5 +230,26 @@ class PortalPaymentController extends Controller
         }
 
         return response()->json(['ok' => true]);
+    }
+
+    /** A loja devolve ao cliente um pagamento aprovado pelo site (cancela a venda e devolve o estoque). */
+    public function refund(ClientQuoteRequest $quote)
+    {
+        $user = Auth::user();
+        abort_unless($user instanceof User && ($user->isAdmin() || (int) $quote->user_id === (int) $user->id), 403);
+
+        $payment = $quote->payments()->where('status', 'approved')->whereNotNull('sale_id')->latest('id')->first();
+        if (! $payment) {
+            return back()->with('error', 'Não há pagamento aprovado para devolver neste pedido.');
+        }
+        try {
+            $this->checkout->refund($payment);
+        } catch (\Throwable $e) {
+            Log::warning('Estorno do portal falhou', ['payment' => $payment->id, 'erro' => $e->getMessage()]);
+
+            return back()->with('error', 'O Mercado Pago não devolveu o pagamento: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Pagamento de ' . 'R$ ' . number_format((float) $payment->amount, 2, ',', '.') . ' devolvido ao cliente. A venda foi cancelada e o estoque voltou.');
     }
 }

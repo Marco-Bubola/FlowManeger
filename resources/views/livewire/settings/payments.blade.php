@@ -14,6 +14,10 @@ new class extends Component {
     public string $delivery_fee = '0';
     public string $delivery_note = '';
     public int $pix_minutes = 30;
+    public bool $card_enabled = false;
+    public int $max_installments = 12;
+    public bool $boleto_enabled = false;
+    public int $boleto_days = 3;
     public string $public_key = '';
 
     // Chaves secretas: nunca voltam para a tela; campo vazio = manter a que já está salva.
@@ -38,6 +42,10 @@ new class extends Component {
             $this->delivery_fee     = number_format((float) $s->delivery_fee, 2, ',', '');
             $this->delivery_note    = (string) $s->delivery_note;
             $this->pix_minutes      = (int) ($s->pix_minutes ?: 30);
+            $this->card_enabled     = (bool) $s->card_enabled;
+            $this->max_installments = (int) ($s->max_installments ?: 1);
+            $this->boleto_enabled   = (bool) $s->boleto_enabled;
+            $this->boleto_days      = (int) ($s->boleto_days ?: 3);
             $this->public_key       = (string) $s->public_key;
         }
         $this->refreshSecrets($s);
@@ -63,7 +71,10 @@ new class extends Component {
             'delivery_fee'   => ['nullable', 'regex:/^\d{1,6}([.,]\d{1,2})?$/'],
             'delivery_note'  => ['nullable', 'string', 'max:300'],
             'pix_minutes'    => ['required', 'integer', 'min:10', 'max:1440'],
+            'max_installments' => ['required', 'integer', 'min:1', 'max:12'],
+            'boleto_days'    => ['required', 'integer', 'min:1', 'max:10'],
         ], [
+            'boleto_days.max'    => 'Máximo de 10 dias.',
             'access_token.regex' => 'O Access Token começa com APP_USR- (produção) ou TEST- (teste).',
             'delivery_fee.regex' => 'Use só números, ex.: 12,50.',
             'pix_minutes.min'    => 'Mínimo de 10 minutos.',
@@ -81,6 +92,10 @@ new class extends Component {
             'delivery_fee'     => (float) str_replace(',', '.', $this->delivery_fee ?: '0'),
             'delivery_note'    => $this->delivery_note ?: null,
             'pix_minutes'      => $this->pix_minutes,
+            'card_enabled'     => $this->card_enabled,
+            'max_installments' => $this->max_installments,
+            'boleto_enabled'   => $this->boleto_enabled,
+            'boleto_days'      => $this->boleto_days,
             'public_key'       => $this->public_key ?: null,
         ]);
         if ($this->access_token !== '') {
@@ -143,9 +158,12 @@ new class extends Component {
 
         return [
             'webhookUrl' => route('payments.mercadopago.webhook', Auth::id()),
-            'ready'      => $s?->pixReady() ?? false,
+            'ready'      => $s?->onlineReady() ?? false,
+            'needsPk'    => $this->card_enabled && blank($s?->public_key),
             'testMode'   => $s?->testMode() ?? false,
             'paidCount'  => \App\Models\PortalPayment::where('user_id', Auth::id())->where('status', 'approved')->count(),
+            'byMethod'   => \App\Models\PortalPayment::where('user_id', Auth::id())->where('status', 'approved')
+                ->selectRaw('method, count(*) as n')->groupBy('method')->pluck('n', 'method')->all(),
             'paidTotal'  => (float) \App\Models\PortalPayment::where('user_id', Auth::id())->where('status', 'approved')->sum('amount'),
         ];
     }
@@ -167,7 +185,7 @@ new class extends Component {
                         <i class="bi bi-qr-code" style="font-size:1rem"></i>
                     </div>
                     <div>
-                        <p class="settings-card-title">Pix pelo Mercado Pago</p>
+                        <p class="settings-card-title">Mercado Pago: Pix, cartão e boleto</p>
                         <p class="settings-card-desc">O cliente paga no portal e o pedido vira venda paga sozinho</p>
                     </div>
                 </div>
@@ -252,6 +270,59 @@ new class extends Component {
                         @error('pix_minutes') <p class="pay-err">{{ $message }}</p> @enderror
                     </div>
                 </div>
+
+                <label class="settings-notif-row" style="margin:0">
+                    <div class="settings-notif-info">
+                        <div class="settings-notif-icon" style="background:rgba(52,131,250,.1);color:#3483fa"><i class="bi bi-credit-card"></i></div>
+                        <div>
+                            <p class="settings-notif-title">Cartão de crédito e débito</p>
+                            <p class="settings-notif-desc">Formulário seguro do Mercado Pago; o número do cartão nunca passa pelo app. Precisa da Public Key</p>
+                        </div>
+                    </div>
+                    <div class="settings-toggle-switch {{ $card_enabled ? 'active' : '' }}" wire:click="$toggle('card_enabled')" data-testid="toggle-card">
+                        <div class="settings-toggle-track"></div>
+                        <div class="settings-toggle-thumb"></div>
+                    </div>
+                </label>
+                @if($card_enabled)
+                <div class="settings-form-grid">
+                    <div>
+                        <label class="settings-field-label">Parcelar em até</label>
+                        <select wire:model="max_installments" class="settings-select">
+                            @for($i = 1; $i <= 12; $i++)
+                                <option value="{{ $i }}">{{ $i === 1 ? 'Só à vista' : $i . 'x' }}</option>
+                            @endfor
+                        </select>
+                        <p class="pay-hint">Os juros do parcelamento seguem o que está configurado na sua conta do Mercado Pago.</p>
+                    </div>
+                </div>
+                @if($needsPk)
+                    <p class="pay-err">Cole a Public Key acima para o cartão aparecer no portal.</p>
+                @endif
+                @endif
+
+                <label class="settings-notif-row" style="margin:0">
+                    <div class="settings-notif-info">
+                        <div class="settings-notif-icon" style="background:rgba(100,116,139,.12);color:#475569"><i class="bi bi-upc"></i></div>
+                        <div>
+                            <p class="settings-notif-title">Boleto</p>
+                            <p class="settings-notif-desc">Confirmação em até 2 dias úteis depois que o cliente paga. O estoque só baixa quando o boleto é pago</p>
+                        </div>
+                    </div>
+                    <div class="settings-toggle-switch {{ $boleto_enabled ? 'active' : '' }}" wire:click="$toggle('boleto_enabled')" data-testid="toggle-boleto">
+                        <div class="settings-toggle-track"></div>
+                        <div class="settings-toggle-thumb"></div>
+                    </div>
+                </label>
+                @if($boleto_enabled)
+                <div class="settings-form-grid">
+                    <div>
+                        <label class="settings-field-label">Boleto vence em (dias)</label>
+                        <flux:input wire:model="boleto_days" type="number" min="1" max="10" inputmode="numeric"/>
+                        @error('boleto_days') <p class="pay-err">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                @endif
 
                 <label class="settings-notif-row" style="margin:0">
                     <div class="settings-notif-info">
@@ -351,19 +422,25 @@ new class extends Component {
                         <div class="settings-card-icon" style="background:rgba(16,185,129,.1);color:#10b981"><i class="bi bi-cash-coin" style="font-size:1rem"></i></div>
                         <div>
                             <p class="settings-card-title">Recebido pelo portal</p>
-                            <p class="settings-card-desc">Pix aprovados</p>
+                            <p class="settings-card-desc">Pagamentos aprovados pelo site</p>
                         </div>
                     </div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;padding:0 1.25rem 1.25rem">
-                    <div class="settings-info-tile" style="background:rgba(16,185,129,.08);border-color:transparent">
+                <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:.75rem;padding:0 1.25rem 1.25rem">
+                    <div class="settings-info-tile" style="grid-column:span 3;background:rgba(16,185,129,.08);border-color:transparent">
                         <p class="settings-info-tile-label">Pedidos pagos</p>
                         <p class="settings-info-tile-val" style="color:#10b981">{{ $paidCount }}</p>
                     </div>
-                    <div class="settings-info-tile" style="background:rgba(99,102,241,.08);border-color:transparent">
+                    <div class="settings-info-tile" style="grid-column:span 3;background:rgba(99,102,241,.08);border-color:transparent">
                         <p class="settings-info-tile-label">Total</p>
                         <p class="settings-info-tile-val" style="color:#6366f1">R$ {{ number_format($paidTotal, 2, ',', '.') }}</p>
                     </div>
+                    @foreach(['pix' => 'Pix', 'cartao' => 'Cartão', 'boleto' => 'Boleto'] as $mk => $ml)
+                    <div class="settings-info-tile" style="grid-column:span 2;background:rgba(148,163,184,.08);border-color:transparent">
+                        <p class="settings-info-tile-label">{{ $ml }}</p>
+                        <p class="settings-info-tile-val" style="color:#475569">{{ $byMethod[$mk] ?? 0 }}</p>
+                    </div>
+                    @endforeach
                 </div>
             </div>
 
@@ -380,7 +457,7 @@ new class extends Component {
                 <ol class="pay-steps">
                     <li>Entre em <b>mercadopago.com.br/developers</b> com a conta que vai receber o dinheiro.</li>
                     <li><b>Suas integrações › Criar aplicação</b>. Tipo: pagamentos online, produto: Checkout Transparente (API).</li>
-                    <li>Abra <b>Credenciais de produção</b> e copie o <b>Access Token</b> e a <b>Public Key</b> para cá.</li>
+                    <li>Abra <b>Credenciais de produção</b> e copie o <b>Access Token</b> e a <b>Public Key</b> para cá (a Public Key é obrigatória para cartão).</li>
                     <li>Em <b>Webhooks</b>, cole o endereço acima, marque o evento <b>Pagamentos</b>, salve e copie a <b>assinatura secreta</b> para cá.</li>
                     <li>Salve e toque em <b>Testar conexão</b>.</li>
                 </ol>
@@ -393,6 +470,7 @@ new class extends Component {
 
     <style>
         .settings-payments-page .pay-err{color:#ef4444;font-size:.73rem;margin-top:.2rem}
+        .settings-payments-page .pay-hint{color:#64748b;font-size:.72rem;margin-top:.3rem}
         .settings-payments-page .pay-saved{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;font-size:.78rem;color:#059669;margin:.1rem 0 .35rem}
         .settings-payments-page .pay-link-danger{margin-left:auto;background:none;border:0;color:#ef4444;font-weight:600;font-size:.78rem;cursor:pointer;text-decoration:underline}
         .settings-payments-page .pay-copy{display:flex;align-items:center;gap:.5rem;border:1.5px dashed rgba(var(--s-accent-rgb),.3);border-radius:.7rem;padding:.55rem .6rem .55rem .8rem;background:rgba(var(--s-accent-rgb),.04)}

@@ -712,7 +712,7 @@ class ClientPortalController extends Controller
             'extra_items.*.qty'   => ['required_with:extra_items', 'integer', 'min:1'],
             'client_notes'        => ['nullable', 'string', 'max:1000'],
             'payment_preference'  => ['nullable', 'string', 'in:pix,dinheiro,credito,debito,boleto,outro'],
-            'checkout'            => ['nullable', 'in:pix,manual'],
+            'checkout'            => ['nullable', 'in:pix,cartao,boleto,manual'],
             'delivery_method'     => ['nullable', 'in:retirada,entrega'],
         ]);
 
@@ -722,9 +722,10 @@ class ClientPortalController extends Controller
 
         // Pagamento online (Mercado Pago) e entrega, quando a loja ligou.
         $paySettings = \App\Models\PaymentSetting::for((int) $client->user_id);
-        $payNow = ($validated['checkout'] ?? null) === 'pix' && $paySettings?->pixReady();
-        if (! $payNow && ($validated['checkout'] ?? null) === 'manual' && $paySettings?->pixReady() && ! $paySettings->allow_manual) {
-            return back()->withErrors(['checkout' => 'Esta loja recebe os pedidos pelo Pix.']);
+        $method = $validated['checkout'] ?? null;
+        $payNow = $paySettings && in_array($method, $paySettings->methods(), true);
+        if (! $payNow && $paySettings?->onlineReady() && ! $paySettings->allow_manual) {
+            return back()->withErrors(['checkout' => 'Esta loja recebe os pedidos com pagamento pelo site. Escolha Pix, cartão ou boleto.']);
         }
         $delivery = $validated['delivery_method'] ?? null;
         if ($paySettings && $paySettings->enabled) {
@@ -737,7 +738,10 @@ class ClientPortalController extends Controller
                 return back()->withErrors(['checkout' => 'Itens descritos à mão precisam de orçamento da loja. Use "Combinar com a loja".']);
             }
             if (strlen(preg_replace('/\D+/', '', (string) $client->cpf_cnpj)) < 11) {
-                return back()->withErrors(['checkout' => 'Para pagar com Pix, cadastre seu CPF em Meus dados.']);
+                return back()->withErrors(['checkout' => 'Para pagar pelo site, cadastre seu CPF em Meus dados.']);
+            }
+            if ($method === 'boleto' && ! $client->hasRequiredPortalProfileData()) {
+                return back()->withErrors(['checkout' => 'Para pagar com boleto, complete seu endereço em Meus dados.']);
             }
         }
         if ($delivery === 'entrega' && ! $client->hasRequiredPortalProfileData()) {
@@ -777,7 +781,7 @@ class ClientPortalController extends Controller
             'items'              => $items,
             'extra_items'        => $extraItems ?: null,
             'client_notes'       => $validated['client_notes'] ?? null,
-            'payment_preference' => $payNow ? 'pix' : ($validated['payment_preference'] ?? null),
+            'payment_preference' => $payNow ? ['pix' => 'pix', 'cartao' => 'credito', 'boleto' => 'boleto'][$method] : ($validated['payment_preference'] ?? null),
             'payment_status'     => $payNow ? 'pending' : null,
             'delivery_method'    => $delivery,
             'delivery_fee'       => $delivery === 'entrega' ? (float) $paySettings->delivery_fee : ($delivery ? 0 : null),
@@ -789,9 +793,9 @@ class ClientPortalController extends Controller
             ] : null,
         ]);
 
-        // Pix: a loja é avisada quando o pagamento for aprovado.
+        // Pagamento pelo site: a loja é avisada quando o pagamento for aprovado.
         if ($payNow) {
-            return redirect()->route('portal.quotes.pay', $quote);
+            return redirect()->route('portal.quotes.pay', [$quote, 'metodo' => $method]);
         }
 
         // Notificar o admin (dono da conta) sobre o novo orçamento do portal

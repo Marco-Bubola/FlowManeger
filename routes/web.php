@@ -189,6 +189,8 @@ Route::middleware('portal.auth')->prefix('portal')->name('portal.')->group(funct
     Route::get('/orcamentos/{quote}/pagar', [\App\Http\Controllers\PortalPaymentController::class, 'show'])->name('quotes.pay');
     Route::get('/orcamentos/{quote}/pagamento', [\App\Http\Controllers\PortalPaymentController::class, 'status'])->name('quotes.pay.status');
     Route::post('/orcamentos/{quote}/combinar', [\App\Http\Controllers\PortalPaymentController::class, 'manual'])->name('quotes.manual');
+    Route::post('/orcamentos/{quote}/boleto', [\App\Http\Controllers\PortalPaymentController::class, 'boleto'])->name('quotes.pay.boleto');
+    Route::post('/orcamentos/{quote}/cartao', [\App\Http\Controllers\PortalPaymentController::class, 'card'])->middleware('throttle:10,1')->name('quotes.pay.card');
     Route::patch('/orcamentos/{quote}/resposta', [ClientPortalController::class, 'respondToQuote'])->name('quotes.respond');
     Route::get('/orcamentos/{quote}/editar', [ClientPortalController::class, 'editQuote'])->name('quotes.edit');
     Route::put('/orcamentos/{quote}', [ClientPortalController::class, 'updateQuote'])->name('quotes.update');
@@ -242,6 +244,7 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/clients/portal/quotes/{quote}', [ClientPortalController::class, 'adminRespondQuote'])->name('clients.portal.quotes.update');
     Route::post('/clients/portal/quotes/{quote}/confirm', [ClientPortalController::class, 'adminConfirmQuote'])->name('clients.portal.quotes.confirm');
     Route::get('/clients/portal/quotes/{quote}/whatsapp', [ClientPortalController::class, 'adminWhatsappQuote'])->name('clients.portal.quotes.whatsapp');
+    Route::post('/clients/portal/quotes/{quote}/devolver', [\App\Http\Controllers\PortalPaymentController::class, 'refund'])->name('clients.portal.quotes.refund');
 
     // Manter algumas rotas específicas se necessário
     // Route::get('/client/{id}/data', [SaleController::class, 'getClientData']);

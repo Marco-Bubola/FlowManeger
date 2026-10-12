@@ -126,7 +126,7 @@ class PortalOrderService
         }
 
         if (! $sale && $quote->status === 'pending' && in_array($quote->payment_status, ['pending', 'expired', 'cancelled', 'rejected'], true)) {
-            return ['awaiting_payment', 'Aguardando pagamento', 'amber', 'Pague o Pix para a loja receber o seu pedido.'];
+            return ['awaiting_payment', 'Aguardando pagamento', 'amber', 'Conclua o pagamento para a loja receber o seu pedido.'];
         }
 
         return match ($quote->status) {

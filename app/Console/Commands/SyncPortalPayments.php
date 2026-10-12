@@ -7,21 +7,21 @@ use App\Services\Payments\PortalCheckoutService;
 use Illuminate\Console\Command;
 
 /**
- * Rede de segurança do Pix do portal: se o aviso (webhook) do Mercado Pago se perder,
+ * Rede de segurança dos pagamentos do portal: se o aviso (webhook) do Mercado Pago se perder,
  * consulta os pagamentos em aberto e aplica o resultado (venda paga, estoque, aviso).
  */
 class SyncPortalPayments extends Command
 {
     protected $signature = 'payments:sync';
 
-    protected $description = 'Confere no Mercado Pago os Pix do portal que ainda estão em aberto';
+    protected $description = 'Confere no Mercado Pago os pagamentos do portal (Pix, cartão em análise, boleto) que ainda estão em aberto';
 
     public function handle(PortalCheckoutService $checkout): int
     {
         $done = 0;
         PortalPayment::whereIn('status', ['pending', 'in_process', 'authorized'])
             ->whereNotNull('provider_id')
-            ->where('created_at', '>=', now()->subDays(3))
+            ->where('created_at', '>=', now()->subDays(14))
             ->orderBy('id')
             ->each(function (PortalPayment $payment) use ($checkout, &$done) {
                 try {

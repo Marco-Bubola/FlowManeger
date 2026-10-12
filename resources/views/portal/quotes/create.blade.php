@@ -48,12 +48,14 @@
     $address = $client->formattedPortalAddress();
     // Pagamento online (Mercado Pago) e entrega, quando a loja ligou em Configurações.
     $online = $paySettings && $paySettings->enabled;
-    $pixReady = $paySettings?->pixReady() ?? false;
+    $payMethods = $paySettings?->methods() ?? [];
+    $pixReady = $payMethods !== [];
     $allowManual = ! $pixReady || $paySettings->allow_manual;
     $canPickup = ! $online || $paySettings->pickup_enabled;
     $canDeliver = $online && $paySettings->delivery_enabled;
     $checkoutCfg = [
         'pix'        => $pixReady,
+        'methods'    => $payMethods,
         'manual'     => $allowManual,
         'pickup'     => $online && $canPickup,
         'deliver'    => $canDeliver,
@@ -148,7 +150,7 @@
                         <tr x-show="delivery === 'entrega'"><td>Entrega</td><td x-text="cfg.fee > 0 ? money(cfg.fee) : 'Grátis'"></td></tr>
                         <tr class="po-sum-total"><td>Total</td><td x-text="money(grand)"></td></tr>
                     </table>
-                    <p class="po-hint" style="margin-top:8px" x-show="checkout !== 'pix'">A loja confirma os valores e combina a entrega com você.</p>
+                    <p class="po-hint" style="margin-top:8px" x-show="!online">A loja confirma os valores e combina a entrega com você.</p>
                 </div>
 
                 @if($online && ($canPickup || $canDeliver))
@@ -176,10 +178,24 @@
                     @if($pixReady)
                     <p class="po-sec-title" style="font-size:14px;margin-bottom:10px">Pagamento</p>
                     <div class="pc-opts">
+                        @if(in_array('pix', $payMethods, true))
                         <label class="pc-opt" :class="{ on: checkout === 'pix' }">
                             <input type="radio" value="pix" x-model="checkout">
-                            <span><strong><i class="fas fa-qrcode" style="color:#32bcad"></i> Pagar agora com Pix</strong><small>Aprovação na hora pelo Mercado Pago.</small></span>
+                            <span><strong><i class="fas fa-qrcode" style="color:#32bcad"></i> Pix</strong><small>Aprovação na hora.</small></span>
                         </label>
+                        @endif
+                        @if(in_array('cartao', $payMethods, true))
+                        <label class="pc-opt" :class="{ on: checkout === 'cartao' }">
+                            <input type="radio" value="cartao" x-model="checkout">
+                            <span><strong><i class="fas fa-credit-card" style="color:#3483fa"></i> Cartão de crédito ou débito</strong><small>{{ (int) $paySettings->max_installments > 1 ? 'Em até ' . (int) $paySettings->max_installments . 'x no crédito.' : 'À vista.' }} Aprovação na hora.</small></span>
+                        </label>
+                        @endif
+                        @if(in_array('boleto', $payMethods, true))
+                        <label class="pc-opt" :class="{ on: checkout === 'boleto' }">
+                            <input type="radio" value="boleto" x-model="checkout">
+                            <span><strong><i class="fas fa-barcode" style="color:#555"></i> Boleto</strong><small>Vence em {{ (int) $paySettings->boleto_days }} {{ (int) $paySettings->boleto_days === 1 ? 'dia' : 'dias' }}. Confirmação em até 2 dias úteis após pagar.</small></span>
+                        </label>
+                        @endif
                         @if($allowManual)
                         <label class="pc-opt" :class="{ on: checkout === 'manual' }">
                             <input type="radio" value="manual" x-model="checkout">
@@ -187,9 +203,10 @@
                         </label>
                         @endif
                     </div>
-                    <p class="pf-err" x-show="checkout === 'pix' && !cfg.hasCpf" style="margin-top:8px">Para pagar com Pix, cadastre seu CPF em <a href="{{ route('portal.profile', ['volta' => 'carrinho']) }}" style="text-decoration:underline">Meus dados</a>.</p>
+                    <p class="pf-err" x-show="online && !cfg.hasCpf" style="margin-top:8px">Para pagar pelo site, cadastre seu CPF em <a href="{{ route('portal.profile', ['volta' => 'carrinho']) }}" style="text-decoration:underline">Meus dados</a>.</p>
+                    <p class="pf-err" x-show="checkout === 'boleto' && cfg.hasCpf && !cfg.hasAddress" style="margin-top:8px">Para o boleto, complete seu endereço em <a href="{{ route('portal.profile', ['volta' => 'carrinho']) }}" style="text-decoration:underline">Meus dados</a>.</p>
                     @endif
-                    <div x-show="checkout !== 'pix'" @if($pixReady) style="margin-top:14px" @endif>
+                    <div x-show="!online" @if($pixReady) style="margin-top:14px" @endif>
                     <p class="po-sec-title" style="font-size:14px;margin-bottom:10px">Como prefere pagar?</p>
                     <div class="pc-pay">
                         <template x-for="opt in payOptions" :key="opt.val">
@@ -204,7 +221,7 @@
                         <textarea id="cartNotes" x-model="notes" rows="2" maxlength="1000" placeholder="Ex.: entregar depois das 18h" class="pf-input"></textarea>
                     </div>
                     <button type="button" class="po-btn po-btn-primary po-btn-block" style="height:48px;font-size:15px;margin-top:14px" @click="send()" :disabled="sending || blocked" data-testid="cart-send">
-                        <i class="fas" :class="checkout === 'pix' ? 'fa-qrcode' : 'fa-paper-plane'"></i> <span x-text="sending ? 'Enviando…' : sendLabel"></span>
+                        <i class="fas" :class="online ? 'fa-lock' : 'fa-paper-plane'"></i> <span x-text="sending ? 'Enviando…' : sendLabel"></span>
                     </button>
                 </div>
             </section>
@@ -216,7 +233,7 @@
             <div class="po-total-lbl">Total</div>
             <div class="po-total" x-text="money(grand)"></div>
         </div>
-        <button type="button" class="po-btn po-btn-primary" @click="send()" :disabled="sending || blocked"><i class="fas" :class="checkout === 'pix' ? 'fa-qrcode' : 'fa-paper-plane'"></i> <span x-text="sendLabel"></span></button>
+        <button type="button" class="po-btn po-btn-primary" @click="send()" :disabled="sending || blocked"><i class="fas" :class="online ? 'fa-lock' : 'fa-paper-plane'"></i> <span x-text="sendLabel"></span></button>
     </div>
 
     <form method="POST" action="{{ route('portal.quotes.store') }}" x-ref="form" style="display:none">
@@ -227,7 +244,7 @@
                 <input type="hidden" :name="'items[' + i + '][quantity]'" :value="item.qty">
             </span>
         </template>
-        <input type="hidden" name="payment_preference" :value="checkout === 'pix' ? 'pix' : pay">
+        <input type="hidden" name="payment_preference" :value="online ? '' : pay">
         <input type="hidden" name="checkout" :value="checkout">
         <input type="hidden" name="delivery_method" :value="delivery">
         <input type="hidden" name="client_notes" :value="notes">
@@ -242,7 +259,7 @@ function portalCart(fresh, stockMap, cfg) {
     return {
         fresh,
         cfg,
-        checkout: cfg.pix ? 'pix' : 'manual',
+        checkout: cfg.methods.length ? cfg.methods[0] : 'manual',
         delivery: cfg.pickup ? 'retirada' : (cfg.deliver ? 'entrega' : ''),
         removed: 0,
         pay: '',
@@ -274,8 +291,9 @@ function portalCart(fresh, stockMap, cfg) {
             }
         },
         get grand() { return Alpine.store('cart').total + (this.delivery === 'entrega' ? (Number(this.cfg.fee) || 0) : 0); },
-        get blocked() { return (this.checkout === 'pix' && !this.cfg.hasCpf) || (this.delivery === 'entrega' && !this.cfg.hasAddress); },
-        get sendLabel() { return this.checkout === 'pix' ? 'Ir para o pagamento' : 'Enviar pedido'; },
+        get online() { return this.checkout !== 'manual'; },
+        get blocked() { return (this.online && !this.cfg.hasCpf) || ((this.checkout === 'boleto' || this.delivery === 'entrega') && !this.cfg.hasAddress); },
+        get sendLabel() { return this.online ? 'Ir para o pagamento' : 'Enviar pedido'; },
         get units() { return Alpine.store('cart').items.reduce((s, i) => s + (i.qty || 1), 0); },
         get totalOld() { return Alpine.store('cart').items.reduce((s, i) => s + ((this.fresh[i.id]?.old || i.price) * (i.qty || 1)), 0); },
         money(v) { return (Number(v) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); },

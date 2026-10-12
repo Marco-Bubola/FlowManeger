@@ -8,7 +8,7 @@ use App\Notifications\Channels\InAppChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
-/** Pedido do portal pago pelo Pix: a venda já foi criada como paga. */
+/** Pedido do portal pago online (Pix, cartão ou boleto): a venda já foi criada como paga. */
 class PortalPaymentApproved extends Notification
 {
     use Queueable;
@@ -45,7 +45,7 @@ class PortalPaymentApproved extends Notification
         return [
             'module' => 'portal',
             'type' => 'portal_payment',
-            'title' => 'Pedido pago pelo Pix',
+            'title' => 'Pedido pago pelo site (' . $this->payment->methodLabel() . ')',
             'message' => "{$client} pagou {$this->money()} no pedido #{$this->quote->id}. A venda já foi criada como paga.{$delivery}",
             'options' => [
                 'priority' => 'high',

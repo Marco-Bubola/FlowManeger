@@ -340,17 +340,22 @@
                         <i class="fas fa-hourglass-half text-[8px]"></i>
                         válido até {{ $autoValidDate->format('d/m/Y') }}
                     </span>
+                    @php $lastPay = $quote->payment_status ? $quote->payments()->latest('id')->first() : null; @endphp
                     @if($quote->payment_status === 'approved')
+                    @php $okPay = $quote->payments()->where('status', 'approved')->whereNotNull('sale_id')->latest('id')->first(); @endphp
                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 text-[10px] font-bold text-emerald-700 dark:text-emerald-300" data-testid="paid-pix">
-                        <i class="bi bi-check-circle-fill text-[9px]"></i> Pago pelo Pix{{ $quote->paid_at ? ' · ' . $quote->paid_at->format('d/m H:i') : '' }}
+                        <i class="bi bi-check-circle-fill text-[9px]"></i> Pago pelo site{{ $okPay ? ' · ' . $okPay->methodLabel() : '' }}{{ $quote->paid_at ? ' · ' . $quote->paid_at->format('d/m H:i') : '' }}
                     </span>
                     @elseif(in_array($quote->payment_status, ['pending', 'expired', 'cancelled', 'rejected'], true) && ! $quote->sale)
                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 text-[10px] font-bold text-amber-700 dark:text-amber-300">
-                        <i class="bi bi-hourglass-split text-[9px]"></i> {{ $quote->payment_status === 'pending' ? 'Pix gerado, aguardando pagamento' : 'Pix não pago' }}
+                        <i class="bi bi-hourglass-split text-[9px]"></i>
+                        {{ $quote->payment_status === 'pending'
+                            ? ($lastPay?->method === 'boleto' ? 'Boleto gerado, aguardando pagamento' : ($lastPay?->method === 'cartao' ? 'Cartão em análise' : 'Pix gerado, aguardando pagamento'))
+                            : ($quote->payment_status === 'rejected' ? 'Pagamento recusado, cliente pode tentar de novo' : 'Pagamento não feito (venceu)') }}
                     </span>
                     @elseif($quote->payment_status === 'refunded')
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/40 text-[10px] font-bold text-rose-700 dark:text-rose-300">
-                        <i class="bi bi-arrow-counterclockwise text-[9px]"></i> Pix devolvido
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/40 text-[10px] font-bold text-rose-700 dark:text-rose-300" data-testid="refunded">
+                        <i class="bi bi-arrow-counterclockwise text-[9px]"></i> Pagamento devolvido ao cliente
                     </span>
                     @endif
                     @if($quote->delivery_method)
@@ -537,6 +542,16 @@
                         <a href="{{ route('sales.show', $quote->sale->id) }}" class="underline underline-offset-2">#{{ $quote->sale->id }}</a>
                     @endif
                 </div>
+                @endif
+                @if($quote->payment_status === 'approved')
+                <form method="POST" action="{{ route('clients.portal.quotes.refund', $quote) }}"
+                      onsubmit="return confirm('Devolver o pagamento de R$ {{ number_format((float) $quote->payment_amount, 2, ',', '.') }} ao cliente pelo Mercado Pago? A venda é cancelada e o estoque volta.');">
+                    @csrf
+                    <button type="submit" data-testid="refund-btn"
+                            class="w-full flex items-center justify-center gap-2 rounded-xl border border-rose-200 dark:border-rose-800/40 bg-white dark:bg-slate-800 py-2.5 text-sm font-bold text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition">
+                        <i class="bi bi-arrow-counterclockwise"></i> Devolver pagamento ao cliente
+                    </button>
+                </form>
                 @endif
                 @if(in_array($quote->status, ['approved', 'rejected']) && ($quote->status === 'rejected' || $quote->sale))
                 <a href="{{ route('clients.portal.quotes.whatsapp', $quote) }}" target="_blank" rel="noopener"

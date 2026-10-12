@@ -32,27 +32,23 @@ class MercadoPagoService
         return $idempotencyKey ? $req->withHeaders(['X-Idempotency-Key' => $idempotencyKey]) : $req;
     }
 
-    /**
-     * Cria um pagamento Pix. $payer: email, first_name, last_name, cpf (só dígitos).
-     * Retorna o JSON do pagamento (id, status, point_of_interaction.transaction_data...).
-     */
-    public function createPix(float $amount, string $description, array $payer, string $externalReference, string $notificationUrl, \DateTimeInterface $expiresAt, string $idempotencyKey): array
+    /** Dados do comprador no formato do Mercado Pago. $payer: email, first_name, last_name, cpf, address[]. */
+    private function payer(array $payer): array
     {
-        $body = [
-            'transaction_amount' => round($amount, 2),
-            'description'        => mb_substr($description, 0, 250),
-            'payment_method_id'  => 'pix',
-            'external_reference' => $externalReference,
-            'date_of_expiration' => $expiresAt->format('Y-m-d\TH:i:s.vP'),
-            'payer'              => array_filter([
-                'email'      => $payer['email'],
-                'first_name' => $payer['first_name'] ?? null,
-                'last_name'  => $payer['last_name'] ?? null,
-                'identification' => ! empty($payer['cpf'])
-                    ? ['type' => strlen($payer['cpf']) > 11 ? 'CNPJ' : 'CPF', 'number' => $payer['cpf']]
-                    : null,
-            ]),
-        ];
+        $cpf = preg_replace('/\D+/', '', (string) ($payer['cpf'] ?? ''));
+
+        return array_filter([
+            'email'          => $payer['email'],
+            'first_name'     => $payer['first_name'] ?? null,
+            'last_name'      => $payer['last_name'] ?? null,
+            'identification' => $cpf !== '' ? ['type' => strlen($cpf) > 11 ? 'CNPJ' : 'CPF', 'number' => $cpf] : null,
+            'address'        => $payer['address'] ?? null,
+        ]);
+    }
+
+    /** POST /v1/payments com a chave de idempotência (repetir a chamada nunca cobra duas vezes). */
+    private function createPayment(array $body, string $notificationUrl, string $idempotencyKey, string $what): array
+    {
         // O Mercado Pago só aceita URL pública com https para avisar do pagamento.
         if (str_starts_with($notificationUrl, 'https://')) {
             $body['notification_url'] = $notificationUrl;
@@ -60,11 +56,60 @@ class MercadoPagoService
 
         $res = $this->http($idempotencyKey)->post('/v1/payments', $body);
         if (! $res->successful()) {
-            Log::warning('Mercado Pago: erro ao criar Pix', ['status' => $res->status(), 'body' => $res->json() ?? $res->body()]);
+            Log::warning('Mercado Pago: erro ao criar ' . $what, ['status' => $res->status(), 'body' => $res->json() ?? $res->body()]);
             throw new RuntimeException($this->errorMessage($res->json() ?? []));
         }
 
         return $res->json();
+    }
+
+    /**
+     * Cria um pagamento Pix.
+     * Retorna o JSON do pagamento (id, status, point_of_interaction.transaction_data...).
+     */
+    public function createPix(float $amount, string $description, array $payer, string $externalReference, string $notificationUrl, \DateTimeInterface $expiresAt, string $idempotencyKey): array
+    {
+        return $this->createPayment([
+            'transaction_amount' => round($amount, 2),
+            'description'        => mb_substr($description, 0, 250),
+            'payment_method_id'  => 'pix',
+            'external_reference' => $externalReference,
+            'date_of_expiration' => $expiresAt->format('Y-m-d\TH:i:s.vP'),
+            'payer'              => $this->payer($payer),
+        ], $notificationUrl, $idempotencyKey, 'Pix');
+    }
+
+    /**
+     * Cobra um cartão (crédito ou débito). $card vem do formulário seguro do Mercado Pago no
+     * navegador: token (o número do cartão nunca passa pelo nosso servidor), payment_method_id,
+     * issuer_id, installments e payer.identification.
+     */
+    public function createCard(float $amount, string $description, array $card, array $payer, string $externalReference, string $notificationUrl, string $idempotencyKey): array
+    {
+        return $this->createPayment(array_filter([
+            'transaction_amount'   => round($amount, 2),
+            'description'          => mb_substr($description, 0, 250),
+            'token'                => $card['token'],
+            'installments'         => max(1, (int) ($card['installments'] ?? 1)),
+            'payment_method_id'    => $card['payment_method_id'],
+            'issuer_id'            => $card['issuer_id'] ?? null,
+            'external_reference'   => $externalReference,
+            'statement_descriptor' => $card['statement_descriptor'] ?? null,
+            'payer'                => $this->payer($payer),
+        ], fn ($v) => $v !== null && $v !== ''), $notificationUrl, $idempotencyKey, 'pagamento com cartão');
+    }
+
+    /** Gera um boleto (precisa de nome, CPF e endereço completo do comprador). */
+    public function createBoleto(float $amount, string $description, array $payer, string $externalReference, string $notificationUrl, \DateTimeInterface $expiresAt, string $idempotencyKey): array
+    {
+        return $this->createPayment([
+            'transaction_amount' => round($amount, 2),
+            'description'        => mb_substr($description, 0, 250),
+            'payment_method_id'  => 'bolbradesco',
+            'external_reference' => $externalReference,
+            'date_of_expiration' => $expiresAt->format('Y-m-d\TH:i:s.vP'),
+            'payer'              => $this->payer($payer),
+        ], $notificationUrl, $idempotencyKey, 'boleto');
     }
 
     /** Consulta um pagamento (fonte da verdade: nunca confiar só no aviso ou no navegador). */

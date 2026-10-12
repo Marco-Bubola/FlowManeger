@@ -18,9 +18,10 @@
     $storePhone = app(\App\Services\Collections\CollectionService::class)->whatsappPhone($store?->phone);
     $storeWa = $storePhone ? 'https://wa.me/' . $storePhone . '?text=' . rawurlencode("Oi! Sobre o meu pedido #{$quote->id} no catálogo:") : null;
     $fmt = fn ($d) => $d?->locale('pt_BR')->translatedFormat('j \d\e M. \d\e Y, H:i');
-    $canPay = ! $sale && $quote->status === 'pending' && $paySettings?->pixReady()
+    $canPay = ! $sale && $quote->status === 'pending' && $paySettings?->onlineReady()
         && in_array($quote->payment_status, ['pending', 'expired', 'cancelled', 'rejected'], true);
     $paidOnline = $quote->payment_status === 'approved';
+    $onlinePay = $quote->payments()->whereIn('status', ['approved', 'refunded'])->latest('id')->first();
     $deliveryFee = (float) ($quote->delivery_fee ?? 0);
     $addr = $quote->shipping_address ?? [];
 @endphp
@@ -55,10 +56,14 @@
 
                     @if($canPay)
                         <a href="{{ route('portal.quotes.pay', $quote) }}" class="po-btn po-btn-block" data-testid="pay-pix"
-                           style="margin-top:12px;background:#00a650;color:#fff"><i class="fas fa-qrcode"></i> Pagar com Pix</a>
+                           style="margin-top:12px;background:#00a650;color:#fff"><i class="fas fa-lock"></i> Pagar agora</a>
                     @elseif($paidOnline)
                         <div class="po-msg" data-testid="paid-online" style="margin-top:12px;white-space:normal;background:#e6f7ee;color:#00a650;font-weight:600">
-                            <i class="fas fa-circle-check"></i> Pago pelo Pix{{ $quote->paid_at ? ' em ' . $fmt($quote->paid_at) : '' }}
+                            <i class="fas fa-circle-check"></i> Pago pelo site{{ $onlinePay ? ' · ' . $onlinePay->methodLabel() : '' }}{{ $quote->paid_at ? ' em ' . $fmt($quote->paid_at) : '' }}
+                        </div>
+                    @elseif($quote->payment_status === 'refunded')
+                        <div class="po-msg" data-testid="refunded-online" style="margin-top:12px;white-space:normal;background:#fdecee;color:#b4232f;font-weight:600">
+                            <i class="fas fa-rotate-left"></i> Pagamento devolvido{{ $onlinePay?->refunded_at ? ' em ' . $fmt($onlinePay->refunded_at) : '' }}. O valor volta pelo mesmo meio de pagamento.
                         </div>
                     @endif
 
