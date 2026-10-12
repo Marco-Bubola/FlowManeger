@@ -57,7 +57,7 @@ class CategoriesIndex extends Component
 
     public function updatingSearch(): void
     {
-        $this->resetPage();
+        $this->resetAllPages();
     }
 
     public function updatingTypeFilter(): void
@@ -67,7 +67,7 @@ class CategoriesIndex extends Component
 
     public function updatingStatusFilter(): void
     {
-        $this->resetPage();
+        $this->resetAllPages();
     }
 
     public function updatingPerPage(): void
@@ -77,7 +77,7 @@ class CategoriesIndex extends Component
 
     public function updatingSortBy(): void
     {
-        $this->resetPage();
+        $this->resetAllPages();
     }
 
     // Filtros rápidos
@@ -107,7 +107,14 @@ class CategoriesIndex extends Component
         $this->typeFilter = '';
         $this->statusFilter = '';
         $this->sortBy = 'name';
+        $this->resetAllPages();
+    }
+
+    private function resetAllPages(): void
+    {
         $this->resetPage();
+        $this->resetPage('product_page');
+        $this->resetPage('transaction_page');
     }
 
     // Ações para mostrar mais categorias
@@ -331,17 +338,28 @@ class CategoriesIndex extends Component
             ->get();
 
         // Criar paginação independente para categorias de produtos e transações
-        $paginatedProductCategories = Category::where('type', 'product')
-            ->where('user_id', Auth::id())
-            ->orderByRaw('sort_order IS NULL, sort_order ASC')
-            ->orderBy('name')
-            ->paginate(6, ['*'], 'product_page');
+        // A busca, o status e a ordem escolhidos valem também nas abas Produtos e Transações
+        // (sem ordem escolhida, segue a ordem arrastada pelo usuário).
+        $tabQuery = function (string $type) {
+            $q = Category::where('type', $type)->where('user_id', Auth::id());
+            if ($this->search) {
+                $q->where(fn ($w) => $w->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('description', 'like', '%' . $this->search . '%'));
+            }
+            if ($this->statusFilter !== '') {
+                $q->where('is_active', $this->statusFilter);
+            }
+            return match ($this->sortBy) {
+                'name_desc' => $q->orderBy('name', 'desc'),
+                'created_at' => $q->orderBy('created_at', 'desc'),
+                'created_at_desc' => $q->orderBy('created_at', 'asc'),
+                default => $q->orderByRaw('sort_order IS NULL, sort_order ASC')->orderBy('name'),
+            };
+        };
 
-        $paginatedTransactionCategories = Category::where('type', 'transaction')
-            ->where('user_id', Auth::id())
-            ->orderByRaw('sort_order IS NULL, sort_order ASC')
-            ->orderBy('name')
-            ->paginate(6, ['*'], 'transaction_page');
+        $paginatedProductCategories = $tabQuery('product')->paginate(6, ['*'], 'product_page');
+
+        $paginatedTransactionCategories = $tabQuery('transaction')->paginate(6, ['*'], 'transaction_page');
 
         $visible = match ($this->activeTab) {
             'products' => $paginatedProductCategories,

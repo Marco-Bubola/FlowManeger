@@ -68,231 +68,53 @@
         </x-list-toolbar>
 
 
-        <!-- Filtros Avançados (usando showFilters do Alpine.js) -->
-        <div x-show="showFilters" x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 transform -translate-y-4"
-            x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100 transform translate-y-0"
-            x-transition:leave-end="opacity-0 transform -translate-y-4"
-            class="clients-filters-panel bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50 mb-6">
-
-            <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center justify-between">
-                <div class="flex items-center">
-                    <i class="bi bi-sliders text-purple-600 dark:text-purple-400 mr-2"></i>
-                    Filtros Avançados
+        <!-- Filtros: mesma janela de Produtos e Vendas -->
+        @php
+            $cliActive = $statusFilter || $dateFilter || $minValue !== '' || $maxValue !== '' || $minSales !== '' || $maxSales !== '';
+            $opt = fn ($on) => 'fm-fs-opt' . ($on ? ' is-on' : '');
+            $sortIcon = fn ($col) => $sortBy === $col ? ($sortDirection === 'asc' ? 'bi-sort-up' : 'bi-sort-down') : '';
+        @endphp
+        <x-filter-sheet title="Filtros de clientes" subtitle="Status, cadastro, valor comprado e ordem" :active="$cliActive"
+            target="statusFilter,dateFilter,toggleSort,minValue,maxValue,minSales,maxSales,clearFilters">
+            <div class="fm-fs-group">
+                <h4><i class="bi bi-person-check text-purple-500"></i>Status</h4>
+                <div class="fm-fs-options">
+                    @foreach(['' => ['Todos', 'bi-list-ul'], 'ativo' => ['Ativos', 'bi-person-check'], 'inativo' => ['Inativos', 'bi-person-x'], 'premium' => ['Premium', 'bi-star']] as $val => [$lbl, $ico])
+                        <button type="button" wire:click="$set('statusFilter', '{{ $val }}')" class="{{ $opt($statusFilter === $val) }}"><i class="bi {{ $ico }}"></i>{{ $lbl }}</button>
+                    @endforeach
                 </div>
-                <button wire:click="clearFilters"
-                    class="flex items-center gap-2 px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-all duration-200">
-                    <i class="bi bi-arrow-clockwise"></i>
-                    Limpar
-                </button>
-            </h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-                <!-- Coluna Esquerda: Status e Período -->
-
-
-                <!-- Status do Cliente -->
-                <div class="space-y-2">
-                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center">
-                        <i class="bi bi-person-check mr-2 text-purple-500"></i>
-                        Status do Cliente
-                    </h4>
-                    <div class="grid grid-cols-2 gap-2">
-                        <!-- Todos os Status -->
-                        <button wire:click="$set('statusFilter', '')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $statusFilter === '' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
-                            <div class="flex items-center justify-center gap-2">
-                                <i class="bi bi-list-ul text-purple-500 text-sm"></i>
-                                <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Todos</span>
-                            </div>
-                        </button>
-
-                        <!-- Ativo -->
-                        <button wire:click="$set('statusFilter', 'ativo')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-green-300 dark:hover:border-green-500 transition-all duration-200 {{ $statusFilter === 'ativo' ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/30' : '' }}">
-                            <div class="flex items-center justify-center gap-2">
-                                <i class="bi bi-person-check text-green-500 text-sm"></i>
-                                <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Ativo</span>
-                            </div>
-                        </button>
-
-                        <!-- Inativo -->
-                        <button wire:click="$set('statusFilter', 'inativo')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-red-300 dark:hover:border-red-500 transition-all duration-200 {{ $statusFilter === 'inativo' ? 'ring-2 ring-red-500 bg-red-50 dark:bg-red-900/30' : '' }}">
-                            <div class="flex items-center justify-center gap-2">
-                                <i class="bi bi-person-x text-red-500 text-sm"></i>
-                                <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Inativo</span>
-                            </div>
-                        </button>
-
-                        <!-- Premium -->
-                        <button wire:click="$set('statusFilter', 'premium')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-yellow-300 dark:hover:border-yellow-500 transition-all duration-200 {{ $statusFilter === 'premium' ? 'ring-2 ring-yellow-500 bg-yellow-50 dark:bg-yellow-900/30' : '' }}">
-                            <div class="flex items-center justify-center gap-2">
-                                <i class="bi bi-star text-yellow-500 text-sm"></i>
-                                <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Premium</span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Período -->
-                <div class="space-y-2">
-                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center">
-                        <i class="bi bi-calendar-range mr-2 text-indigo-500"></i>
-                        Período de Cadastro
-                    </h4>
-                    <div class="grid grid-cols-3 gap-1">
-                        <!-- Qualquer período -->
-                        <button wire:click="$set('dateFilter', '')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500 transition-all duration-200 {{ $dateFilter === '' ? 'ring-2 ring-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
-                            <div class="text-center">
-                                <i class="bi bi-list-ul text-indigo-500 text-sm"></i>
-                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Todos</div>
-                            </div>
-                        </button>
-
-                        <!-- Hoje -->
-                        <button wire:click="$set('dateFilter', 'hoje')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 {{ $dateFilter === 'hoje' ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : '' }}">
-                            <div class="text-center">
-                                <i class="bi bi-calendar-day text-blue-500 text-sm"></i>
-                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Hoje</div>
-                            </div>
-                        </button>
-
-                        <!-- Esta semana -->
-                        <button wire:click="$set('dateFilter', 'semana')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-green-300 dark:hover:border-green-500 transition-all duration-200 {{ $dateFilter === 'semana' ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/30' : '' }}">
-                            <div class="text-center">
-                                <i class="bi bi-calendar-week text-green-500 text-sm"></i>
-                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Semana</div>
-                            </div>
-                        </button>
-
-                        <!-- Este mês -->
-                        <button wire:click="$set('dateFilter', 'mes')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $dateFilter === 'mes' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
-                            <div class="text-center">
-                                <i class="bi bi-calendar-month text-purple-500 text-sm"></i>
-                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Mês</div>
-                            </div>
-                        </button>
-
-                        <!-- Este ano -->
-                        <button wire:click="$set('dateFilter', 'ano')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-orange-300 dark:hover:border-orange-500 transition-all duration-200 {{ $dateFilter === 'ano' ? 'ring-2 ring-orange-500 bg-orange-50 dark:bg-orange-900/30' : '' }}">
-                            <div class="text-center">
-                                <i class="bi bi-calendar text-orange-500 text-sm"></i>
-                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Ano</div>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-                <!-- Ordenação -->
-                <div class="space-y-2">
-                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center">
-                        <i class="bi bi-arrow-up-down mr-2 text-emerald-500"></i>
-                        Ordenar por
-                    </h4>
-                    <div class="grid grid-cols-3 gap-1">
-                        <!-- Por Nome -->
-                        <button wire:click="toggleSort('name')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-200 {{ $sortBy === 'name' ? 'ring-2 ring-emerald-500 bg-emerald-50 dark:bg-emerald-900/30' : '' }}">
-                            <div class="text-center">
-                                <i class="bi bi-person text-emerald-500 text-sm"></i>
-                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Nome</div>
-                            </div>
-                        </button>
-
-                        <!-- Por Data -->
-                        <button wire:click="toggleSort('created_at')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 {{ $sortBy === 'created_at' ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : '' }}">
-                            <div class="text-center">
-                                <i class="bi bi-calendar text-blue-500 text-sm"></i>
-                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Data</div>
-                            </div>
-                        </button>
-
-                        <!-- Por Email -->
-                        <button wire:click="toggleSort('email')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $sortBy === 'email' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
-                            <div class="text-center">
-                                <i class="bi bi-envelope text-purple-500 text-sm"></i>
-                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Email</div>
-                            </div>
-                        </button>
-
-                        <!-- Por Status -->
-                        <button wire:click="toggleSort('status')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-orange-300 dark:hover:border-orange-500 transition-all duration-200 {{ $sortBy === 'status' ? 'ring-2 ring-orange-500 bg-orange-50 dark:bg-orange-900/30' : '' }}">
-                            <div class="text-center">
-                                <i class="bi bi-flag text-orange-500 text-sm"></i>
-                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Status</div>
-                            </div>
-                        </button>
-
-                        <!-- Por Telefone -->
-                        <button wire:click="toggleSort('phone')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-teal-300 dark:hover:border-teal-500 transition-all duration-200 {{ $sortBy === 'phone' ? 'ring-2 ring-teal-500 bg-teal-50 dark:bg-teal-900/30' : '' }}">
-                            <div class="text-center">
-                                <i class="bi bi-telephone text-teal-500 text-sm"></i>
-                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Telefone</div>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Itens por página -->
-                <div class="space-y-2">
-                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center">
-                        <i class="bi bi-grid mr-2 text-pink-500"></i>
-                        Itens por Página
-                    </h4>
-                    <div class="grid grid-cols-2 gap-2">
-                        <!-- 12 por página -->
-                        <button wire:click="$set('perPage', '12')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-pink-300 dark:hover:border-pink-500 transition-all duration-200 {{ $perPage === '12' ? 'ring-2 ring-pink-500 bg-pink-50 dark:bg-pink-900/30' : '' }}">
-                            <div class="flex items-center justify-center gap-2">
-                                <i class="bi bi-grid-3x3 text-pink-500 text-sm"></i>
-                                <span class="text-xs font-medium text-slate-700 dark:text-slate-300">12</span>
-                            </div>
-                        </button>
-
-                        <!-- 24 por página -->
-                        <button wire:click="$set('perPage', '24')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-pink-300 dark:hover:border-pink-500 transition-all duration-200 {{ $perPage === '24' ? 'ring-2 ring-pink-500 bg-pink-50 dark:bg-pink-900/30' : '' }}">
-                            <div class="flex items-center justify-center gap-2">
-                                <i class="bi bi-grid text-pink-500 text-sm"></i>
-                                <span class="text-xs font-medium text-slate-700 dark:text-slate-300">24</span>
-                            </div>
-                        </button>
-
-                        <!-- 48 por página -->
-                        <button wire:click="$set('perPage', '48')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-pink-300 dark:hover:border-pink-500 transition-all duration-200 {{ $perPage === '48' ? 'ring-2 ring-pink-500 bg-pink-50 dark:bg-pink-900/30' : '' }}">
-                            <div class="flex items-center justify-center gap-2">
-                                <i class="bi bi-grid-1x2 text-pink-500 text-sm"></i>
-                                <span class="text-xs font-medium text-slate-700 dark:text-slate-300">48</span>
-                            </div>
-                        </button>
-
-                        <!-- 96 por página -->
-                        <button wire:click="$set('perPage', '96')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-pink-300 dark:hover:border-pink-500 transition-all duration-200 {{ $perPage === '96' ? 'ring-2 ring-pink-500 bg-pink-50 dark:bg-pink-900/30' : '' }}">
-                            <div class="flex items-center justify-center gap-2">
-                                <i class="bi bi-list-ul text-pink-500 text-sm"></i>
-                                <span class="text-xs font-medium text-slate-700 dark:text-slate-300">96</span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-
             </div>
-
-        </div> <!-- Botões de Ação dos Filtros -->
+            <div class="fm-fs-group">
+                <h4><i class="bi bi-calendar-range text-indigo-500"></i>Cadastrado em</h4>
+                <div class="fm-fs-options">
+                    @foreach(['' => 'Qualquer data', 'hoje' => 'Hoje', 'semana' => 'Esta semana', 'mes' => 'Este mês', 'ano' => 'Este ano'] as $val => $lbl)
+                        <button type="button" wire:click="$set('dateFilter', '{{ $val }}')" class="{{ $opt($dateFilter === $val) }}">{{ $lbl }}</button>
+                    @endforeach
+                </div>
+            </div>
+            <div class="fm-fs-group">
+                <h4><i class="bi bi-cash-stack text-emerald-500"></i>Total comprado (R$)</h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" min="0" step="0.01" inputmode="decimal" placeholder="Mínimo" wire:model.live.debounce.500ms="minValue">
+                    <input type="number" min="0" step="0.01" inputmode="decimal" placeholder="Máximo" wire:model.live.debounce.500ms="maxValue">
+                </div>
+            </div>
+            <div class="fm-fs-group">
+                <h4><i class="bi bi-bag text-sky-500"></i>Número de compras</h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" min="0" step="1" inputmode="numeric" placeholder="Mínimo" wire:model.live.debounce.500ms="minSales">
+                    <input type="number" min="0" step="1" inputmode="numeric" placeholder="Máximo" wire:model.live.debounce.500ms="maxSales">
+                </div>
+            </div>
+            <div class="fm-fs-group fm-fs-wide">
+                <h4><i class="bi bi-arrow-down-up text-amber-500"></i>Ordenar por <span class="font-normal text-slate-400">(toque de novo para inverter)</span></h4>
+                <div class="fm-fs-options">
+                    @foreach(['created_at' => 'Data de cadastro', 'name' => 'Nome', 'email' => 'E-mail', 'phone' => 'Telefone', 'status' => 'Status'] as $col => $lbl)
+                        <button type="button" wire:click="toggleSort('{{ $col }}')" class="{{ $opt($sortBy === $col) }}">{{ $lbl }}@if($sortIcon($col))<i class="bi {{ $sortIcon($col) }}"></i>@endif</button>
+                    @endforeach
+                </div>
+            </div>
+        </x-filter-sheet>
 
 
         <!-- Grid de clientes -->

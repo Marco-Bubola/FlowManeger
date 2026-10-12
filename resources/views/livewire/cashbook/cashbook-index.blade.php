@@ -249,13 +249,67 @@
 
                 <!-- Transactions List -->
                 <div class="space-y-3">
-                    <!-- Controls -->
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <button type="button" onclick="expandAllCategories()" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-arrows-expand"></i>Expandir todas</button>
-                            <button type="button" onclick="collapseAllCategories()" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-arrows-collapse"></i>Recolher todas</button>
+                    <!-- Busca, filtros e expandir/recolher -->
+                    @php
+                        $cxFilterOn = $typeFilter !== '' || $statusFilter !== '' || $categoryFilter !== '' || $clientFilter !== '' || $cofrinhoFilter !== '';
+                        $opt = fn ($on) => 'fm-fs-opt' . ($on ? ' is-on' : '');
+                    @endphp
+                    <x-list-toolbar placeholder="Buscar lançamento, categoria ou cliente" class="!mb-0">
+                        <x-toolbar.group>
+                            <x-toolbar.chip @click="showFilters = true" :active="$cxFilterOn" icon="bi-funnel">Filtros</x-toolbar.chip>
+                            <x-toolbar.chip onclick="expandAllCategories()" icon="bi-arrows-expand">Expandir todas</x-toolbar.chip>
+                            <x-toolbar.chip onclick="collapseAllCategories()" icon="bi-arrows-collapse">Recolher todas</x-toolbar.chip>
+                        </x-toolbar.group>
+                    </x-list-toolbar>
+
+                    <x-filter-sheet title="Filtros do livro caixa" subtitle="Valem para o mês escolhido" :active="$cxFilterOn"
+                        target="typeFilter,statusFilter,categoryFilter,clientFilter,cofrinhoFilter,clearFilters">
+                        <div class="fm-fs-group">
+                            <h4><i class="bi bi-arrow-left-right text-indigo-500"></i>Tipo</h4>
+                            <div class="fm-fs-options">
+                                @foreach(['' => 'Todos', '1' => 'Entradas', '2' => 'Saídas'] as $val => $lbl)
+                                    <button type="button" wire:click="$set('typeFilter', '{{ $val }}')" class="{{ $opt($typeFilter === (string) $val) }}">{{ $lbl }}</button>
+                                @endforeach
+                            </div>
                         </div>
-                    </div>
+                        <div class="fm-fs-group">
+                            <h4><i class="bi bi-hourglass-split text-amber-500"></i>Situação</h4>
+                            <div class="fm-fs-options">
+                                @foreach(['' => 'Todos', 'confirmed' => 'Confirmados', 'pending' => 'Pendentes'] as $val => $lbl)
+                                    <button type="button" wire:click="$set('statusFilter', '{{ $val }}')" class="{{ $opt($statusFilter === $val) }}">{{ $lbl }}</button>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="fm-fs-group">
+                            <h4><i class="bi bi-tags text-purple-500"></i>Categoria</h4>
+                            <select wire:model.live="categoryFilter">
+                                <option value="">Todas as categorias</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat->id_category }}">{{ $cat->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="fm-fs-group">
+                            <h4><i class="bi bi-person text-sky-500"></i>Cliente</h4>
+                            <select wire:model.live="clientFilter">
+                                <option value="">Todos os clientes</option>
+                                @foreach($clients as $cl)
+                                    <option value="{{ $cl->id }}">{{ $cl->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @if(count($cofrinhos))
+                            <div class="fm-fs-group">
+                                <h4><i class="bi bi-piggy-bank text-emerald-500"></i>Cofrinho</h4>
+                                <select wire:model.live="cofrinhoFilter">
+                                    <option value="">Todos (com e sem cofrinho)</option>
+                                    @foreach($cofrinhos as $cf)
+                                        <option value="{{ $cf->id }}">{{ $cf->nome }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+                    </x-filter-sheet>
 
                     <!-- Transactions Content -->
                     <div class="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto cards-scroll">
@@ -585,8 +639,12 @@
                                         📖 Nenhuma Transação Encontrada
                                     </h3>
                                     <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                                        Não há transações registradas para o período selecionado. Comece adicionando uma
-                                        nova transação!
+                                        @if($search !== '' || $cxFilterOn)
+                                            Nenhum lançamento com essa busca ou filtro neste mês. Tente outro termo ou limpe os filtros.
+                                        @else
+                                            Não há transações registradas para o período selecionado. Comece adicionando uma
+                                            nova transação!
+                                        @endif
                                     </p>
                                     <a href="{{ route('cashbook.create') }}"
                                         class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:scale-105">

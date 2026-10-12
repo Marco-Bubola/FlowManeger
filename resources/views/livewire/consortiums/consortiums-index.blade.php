@@ -60,229 +60,41 @@
         </div>
     </div>
 
-    <!-- Filtros Avançados -->
-    <div x-show="showFilters"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 transform -translate-y-2"
-         x-transition:enter-end="opacity-100 transform translate-y-0"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100 transform translate-y-0"
-         x-transition:leave-end="opacity-0 transform -translate-y-2"
-         class="mb-6">
-
-        <div class="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-indigo-50 dark:from-slate-800 dark:via-slate-700 dark:to-indigo-900 rounded-3xl border border-slate-200/50 dark:border-slate-600/50 shadow-xl shadow-indigo-500/5 dark:shadow-indigo-500/10 backdrop-blur-xl">
-            <!-- Fundo decorativo -->
-            <div class="absolute inset-0 bg-gradient-to-r from-indigo-50/50 via-transparent to-purple-50/50 dark:from-indigo-900/20 dark:via-transparent dark:to-purple-900/20"></div>
-
-            <!-- Header do painel de filtros -->
-            <div class="relative p-6 border-b border-slate-200/50 dark:border-slate-600/50">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl shadow-lg">
-                            <i class="bi bi-funnel text-white text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">Filtros Avançados</h3>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">Refine sua busca com filtros específicos</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <button wire:click="clearFilters"
-                                class="group px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <i class="bi bi-x-circle mr-1 group-hover:rotate-90 transition-transform duration-200"></i>
-                            Limpar
-                        </button>
-                        <button @click="showFilters = false"
-                                class="group p-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-600 dark:hover:bg-slate-500 text-slate-600 dark:text-slate-300 rounded-xl transition-all duration-200">
-                            <i class="bi bi-x-lg group-hover:rotate-90 transition-transform duration-200"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Conteúdo dos filtros -->
-            <div class="relative p-6">
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
-                    <!-- Coluna 1: Status do Consórcio -->
-                    <div class="space-y-3">
-                        <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                            <i class="bi bi-flag mr-1 text-indigo-500"></i>
-                            Status do Consórcio
-                        </h4>
-                        <div class="grid grid-cols-2 gap-2">
-                            <!-- Todos os Status -->
-                            <button wire:click="$set('statusFilter', '')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500 transition-all duration-200 {{ $statusFilter === '' ? 'ring-2 ring-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
-                                <div class="text-center">
-                                    <i class="bi bi-list-ul text-indigo-500 text-lg"></i>
-                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Todos</div>
-                                </div>
-                            </button>
-
-                            <!-- Ativo -->
-                            <button wire:click="setQuickFilter('active')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-green-300 dark:hover:border-green-500 transition-all duration-200 {{ $statusFilter === 'active' ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/30' : '' }}">
-                                <div class="text-center">
-                                    <i class="bi bi-check-circle text-green-500 text-lg"></i>
-                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Ativo</div>
-                                </div>
-                            </button>
-
-                            <!-- Concluído -->
-                            <button wire:click="setQuickFilter('completed')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 {{ $statusFilter === 'completed' ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : '' }}">
-                                <div class="text-center">
-                                    <i class="bi bi-trophy text-blue-500 text-lg"></i>
-                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Concluído</div>
-                                </div>
-                            </button>
-
-                            <!-- Cancelado -->
-                            <button wire:click="setQuickFilter('cancelled')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-red-300 dark:hover:border-red-500 transition-all duration-200 {{ $statusFilter === 'cancelled' ? 'ring-2 ring-red-500 bg-red-50 dark:bg-red-900/30' : '' }}">
-                                <div class="text-center">
-                                    <i class="bi bi-x-circle text-red-500 text-lg"></i>
-                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Cancelado</div>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Coluna 2: Filtros Rápidos de Data -->
-                    <div class="space-y-3">
-                        <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                            <i class="bi bi-calendar mr-1 text-purple-500"></i>
-                            Período
-                        </h4>
-                        <div class="grid grid-cols-2 gap-2">
-                            <!-- Hoje -->
-                            <button wire:click="setQuickFilter('today')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $quickFilter === 'today' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
-                                <div class="text-center">
-                                    <i class="bi bi-calendar-day text-purple-500 text-lg"></i>
-                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Hoje</div>
-                                </div>
-                            </button>
-
-                            <!-- Semana -->
-                            <button wire:click="setQuickFilter('week')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 {{ $quickFilter === 'week' ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : '' }}">
-                                <div class="text-center">
-                                    <i class="bi bi-calendar-week text-blue-500 text-lg"></i>
-                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Semana</div>
-                                </div>
-                            </button>
-
-                            <!-- Mês -->
-                            <button wire:click="setQuickFilter('month')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $quickFilter === 'month' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
-                                <div class="text-center">
-                                    <i class="bi bi-calendar-month text-purple-500 text-lg"></i>
-                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Mês</div>
-                                </div>
-                            </button>
-
-                            <!-- Limpar Data -->
-                            <button wire:click="$set('dateStart', ''); $wire.set('dateEnd', ''); $wire.set('quickFilter', '')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 transition-all duration-200">
-                                <div class="text-center">
-                                    <i class="bi bi-x-lg text-slate-500 text-lg"></i>
-                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Limpar</div>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Coluna 3: Itens por página -->
-                    <div class="space-y-3">
-                        <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                            <i class="bi bi-list-ol mr-1 text-amber-500"></i>
-                            Itens por página
-                        </h4>
-                        <div class="grid grid-cols-3 gap-2">
-                            @foreach($perPageOptions as $option)
-                                <button wire:click="$set('perPage', {{ $option }})"
-                                        class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-amber-300 dark:hover:border-amber-500 transition-all duration-200 {{ $perPage == $option ? 'ring-2 ring-amber-500 bg-amber-50 dark:bg-amber-900/30' : '' }}">
-                                    <div class="text-center">
-                                        <div class="text-sm font-bold text-slate-700 dark:text-slate-300">{{ $option }}</div>
-                                    </div>
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- Coluna 4: Ordenação -->
-                    <div class="space-y-3">
-                        <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                            <i class="bi bi-arrow-up-down mr-1 text-indigo-500"></i>
-                            Ordenação
-                        </h4>
-
-                        <div class="grid grid-cols-2 gap-2">
-                            <!-- Ordenar por Data -->
-                            <button wire:click="sortByField('created_at')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500 transition-all duration-200 {{ $sortBy === 'created_at' ? 'ring-2 ring-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
-                                <div class="flex items-center justify-between">
-                                    <div class="text-center w-full">
-                                        <i class="bi bi-calendar text-indigo-500 text-lg"></i>
-                                        <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Data</div>
-                                    </div>
-                                    @if($sortBy === 'created_at')
-                                        <i class="bi bi-{{ $sortDirection === 'asc' ? 'arrow-up' : 'arrow-down' }} text-indigo-500 text-sm absolute top-1 right-1"></i>
-                                    @endif
-                                </div>
-                            </button>
-
-                            <!-- Ordenar por Nome -->
-                            <button wire:click="sortByField('name')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $sortBy === 'name' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
-                                <div class="flex items-center justify-between">
-                                    <div class="text-center w-full">
-                                        <i class="bi bi-sort-alpha-down text-purple-500 text-lg"></i>
-                                        <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Nome</div>
-                                    </div>
-                                    @if($sortBy === 'name')
-                                        <i class="bi bi-{{ $sortDirection === 'asc' ? 'arrow-up' : 'arrow-down' }} text-purple-500 text-sm absolute top-1 right-1"></i>
-                                    @endif
-                                </div>
-                            </button>
-
-                            <!-- Ordenar por Valor -->
-                            <button wire:click="sortByField('monthly_value')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-green-300 dark:hover:border-green-500 transition-all duration-200 {{ $sortBy === 'monthly_value' ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/30' : '' }}">
-                                <div class="flex items-center justify-between">
-                                    <div class="text-center w-full">
-                                        <i class="bi bi-currency-dollar text-green-500 text-lg"></i>
-                                        <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Valor</div>
-                                    </div>
-                                    @if($sortBy === 'monthly_value')
-                                        <i class="bi bi-{{ $sortDirection === 'asc' ? 'arrow-up' : 'arrow-down' }} text-green-500 text-sm absolute top-1 right-1"></i>
-                                    @endif
-                                </div>
-                            </button>
-
-                            <!-- Ordenar por Início -->
-                            <button wire:click="sortByField('start_date')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $sortBy === 'start_date' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
-                                <div class="flex items-center justify-between">
-                                    <div class="text-center w-full">
-                                        <i class="bi bi-calendar-check text-purple-500 text-lg"></i>
-                                        <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Início</div>
-                                    </div>
-                                    @if($sortBy === 'start_date')
-                                        <i class="bi bi-{{ $sortDirection === 'asc' ? 'arrow-up' : 'arrow-down' }} text-purple-500 text-sm absolute top-1 right-1"></i>
-                                    @endif
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
+    <!-- Filtros: mesma janela de Produtos, Vendas e Clientes -->
+    @php
+        $csActive = $statusFilter !== '' || $dateStart !== '' || $dateEnd !== '';
+        $opt = fn ($on) => 'fm-fs-opt' . ($on ? ' is-on' : '');
+        $sortIcon = fn ($col) => $sortBy === $col ? ($sortDirection === 'asc' ? 'bi-sort-up' : 'bi-sort-down') : '';
+    @endphp
+    <x-filter-sheet title="Filtros de consórcios" subtitle="Status, período e ordem" :active="$csActive"
+        target="statusFilter,setQuickFilter,sortByField,dateStart,dateEnd,quickFilter,clearFilters">
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-flag text-indigo-500"></i>Status do consórcio</h4>
+            <div class="fm-fs-options">
+                <button type="button" wire:click="$set('statusFilter', '')" class="{{ $opt($statusFilter === '') }}"><i class="bi bi-list-ul"></i>Todos</button>
+                <button type="button" wire:click="setQuickFilter('active')" class="{{ $opt($statusFilter === 'active') }}"><i class="bi bi-check-circle"></i>Ativo</button>
+                <button type="button" wire:click="setQuickFilter('completed')" class="{{ $opt($statusFilter === 'completed') }}"><i class="bi bi-trophy"></i>Concluído</button>
+                <button type="button" wire:click="setQuickFilter('cancelled')" class="{{ $opt($statusFilter === 'cancelled') }}"><i class="bi bi-x-circle"></i>Cancelado</button>
             </div>
         </div>
-    </div>
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-calendar-range text-purple-500"></i>Período</h4>
+            <div class="fm-fs-options">
+                <button type="button" @click="$wire.dateStart = ''; $wire.dateEnd = ''; $wire.quickFilter = ''; $wire.$commit()" class="{{ $opt($dateStart === '' && $dateEnd === '') }}">Qualquer data</button>
+                <button type="button" wire:click="setQuickFilter('today')" class="{{ $opt($quickFilter === 'today') }}">Hoje</button>
+                <button type="button" wire:click="setQuickFilter('week')" class="{{ $opt($quickFilter === 'week') }}">Esta semana</button>
+                <button type="button" wire:click="setQuickFilter('month')" class="{{ $opt($quickFilter === 'month') }}">Este mês</button>
+            </div>
+        </div>
+        <div class="fm-fs-group fm-fs-wide">
+            <h4><i class="bi bi-arrow-down-up text-amber-500"></i>Ordenar por <span class="font-normal text-slate-400">(toque de novo para inverter)</span></h4>
+            <div class="fm-fs-options">
+                @foreach(['created_at' => 'Data de cadastro', 'name' => 'Nome', 'monthly_value' => 'Valor mensal', 'start_date' => 'Início'] as $col => $lbl)
+                    <button type="button" wire:click="sortByField('{{ $col }}')" class="{{ $opt($sortBy === $col) }}">{{ $lbl }}@if($sortIcon($col))<i class="bi {{ $sortIcon($col) }}"></i>@endif</button>
+                @endforeach
+            </div>
+        </div>
+    </x-filter-sheet>
 
     <!-- Grid de Cards (Responsivo com Ultra Wide) -->
     <div class="consortiums-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 mb-8">

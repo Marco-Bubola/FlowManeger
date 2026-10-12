@@ -348,6 +348,17 @@ class CashbookIndex extends Component
             }
         }
 
+        // Busca por descrição, observação, categoria ou cliente
+        if (trim($this->search) !== '') {
+            $term = '%' . trim($this->search) . '%';
+            $transactionsQuery->where(function ($q) use ($term) {
+                $q->where('description', 'like', $term)
+                    ->orWhere('note', 'like', $term)
+                    ->orWhereHas('category', fn ($c) => $c->where('name', 'like', $term))
+                    ->orWhereHas('client', fn ($c) => $c->where('name', 'like', $term));
+            });
+        }
+
         // Aplicar filtro de data específica se definido
         if ($this->dateStart && $this->dateEnd) {
             $transactionsQuery->whereBetween('date', [$this->dateStart, $this->dateEnd]);
@@ -560,7 +571,7 @@ class CashbookIndex extends Component
 
     public function updated($propertyName)
     {
-        if (in_array($propertyName, ['categoryFilter', 'typeFilter', 'statusFilter', 'clientFilter', 'segmentFilter', 'cofrinhoFilter', 'dateStart', 'dateEnd'])) {
+        if (in_array($propertyName, ['search', 'categoryFilter', 'typeFilter', 'statusFilter', 'clientFilter', 'segmentFilter', 'cofrinhoFilter', 'dateStart', 'dateEnd'])) {
             $this->resetPage();
             $this->loadData();
         }

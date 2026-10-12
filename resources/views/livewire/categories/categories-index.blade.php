@@ -1,4 +1,4 @@
-<div id="categories-root" class="categories-index-page mobile-393-base relative">
+<div id="categories-root" x-data="{ catFilters: false }" class="categories-index-page mobile-393-base relative">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/categories-index-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/categories-index-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/categories-index-ipad-portrait.css') }}">
@@ -32,132 +32,39 @@
         <x-gestao-stat label="Ativas" :value="$catActive" icon="bi-check-circle" tone="amber" :hint="($catTotal - $catActive) . ' inativas'" />
     </div>
 
-    <x-list-toolbar model="">
+    @php $catFilterOn = $statusFilter !== '' || ! in_array($sortBy, ['name', '']); @endphp
+    <x-list-toolbar placeholder="Buscar categoria pelo nome ou descrição">
         <x-toolbar.group>
             <x-toolbar.chip wire:click="setActiveTab('products')" :active="$activeTab === 'products'" icon="bi-box-seam">Produtos <span class="opacity-70">{{ $productCategories->count() }}</span></x-toolbar.chip>
             <x-toolbar.chip wire:click="setActiveTab('transactions')" :active="$activeTab === 'transactions'" icon="bi-arrow-left-right">Transações <span class="opacity-70">{{ $transactionCategories->count() }}</span></x-toolbar.chip>
             <x-toolbar.chip wire:click="setActiveTab('all')" :active="$activeTab === 'all'" icon="bi-list-ul">Todas <span class="opacity-70">{{ $catTotal }}</span></x-toolbar.chip>
             <x-toolbar.chip wire:click="setActiveTab('tips')" :active="$activeTab === 'tips'" icon="bi-lightbulb">Dicas</x-toolbar.chip>
         </x-toolbar.group>
+        <x-toolbar.group>
+            <x-toolbar.chip @click="catFilters = true" :active="$catFilterOn" icon="bi-funnel">Filtros</x-toolbar.chip>
+        </x-toolbar.group>
     </x-list-toolbar>
 
-    <!-- Filtros Avançados (Apenas para aba 'all') -->
-    @if($activeTab === 'all')
-    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden mb-4">
-        <div class="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-6 py-4 border-b border-slate-200 dark:border-slate-700 cursor-pointer"
-                 wire:click="$toggle('showFilters')">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-filter text-slate-600 dark:text-slate-400"></i>
-                    <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Filtros Inteligentes</h3>
-                    <span class="text-sm text-slate-500 dark:text-slate-400">({{ $categories->total() }} resultados)</span>
-                </div>
-                <div class="flex items-center">
-                    <i class="fas fa-chevron-{{ $showFilters ? 'up' : 'down' }} text-slate-400 dark:text-slate-500 transition-transform duration-200"></i>
-                </div>
+    <!-- Filtros: mesma janela das outras listas -->
+    @php $opt = fn ($on) => 'fm-fs-opt' . ($on ? ' is-on' : ''); @endphp
+    <x-filter-sheet show="catFilters" title="Filtros de categorias" subtitle="Status e ordem" :active="$catFilterOn" target="statusFilter,sortBy,clearFilters">
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-toggle-on text-emerald-500"></i>Status</h4>
+            <div class="fm-fs-options">
+                @foreach(['' => 'Todas', '1' => 'Ativas', '0' => 'Inativas'] as $val => $lbl)
+                    <button type="button" wire:click="$set('statusFilter', '{{ $val }}')" class="{{ $opt($statusFilter === (string) $val) }}">{{ $lbl }}</button>
+                @endforeach
             </div>
         </div>
-
-        <div class="transition-all duration-300 ease-in-out {{ $showFilters ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden' }}">
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                            <i class="fas fa-search mr-1"></i> Buscar
-                        </label>
-                        <div class="relative">
-                            <input wire:model.live="search" type="text" placeholder="Nome, descrição..."
-                                   class="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
-                            <i class="fas fa-search absolute left-3 top-3 text-slate-400 dark:text-slate-500"></i>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                            <i class="fas fa-tag mr-1"></i> Tipo
-                        </label>
-                        <select wire:model.live="typeFilter" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
-                            <option value="">Todos os tipos</option>
-                            <option value="product">Produtos</option>
-                            <option value="transaction">Transações</option>
-                        </select>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                            <i class="fas fa-toggle-on mr-1"></i> Status
-                        </label>
-                        <select wire:model.live="statusFilter" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
-                            <option value="">Todos os status</option>
-                            <option value="1">Ativo</option>
-                            <option value="0">Inativo</option>
-                        </select>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                            <i class="fas fa-list-ol mr-1"></i> Por página
-                        </label>
-                        <select wire:model.live="perPage" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
-                            <option value="12">12 itens</option>
-                            <option value="18">18 itens</option>
-                            <option value="24">24 itens</option>
-                            <option value="36">36 itens</option>
-                        </select>
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                            <i class="fas fa-sort mr-1"></i> Ordenar
-                        </label>
-                        <select wire:model.live="sortBy" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200">
-                                <option value="name">Nome A-Z</option>
-                                <option value="name_desc">Nome Z-A</option>
-                                <option value="created_at">Mais recentes</option>
-                                <option value="created_at_desc">Mais antigas</option>
-                                <option value="type">Por tipo</option>
-                                <option value="favorites">⭐ Favoritas primeiro</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Filtros Rápidos -->
-                    <div class="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
-                        <div class="flex flex-wrap gap-2">
-                            <span class="text-sm font-medium text-slate-700 dark:text-slate-300 mr-4 flex items-center">
-                                <i class="fas fa-bolt mr-1"></i> Filtros rápidos:
-                            </span>
-                            <button wire:click="quickFilter('recent')"
-                                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-blue-100 to-blue-200 dark:from-blue-800 dark:to-blue-700 text-blue-800 dark:text-blue-200 hover:from-blue-200 hover:to-blue-300 dark:hover:from-blue-700 dark:hover:to-blue-600 transition-all duration-200">
-                                <i class="fas fa-clock mr-1"></i> Recentes
-                            </button>
-                            <button wire:click="quickFilter('active')"
-                                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-green-100 to-green-200 dark:from-green-800 dark:to-green-700 text-green-800 dark:text-green-200 hover:from-green-200 hover:to-green-300 dark:hover:from-green-700 dark:hover:to-green-600 transition-all duration-200">
-                                <i class="fas fa-check-circle mr-1"></i> Ativas
-                            </button>
-                            <button wire:click="quickFilter('products')"
-                                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-purple-100 to-purple-200 dark:from-purple-800 dark:to-purple-700 text-purple-800 dark:text-purple-200 hover:from-purple-200 hover:to-purple-300 dark:hover:from-purple-700 dark:hover:to-purple-600 transition-all duration-200">
-                                <i class="fas fa-box mr-1"></i> Produtos
-                            </button>
-                            <button wire:click="quickFilter('transactions')"
-                                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-orange-100 to-orange-200 dark:from-orange-800 dark:to-orange-700 text-orange-800 dark:text-orange-200 hover:from-orange-200 hover:to-orange-300 dark:hover:from-orange-700 dark:hover:to-orange-600 transition-all duration-200">
-                                <i class="fas fa-exchange-alt mr-1"></i> Transações
-                            </button>
-                            <button wire:click="quickFilter('favorites')"
-                                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-yellow-100 to-yellow-200 dark:from-yellow-800 dark:to-yellow-700 text-yellow-800 dark:text-yellow-200 hover:from-yellow-200 hover:to-yellow-300 dark:hover:from-yellow-700 dark:hover:to-yellow-600 transition-all duration-200">
-                                <i class="fas fa-star mr-1"></i> Favoritas
-                            </button>
-                            <button wire:click="clearFilters"
-                                    class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-200 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 transition-all duration-200">
-                                <i class="fas fa-eraser mr-1"></i> Limpar
-                            </button>
-                        </div>
-                    </div>
-                </div>
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-arrow-down-up text-amber-500"></i>Ordenar por</h4>
+            <div class="fm-fs-options">
+                @foreach(['name' => 'Padrão', 'name_desc' => 'Nome Z-A', 'created_at' => 'Mais recentes', 'created_at_desc' => 'Mais antigas'] as $val => $lbl)
+                    <button type="button" wire:click="$set('sortBy', '{{ $val }}')" class="{{ $opt($sortBy === $val) }}">{{ $lbl }}</button>
+                @endforeach
             </div>
         </div>
-    </div>
-    @endif
+    </x-filter-sheet>
 
     <!-- Conteúdo das Abas: mesmo card em Produtos, Transações e Todas -->
     @if(in_array($activeTab, ['products', 'transactions', 'all']))
@@ -202,7 +109,7 @@
                 <div class="p-10 text-center">
                     <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400"><i class="fas fa-folder-open text-2xl"></i></div>
                     <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200">Nenhuma categoria encontrada</h3>
-                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Crie uma categoria para organizar melhor.</p>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ $search || $statusFilter !== '' ? 'Nenhuma categoria com essa busca ou filtro. Tente outro termo ou limpe os filtros.' : 'Crie uma categoria para organizar melhor.' }}</p>
                     @if($section['create'])
                         <button type="button" wire:click="{{ $section['create'] }}" class="mt-4 inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-sm font-semibold text-white"><i class="fas fa-plus"></i>{{ $section['button'] }}</button>
                     @endif
