@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductSplit extends Model
 {
-    protected $fillable = ['user_id', 'source_product_id', 'source_action', 'distributed_stock'];
+    protected $fillable = ['user_id', 'source_product_id', 'units', 'source_action', 'distributed_stock'];
 
     protected $casts = ['distributed_stock' => 'boolean'];
 

@@ -26,6 +26,15 @@ class PromotionSetting extends Model
         'curto' => ['Curto e direto', 'bi-chat-dots-fill', "*{nome}*\n~{de}~ ➜ *{por}* ({desconto} OFF) 🔥"],
     ];
 
+    /** Produto sem promoção (botão de WhatsApp do card de produto). */
+    public const PRODUCT_TEMPLATES = [
+        'disponivel' => ['Pronta entrega', 'bi-bag-check-fill', "✨ *{nome}*\n💰 *{preco}*\n📦 Pronta entrega\nMe chama para garantir o seu! 💜"],
+        'novidade' => ['Novidade', 'bi-stars', "🆕 *CHEGOU NOVIDADE!* 🆕\n*{nome}*\nPor apenas *{preco}*\nQuer que eu separe o seu? 💜"],
+        'ultimas' => ['Últimas unidades', 'bi-hourglass-split', "⏳ *ÚLTIMAS UNIDADES* ⏳\n*{nome}*\nSó restam {estoque}! Por *{preco}*\nGaranta o seu antes que acabe 💜"],
+        'presente' => ['Presente', 'bi-gift-fill', "🎁 *Dica de presente* 🎁\n*{nome}*\nPor *{preco}*\nVocê acerta no presente! 😍"],
+        'curto' => ['Curto e direto', 'bi-chat-dots-fill', "*{nome}*\n*{preco}* 💜"],
+    ];
+
     /** Cobranças: modelos de lembrete de parcela (vencendo / vencida). */
     public const COLLECTION_DUE_TEMPLATE = "Oi, {cliente}! Tudo bem? 😊\nPassando para lembrar que a parcela de *{valor}* ({descricao}) vence em *{vencimento}*.\nSe já pagou, pode desconsiderar. Obrigada! 💜\n{loja}";
 

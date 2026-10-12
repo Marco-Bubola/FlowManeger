@@ -254,6 +254,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products', ProductsIndex::class)->name('products.index');
     Route::get('/products/create', CreateProduct::class)->name('products.create');
     Route::get('/products/{product}/edit', EditProduct::class)->name('products.edit');
+    Route::get('/products/{product}/desmembrar', \App\Livewire\Products\BreakdownKit::class)->name('products.breakdown');
     Route::get('/products/show/{productCode}', ShowProduct::class)->name('products.show');
     Route::get('/products/kit/create', CreateKit::class)->name('products.kit.create');
     Route::get('/products/kit/{kit}/edit', EditKit::class)->name('products.kit.edit');

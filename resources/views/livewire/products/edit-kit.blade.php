@@ -12,6 +12,10 @@
             <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold {{ $currentStep == 2 ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' }}"><i class="bi bi-gear"></i>2. Configurar kit</span>
         </x-slot:meta>
         <x-slot:actions>
+            <button type="button" @click="$dispatch('open-product-share', { productId: {{ $kit->id }} })" title="Enviar no WhatsApp"
+                class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
+                <i class="bi bi-whatsapp"></i>WhatsApp
+            </button>
             <a href="{{ route('products.index') }}" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
                 <i class="bi bi-x-circle"></i>Cancelar
             </a>
@@ -755,4 +759,5 @@
             }, 200);
         });
     </script>
+    <livewire:products.product-share />
 </div>

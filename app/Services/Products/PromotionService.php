@@ -577,33 +577,79 @@ class PromotionService
      */
     public function interestedClients(Promotion $promotion, int $limit = 12): Collection
     {
-        $product = $promotion->product;
-        $userId = $promotion->user_id;
+        return $this->productInterestedClients($promotion->product, $promotion->id, $limit);
+    }
 
-        $byProduct = Client::query()
+    /**
+     * Clientes com telefone que favoritaram o produto no catálogo, já compraram
+     * o produto (mesmo código) ou compram a mesma categoria. last_send só existe
+     * quando há promoção (os envios são registrados por promoção).
+     *
+     * @return Collection<int, array{client:Client, reason:string, last_send:?PromotionSend}>
+     */
+    public function productInterestedClients(Product $product, ?int $promotionId = null, int $limit = 12): Collection
+    {
+        $userId = $product->user_id;
+        $withPhone = fn () => Client::query()
             ->where('clients.user_id', $userId)
-            ->whereNotNull('phone')->where('phone', '!=', '')
-            ->whereHas('sales.saleItems.product', fn ($q) => $q->where('product_code', $product->product_code))
-            ->limit($limit)->get();
+            ->whereNotNull('phone')->where('phone', '!=', '');
 
+        $favIds = \App\Models\ClientFavorite::where('user_id', $userId)->where('product_id', $product->id)->pluck('client_id');
+        $byFavorite = $favIds->isEmpty() ? collect() : $withPhone()->whereIn('id', $favIds)->limit($limit)->get();
+
+        $byProduct = $byFavorite->count() >= $limit ? collect() : $withPhone()
+            ->whereNotIn('id', $byFavorite->pluck('id'))
+            ->whereHas('sales.saleItems.product', fn ($q) => $q->where('product_code', $product->product_code))
+            ->limit($limit - $byFavorite->count())->get();
+
+        $taken = $byFavorite->pluck('id')->concat($byProduct->pluck('id'));
         $byCategory = collect();
-        if ($byProduct->count() < $limit && $product->category_id) {
-            $byCategory = Client::query()
-                ->where('clients.user_id', $userId)
-                ->whereNotNull('phone')->where('phone', '!=', '')
-                ->whereNotIn('id', $byProduct->pluck('id'))
+        if ($taken->count() < $limit && $product->category_id) {
+            $byCategory = $withPhone()
+                ->whereNotIn('id', $taken)
                 ->whereHas('sales.saleItems.product', fn ($q) => $q->where('category_id', $product->category_id))
-                ->limit($limit - $byProduct->count())->get();
+                ->limit($limit - $taken->count())->get();
         }
 
-        $sends = PromotionSend::where('promotion_id', $promotion->id)
-            ->whereNotNull('client_id')
-            ->latest()->get()->groupBy('client_id');
+        $sends = $promotionId
+            ? PromotionSend::where('promotion_id', $promotionId)->whereNotNull('client_id')->latest()->get()->groupBy('client_id')
+            : collect();
 
-        return $byProduct->map(fn ($c) => ['client' => $c, 'reason' => 'Já comprou este produto'])
+        return $byFavorite->map(fn ($c) => ['client' => $c, 'reason' => 'Favoritou no catálogo'])
+            ->concat($byProduct->map(fn ($c) => ['client' => $c, 'reason' => 'Já comprou este produto']))
             ->concat($byCategory->map(fn ($c) => ['client' => $c, 'reason' => 'Compra a mesma categoria']))
             ->map(fn ($row) => $row + ['last_send' => $sends->get($row['client']->id)?->first()])
             ->values();
+    }
+
+    /**
+     * Mensagem de WhatsApp de um produto sem promoção, com um dos modelos de
+     * PromotionSetting::PRODUCT_TEMPLATES e o rodapé do usuário.
+     */
+    public function productMessage(Product $product, ?Client $client = null, ?PromotionSetting $settings = null, string $templateKey = ''): string
+    {
+        $settings ??= $this->settings($product->user_id);
+        $template = PromotionSetting::PRODUCT_TEMPLATES[$templateKey][2] ?? PromotionSetting::PRODUCT_TEMPLATES['disponivel'][2];
+
+        $name = mb_convert_case(mb_strtolower((string) $product->name), MB_CASE_TITLE, 'UTF-8');
+        // "200Ml" → "200ml"
+        $name = preg_replace_callback('/(\d)(Ml|Mg|G|Kg|Cm|Un)\b/u', fn ($m) => $m[1] . mb_strtolower($m[2]), $name);
+        if ($product->variation_value && $product->parent_id) {
+            $name .= ' · ' . $product->variation_value;
+        }
+        $body = strtr($template, [
+            '{nome}'    => $name,
+            '{preco}'   => $this->money((float) $product->price_sale),
+            '{estoque}' => (string) max(0, (int) $product->stock_quantity),
+            '{cliente}' => $client ? $this->firstName($client) : '',
+            '{link}'    => $this->catalogLink($product->user_id),
+        ]);
+        $body = trim(preg_replace("/\n{3,}/", "\n\n", $body));
+        if ($client && ($settings->greet_client ?? true) && !str_contains($template, '{cliente}')) {
+            $body = 'Oi, ' . $this->firstName($client) . "! 💜\n" . $body;
+        }
+
+        return $this->withFooter($body, $product->user_id, $settings, $client);
     }
 
     public function recordSend(int $userId, array $promotionIds, ?int $clientId, string $channel, string $kind = 'produto'): PromotionSend

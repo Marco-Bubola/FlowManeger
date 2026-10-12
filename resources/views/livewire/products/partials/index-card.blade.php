@@ -12,6 +12,14 @@
             <i class="bi bi-pencil-square"></i>
         </a>
         <button type="button"
+            @click="$dispatch('open-product-share', { productId: {{ $product->id }} })"
+            class="btn btn-wa" title="Enviar no WhatsApp">
+            <i class="bi bi-whatsapp"></i>
+        </button>
+        <a href="{{ route('products.breakdown', $product) }}" class="btn btn-breakdown" title="Desmembrar kit">
+            <i class="bi bi-scissors"></i>
+        </a>
+        <button type="button"
             wire:click="$dispatch('openExportModal', { productId: {{ $product->id }} })"
             class="btn btn-success" title="Exportar Card">
             <i class="bi bi-file-earmark-image"></i>

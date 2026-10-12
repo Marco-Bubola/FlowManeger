@@ -165,6 +165,10 @@
             padding: .12rem .5rem; border-radius: 999px; font-size: .7rem; font-weight: 700; line-height: 1.3;
             color: #be185d; background: #fdf2f8; border: 1px solid #fbcfe8; text-decoration: none; white-space: nowrap;
         }
+        /* Botões do card: WhatsApp e Desmembrar kit */
+        .product-card-modern .btn-action-group .btn-wa { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; border: 2px solid #86efac; }
+        .product-card-modern .btn-action-group .btn-breakdown { background: linear-gradient(135deg, #f59e0b, #ea580c); color: #fff; border: 2px solid #fcd34d; }
+        .product-card-modern .btn-action-group .btn-wa:hover, .product-card-modern .btn-action-group .btn-breakdown:hover { filter: brightness(1.08); transform: translateY(-2px); }
         .dark .product-card-modern a.product-fav-count { color: #f9a8d4; background: rgba(236,72,153,.12); border-color: rgba(236,72,153,.3); }
     </style>
 
@@ -374,6 +378,11 @@
                                     title="Editar Kit">
                                     <i class="bi bi-pencil-square"></i>
                                 </a>
+                                <button type="button"
+                                    @click="$dispatch('open-product-share', { productId: {{ $product->id }} })"
+                                    class="btn btn-wa" title="Enviar no WhatsApp">
+                                    <i class="bi bi-whatsapp"></i>
+                                </button>
                                 <button type="button"
                                     wire:click="$dispatch('openExportModal', { productId: {{ $product->id }} })"
                                     class="btn btn-success" title="Exportar Card">
@@ -707,4 +716,7 @@
 
     <!-- Componente de Exportação de Card -->
     @livewire('products.export-product-card')
+
+    {{-- Botão de WhatsApp dos cards (com ou sem promoção) --}}
+    <livewire:products.product-share />
 </div>

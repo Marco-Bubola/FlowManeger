@@ -5,6 +5,16 @@
                 class="inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-amber-600 dark:text-amber-300 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
                 <i class="bi bi-lightbulb"></i>Dicas
             </button>
+            <button type="button" @click="$dispatch('open-product-share', { productId: {{ $product->id }} })" title="Enviar no WhatsApp"
+                class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
+            <i class="bi bi-whatsapp"></i>WhatsApp
+        </button>
+            @if(($product->tipo ?? 'simples') !== 'kit')
+            <a href="{{ route('products.breakdown', $product) }}" title="Desmembrar kit: separar nos produtos que vêm dentro"
+           class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+            <i class="bi bi-scissors text-orange-500"></i>Desmembrar
+        </a>
+            @endif
             <a href="{{ route('products.index') }}"
                 class="inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
                 <i class="bi bi-x-lg"></i>Cancelar
@@ -688,4 +698,5 @@
         </div>
     </div>
     @endif
+    <livewire:products.product-share />
 </div>
