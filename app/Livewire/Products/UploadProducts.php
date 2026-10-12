@@ -39,6 +39,7 @@ class UploadProducts extends Component
     public $showTipsModal = false; // Controle para exibir modal de dicas
     public $showDetailsModal = false; // Controle para exibir modal de detalhes
     public $selectedUpload = null; // Upload selecionado para visualização
+    public array $detailsPdfQty = []; // Quantidades relidas do PDF (importações antigas)
     public $confirmDeleteUploadId = null; // ID do upload para confirmar exclusão
     public $historyPerPage = 6; // Quantidade de cards por página no histórico
     public int $promotionsCreated = 0; // Promoções criadas no último salvamento
@@ -84,13 +85,48 @@ class UploadProducts extends Component
     public function showUploadDetails($uploadId)
     {
         $this->selectedUpload = ProductUploadHistory::find($uploadId);
+        $this->detailsPdfQty = $this->selectedUpload ? $this->pdfQuantities($this->selectedUpload) : [];
         $this->showDetailsModal = true;
+    }
+
+    /**
+     * Quantidade de cada produto lida de novo do PDF guardado, para conferir
+     * importações antigas (antes de o resumo guardar a quantidade de cada item).
+     * Chave "código" e "código|nome" → quantidade somada.
+     */
+    private function pdfQuantities(ProductUploadHistory $upload): array
+    {
+        $items = collect($upload->summary['created'] ?? [])->concat($upload->summary['updated'] ?? []);
+        if (!is_array($upload->summary['created'] ?? null) || $items->every(fn ($i) => isset($i['qty']))) {
+            return [];
+        }
+        if (!$upload->file_path || $upload->file_type !== 'pdf' || !Storage::disk('public')->exists($upload->file_path)) {
+            return [];
+        }
+
+        try {
+            $rows = $this->parser()->parseFile(Storage::disk('public')->path($upload->file_path));
+        } catch (\Throwable $e) {
+            Log::warning('Não consegui reler o PDF da importação ' . $upload->id . ': ' . $e->getMessage());
+            return [];
+        }
+
+        $qty = [];
+        foreach ($rows as $row) {
+            $code = (string) ($row['product_code'] ?? '');
+            $name = mb_strtolower($this->sanitizeName($row['name'] ?? ''));
+            $qty[$code] = ($qty[$code] ?? 0) + (int) ($row['stock_quantity'] ?? 0);
+            $qty[$code . '|' . $name] = ($qty[$code . '|' . $name] ?? 0) + (int) ($row['stock_quantity'] ?? 0);
+        }
+
+        return $qty;
     }
 
     public function closeDetailsModal()
     {
         $this->showDetailsModal = false;
         $this->selectedUpload = null;
+        $this->detailsPdfQty = [];
     }
 
     public function confirmDeleteUpload($uploadId)
@@ -443,6 +479,11 @@ class UploadProducts extends Component
                         'name'  => $resultProduct->name,
                         'code'  => $resultProduct->product_code,
                         'price' => $resultProduct->price,
+                        // Para conferir depois: quanto entrou, em qual produto e o estoque logo após
+                        'qty'         => (int) ($product['stock_quantity'] ?? 0),
+                        'product_id'  => $resultProduct->id,
+                        'action'      => $result['action'],
+                        'stock_after' => (int) $resultProduct->stock_quantity,
                     ];
                 } else {
                     // 'variation' ou 'created' → produto novo
@@ -453,6 +494,10 @@ class UploadProducts extends Component
                         'name'  => $resultProduct->name,
                         'code'  => $resultProduct->product_code,
                         'price' => $resultProduct->price,
+                        'qty'         => (int) ($product['stock_quantity'] ?? 0),
+                        'product_id'  => $resultProduct->id,
+                        'action'      => $result['action'],
+                        'stock_after' => (int) $resultProduct->stock_quantity,
                     ];
                 }
             } catch (\Exception $e) {
@@ -466,6 +511,7 @@ class UploadProducts extends Component
                 $skippedList[] = [
                     'name' => $product['name'] ?? 'N/A',
                     'code' => $product['product_code'] ?? 'N/A',
+                    'qty' => (int) ($product['stock_quantity'] ?? 0),
                     'reason' => $e->getMessage(),
                 ];
 

@@ -787,200 +787,230 @@
         </div>
     @endif
 
-    <!-- Modal de Detalhes do Upload -->
+    <!-- Modal de Detalhes do Upload: abas Criados / Atualizados / Ignorados com a foto de cada produto -->
     @if($showDetailsModal && $selectedUpload)
-        <div class="fixed inset-0 z-50 overflow-y-auto" x-data="{ show: @entangle('showDetailsModal') }">
-            <!-- Backdrop -->
-            <div x-show="show"
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                class="fixed inset-0 bg-black/60 backdrop-blur-sm"
-                wire:click="closeDetailsModal"></div>
+        @php
+            $summaryCreated = $selectedUpload->summary['created'] ?? [];
+            $summaryUpdated = $selectedUpload->summary['updated'] ?? [];
+            $summarySkipped = $selectedUpload->summary['skipped'] ?? [];
+            $isOldFormat = !is_array($summaryCreated) || !is_array($summaryUpdated) || !is_array($summarySkipped);
+            $created = is_array($summaryCreated) ? $summaryCreated : [];
+            $updated = is_array($summaryUpdated) ? $summaryUpdated : [];
+            $skipped = is_array($summarySkipped) ? $summarySkipped : [];
 
-            <!-- Modal -->
-            <div class="flex min-h-screen items-center justify-center p-4">
-                <div x-show="show"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 scale-95"
-                    x-transition:enter-end="opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100 scale-100"
-                    x-transition:leave-end="opacity-0 scale-95"
-                    class="relative w-full max-w-4xl bg-gradient-to-br from-white via-blue-50/50 to-purple-50/50 dark:from-gray-800 dark:via-blue-900/20 dark:to-purple-900/20 rounded-3xl shadow-2xl overflow-hidden">
+            // Busca os produtos atuais pelo código para mostrar foto, preço de venda e estoque de hoje
+            $udCodes = collect($created)->concat($updated)->concat($skipped)->pluck('code')->filter(fn ($c) => $c && $c !== 'N/A')->unique()->values();
+            $udProducts = $udCodes->isEmpty() ? collect() : \App\Models\Product::where('user_id', $selectedUpload->user_id ?? auth()->id())
+                ->whereIn('product_code', $udCodes)->get(['id', 'name', 'product_code', 'image', 'price', 'price_sale', 'stock_quantity', 'parent_id', 'variation_value']);
+            $udParents = \App\Models\Product::whereIn('id', $udProducts->pluck('parent_id')->filter()->unique())->pluck('name', 'id');
+            $udFind = function ($item) use ($udProducts) {
+                if (!empty($item['product_id']) && ($byId = $udProducts->firstWhere('id', $item['product_id']))) {
+                    return $byId;
+                }
+                $same = $udProducts->where('product_code', $item['code'] ?? null);
+                return $same->firstWhere('name', $item['name'] ?? null) ?? $same->first();
+            };
+            // Quantidade que entrou: guardada no resumo (importações novas) ou relida do PDF (antigas)
+            $udQty = function ($item) use ($detailsPdfQty) {
+                if (isset($item['qty'])) {
+                    return ['n' => (int) $item['qty'], 'from' => 'resumo'];
+                }
+                $code = (string) ($item['code'] ?? '');
+                $key = $code . '|' . mb_strtolower(preg_replace('/\s+/', ' ', trim(preg_replace('/[\/(\)\-]/', '', (string) ($item['name'] ?? '')))));
+                $n = $detailsPdfQty[$key] ?? $detailsPdfQty[$code] ?? null;
+                return $n === null ? null : ['n' => (int) $n, 'from' => 'pdf'];
+            };
+            $udTabs = [
+                'created' => ['label' => 'Criados', 'icon' => 'bi-plus-circle', 'tone' => 'emerald', 'items' => $created],
+                'updated' => ['label' => 'Atualizados', 'icon' => 'bi-arrow-repeat', 'tone' => 'sky', 'items' => $updated],
+                'skipped' => ['label' => 'Ignorados', 'icon' => 'bi-slash-circle', 'tone' => 'amber', 'items' => $skipped],
+            ];
+            $udFirst = collect($udTabs)->search(fn ($t) => count($t['items']) > 0) ?: 'created';
+            $udBrl = fn ($v) => 'R$ ' . number_format((float) $v, 2, ',', '.');
+        @endphp
+        <div class="fixed inset-0 z-[9999] ud-root" x-data="{ tab: '{{ $udFirst }}' }" @keydown.escape.window="$wire.closeDetailsModal()" role="dialog" aria-modal="true">
+            <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" wire:click="closeDetailsModal"></div>
 
-                    <!-- Header do Modal -->
-                    <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 px-6 py-5 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                                <i class="bi bi-file-earmark-text-fill text-white text-2xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-bold text-white">Detalhes do Upload</h3>
-                                <p class="text-sm text-white/80">{{ $selectedUpload->filename }}</p>
-                            </div>
+            <div class="relative h-full flex items-end md:items-center justify-center md:p-6 pointer-events-none">
+                <div class="ud-panel pointer-events-auto">
+                    <div class="ud-grab md:hidden"></div>
+
+                    <!-- Cabeçalho -->
+                    <div class="ud-head">
+                        <span class="ud-head-icon"><i class="bi bi-file-earmark-pdf"></i></span>
+                        <div class="min-w-0 flex-1">
+                            <h3 class="ud-title">Detalhes da importação</h3>
+                            <p class="ud-sub truncate">{{ $selectedUpload->filename }} · {{ optional($selectedUpload->created_at)->format('d/m/Y H:i') }}</p>
                         </div>
-                        <button wire:click="closeDetailsModal"
-                            class="w-10 h-10 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all">
-                            <i class="bi bi-x-lg text-xl"></i>
-                        </button>
+                        <button type="button" class="ud-x" wire:click="closeDetailsModal" title="Fechar"><i class="bi bi-x-lg"></i></button>
                     </div>
 
-                    <!-- Conteúdo do Modal -->
-                    <div class="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                        <!-- Estatísticas -->
-                        <div class="grid grid-cols-4 gap-4 mb-6">
-                            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center">
-                                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ $selectedUpload->total_products }}</div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Total</div>
-                            </div>
-                            <div class="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 text-center">
-                                <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ $selectedUpload->products_created }}</div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Criados</div>
-                            </div>
-                            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center">
-                                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ $selectedUpload->products_updated }}</div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Atualizados</div>
-                            </div>
-                            <div class="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-4 text-center">
-                                <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ $selectedUpload->products_skipped }}</div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Ignorados</div>
-                            </div>
+                    <!-- Abas com os totais -->
+                    <div class="ud-tabs">
+                        <div class="ud-total">
+                            <span class="ud-total-n">{{ $selectedUpload->total_products }}</span>
+                            <span class="ud-total-l">no arquivo</span>
                         </div>
+                        @foreach($udTabs as $key => $t)
+                            @php $n = $isOldFormat ? ($key === 'created' ? $selectedUpload->products_created : ($key === 'updated' ? $selectedUpload->products_updated : $selectedUpload->products_skipped)) : count($t['items']); @endphp
+                            <button type="button" @click="tab = '{{ $key }}'" class="ud-tab ud-tone-{{ $t['tone'] }}" :class="tab === '{{ $key }}' && 'is-on'">
+                                <i class="bi {{ $t['icon'] }}"></i>
+                                <span class="ud-tab-n">{{ $n }}</span>
+                                <span class="ud-tab-l">{{ $t['label'] }}</span>
+                            </button>
+                        @endforeach
+                    </div>
 
-                        <!-- Grid de 3 Colunas: Criados, Atualizados e Ignorados -->
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            @php
-                                // Verificar se o summary tem arrays ou apenas contadores (formato antigo)
-                                $summaryCreated = $selectedUpload->summary['created'] ?? [];
-                                $summaryUpdated = $selectedUpload->summary['updated'] ?? [];
-                                $summarySkipped = $selectedUpload->summary['skipped'] ?? [];
-
-                                // Se forem números (formato antigo), criar arrays vazios
-                                $created = is_array($summaryCreated) ? $summaryCreated : [];
-                                $updated = is_array($summaryUpdated) ? $summaryUpdated : [];
-                                $skipped = is_array($summarySkipped) ? $summarySkipped : [];
-
-                                // Flag para saber se é formato antigo
-                                $isOldFormat = !is_array($summaryCreated) || !is_array($summaryUpdated) || !is_array($summarySkipped);
-                            @endphp
-
-                            @if($isOldFormat)
-                                <!-- Mensagem para formato antigo -->
-                                <div class="col-span-full bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 rounded-lg p-4">
-                                    <div class="flex items-start gap-3">
-                                        <i class="bi bi-info-circle-fill text-yellow-600 dark:text-yellow-400 text-xl flex-shrink-0 mt-0.5"></i>
-                                        <div class="text-sm text-gray-800 dark:text-gray-200">
-                                            <p class="font-bold mb-1">Upload Antigo</p>
-                                            <p>Este upload foi criado com uma versão anterior do sistema. Os detalhes dos produtos não estão disponíveis, mas você pode ver os totais acima.</p>
-                                            <p class="mt-2 text-xs">Faça um novo upload para ver todos os detalhes dos produtos.</p>
+                    <!-- Conteúdo -->
+                    <div class="ud-body">
+                        @if($isOldFormat)
+                            <div class="ud-empty">
+                                <i class="bi bi-clock-history text-amber-500"></i>
+                                <p class="font-semibold">Importação antiga</p>
+                                <p>Ela foi feita numa versão anterior do sistema, por isso só temos os totais acima.</p>
+                            </div>
+                        @else
+                            @foreach($udTabs as $key => $t)
+                                <div x-show="tab === '{{ $key }}'" x-cloak>
+                                    @if(count($t['items']) === 0)
+                                        <div class="ud-empty">
+                                            <i class="bi {{ $key === 'skipped' ? 'bi-check-circle text-emerald-500' : 'bi-inbox text-slate-400' }}"></i>
+                                            <p>{{ $key === 'created' ? 'Nenhum produto criado nesta importação.' : ($key === 'updated' ? 'Nenhum produto atualizado nesta importação.' : 'Nenhum produto ignorado. Tudo certo!') }}</p>
                                         </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            <!-- Produtos Criados -->
-                            @if(!$isOldFormat && count($created) > 0)
-                                <div>
-                                    <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                                        <i class="bi bi-plus-circle text-green-600"></i>
-                                        Produtos Criados ({{ count($created) }})
-                                    </h4>
-                                    <div class="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                                        @foreach($created as $item)
-                                            <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-200 dark:border-green-800 hover:shadow-lg transition-shadow">
-                                                <div class="font-semibold text-xs text-gray-900 dark:text-white truncate" title="{{ $item['name'] ?? 'N/A' }}">
-                                                    {{ $item['name'] ?? 'N/A' }}
-                                                </div>
-                                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                                    Código: {{ $item['code'] ?? 'N/A' }}
-                                                </div>
-                                                @if(isset($item['price']))
-                                                    <div class="text-xs text-green-600 dark:text-green-400 font-semibold mt-1">
-                                                        R$ {{ number_format($item['price'], 2, ',', '.') }}
+                                    @else
+                                        <div class="ud-grid">
+                                            @foreach($t['items'] as $item)
+                                                @php $p = $udFind($item); $q = $udQty($item); $isVar = ($item['action'] ?? null) === 'variation' || ($p && $p->parent_id); @endphp
+                                                <div class="ud-card ud-tone-{{ $t['tone'] }}">
+                                                    <div class="ud-photo">
+                                                        <x-product-thumb :product="$p" size="h-full w-full" rounded="rounded-none" />
+                                                        <span class="ud-badge"><i class="bi {{ $t['icon'] }}"></i>{{ rtrim($t['label'], 's') }}</span>
                                                     </div>
-                                                @endif
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @else
-                                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6 text-center">
-                                    <i class="bi bi-inbox text-3xl text-gray-400 mb-2"></i>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum produto criado</p>
-                                </div>
-                            @endif
-
-                            <!-- Produtos Atualizados -->
-                            @if(!$isOldFormat && count($updated) > 0)
-                                <div>
-                                    <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                                        <i class="bi bi-arrow-repeat text-blue-600"></i>
-                                        Produtos Atualizados ({{ count($updated) }})
-                                    </h4>
-                                    <div class="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                                        @foreach($updated as $item)
-                                            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow">
-                                                <div class="font-semibold text-xs text-gray-900 dark:text-white truncate" title="{{ $item['name'] ?? 'N/A' }}">
-                                                    {{ $item['name'] ?? 'N/A' }}
-                                                </div>
-                                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                                    Código: {{ $item['code'] ?? 'N/A' }}
-                                                </div>
-                                                @if(isset($item['price']))
-                                                    <div class="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-1">
-                                                        R$ {{ number_format($item['price'], 2, ',', '.') }}
+                                                    <div class="ud-info">
+                                                        <p class="ud-name" title="{{ $p->name ?? $item['name'] ?? '' }}">{{ $p->name ?? $item['name'] ?? 'Produto' }}</p>
+                                                        <p class="ud-code"><i class="bi bi-upc"></i>{{ $item['code'] ?? '—' }}</p>
+                                                        <div class="ud-qty">
+                                                            <span class="ud-qty-in" title="{{ ($q['from'] ?? '') === 'pdf' ? 'Quantidade lida do PDF' : 'Quantidade que entrou nesta importação' }}">
+                                                                <small>{{ $key === 'skipped' ? 'Não entrou' : (($q['from'] ?? '') === 'pdf' ? 'No PDF' : 'Entrou') }}</small>{{ $q ? ($key === 'skipped' ? '' : '+') . $q['n'] : '—' }}
+                                                            </span>
+                                                            @if($p && $key !== 'skipped')
+                                                                <span class="ud-qty-now {{ (int) $p->stock_quantity > 0 ? 'is-ok' : 'is-zero' }}">
+                                                                    <small>Estoque hoje</small>{{ (int) $p->stock_quantity }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                        @if(isset($item['stock_after']) && $p && (int) $item['stock_after'] !== (int) $p->stock_quantity)
+                                                            <p class="ud-note"><i class="bi bi-info-circle"></i>Logo após a importação ficou {{ (int) $item['stock_after'] }}. Mudou depois (vendas ou ajustes).</p>
+                                                        @endif
+                                                        @if($isVar && $key !== 'skipped')
+                                                            <p class="ud-var"><i class="bi bi-diagram-2"></i>Entrou como variação{{ $p && $p->variation_value ? ' "' . $p->variation_value . '"' : '' }}{{ $p && $p->parent_id && isset($udParents[$p->parent_id]) ? ' de ' . \Illuminate\Support\Str::limit($udParents[$p->parent_id], 40) : '' }}</p>
+                                                        @endif
+                                                        @if($key === 'skipped')
+                                                            <p class="ud-reason"><i class="bi bi-exclamation-triangle"></i>{{ $item['reason'] ?? 'Motivo não informado' }}</p>
+                                                        @else
+                                                            <div class="ud-prices">
+                                                                <span><small>Custo</small>{{ $udBrl($item['price'] ?? $p->price ?? 0) }}</span>
+                                                                @if($p && (float) $p->price_sale > 0)
+                                                                    <span class="is-sale"><small>Venda</small>{{ $udBrl($p->price_sale) }}</span>
+                                                                @endif
+                                                            </div>
+                                                            @if($p)
+                                                                <div class="ud-foot">
+                                                                    <a href="{{ route('products.show', $p->product_code) }}" wire:navigate class="ud-open-btn"><i class="bi bi-box-arrow-up-right"></i>Abrir produto</a>
+                                                                </div>
+                                                            @else
+                                                                <p class="ud-gone">Produto não existe mais</p>
+                                                            @endif
+                                                        @endif
                                                     </div>
-                                                @endif
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @else
-                                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6 text-center">
-                                    <i class="bi bi-inbox text-3xl text-gray-400 mb-2"></i>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum produto atualizado</p>
-                                </div>
-                            @endif
-
-                            <!-- Produtos Ignorados -->
-                            @if(!$isOldFormat && count($skipped) > 0)
-                                <div>
-                                    <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                                        <i class="bi bi-dash-circle text-orange-600"></i>
-                                        Produtos Ignorados ({{ count($skipped) }})
-                                    </h4>
-                                    <div class="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                                        @foreach($skipped as $item)
-                                            <div class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 border border-orange-200 dark:border-orange-800 hover:shadow-lg transition-shadow">
-                                                <div class="font-semibold text-xs text-gray-900 dark:text-white truncate" title="{{ $item['name'] ?? $item['reason'] ?? 'N/A' }}">
-                                                    {{ $item['name'] ?? 'Produto' }}
                                                 </div>
-                                                @if(isset($item['code']))
-                                                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                                        Código: {{ $item['code'] }}
-                                                    </div>
-                                                @endif
-                                                <div class="text-xs text-orange-600 dark:text-orange-400 mt-1 italic">
-                                                    {{ $item['reason'] ?? 'Não especificado' }}
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
-                            @else
-                                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6 text-center">
-                                    <i class="bi bi-check-circle text-3xl text-green-400 mb-2"></i>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum produto ignorado</p>
-                                </div>
-                            @endif
-                        </div>
+                            @endforeach
+                        @endif
                     </div>
                 </div>
             </div>
+
+            <style>
+                .ud-panel { width: 100%; max-height: 92dvh; display: flex; flex-direction: column; overflow: hidden; border-radius: 1.5rem 1.5rem 0 0;
+                    background: #fff; border: 1px solid rgb(226 232 240); box-shadow: 0 -20px 50px -20px rgb(15 23 42 / .45); }
+                @media (min-width: 768px) { .ud-panel { max-width: 64rem; border-radius: 1.5rem; max-height: 88vh; } }
+                .dark .ud-panel { background: rgb(15 23 42); border-color: rgb(51 65 85); }
+                .ud-grab { width: 2.5rem; height: .3rem; border-radius: 999px; background: rgb(203 213 225); margin: .55rem auto 0; }
+                .ud-head { display: flex; align-items: center; gap: .75rem; padding: .9rem 1rem; background: linear-gradient(90deg, rgb(79 70 229), rgb(147 51 234), rgb(219 39 119)); color: #fff; }
+                .ud-head-icon { width: 2.6rem; height: 2.6rem; flex-shrink: 0; border-radius: .9rem; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; background: rgb(255 255 255 / .2); }
+                .ud-title { font-size: 1.05rem; font-weight: 800; }
+                .ud-sub { font-size: .75rem; opacity: .85; }
+                .ud-x { width: 2.4rem; height: 2.4rem; flex-shrink: 0; border-radius: .8rem; display: flex; align-items: center; justify-content: center; background: rgb(255 255 255 / .2); }
+                .ud-x:hover { background: rgb(255 255 255 / .3); }
+                .ud-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; padding: .75rem 1rem; border-bottom: 1px solid rgb(241 245 249); }
+                .dark .ud-tabs { border-bottom-color: rgb(30 41 59); }
+                .ud-total, .ud-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem; padding: .55rem .25rem; border-radius: 1rem; min-width: 0; }
+                .ud-total { background: rgb(241 245 249); color: rgb(51 65 85); }
+                .dark .ud-total { background: rgb(30 41 59); color: rgb(226 232 240); }
+                .ud-total-n, .ud-tab-n { font-size: 1.35rem; font-weight: 800; line-height: 1.1; }
+                .ud-total-l, .ud-tab-l { font-size: .68rem; font-weight: 600; opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+                .ud-tab { border: 1.5px solid transparent; transition: background .15s, border-color .15s; }
+                .ud-tab > i { font-size: .8rem; }
+                .ud-tone-emerald.ud-tab { color: rgb(4 120 87); background: rgb(236 253 245); }
+                .ud-tone-sky.ud-tab { color: rgb(3 105 161); background: rgb(240 249 255); }
+                .ud-tone-amber.ud-tab { color: rgb(180 83 9); background: rgb(255 251 235); }
+                .ud-tab.is-on { border-color: currentColor; box-shadow: 0 6px 16px -10px currentColor; }
+                .dark .ud-tone-emerald.ud-tab { color: rgb(110 231 183); background: rgb(6 78 59 / .35); }
+                .dark .ud-tone-sky.ud-tab { color: rgb(125 211 252); background: rgb(12 74 110 / .35); }
+                .dark .ud-tone-amber.ud-tab { color: rgb(252 211 77); background: rgb(120 53 15 / .35); }
+                .ud-body { flex: 1; overflow-y: auto; padding: 1rem; padding-bottom: calc(1rem + env(safe-area-inset-bottom)); background: rgb(248 250 252); }
+                .dark .ud-body { background: rgb(2 6 23 / .4); }
+                .ud-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+                @media (min-width: 640px) { .ud-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+                @media (min-width: 1024px) { .ud-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+                .ud-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 1rem; background: #fff; border: 1px solid rgb(226 232 240); transition: box-shadow .15s, transform .15s; }
+                .ud-card:hover { box-shadow: 0 12px 24px -16px rgb(15 23 42 / .5); transform: translateY(-1px); }
+                .dark .ud-card { background: rgb(15 23 42); border-color: rgb(51 65 85); }
+                .ud-photo { position: relative; aspect-ratio: 1 / 1; background: #fff; }
+                .ud-photo img { object-fit: contain !important; padding: .4rem; }
+                .ud-photo > div > span i { font-size: 2rem; }
+                .ud-badge { position: absolute; left: .45rem; top: .45rem; display: inline-flex; align-items: center; gap: .25rem; padding: .15rem .5rem; border-radius: 999px; font-size: .62rem; font-weight: 700; color: #fff; }
+                .ud-tone-emerald .ud-badge { background: rgb(16 185 129); }
+                .ud-tone-sky .ud-badge { background: rgb(14 165 233); }
+                .ud-tone-amber .ud-badge { background: rgb(245 158 11); }
+                .ud-info { display: flex; flex-direction: column; gap: .3rem; padding: .6rem .7rem .7rem; flex: 1; }
+                .ud-name { font-size: .78rem; font-weight: 700; line-height: 1.25; color: rgb(15 23 42); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.5em; }
+                .dark .ud-name { color: #fff; }
+                .ud-code { display: flex; align-items: center; gap: .3rem; font-size: .7rem; color: rgb(100 116 139); }
+                .ud-prices { display: flex; flex-wrap: wrap; gap: .35rem; }
+                .ud-prices span { display: flex; flex-direction: column; padding: .25rem .5rem; border-radius: .6rem; font-size: .78rem; font-weight: 800; color: rgb(51 65 85); background: rgb(241 245 249); }
+                .ud-prices span.is-sale { color: rgb(4 120 87); background: rgb(236 253 245); }
+                .ud-prices small { font-size: .58rem; font-weight: 600; opacity: .75; text-transform: uppercase; letter-spacing: .03em; }
+                .dark .ud-prices span { color: rgb(226 232 240); background: rgb(30 41 59); }
+                .dark .ud-prices span.is-sale { color: rgb(110 231 183); background: rgb(6 78 59 / .4); }
+                .ud-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: .4rem; padding-top: .2rem; }
+                .ud-stock { display: inline-flex; align-items: center; gap: .3rem; font-size: .68rem; font-weight: 700; }
+                .ud-stock.is-ok { color: rgb(5 150 105); }
+                .ud-stock.is-zero { color: rgb(225 29 72); }
+                .ud-open { width: 1.9rem; height: 1.9rem; border-radius: .6rem; display: flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, rgb(79 70 229), rgb(147 51 234)); }
+                .ud-reason { display: flex; gap: .3rem; font-size: .7rem; font-style: italic; color: rgb(180 83 9); }
+                .ud-gone { margin-top: auto; font-size: .68rem; color: rgb(148 163 184); }
+                .ud-qty { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; }
+                .ud-qty span { display: flex; flex-direction: column; align-items: center; padding: .3rem .25rem; border-radius: .65rem; font-size: 1rem; font-weight: 800; line-height: 1.15; }
+                .ud-qty small { font-size: .56rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; opacity: .8; }
+                .ud-qty-in { color: rgb(67 56 202); background: rgb(238 242 255); }
+                .ud-qty-now.is-ok { color: rgb(4 120 87); background: rgb(236 253 245); }
+                .ud-qty-now.is-zero { color: rgb(190 18 60); background: rgb(255 241 242); }
+                .dark .ud-qty-in { color: rgb(199 210 254); background: rgb(49 46 129 / .45); }
+                .dark .ud-qty-now.is-ok { color: rgb(110 231 183); background: rgb(6 78 59 / .4); }
+                .dark .ud-qty-now.is-zero { color: rgb(253 164 175); background: rgb(136 19 55 / .35); }
+                .ud-note, .ud-var { display: flex; gap: .3rem; font-size: .66rem; line-height: 1.3; }
+                .ud-note { color: rgb(100 116 139); }
+                .ud-var { color: rgb(126 34 206); font-weight: 600; }
+                .dark .ud-var { color: rgb(216 180 254); }
+                .ud-open-btn { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: .35rem; padding: .4rem; border-radius: .65rem; font-size: .72rem; font-weight: 700; color: #fff; background: linear-gradient(90deg, rgb(79 70 229), rgb(147 51 234)); }
+                .ud-empty { display: flex; flex-direction: column; align-items: center; gap: .4rem; padding: 2.5rem 1rem; text-align: center; font-size: .85rem; color: rgb(100 116 139); }
+                .ud-empty > i { font-size: 2.2rem; }
+            </style>
         </div>
     @endif
 
