@@ -288,7 +288,7 @@
                     </div>
 
                     <div class="card-body">
-                        <a href="{{ $product ? route('products.show', $product->product_code) : '#' }}" class="product-title" title="{{ $product?->name }}">{{ ucwords($product?->name ?? 'Produto removido') }}</a>
+                        <a href="{{ $product ? route('products.show', ['productCode' => $product->product_code, 'id' => $product->id]) : '#' }}" class="product-title" title="{{ $product?->name }}">{{ ucwords($product?->name ?? 'Produto removido') }}</a>
 
                         <div class="promo-card-meta">
                             @if($tab === 'sugestoes')

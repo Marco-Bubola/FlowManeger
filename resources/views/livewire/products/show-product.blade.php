@@ -52,36 +52,22 @@
         @endif
     </x-slot:meta>
     <x-slot:actions>
-        <a href="{{ route('products.edit', $mainProduct) }}" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+        <a href="{{ ($viewed->tipo ?? 'simples') === 'kit' ? route('products.kit.edit', $viewed) : route('products.edit', $viewed) }}" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
             <i class="bi bi-pencil text-amber-500"></i>Editar
         </a>
-        <a href="{{ route('promotions.index', ['produto' => $mainProduct->id]) }}"
+        <a href="{{ route('promotions.index', ['produto' => $viewed->id]) }}"
            title="{{ $showPromo ? 'Em promoção: R$ ' . number_format($showPromo->promo_price, 2, ',', '.') : 'Pôr em promoção' }}"
            class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600">
             <i class="bi bi-fire"></i>{{ $showPromo ? 'Promoção -' . $showPromo->discount_percent . '%' : 'Promoção' }}
         </a>
-        <button type="button" @click="$dispatch('open-product-share', { productId: {{ $mainProduct->id }} })" title="Enviar no WhatsApp"
+        <button type="button" @click="$dispatch('open-product-share', { productId: {{ $viewed->id }} })" title="Enviar no WhatsApp"
                 class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
             <i class="bi bi-whatsapp"></i>WhatsApp
         </button>
-        @if(($mainProduct->tipo ?? 'simples') !== 'kit')
-        <a href="{{ route('products.breakdown', $mainProduct) }}" title="Desmembrar kit: separar nos produtos que vêm dentro"
-           class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
-            <i class="bi bi-scissors text-orange-500"></i>Desmembrar
-        </a>
-        @endif
-        <button type="button" wire:click="$dispatch('openExportModal', { productId: {{ $mainProduct->id }} })" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
-            <i class="bi bi-file-earmark-arrow-down text-indigo-500"></i>Exportar
-        </button>
-        <button type="button" wire:click="duplicateProduct({{ $mainProduct->id }})" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
-            <i class="bi bi-files text-purple-500"></i>Duplicar
-        </button>
-        <button type="button" wire:click="confirmDelete({{ $mainProduct->id }})" title="Excluir produto"
-                class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10 transition shadow-sm">
-            <i class="bi bi-trash3"></i>
-        </button>
     </x-slot:actions>
 </x-product-page-header>
+
+@include('livewire.products.partials.show-hero')
 
 <!-- ===== PÁGINA ÚNICA (sem abas) — layout denso com dash ===== -->
 <div class="space-y-4">
@@ -223,19 +209,24 @@
             @endif
         </x-dash.card>
 
-        {{-- Preços & informações --}}
-        <x-dash.card title="Preços & informações" sub="Dados do produto" icon="bi-info-circle" tone="indigo" span="dash-col-4">
-            <div class="grid grid-cols-2 gap-2">
-                <div class="rounded-xl bg-slate-100/70 dark:bg-slate-800/50 px-3 py-2.5"><p class="text-[10px] font-bold uppercase text-slate-400">Custo</p><p class="text-base font-black text-slate-700 dark:text-slate-200">R$ {{ number_format($mainProduct->price, 2, ',', '.') }}</p></div>
-                <div class="rounded-xl bg-emerald-500/10 border border-emerald-400/30 px-3 py-2.5"><p class="text-[10px] font-bold uppercase text-emerald-500">Venda</p><p class="text-base font-black text-emerald-700 dark:text-emerald-300">R$ {{ number_format($mainProduct->price_sale, 2, ',', '.') }}</p></div>
-                <div class="rounded-xl bg-indigo-500/10 border border-indigo-400/30 px-3 py-2.5"><p class="text-[10px] font-bold uppercase text-indigo-500">Ticket médio</p><p class="text-sm font-black text-indigo-700 dark:text-indigo-300">R$ {{ number_format($analytics['avg_sale_price'] ?? 0, 2, ',', '.') }}</p></div>
-                <div class="rounded-xl bg-amber-500/10 border border-amber-400/30 px-3 py-2.5"><p class="text-[10px] font-bold uppercase text-amber-500">Variações</p><p class="text-sm font-black text-amber-700 dark:text-amber-300">{{ $products->count() }}</p></div>
-            </div>
-            <div class="mt-2 space-y-1.5 text-xs">
-                <div class="flex justify-between items-center rounded-lg bg-violet-50 dark:bg-violet-950/30 px-3 py-2"><span class="text-slate-500 flex items-center gap-1"><i class="bi bi-calendar-plus text-violet-500"></i> Criado em</span><span class="font-bold text-slate-700 dark:text-slate-200">{{ optional($mainProduct->created_at)->format('d/m/Y H:i') ?? '—' }}</span></div>
-                <div class="flex justify-between items-center rounded-lg bg-slate-50 dark:bg-slate-950/40 px-3 py-2"><span class="text-slate-500">1ª venda</span><span class="font-bold text-slate-700 dark:text-slate-200">{{ !empty($analytics['first_sale_date']) ? \Carbon\Carbon::parse($analytics['first_sale_date'])->format('d/m/Y') : '—' }}</span></div>
-                <div class="flex justify-between items-center rounded-lg bg-slate-50 dark:bg-slate-950/40 px-3 py-2"><span class="text-slate-500">Última venda</span><span class="font-bold text-slate-700 dark:text-slate-200">{{ !empty($analytics['last_sale_date']) ? \Carbon\Carbon::parse($analytics['last_sale_date'])->format('d/m/Y') : '—' }}</span></div>
-            </div>
+        {{-- Histórico de estoque --}}
+        <x-dash.card title="Entradas e saídas" sub="Últimas mudanças de estoque" icon="bi-clock-history" tone="indigo" span="dash-col-4">
+            <x-slot:actions>
+                <a href="{{ route('gestao.stock-movements', ['search' => $viewed->product_code]) }}" class="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 px-2.5 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500/20">Ver tudo</a>
+            </x-slot:actions>
+            @if($stockLogs->isNotEmpty())
+                <div class="dash-list dash-scroll max-h-[300px] overflow-y-auto pr-1">
+                    @foreach($stockLogs as $log)
+                        @php $chg = (int) $log->quantity_change; $lp = $products->firstWhere('id', $log->product_id); @endphp
+                        <x-dash.list-item :title="$log->getOperationDescription() . ($products->count() > 1 && $lp ? ' · ' . ($lp->variation_value ?: $lp->product_code) : '')"
+                            :sub="optional($log->created_at)->format('d/m/Y H:i') . ' · ' . $log->quantity_before . ' → ' . $log->quantity_after"
+                            :icon="$chg >= 0 ? 'bi-box-arrow-in-down' : 'bi-box-arrow-up'" :tone="$chg >= 0 ? 'emerald' : 'rose'"
+                            :value="($chg > 0 ? '+' : '') . $chg" />
+                    @endforeach
+                </div>
+            @else
+                <x-dash.empty icon="bi-clock-history" message="Nenhuma entrada ou saída registrada ainda" />
+            @endif
         </x-dash.card>
 
         {{-- Vendas recentes --}}
@@ -256,7 +247,6 @@
 
         {{-- Descrição, ficha técnica e fotos (o que o cliente vê no portal) --}}
         @php
-            $viewed = $products->firstWhere('product_code', $productCode) ?? $mainProduct;
             $vSpecs = collect($viewed->specs ?? [])->filter(fn ($s) => trim((string) ($s['n'] ?? '')) !== '' && trim((string) ($s['v'] ?? '')) !== '');
             $vImgs = $viewed->all_images;
             $vMeta = collect([
@@ -327,9 +317,9 @@
             <div class="products-index-page">
                 <div class="products-grid variations-grid">
                     @foreach($products as $variant)
-                    <div class="product-card-modern {{ ($variant->id ?? null) === ($mainProduct->id ?? null) ? 'is-current' : '' }}">
+                    <div class="product-card-modern {{ ($variant->id ?? null) === ($viewed->id ?? null) ? 'is-current' : '' }}">
                         <div class="btn-action-group">
-                            <a href="{{ route('products.show', $variant->product_code) }}" class="btn btn-secondary" title="Ver Detalhes"><i class="bi bi-eye"></i></a>
+                            <button type="button" wire:click="viewVariant({{ $variant->id }})" x-on:click="window.scrollTo({ top: 0, behavior: 'smooth' })" class="btn btn-secondary" title="Abrir esta variação"><i class="bi bi-eye"></i></button>
                             <a href="{{ route('products.edit', $variant) }}" class="btn btn-primary" title="Editar"><i class="bi bi-pencil-square"></i></a>
                         </div>
                         <div class="product-img-area">

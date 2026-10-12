@@ -292,7 +292,7 @@
                         {{-- Botões de Ação ML - LATERAL DIREITA --}}
                         <div class="absolute top-3 right-3 z-20 flex flex-col gap-2">
                             {{-- Botões Visualizar e Editar (sempre visíveis) --}}
-                            <a href="{{ route('products.show', $product->product_code) }}" title="Ver Detalhes"
+                            <a href="{{ route('products.show', ['productCode' => $product->product_code, 'id' => $product->id]) }}" title="Ver Detalhes"
                                class="inline-flex items-center justify-center w-10 h-10 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg transition-all">
                                 <i class="bi bi-eye text-lg"></i>
                             </a>

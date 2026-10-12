@@ -98,6 +98,12 @@ class CreateSale extends Component
                 $this->client_id = $client->id;
             }
         }
+
+        // Botão "Vender" da tela do produto: já entra com o produto no carrinho
+        $pid = (int) request()->get('product_id');
+        if ($pid && $this->availableProducts->firstWhere('id', $pid)) {
+            $this->toggleProduct($pid);
+        }
     }
 
     public function updatedProducts($value, $key)

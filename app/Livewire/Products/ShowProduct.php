@@ -10,6 +10,9 @@ use App\Services\Products\ComboSplitService;
 use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\MlStockLog;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Carbon\Carbon;
 
@@ -34,6 +37,19 @@ class ShowProduct extends Component
     public string $splitSourceAction = 'kept';   // kept | archived | converted
     public bool $splitDistributeStock = false;
 
+    // Produto que está aberto no topo (o principal ou uma variação). Vai na URL
+    // como ?id=, porque dois produtos podem ter o mesmo código.
+    #[Url(as: 'id')]
+    public ?int $viewId = null;
+
+    // Ações rápidas do topo
+    public string $stockInput = '';
+    public bool $editingPrices = false;
+    public string $priceCost = '';
+    public string $priceSale = '';
+    public string $priceOriginal = '';
+    public bool $confirmingDelete = false;
+
     public function mount($productCode)
     {
         $this->productCode = $productCode;
@@ -43,14 +59,19 @@ class ShowProduct extends Component
 
     public function loadProductData()
     {
-        // Produto base pelo código
-        $base = Product::where('product_code', $this->productCode)
+        // Produto base: pelo id (exato) ou pelo código
+        $base = $this->viewId
+            ? Product::whereKey($this->viewId)->where('user_id', Auth::id())->first()
+            : null;
+        $base ??= Product::where('product_code', $this->productCode)
             ->where('user_id', Auth::id())
+            ->orderByRaw('parent_id IS NOT NULL')
             ->first();
 
         if (!$base) {
             abort(404, 'Produto não encontrado');
         }
+        $this->viewId = $base->id;
 
         if ($base->hasVariations()) {
             // Nova lógica: família por parent_id (pai + variantes)
@@ -172,9 +193,9 @@ class ShowProduct extends Component
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->where('sales.user_id', Auth::id())
             ->where('sales.created_at', '>=', Carbon::now()->subYear())
-            ->selectRaw('
-                YEAR(sales.created_at) as year,
-                MONTH(sales.created_at) as month,
+            ->selectRaw((DB::getDriverName() === 'sqlite'
+                ? "CAST(strftime('%Y', sales.created_at) AS INTEGER) as year, CAST(strftime('%m', sales.created_at) AS INTEGER) as month,"
+                : 'YEAR(sales.created_at) as year, MONTH(sales.created_at) as month,') . '
                 SUM(sale_items.quantity) as quantity,
                 SUM(sale_items.quantity * sale_items.price_sale) as revenue
             ')
@@ -510,6 +531,207 @@ class ShowProduct extends Component
         }
     }
 
+    // ─── Topo: variação aberta e ações rápidas ────────────────────────────────
+
+    public function getViewedProperty(): Product
+    {
+        return $this->products->firstWhere('id', $this->viewId) ?? $this->mainProduct;
+    }
+
+    public function viewVariant(int $id): void
+    {
+        if ($this->products->firstWhere('id', $id)) {
+            $this->viewId = $id;
+            $this->editingPrices = false;
+            $this->stockInput = '';
+        }
+    }
+
+    private function ownedViewed(): Product
+    {
+        return Product::whereKey($this->viewId)->where('user_id', Auth::id())->firstOrFail();
+    }
+
+    private function reloadAll(): void
+    {
+        $this->loadProductData();
+        $this->loadAnalytics();
+    }
+
+    private function changeStockTo(Product $p, int $new, string $note): void
+    {
+        if ($p->isKit()) {
+            $this->notifyError('O estoque do kit vem dos itens dele. Mude o estoque dos itens.');
+            return;
+        }
+        $before = (int) $p->stock_quantity;
+        $new = max(0, $new);
+        if ($new === $before) {
+            return;
+        }
+        $p->adjustStock($new - $before);
+        $p->refresh();
+
+        try {
+            MlStockLog::logStockChange([
+                'product_id' => $p->id,
+                'operation_type' => 'adjustment',
+                'quantity_before' => $before,
+                'quantity_after' => (int) $p->stock_quantity,
+                'quantity_change' => (int) $p->stock_quantity - $before,
+                'source' => 'Tela do produto',
+                'notes' => $note,
+                'user_id' => Auth::id(),
+            ]);
+        } catch (\Throwable $e) {
+            // histórico é só registro: não impede a mudança de estoque
+        }
+
+        $this->reloadAll();
+        $this->notifySuccess("Estoque: {$before} → {$p->stock_quantity}");
+    }
+
+    public function stepStock(int $delta): void
+    {
+        $p = $this->ownedViewed();
+        $this->changeStockTo($p, (int) $p->stock_quantity + max(-1000, min(1000, $delta)), $delta > 0 ? 'Entrada rápida' : 'Saída rápida');
+    }
+
+    public function setStock(): void
+    {
+        $value = trim($this->stockInput);
+        if ($value === '' || !ctype_digit($value)) {
+            $this->notifyError('Digite a quantidade em estoque (número inteiro).');
+            return;
+        }
+        $this->changeStockTo($this->ownedViewed(), (int) $value, 'Estoque definido na tela do produto');
+        $this->stockInput = '';
+    }
+
+    public function startPrices(): void
+    {
+        $v = $this->viewed;
+        $this->priceCost = number_format((float) $v->price, 2, ',', '.');
+        $this->priceSale = number_format((float) $v->price_sale, 2, ',', '.');
+        $this->priceOriginal = $v->price_original ? number_format((float) $v->price_original, 2, ',', '.') : '';
+        $this->editingPrices = true;
+    }
+
+    private function money(string $v): ?float
+    {
+        $v = trim(preg_replace('/[^0-9,\.]/', '', $v));
+        if ($v === '') {
+            return null;
+        }
+        if (str_contains($v, ',')) {
+            $v = str_replace(',', '.', str_replace('.', '', $v));
+        }
+
+        return round((float) $v, 2);
+    }
+
+    public function savePrices(): void
+    {
+        $cost = $this->money($this->priceCost) ?? 0.0;
+        $sale = $this->money($this->priceSale);
+        $orig = $this->money($this->priceOriginal);
+        if (!$sale || $sale <= 0) {
+            $this->addError('priceSale', 'Informe o preço de venda.');
+            return;
+        }
+
+        $p = $this->ownedViewed();
+        $p->update(['price' => $cost, 'price_sale' => $sale, 'price_original' => $orig ?: null]);
+        $this->editingPrices = false;
+        $this->reloadAll();
+        $this->notifySuccess('Preços salvos.');
+    }
+
+    public function toggleStatus(): void
+    {
+        $p = $this->ownedViewed();
+        $p->update(['status' => $p->status === 'ativo' ? 'inativo' : 'ativo']);
+        $this->reloadAll();
+        $this->notifySuccess($p->status === 'ativo' ? 'Produto ativado.' : 'Produto inativado (some do catálogo).');
+    }
+
+    public function duplicateProduct()
+    {
+        $p = $this->ownedViewed();
+        $copy = $p->replicate();
+        $copy->name = \Illuminate\Support\Str::limit($p->name, 240, '') . ' (cópia)';
+        $copy->stock_quantity = 0;
+        $copy->is_variation_parent = false;
+        $copy->parent_id = $p->parent_id;
+
+        $base = $p->product_code . '-C';
+        $code = $base;
+        for ($i = 2; Product::withoutGlobalScopes()->where('user_id', Auth::id())->where('product_code', $code)->exists(); $i++) {
+            $code = $base . $i;
+        }
+        $copy->product_code = $code;
+
+        if ($p->image && $p->image !== 'product-placeholder.png' && Storage::disk('public')->exists('products/' . $p->image)) {
+            $new = 'copia_' . uniqid() . '_' . $p->image;
+            Storage::disk('public')->copy('products/' . $p->image, 'products/' . $new);
+            $copy->image = $new;
+        }
+        $copy->save();
+
+        session()->flash('success', 'Cópia criada com o código ' . $code . '. Ajuste o que precisar e salve.');
+        return redirect()->route('products.edit', $copy);
+    }
+
+    public function askDelete(): void
+    {
+        $this->confirmingDelete = true;
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->confirmingDelete = false;
+    }
+
+    public function deleteProduct()
+    {
+        $p = $this->ownedViewed();
+        $this->confirmingDelete = false;
+
+        if ($p->is_variation_parent && Product::where('parent_id', $p->id)->exists()) {
+            $this->notifyError('Este produto tem variações. Exclua as variações primeiro (ou abra uma delas e exclua).');
+            return;
+        }
+
+        if ($p->image && $p->image !== 'product-placeholder.png') {
+            Storage::disk('public')->delete('products/' . $p->image);
+        }
+        $name = $p->name;
+        $p->delete();
+
+        session()->flash('success', 'Produto "' . $name . '" excluído.');
+        return redirect()->route('products.index');
+    }
+
+    /** Últimas entradas e saídas de estoque deste produto (e das variações). */
+    public function getStockLogsProperty()
+    {
+        return MlStockLog::whereIn('product_id', $this->products->pluck('id'))
+            ->latest('created_at')
+            ->limit(8)
+            ->get();
+    }
+
+    public function getInterestedCountProperty(): int
+    {
+        if (!\App\Services\Portal\WishlistService::ready()) {
+            return 0;
+        }
+
+        return \App\Models\ClientFavorite::where('user_id', Auth::id())
+            ->whereIn('product_id', $this->products->pluck('id'))
+            ->distinct('client_id')->count('client_id');
+    }
+
     public function render()
     {
         return view('livewire.products.show-product', [
@@ -517,6 +739,9 @@ class ShowProduct extends Component
             'kitComponents' => $this->kitComponents,
             'kitMontaveis' => $this->kitMontaveis,
             'parentCandidates' => $this->parentCandidates,
+            'viewed' => $this->viewed,
+            'stockLogs' => $this->stockLogs,
+            'interestedCount' => $this->interestedCount,
         ]);
     }
 }

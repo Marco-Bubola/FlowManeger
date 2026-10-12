@@ -388,7 +388,7 @@
                         <div class="product-card-modern" data-pid="{{ $product->id }}" wire:key="pc-{{ $product->id }}">
                             <!-- Botões flutuantes -->
                             <div class="btn-action-group">
-                                <a href="{{ route('products.show', $product->product_code) }}"
+                                <a href="{{ route('products.show', ['productCode' => $product->product_code, 'id' => $product->id]) }}"
                                     class="btn btn-secondary" title="Ver Detalhes">
                                     <i class="bi bi-eye"></i>
                                 </a>
