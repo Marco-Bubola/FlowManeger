@@ -2,21 +2,21 @@
     <x-product-page-header title="Editar produto" :product="$product" :subtitle="e($product->name) . ' · ' . e($product->product_code)" active="">
         <x-slot:actions>
             <button wire:click="toggleTips" type="button"
-                class="inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-amber-600 dark:text-amber-300 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
+                class="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-amber-600 dark:text-amber-300 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
                 <i class="bi bi-lightbulb"></i>Dicas
             </button>
             <button type="button" @click="$dispatch('open-product-share', { productId: {{ $product->id }} })" title="Enviar no WhatsApp"
                 class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
-            <i class="bi bi-whatsapp"></i>WhatsApp
+            <i class="bi bi-whatsapp"></i><span class="hidden sm:inline">WhatsApp</span>
         </button>
             @if(($product->tipo ?? 'simples') !== 'kit')
             <a href="{{ route('products.breakdown', $product) }}" title="Desmembrar kit: separar nos produtos que vêm dentro"
-           class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+           class="hidden sm:inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
             <i class="bi bi-scissors text-orange-500"></i>Desmembrar
         </a>
             @endif
             <a href="{{ route('products.index') }}"
-                class="inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
+                class="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
                 <i class="bi bi-x-lg"></i>Cancelar
             </a>
             <button data-mobile-save type="submit" form="edit-product-form" wire:loading.attr="disabled"
@@ -34,159 +34,215 @@
         $familyStock = $product->stock_quantity + $variants->sum('stock_quantity');
         $isVariant = (bool) $product->parent_id;
         $withStock = collect([$product])->merge($variants)->where('stock_quantity', '>', 0)->count();
+        $vxImg = fn ($p) => asset('storage/products/' . ($p->image ?: 'product-placeholder.png'));
+        $vxMoney = fn ($v) => 'R$ ' . number_format((float) $v, 2, ',', '.');
     @endphp
-    <div class="mt-6 rounded-2xl border border-slate-200/80 dark:border-violet-500/20 bg-white dark:bg-slate-900/80 overflow-hidden shadow-sm">
-        {{-- Header --}}
-        <button type="button" wire:click="toggleVariationsPanel"
-            class="group w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-            <div class="flex items-center gap-3.5 min-w-0">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/40 group-hover:scale-105 transition-transform">
-                    <i class="bi bi-diagram-3-fill text-white text-xl"></i>
-                </div>
-                <div class="min-w-0">
-                    <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
-                        Variações
-                        @if($variants->count() > 0)
-                            <span class="px-2 py-0.5 bg-violet-500/25 text-violet-700 dark:text-violet-200 text-[11px] font-black rounded-full ring-1 ring-violet-400/30">{{ $variants->count() + 1 }} no grupo</span>
-                        @endif
-                    </h3>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Vincule produtos do mesmo item que variam só no preço</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3 shrink-0">
-                @if($variants->count() > 0)
-                    <div class="hidden sm:flex flex-col items-end">
-                        <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Estoque grupo</span>
-                        <span class="text-sm font-black text-violet-700 dark:text-violet-200">{{ $familyStock }} <span class="text-[10px] font-semibold text-slate-500">· {{ $withStock }} de {{ $variants->count() + 1 }} com estoque</span></span>
-                    </div>
-                @endif
-                <span class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700/50 flex items-center justify-center group-hover:bg-violet-500/20 transition-colors">
-                    <i class="bi {{ $showVariationsPanel ? 'bi-chevron-up' : 'bi-chevron-down' }} text-slate-600 dark:text-slate-300 text-sm"></i>
+    <section class="vx" id="variacoes">
+        <button type="button" wire:click="toggleVariationsPanel" class="vx-h">
+            <span class="vx-h-ico"><i class="bi bi-diagram-3-fill"></i></span>
+            <span class="min-w-0 flex-1 text-left">
+                <span class="vx-h-t">Variações
+                    @if($variants->count() > 0)<span class="vx-pill">{{ $variants->count() + 1 }} no grupo</span>@endif
+                    @if(!$isVariant && $sameCodeCount > 0)<span class="vx-pill is-code"><i class="bi bi-upc-scan"></i>{{ $sameCodeCount }} com o mesmo código</span>@endif
                 </span>
-            </div>
+                <span class="vx-h-s">Mesmo item com preço, cor ou tamanho diferente. Cada um tem seu estoque.</span>
+            </span>
+            @if($variants->count() > 0)
+                <span class="vx-h-stock"><small>Estoque do grupo</small><b>{{ $familyStock }}</b><small>{{ $withStock }} de {{ $variants->count() + 1 }} com estoque</small></span>
+            @endif
+            <span class="vx-h-chev"><i class="bi {{ $showVariationsPanel ? 'bi-chevron-up' : 'bi-chevron-down' }}"></i></span>
         </button>
 
         @if($showVariationsPanel)
-        <div class="px-5 pb-5 border-t border-slate-100 dark:border-white/5 pt-5 space-y-5">
+        <div class="vx-b">
             @if($isVariant && $product->parent)
-            <div class="flex flex-wrap items-center gap-3 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-900 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-100">
+            <div class="vx-note">
                 <i class="bi bi-diagram-3"></i>
                 <span class="flex-1 min-w-0">Este produto é a variação <strong>{{ $product->variation_value }}</strong> de <strong>{{ $product->parent->name }}</strong>. Para ligar ou tirar outras variações, use o produto principal.</span>
-                <a href="{{ route('products.edit', $product->parent) }}" class="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-700">Abrir principal</a>
-                <button type="button" wire:click="detachSelf" wire:confirm="Tirar este produto do grupo? Ele continua cadastrado, só deixa de ser variação."
-                    class="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-rose-600 ring-1 ring-rose-200 hover:bg-rose-50 dark:bg-slate-900 dark:ring-rose-500/30">Sair do grupo</button>
+                <a href="{{ route('products.edit', $product->parent) }}" class="vx-btn is-primary">Abrir principal</a>
+                <button type="button" wire:click="detachSelf" wire:confirm="Tirar este produto do grupo? Ele continua cadastrado, só deixa de ser variação." class="vx-btn is-danger">Sair do grupo</button>
             </div>
             @endif
 
-            {{-- Lista de variações vinculadas --}}
-            @if($variants->count() > 0)
-            <div>
-                <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5"><i class="bi bi-collection-fill text-violet-400"></i> {{ $isVariant ? 'Resto do grupo' : 'Variações vinculadas' }} ({{ $variants->count() }})</p>
-                <div class="space-y-2">
-                    @foreach($variants as $variant)
-                    <div class="group flex items-center gap-3 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700/60 px-3 py-2.5 hover:border-violet-500/40 transition-colors">
-                        <img src="{{ $variant->image ? asset('storage/products/' . $variant->image) : asset('storage/products/product-placeholder.png') }}"
-                            class="w-11 h-11 rounded-xl object-cover border border-slate-200 dark:border-slate-700 flex-shrink-0" alt="{{ $variant->name }}">
-                        <div class="min-w-0 flex-1">
-                            <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ $variant->name }}@if($variant->variation_value)<span class="ml-1.5 rounded bg-violet-500/15 px-1.5 py-px text-[10px] font-bold text-violet-700 dark:text-violet-300">{{ $variant->is_variation_parent ? 'Principal' : $variant->variation_value }}</span>@endif</p>
-                            <div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-500/15 text-sky-700 dark:text-sky-300"><i class="bi bi-currency-dollar"></i>{{ number_format($variant->price_sale, 2, ',', '.') }}</span>
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-700/40 text-slate-500 dark:text-slate-400"><i class="bi bi-upc"></i>{{ $variant->product_code }}</span>
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold {{ $variant->stock_quantity > 0 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300' }}"><i class="bi bi-stack"></i>{{ $variant->stock_quantity }}</span>
+            {{-- O grupo: este produto + as variações, em cards iguais aos da lista de produtos --}}
+            <div class="vx-sec-h">
+                <span><i class="bi bi-collection-fill"></i> {{ $variants->count() ? 'No grupo' : 'Este produto' }}</span>
+                @if(!$variants->count())<small>Nenhuma variação ainda. Escolha abaixo.</small>@endif
+            </div>
+            <div class="vx-grid">
+                @foreach(collect([$product])->merge($variants) as $vp)
+                    @php $self = $vp->id === $product->id; @endphp
+                    <div class="vx-card {{ $self ? 'is-self' : '' }}" wire:key="vx-g-{{ $vp->id }}">
+                        <div class="vx-img">
+                            <img src="{{ $vxImg($vp) }}" alt="{{ $vp->name }}" loading="lazy">
+                            <span class="vx-code" title="Código"><i class="bi bi-upc-scan"></i>{{ $vp->product_code }}</span>
+                            <span class="vx-qty {{ $vp->stock_quantity > 0 ? '' : 'is-out' }}" title="Estoque"><i class="bi bi-stack"></i>{{ $vp->stock_quantity }}</span>
+                            @if($self)
+                                <span class="vx-tag is-self"><i class="bi bi-geo-alt-fill"></i>Este</span>
+                            @elseif($vp->is_variation_parent)
+                                <span class="vx-tag">Principal</span>
+                            @elseif($vp->variation_value)
+                                <span class="vx-tag" title="{{ $vp->variation_value }}">{{ $vp->variation_value }}</span>
+                            @endif
+                        </div>
+                        <div class="vx-info">
+                            <p class="vx-name" title="{{ $vp->name }}">{{ $vp->name }}</p>
+                            <div class="vx-prices">
+                                <span class="vx-cost" title="Custo"><i class="bi bi-tag"></i>{{ $vxMoney($vp->price) }}</span>
+                                <span class="vx-sale" title="Venda"><i class="bi bi-currency-dollar"></i>{{ $vxMoney($vp->price_sale) }}</span>
                             </div>
                         </div>
-                        <a href="{{ route('products.edit', $variant) }}" class="w-8 h-8 flex items-center justify-center text-xs text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-600/60 rounded-lg transition-colors" title="Editar variação">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        @unless($isVariant)
-                        <button type="button" wire:click="detachVariation({{ $variant->id }})" wire:confirm="Tirar esta variação do grupo? Ela continua cadastrada como produto separado."
-                            wire:confirm="Desvincular esta variação? O produto volta a ser independente (não será excluído)."
-                            class="w-8 h-8 flex items-center justify-center text-xs text-red-600 dark:text-red-300 bg-red-500/15 hover:bg-red-500/25 rounded-lg transition-colors" title="Desvincular">
-                            <i class="bi bi-x-lg"></i>
-                        </button>
+                        @unless($self)
+                        <div class="vx-act">
+                            <a href="{{ route('products.edit', $vp) }}" title="Editar"><i class="bi bi-pencil-square"></i><span>Editar</span></a>
+                            @unless($isVariant)
+                            <button type="button" wire:click="detachVariation({{ $vp->id }})" wire:confirm="Tirar esta variação do grupo? Ela continua cadastrada como produto separado." class="is-danger" title="Tirar do grupo"><i class="bi bi-x-lg"></i><span>Tirar</span></button>
+                            @endunless
+                        </div>
                         @endunless
                     </div>
-                    @endforeach
-                </div>
+                @endforeach
             </div>
-            @else
-            <div class="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-dashed border-slate-200/80 dark:border-slate-700/60 px-4 py-3 text-slate-500 dark:text-slate-400">
-                <i class="bi bi-info-circle text-violet-400"></i>
-                <p class="text-xs">Nenhuma variação vinculada ainda. Busque um produto abaixo para vincular.</p>
-            </div>
-            @endif
 
-            {{-- Vincular produto existente (busca por código/nome) --}}
+            {{-- Sugestões: primeiro os de mesmo código, depois os de mesmo nome --}}
             @unless($isVariant)
-            <div class="rounded-2xl border border-sky-500/20 bg-sky-50/60 dark:bg-sky-950/20 p-4">
-                <p class="text-xs font-black text-sky-700 dark:text-sky-300 mb-3 flex items-center gap-1.5 uppercase tracking-wide"><i class="bi bi-link-45deg"></i> Vincular variação</p>
-
-                @if($linkVariantId && $linkSelectedLabel)
-                    {{-- Produto escolhido + confirmar --}}
-                    <div class="space-y-2.5">
-                        <div class="flex items-center gap-2 rounded-xl bg-sky-500/10 border border-sky-500/30 px-3 py-2.5">
-                            <i class="bi bi-check-circle-fill text-sky-400"></i>
-                            <span class="text-sm font-bold text-sky-900 dark:text-sky-100 flex-1 truncate">{{ $linkSelectedLabel }}</span>
-                            <button type="button" wire:click="clearLinkTarget" class="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white" title="Trocar">
-                                <i class="bi bi-x-lg text-xs"></i>
-                            </button>
-                        </div>
-                        <button type="button" wire:click="linkVariation" wire:loading.attr="disabled" wire:target="linkVariation"
-                            class="w-full py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-sky-900/30 transition-all flex items-center justify-center gap-2">
-                            <span wire:loading.remove wire:target="linkVariation"><i class="bi bi-link"></i> Vincular como variação</span>
-                            <span wire:loading wire:target="linkVariation"><i class="bi bi-arrow-repeat animate-spin"></i> Vinculando…</span>
+            <div class="vx-sug">
+                <div class="vx-sug-h">
+                    <div class="min-w-0">
+                        <p class="vx-sug-t"><i class="bi bi-link-45deg"></i> Vincular variação</p>
+                        <p class="vx-sug-s">{{ trim($linkSearch) === '' ? 'Sugeridos: mesmo código primeiro, depois nome parecido.' : 'Resultados da busca' }}</p>
+                    </div>
+                    <div class="vx-search">
+                        <i class="bi bi-search"></i>
+                        <input type="search" wire:model.live.debounce.300ms="linkSearch" placeholder="Buscar por nome ou código">
+                    </div>
+                    @if($sameCodeCount > 1 && trim($linkSearch) === '')
+                        <button type="button" wire:click="linkAllSameCode" wire:loading.attr="disabled" wire:target="linkAllSameCode"
+                            wire:confirm="Vincular os {{ $sameCodeCount }} produtos com o mesmo código como variações deste?" class="vx-btn is-primary">
+                            <i class="bi bi-link"></i>Vincular os {{ $sameCodeCount }} de mesmo código
                         </button>
-                    </div>
-                @else
-                    {{-- Filtro opcional (a lista já vem pronta, sem precisar digitar) --}}
-                    <div class="relative mb-2.5">
-                        <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                        <input type="text" wire:model.live.debounce.300ms="linkSearch" placeholder="Filtrar (opcional) por nome ou código…"
-                            class="w-full pl-9 pr-3 py-2.5 bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition">
-                    </div>
+                    @endif
+                </div>
 
-                    {{-- Rótulo da lista --}}
-                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1">
-                        @if(trim($linkSearch) === '')
-                            <i class="bi bi-stars text-sky-400"></i> Sugeridos (clique para vincular)
-                        @else
-                            <i class="bi bi-search text-sky-400"></i> Resultados
-                        @endif
-                    </p>
-
-                    <div class="max-h-72 overflow-y-auto rounded-xl border border-slate-200/80 dark:border-slate-700/50 divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-950/40">
-                        @forelse($linkSearchResults as $lp)
-                            @php $sameName = mb_strtolower(trim($lp->name)) === mb_strtolower(trim($product->name)); @endphp
-                            <button type="button" wire:click="selectLinkTarget({{ $lp->id }})"
-                                class="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-sky-500/10 transition-colors">
-                                <img src="{{ $lp->image ? asset('storage/products/' . $lp->image) : asset('storage/products/product-placeholder.png') }}"
-                                    class="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700 flex-shrink-0" alt="">
-                                <div class="min-w-0 flex-1">
-                                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate flex items-center gap-1.5">
-                                        {{ $lp->name }}
-                                        @if($sameName)<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">mesmo nome</span>@endif
-                                    </p>
-                                    <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400"><i class="bi bi-upc"></i>{{ $lp->product_code }}</span>
-                                        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-sky-700 dark:text-sky-300"><i class="bi bi-currency-dollar"></i>{{ number_format($lp->price_sale, 2, ',', '.') }}</span>
-                                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400"><i class="bi bi-stack"></i>{{ $lp->stock_quantity }}</span>
-                                    </div>
+                <div class="vx-grid" wire:loading.class="opacity-60" wire:target="linkSearch">
+                    @forelse($linkSearchResults as $lp)
+                        <div class="vx-card {{ $lp->match === 'code' ? 'is-match' : '' }}" wire:key="vx-s-{{ $lp->id }}">
+                            <div class="vx-img">
+                                <img src="{{ $vxImg($lp) }}" alt="{{ $lp->name }}" loading="lazy">
+                                <span class="vx-code" title="Código"><i class="bi bi-upc-scan"></i>{{ $lp->product_code }}</span>
+                                <span class="vx-qty {{ $lp->stock_quantity > 0 ? '' : 'is-out' }}" title="Estoque"><i class="bi bi-stack"></i>{{ $lp->stock_quantity }}</span>
+                                @if($lp->match === 'code')
+                                    <span class="vx-tag is-code"><i class="bi bi-check2"></i>Mesmo código</span>
+                                @elseif($lp->match === 'name')
+                                    <span class="vx-tag is-name">Mesmo nome</span>
+                                @endif
+                            </div>
+                            <div class="vx-info">
+                                <p class="vx-name" title="{{ $lp->name }}">{{ $lp->name }}</p>
+                                <div class="vx-prices">
+                                    <span class="vx-cost" title="Custo"><i class="bi bi-tag"></i>{{ $vxMoney($lp->price) }}</span>
+                                    <span class="vx-sale" title="Venda"><i class="bi bi-currency-dollar"></i>{{ $vxMoney($lp->price_sale) }}</span>
                                 </div>
-                                <i class="bi bi-plus-circle-fill text-sky-400 text-lg"></i>
-                            </button>
-                        @empty
-                            <p class="px-3 py-5 text-center text-[11px] text-slate-500">
-                                {{ trim($linkSearch) !== '' ? 'Nenhum produto encontrado para "' . $linkSearch . '".' : 'Nenhum produto disponível para vincular.' }}
-                            </p>
-                        @endforelse
-                    </div>
-                    @error('linkVariantId') <p class="text-[10px] text-red-400 flex items-center gap-1 mt-2"><i class="bi bi-exclamation-circle"></i>{{ $message }}</p> @enderror
-                @endif
+                            </div>
+                            <div class="vx-act">
+                                <a href="{{ route('products.edit', $lp) }}" target="_blank" title="Abrir em outra aba"><i class="bi bi-box-arrow-up-right"></i></a>
+                                <button type="button" wire:click="linkOne({{ $lp->id }})" wire:loading.attr="disabled" wire:target="linkOne({{ $lp->id }})" class="is-link" title="Vincular como variação">
+                                    <i class="bi bi-link" wire:loading.remove wire:target="linkOne({{ $lp->id }})"></i><i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="linkOne({{ $lp->id }})"></i><span>Vincular</span>
+                                </button>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="vx-empty">{{ trim($linkSearch) !== '' ? 'Nenhum produto encontrado para "' . $linkSearch . '".' : 'Nenhum outro produto com o mesmo código ou nome parecido. Busque acima por nome ou código.' }}</p>
+                    @endforelse
+                </div>
+                @error('linkVariantId')<p class="ep-err">{{ $message }}</p>@enderror
             </div>
             @endunless
         </div>
         @endif
-    </div>
+    </section>
+
+    <style>
+        .vx { margin-top: 1rem; background: rgba(255,255,255,.92); border: 1px solid rgba(148,163,184,.28); border-radius: 22px; box-shadow: 0 8px 28px rgba(15,23,42,.06); }
+        .dark .vx { background: rgba(15,23,42,.82); border-color: rgba(71,85,105,.5); }
+        .vx-h { width: 100%; display: flex; align-items: center; gap: .75rem; padding: .85rem 1rem; border-radius: 22px; }
+        .vx-h:hover { background: rgba(139,92,246,.04); }
+        .vx-h-ico { width: 2.4rem; height: 2.4rem; flex-shrink: 0; border-radius: .85rem; display: flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, #8b5cf6, #d946ef); box-shadow: 0 6px 16px rgba(139,92,246,.3); }
+        .vx-h-t { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; font-size: .98rem; font-weight: 800; color: #0f172a; }
+        .dark .vx-h-t { color: #f1f5f9; }
+        .vx-h-s { display: block; margin-top: .1rem; font-size: .72rem; color: #64748b; }
+        .vx-pill { display: inline-flex; align-items: center; gap: .25rem; padding: .1rem .55rem; border-radius: 999px; font-size: .68rem; font-weight: 800; color: #6d28d9; background: rgba(139,92,246,.14); }
+        .vx-pill.is-code { color: #047857; background: rgba(16,185,129,.14); }
+        .dark .vx-pill { color: #ddd6fe; } .dark .vx-pill.is-code { color: #6ee7b7; }
+        .vx-h-stock { display: none; flex-direction: column; align-items: flex-end; line-height: 1.15; }
+        .vx-h-stock small { font-size: .62rem; color: #64748b; font-weight: 600; }
+        .vx-h-stock b { font-size: 1.05rem; color: #6d28d9; }
+        .dark .vx-h-stock b { color: #c4b5fd; }
+        @media (min-width: 640px) { .vx-h-stock { display: flex; } }
+        .vx-h-chev { width: 2rem; height: 2rem; flex-shrink: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: rgba(148,163,184,.14); color: #475569; }
+        .dark .vx-h-chev { color: #cbd5e1; }
+        .vx-b { padding: 1rem; border-top: 1px solid rgba(148,163,184,.2); display: grid; gap: 1rem; }
+        .vx-note { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; padding: .75rem 1rem; border-radius: 1rem; font-size: .85rem; color: #4c1d95; background: rgba(139,92,246,.08); border: 1px solid rgba(139,92,246,.25); }
+        .dark .vx-note { color: #ede9fe; }
+        .vx-sec-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #64748b; margin-bottom: -.35rem; }
+        .vx-sec-h i { color: #a78bfa; }
+        .vx-sec-h small { text-transform: none; letter-spacing: 0; font-weight: 600; }
+        .vx-grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); }
+        @media (max-width: 640px) { .vx-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; } }
+        .vx-card { position: relative; display: flex; flex-direction: column; min-width: 0; border-radius: 18px; overflow: hidden; background: #fff; border: 1px solid rgb(226 232 240); box-shadow: 0 1px 2px rgb(15 23 42 / .05), 0 6px 18px -10px rgb(15 23 42 / .18); transition: border-color .15s, box-shadow .15s; }
+        .vx-card:hover { border-color: rgb(196 181 253); box-shadow: 0 10px 28px -12px rgb(124 58 237 / .35); }
+        .vx-card.is-self { border-color: rgb(139 92 246); box-shadow: 0 0 0 2px rgb(139 92 246 / .25); }
+        .vx-card.is-match { border-color: rgb(110 231 183); }
+        .dark .vx-card { background: rgb(15 23 42); border-color: rgb(51 65 85); }
+        .dark .vx-card.is-self { border-color: rgb(139 92 246); }
+        .dark .vx-card.is-match { border-color: rgb(16 185 129 / .6); }
+        .vx-img { position: relative; aspect-ratio: 1 / 1; background: #fff; display: flex; align-items: center; justify-content: center; padding: 30px 10px 26px; }
+        .vx-img img { width: 100%; height: 100%; object-fit: contain; }
+        .vx-code, .vx-qty { position: absolute; top: 7px; display: inline-flex; align-items: center; gap: 3px; height: 23px; padding: 0 7px; border-radius: 999px; font-size: 10.5px; font-weight: 800; background: rgb(255 255 255 / .94); border: 1px solid rgb(226 232 240); color: rgb(51 65 85); box-shadow: 0 1px 3px rgb(15 23 42 / .08); max-width: calc(100% - 60px); overflow: hidden; white-space: nowrap; }
+        .vx-code { left: 7px; } .vx-code i { color: rgb(124 58 237); }
+        .vx-qty { right: 7px; color: rgb(4 120 87); } .vx-qty.is-out { color: rgb(225 29 72); }
+        .vx-tag { position: absolute; left: 7px; bottom: 7px; max-width: calc(100% - 14px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #8b5cf6, #a855f7); }
+        .vx-tag.is-self { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .vx-tag.is-code { background: linear-gradient(135deg, #10b981, #059669); }
+        .vx-tag.is-name { background: linear-gradient(135deg, #0ea5e9, #6366f1); }
+        .vx-info { padding: 8px 10px 9px; border-top: 1px solid rgb(241 245 249); flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .dark .vx-info { border-top-color: rgb(30 41 59); }
+        .vx-name { margin: 0; font-size: 12.5px; font-weight: 700; line-height: 1.3; color: rgb(15 23 42); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6em; }
+        .dark .vx-name { color: rgb(241 245 249); }
+        .vx-prices { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; }
+        .vx-cost, .vx-sale { display: inline-flex; align-items: center; gap: 2px; padding: 2px 7px; border-radius: 8px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+        .vx-cost { color: rgb(194 65 12); background: rgb(255 237 213); }
+        .vx-sale { color: rgb(4 120 87); background: rgb(209 250 229); }
+        .dark .vx-cost { color: rgb(253 186 116); background: rgb(124 45 18 / .35); }
+        .dark .vx-sale { color: rgb(110 231 183); background: rgb(6 78 59 / .4); }
+        .vx-act { display: flex; border-top: 1px solid rgb(241 245 249); }
+        .dark .vx-act { border-top-color: rgb(30 41 59); }
+        .vx-act > * { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 4px; font-size: 11.5px; font-weight: 700; color: rgb(71 85 105); transition: background .15s, color .15s; }
+        .vx-act > * + * { border-left: 1px solid rgb(241 245 249); }
+        .dark .vx-act > * { color: rgb(148 163 184); } .dark .vx-act > * + * { border-left-color: rgb(30 41 59); }
+        .vx-act > *:hover { background: rgb(245 243 255); color: rgb(109 40 217); }
+        .vx-act .is-danger:hover { background: rgb(254 242 242); color: rgb(220 38 38); }
+        .vx-act .is-link { flex: 2.2; color: #fff; background: linear-gradient(90deg, #6366f1, #8b5cf6); }
+        .vx-act .is-link:hover { color: #fff; background: linear-gradient(90deg, #4f46e5, #7c3aed); }
+        .dark .vx-act > *:hover { background: rgb(30 41 59); }
+        .vx-sug { border-radius: 1.1rem; padding: .9rem; background: rgba(99,102,241,.05); border: 1px solid rgba(99,102,241,.18); display: grid; gap: .8rem; }
+        .vx-sug-h { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+        .vx-sug-h > .min-w-0 { flex: 1 1 200px; }
+        .vx-sug-t { margin: 0; font-size: .8rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; color: #4338ca; }
+        .dark .vx-sug-t { color: #a5b4fc; }
+        .vx-sug-s { margin: .1rem 0 0; font-size: .72rem; color: #64748b; }
+        .vx-search { position: relative; flex: 1 1 220px; max-width: 340px; }
+        .vx-search i { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: .8rem; }
+        .vx-search input { width: 100%; padding: .55rem .8rem .55rem 2.1rem; border-radius: .85rem; border: 1px solid rgba(148,163,184,.45); background: #fff; font-size: .86rem; color: #0f172a; }
+        .vx-search input:focus { outline: none; border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+        .dark .vx-search input { background: rgba(30,41,59,.85); border-color: rgba(71,85,105,.7); color: #f1f5f9; }
+        @media (max-width: 640px) { .vx-search { max-width: none; flex-basis: 100%; } }
+        .vx-btn { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; padding: .5rem .85rem; border-radius: .85rem; font-size: .8rem; font-weight: 800; white-space: nowrap; }
+        .vx-btn.is-primary { color: #fff; background: linear-gradient(90deg, #6366f1, #a855f7); box-shadow: 0 6px 16px rgba(99,102,241,.25); }
+        .vx-btn.is-danger { color: #e11d48; background: #fff; border: 1px solid rgba(244,63,94,.35); }
+        .dark .vx-btn.is-danger { background: transparent; }
+        .vx-empty { grid-column: 1 / -1; margin: 0; padding: 1.2rem; text-align: center; font-size: .78rem; color: #64748b; border: 1px dashed rgba(148,163,184,.5); border-radius: 1rem; }
+    </style>
 
     <style>
         @keyframes fadeIn {

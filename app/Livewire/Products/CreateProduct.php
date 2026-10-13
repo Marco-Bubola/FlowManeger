@@ -30,6 +30,7 @@ class CreateProduct extends Component
     
     // Campos Mercado Livre
     public string $barcode = '';
+    public string $copiedImage = ''; // foto de um produto já cadastrado (Trazer dados)
     public string $brand = '';
     public string $model = '';
     public string $warranty_months = '3';
@@ -200,6 +201,13 @@ class CreateProduct extends Component
             }
         }
 
+        // Sem foto nova: usa uma cópia da foto do produto de onde vieram os dados
+        if (!$imageName && $this->copiedImage !== '' && Storage::disk('public')->exists('products/' . $this->copiedImage)) {
+            $copy = 'copy_' . \Illuminate\Support\Str::random(12) . '.' . (pathinfo($this->copiedImage, PATHINFO_EXTENSION) ?: 'jpg');
+            Storage::disk('public')->copy('products/' . $this->copiedImage, 'products/' . $copy);
+            $imageName = $copy;
+        }
+
         // Lógica unificada de variações:
         //  - código/nome igual + mesmo preço → soma estoque
         //  - código/nome igual + preço diferente → cria variação (parent_id)
@@ -289,10 +297,70 @@ class CreateProduct extends Component
         return $iconMap[$icone] ?? 'bi-tag';
     }
 
+    /**
+     * Produtos que já têm este código (ignorando pontos) ou este mesmo nome:
+     * ao salvar, mesmo preço soma no estoque e preço diferente vira variação.
+     */
+    public function getSameCodeProductsProperty()
+    {
+        $code = preg_replace('/[^0-9a-z]/', '', mb_strtolower($this->product_code));
+        $name = trim($this->name);
+        if (mb_strlen($code) < 3 && mb_strlen($name) < 4) {
+            return collect();
+        }
+
+        return Product::where('user_id', Auth::id())
+            ->where(function ($q) use ($code, $name) {
+                if (mb_strlen($code) >= 3) {
+                    $q->orWhereRaw("REPLACE(REPLACE(REPLACE(LOWER(product_code), '.', ''), ' ', ''), '-', '') = ?", [$code]);
+                }
+                if (mb_strlen($name) >= 4) {
+                    $q->orWhere('name', $name);
+                }
+            })
+            ->where('tipo', '!=', 'kit')
+            ->orderByDesc('is_variation_parent')
+            ->orderBy('price_sale')
+            ->limit(8)
+            ->get(['id', 'name', 'product_code', 'image', 'stock_quantity', 'price', 'price_sale', 'parent_id', 'is_variation_parent', 'variation_value']);
+    }
+
+    /** Traz categoria, descrição, ficha, marca e modelo de um produto já cadastrado. */
+    public function copyFromProduct(int $id): void
+    {
+        $p = Product::where('user_id', Auth::id())->find($id);
+        if (!$p) {
+            return;
+        }
+        if (trim($this->name) === '') {
+            $this->name = (string) $p->name;
+        }
+        if ($p->category_id) {
+            $this->category_id = (string) $p->category_id;
+        }
+        if (trim((string) $p->description) !== '') {
+            $this->description = (string) $p->description;
+        }
+        if (!empty($p->specs)) {
+            $this->specs = collect($p->specs)->map(fn ($s) => ['n' => (string) ($s['n'] ?? ''), 'v' => (string) ($s['v'] ?? '')])->values()->all();
+        }
+        $this->brand = (string) ($p->brand ?: $this->brand);
+        $this->model = (string) ($p->model ?: $this->model);
+        if (!$this->image && $this->mlPendingCover === '' && $p->image && $p->image !== 'product-placeholder.png') {
+            $this->copiedImage = $p->image;
+        }
+        $this->notifySuccess('Dados de "' . $p->name . '" trazidos. Confira os preços e o estoque e toque em Criar produto.');
+    }
+
     public function render()
     {
+        $cat = $this->category_id !== '' ? $this->categories->firstWhere('id_category', (int) $this->category_id) : null;
+
         return view('livewire.products.create-product', [
             'categories' => $this->categories,
+            'sameCodeProducts' => $this->sameCodeProducts,
+            'selectedCategoryName' => $cat?->name ?? 'Escolha...',
+            'selectedCategoryIcon' => $cat ? $this->getCategoryIcon($cat->icone) : 'bi-grid-3x3-gap-fill',
         ]);
     }
 

@@ -42,7 +42,7 @@
                     </div>
                     <div>
                         <label class="ep-label"><span>Categoria <span class="req">*</span></span></label>
-                        <div class="relative" x-data="{
+                        <div class="relative" wire:key="ep-cat-{{ $category_id }}" x-data="{
                             open: false,
                             name: @js($selectedCategoryName ?? 'Escolha...'),
                             icon: @js($selectedCategoryIcon ?? 'bi-grid-3x3-gap-fill'),
@@ -74,6 +74,39 @@
                         @error('category_id')<p class="ep-err">{{ $message }}</p>@enderror
                     </div>
                 </div>
+
+                {{-- Novo produto: avisa quando o código (ou o nome) já existe --}}
+                @if(!$isEdit && ($sameCodeProducts ?? collect())->isNotEmpty())
+                <div class="ep-dup" wire:key="ep-dup">
+                    <div class="ep-dup-h">
+                        <span class="ep-dup-ico"><i class="bi bi-upc-scan"></i></span>
+                        <div class="min-w-0">
+                            <b>Já {{ $sameCodeProducts->count() === 1 ? 'tem 1 produto' : 'tem ' . $sameCodeProducts->count() . ' produtos' }} com esse código ou nome</b>
+                            <p>Ao criar: se o custo e a venda forem iguais aos de um deles, a quantidade soma no estoque dele. Preço diferente vira uma variação nova do grupo.</p>
+                        </div>
+                    </div>
+                    <div class="ep-dup-list">
+                        @foreach($sameCodeProducts as $dp)
+                            <div class="ep-dup-item" wire:key="dup-{{ $dp->id }}">
+                                <img src="{{ asset('storage/products/' . ($dp->image ?: 'product-placeholder.png')) }}" alt="" loading="lazy">
+                                <div class="min-w-0 flex-1">
+                                    <p class="n" title="{{ $dp->name }}">{{ $dp->name }}</p>
+                                    <p class="m">
+                                        <span><i class="bi bi-upc"></i>{{ $dp->product_code }}</span>
+                                        <span class="sale">R$ {{ number_format((float) $dp->price_sale, 2, ',', '.') }}</span>
+                                        <span class="{{ $dp->stock_quantity > 0 ? 'ok' : 'out' }}"><i class="bi bi-stack"></i>{{ $dp->stock_quantity }}</span>
+                                        @if($dp->is_variation_parent)<span class="var">Principal</span>@elseif($dp->parent_id && $dp->variation_value)<span class="var">{{ $dp->variation_value }}</span>@endif
+                                    </p>
+                                </div>
+                                <div class="acts">
+                                    <button type="button" wire:click="copyFromProduct({{ $dp->id }})" title="Trazer categoria, descrição, ficha, marca e foto"><i class="bi bi-magic"></i><span>Trazer dados</span></button>
+                                    <a href="{{ route('products.edit', $dp) }}" target="_blank" title="Abrir em outra aba"><i class="bi bi-box-arrow-up-right"></i></a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
             </section>
 
             {{-- Preços e estoque --}}
@@ -171,8 +204,10 @@
                     <div><h3>Fotos</h3><p>Principal e galeria do portal</p></div>
                 </div>
                 <div class="ep-card-b space-y-4">
+                    <div class="ep-photo">
                     <x-image-upload name="image" id="image" wire-model="image" title="Imagem principal" description="Toque ou arraste a foto aqui"
-                        :existing-image="$isEdit ? $this->existingImageUrl : ($mlPendingCover ?: null)" :new-image="$image" height="h-[260px]" />
+                        :existing-image="$isEdit ? $this->existingImageUrl : ($mlPendingCover ?: ($copiedImage ? asset('storage/products/' . $copiedImage) : null))" :new-image="$image" height="h-[240px]" />
+                    </div>
                     @if(!$isEdit && $mlPendingCover && !$image)
                         <p class="ep-hint -mt-2"><i class="bi bi-cloud-download"></i>Imagem principal vinda do Mercado Livre. Ela é salva junto com o produto.</p>
                     @endif

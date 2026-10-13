@@ -58,4 +58,32 @@
         .ep-ml-box { border-radius: 1rem; padding: .85rem; background: linear-gradient(135deg, rgba(255,230,0,.16), rgba(255,230,0,.05)); border: 1px solid rgba(234,179,8,.35); }
         .ep-ml-box b { color: #2d3277; }
         .dark .ep-ml-box b { color: #fde68a; }
+        /* Celular e iPad: fotos (e o atalho do Mercado Livre) vêm primeiro */
+        @media (max-width: 1199px) { .ep-side { order: -1; } }
+        /* Área da foto mais enxuta (sem os selos de formato que estouravam) */
+        .ep-photo .space-y-8 { display: flex; flex-direction: column; gap: .6rem; }
+        .ep-photo .space-y-8 > *, .ep-photo .space-y-4 > * { margin: 0 !important; }
+        .ep-photo .bi-cloud-upload { font-size: 3.4rem !important; line-height: 1; }
+        .ep-photo h3 { font-size: 1.1rem !important; }
+        .ep-photo h3 + p { font-size: .85rem !important; }
+        .ep-photo .space-y-4 > .pt-4 { display: none !important; }
+        .ep-dup { margin: 0 1rem 1rem; border-radius: 1rem; padding: .8rem; background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.35); }
+        .ep-dup-h { display: flex; gap: .6rem; align-items: flex-start; }
+        .ep-dup-h b { font-size: .86rem; color: #92400e; }
+        .dark .ep-dup-h b { color: #fcd34d; }
+        .ep-dup-h p { margin: .15rem 0 0; font-size: .74rem; color: #78716c; line-height: 1.35; }
+        .dark .ep-dup-h p { color: #a8a29e; }
+        .ep-dup-ico { width: 1.9rem; height: 1.9rem; flex-shrink: 0; border-radius: .7rem; display: flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, #f59e0b, #f97316); }
+        .ep-dup-list { display: grid; gap: .5rem; margin-top: .7rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); }
+        .ep-dup-item { display: flex; align-items: center; gap: .6rem; min-width: 0; padding: .45rem .5rem; border-radius: .9rem; background: #fff; border: 1px solid rgba(148,163,184,.3); }
+        .dark .ep-dup-item { background: rgba(15,23,42,.7); border-color: rgba(71,85,105,.6); }
+        .ep-dup-item img { width: 2.8rem; height: 2.8rem; flex-shrink: 0; object-fit: contain; border-radius: .6rem; background: #fff; }
+        .ep-dup-item .n { margin: 0; font-size: .8rem; font-weight: 700; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dark .ep-dup-item .n { color: #f1f5f9; }
+        .ep-dup-item .m { margin: .15rem 0 0; display: flex; flex-wrap: wrap; gap: .25rem .5rem; font-size: .7rem; font-weight: 700; color: #64748b; }
+        .ep-dup-item .m .sale { color: #047857; } .ep-dup-item .m .ok { color: #047857; } .ep-dup-item .m .out { color: #e11d48; } .ep-dup-item .m .var { color: #7c3aed; }
+        .ep-dup-item .acts { display: flex; gap: .3rem; flex-shrink: 0; }
+        .ep-dup-item .acts > * { display: inline-flex; align-items: center; gap: .3rem; padding: .4rem .55rem; border-radius: .7rem; font-size: .72rem; font-weight: 800; color: #4f46e5; background: rgba(99,102,241,.1); }
+        .dark .ep-dup-item .acts > * { color: #c7d2fe; background: rgba(99,102,241,.2); }
+        @media (max-width: 420px) { .ep-dup-item .acts span { display: none; } }
     </style>

@@ -2,11 +2,11 @@
     <x-product-page-header title="Novo produto" subtitle="Cadastre um produto no seu catálogo" active="novo">
         <x-slot:actions>
             <button wire:click="toggleTips" type="button"
-                class="inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-amber-600 dark:text-amber-300 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
+                class="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-amber-600 dark:text-amber-300 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
                 <i class="bi bi-lightbulb"></i>Dicas
             </button>
             <a href="{{ route('products.index') }}"
-                class="inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
+                class="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
                 <i class="bi bi-x-lg"></i>Cancelar
             </a>
             <button data-mobile-save type="submit" form="create-product-form" wire:loading.attr="disabled"

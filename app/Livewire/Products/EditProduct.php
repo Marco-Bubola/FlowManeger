@@ -105,6 +105,9 @@ class EditProduct extends Component
         // Carrega galeria extra
         $this->loadExtraImages();
 
+        // Variações já abertas quando o produto tem grupo ou há outros com o mesmo código
+        $this->showVariationsPanel = $product->parent_id || $product->is_variation_parent || $this->sameCodeCount > 0;
+
         // Não preenchemos $this->image para evitar conflitos
         // A imagem atual será mostrada através de $product->image
     }
@@ -453,43 +456,80 @@ class EditProduct extends Component
         return $this->product->variants()->orderBy('variation_sort')->get();
     }
 
-    /**
-     * Lista de produtos vinculáveis como variação (mesmo dono, simples, standalone,
-     * e não o próprio). Carrega automaticamente — sem precisar digitar:
-     *  - sem busca → sugere primeiro os de MESMO NOME (prováveis variações deste produto);
-     *  - com busca → filtra por nome OU código (ignorando pontos no código).
-     */
-    public function getLinkSearchResultsProperty()
+    /** Código sem ponto, espaço ou traço ("77.123" e "77123" são o mesmo). */
+    private static function normCode(?string $code): string
     {
-        $term = trim($this->linkSearch);
+        return preg_replace('/[^0-9a-z]/', '', mb_strtolower((string) $code));
+    }
 
-        $query = Product::where('user_id', Auth::id())
+    private const NORM_CODE_SQL = "REPLACE(REPLACE(REPLACE(LOWER(product_code), '.', ''), ' ', ''), '-', '')";
+
+    /** Produtos que podem entrar no grupo: mesmo dono, simples, soltos e não o próprio. */
+    private function linkableQuery()
+    {
+        return Product::where('user_id', Auth::id())
             ->where('id', '!=', $this->product->id)
             ->whereNull('parent_id')
             ->where('is_variation_parent', false)
             ->where('tipo', 'simples');
+    }
 
-        $cols = ['id', 'name', 'product_code', 'image', 'stock_quantity', 'price_sale'];
-
-        if ($term !== '') {
-            // Filtro opcional por nome OU código — ignorando pontos no código (ex.: 1234.567)
-            $codeTerm = str_replace('.', '', $term);
-            $query->where(function ($q) use ($term, $codeTerm) {
-                $q->where('name', 'like', "%{$term}%")
-                  ->orWhereRaw("REPLACE(product_code, '.', '') like ?", ["%{$codeTerm}%"]);
-            });
-
-            return $query->orderBy('name')->limit(25)->get($cols);
-        }
-
-        // Sem digitar nada: prioriza os de MESMO NOME (as variações mais prováveis)
+    /**
+     * Sugestões para vincular como variação, já carregadas (sem digitar):
+     * primeiro os de MESMO CÓDIGO (ignorando pontos), depois os de mesmo nome.
+     * Com busca, filtra por nome ou código mantendo essa ordem.
+     */
+    public function getLinkSearchResultsProperty()
+    {
+        $term = trim($this->linkSearch);
+        $code = self::normCode($this->product->product_code);
         $name = $this->product->name;
 
-        return $query
-            ->orderByRaw('CASE WHEN name = ? THEN 0 WHEN name LIKE ? THEN 1 ELSE 2 END', [$name, $name . '%'])
+        $query = $this->linkableQuery();
+
+        if ($term !== '') {
+            $codeTerm = self::normCode($term);
+            $query->where(function ($q) use ($term, $codeTerm) {
+                $q->where('name', 'like', "%{$term}%");
+                if ($codeTerm !== '') {
+                    $q->orWhereRaw(self::NORM_CODE_SQL . ' like ?', ["%{$codeTerm}%"]);
+                }
+            });
+        } else {
+            // Sem busca: só os prováveis (mesmo código ou nome que começa igual)
+            $first = collect(preg_split('/\s+/', trim($name)))->first(fn ($w) => mb_strlen($w) >= 3);
+            $query->where(function ($q) use ($code, $first) {
+                $q->whereRaw(self::NORM_CODE_SQL . ' = ?', [$code]);
+                if ($first) {
+                    $q->orWhere('name', 'like', $first . '%');
+                }
+            });
+        }
+
+        $rows = $query
+            ->orderByRaw('CASE WHEN ' . self::NORM_CODE_SQL . ' = ? THEN 0 WHEN name = ? THEN 1 WHEN name LIKE ? THEN 2 ELSE 3 END', [$code, $name, $name . '%'])
             ->orderBy('name')
-            ->limit(30)
-            ->get($cols);
+            ->limit($term !== '' ? 24 : 12)
+            ->get(['id', 'name', 'product_code', 'image', 'stock_quantity', 'price', 'price_sale', 'category_id']);
+
+        foreach ($rows as $row) {
+            $row->match = $code !== '' && self::normCode($row->product_code) === $code
+                ? 'code'
+                : (mb_strtolower(trim($row->name)) === mb_strtolower(trim($name)) ? 'name' : null);
+        }
+
+        return $rows;
+    }
+
+    /** Quantos produtos soltos têm o mesmo código deste (prováveis variações). */
+    public function getSameCodeCountProperty(): int
+    {
+        $code = self::normCode($this->product->product_code);
+        if ($code === '' || $this->product->parent_id) {
+            return 0;
+        }
+
+        return $this->linkableQuery()->whereRaw(self::NORM_CODE_SQL . ' = ?', [$code])->count();
     }
 
     /**
@@ -581,6 +621,33 @@ class EditProduct extends Component
         }
     }
 
+    /** Vincula com um clique (cards de sugestão). */
+    public function linkOne(int $id, VariationService $variations): void
+    {
+        $this->linkVariantId = (string) $id;
+        $this->linkVariation($variations);
+    }
+
+    /** Vincula de uma vez todos os produtos soltos com o mesmo código. */
+    public function linkAllSameCode(VariationService $variations): void
+    {
+        $code = self::normCode($this->product->product_code);
+        if ($code === '' || $this->product->parent_id) {
+            return;
+        }
+        $children = $this->linkableQuery()->whereRaw(self::NORM_CODE_SQL . ' = ?', [$code])->orderBy('price_sale')->get();
+        try {
+            foreach ($children as $child) {
+                $variations->link($this->product, $child);
+            }
+            $this->product->refresh();
+            $this->dispatch('product-updated');
+            $this->notifySuccess($children->count() === 1 ? '1 produto vinculado como variação.' : $children->count() . ' produtos vinculados como variações.');
+        } catch (\Throwable $e) {
+            $this->notifyError('Erro ao vincular variações: ' . $e->getMessage());
+        }
+    }
+
     /**
      * Desanexa uma variante (volta a ser produto standalone).
      */
@@ -620,6 +687,7 @@ class EditProduct extends Component
             'selectedCategoryIcon' => $this->selectedCategoryIcon,
             'variants' => $this->variants,
             'linkSearchResults' => $this->linkSearchResults,
+            'sameCodeCount' => $this->sameCodeCount,
         ]);
     }
 }
