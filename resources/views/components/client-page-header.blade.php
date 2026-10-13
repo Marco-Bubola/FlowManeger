@@ -30,7 +30,7 @@
     <div class="pointer-events-none absolute -top-12 right-10 h-36 w-36 rounded-full bg-purple-400/20 blur-2xl"></div>
 
     <div class="relative px-4 sm:px-6 pt-4 sm:pt-5 pb-3">
-        <div class="app-ph-main flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div class="app-ph-main flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div class="flex items-center gap-3 sm:gap-4 min-w-0">
                 <a href="{{ $back }}" title="Voltar"
                    class="app-ph-back group inline-flex items-center justify-center w-10 h-10 shrink-0 rounded-xl bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-700/70 shadow-sm transition">
@@ -72,7 +72,7 @@
                 </div>
             </div>
 
-                <div class="app-ph-actions flex flex-wrap items-center gap-2 lg:justify-end">
+                <div class="app-ph-actions flex flex-wrap md:flex-nowrap items-center gap-2 md:justify-end shrink-0">
                     {{ $actions ?? '' }}
                     <x-header-bell />
                 </div>

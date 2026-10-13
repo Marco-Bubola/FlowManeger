@@ -24,117 +24,18 @@
     <div class="w-full px-4 sm:px-6 lg:px-8">
 
 
-        <!-- KPIs Principais Modernos -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <!-- Total de Vendas -->
-            <div class="group relative bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 rounded-xl shadow-lg border border-blue-200 dark:border-blue-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div class="absolute top-0 right-0 w-20 h-20 bg-blue-400/10 rounded-full transform translate-x-8 -translate-y-8"></div>
-                <div class="relative">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
-                            <i class="fas fa-shopping-cart text-white text-xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-xs text-blue-800 dark:text-blue-300 font-medium">Total de Vendas</p>
-                            <p class="text-2xl font-bold text-blue-700 dark:text-blue-400">{{ $totalVendas }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Faturado -->
-            <div class="group relative bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 rounded-xl shadow-lg border border-green-200 dark:border-green-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div class="absolute top-0 right-0 w-20 h-20 bg-green-400/10 rounded-full transform translate-x-8 -translate-y-8"></div>
-                <div class="relative">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
-                            <i class="fas fa-dollar-sign text-white text-xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-xs text-green-800 dark:text-green-300 font-medium">Total Faturado</p>
-                            <p class="text-2xl font-bold text-green-700 dark:text-green-400">R$ {{ number_format($totalFaturado, 2, ',', '.') }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Pago -->
-            <div class="group relative bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/30 rounded-xl shadow-lg border border-purple-200 dark:border-purple-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div class="absolute top-0 right-0 w-20 h-20 bg-purple-400/10 rounded-full transform translate-x-8 -translate-y-8"></div>
-                <div class="relative">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
-                            <i class="fas fa-check-circle text-white text-xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-xs text-purple-800 dark:text-purple-300 font-medium">Total Pago</p>
-                            <p class="text-2xl font-bold text-purple-700 dark:text-purple-400">R$ {{ number_format($totalPago, 2, ',', '.') }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Restante a Pagar -->
-            <div class="group relative bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/30 rounded-xl shadow-lg border border-amber-200 dark:border-amber-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div class="absolute top-0 right-0 w-20 h-20 bg-amber-400/10 rounded-full transform translate-x-8 -translate-y-8"></div>
-                <div class="relative">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
-                            <i class="fas fa-hourglass-half text-white text-xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-xs text-amber-800 dark:text-amber-300 font-medium">Restante a Pagar</p>
-                            <p class="text-2xl font-bold text-amber-700 dark:text-amber-400">R$ {{ number_format($totalPendente, 2, ',', '.') }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- KPIs Secundários -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            <!-- Ticket Médio -->
-            <div class="group relative bg-gradient-to-br from-cyan-50 to-blue-100 dark:from-cyan-900/20 dark:to-blue-900/30 rounded-xl shadow-lg border border-cyan-200 dark:border-cyan-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div class="flex items-center gap-2 mb-2">
-                    <div class="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-chart-line text-white text-sm"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-xs text-cyan-800 dark:text-cyan-300 font-medium">Ticket Médio</p>
-                        <p class="text-lg font-bold text-cyan-700 dark:text-cyan-400">R$ {{ number_format($ticketMedio, 2, ',', '.') }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Última Compra -->
-            <div class="group relative bg-gradient-to-br from-teal-50 to-emerald-100 dark:from-teal-900/20 dark:to-emerald-900/30 rounded-xl shadow-lg border border-teal-200 dark:border-teal-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div class="flex items-center gap-2 mb-2">
-                    <div class="w-8 h-8 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-clock text-white text-sm"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-xs text-teal-800 dark:text-teal-300 font-medium">Última Compra</p>
-                        <p class="text-lg font-bold text-teal-700 dark:text-teal-400">{{ count($vendas) > 0 ? \Carbon\Carbon::parse($vendas[0]['created_at'])->locale('pt_BR')->diffForHumans() : 'Nunca' }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Parcelas Vencidas -->
-            <div class="group relative bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/30 rounded-xl shadow-lg border border-red-200 dark:border-red-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div class="flex items-center gap-2 mb-2">
-                    <div class="w-8 h-8 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-exclamation-triangle text-white text-sm"></i>
-                    </div>
-                    <div class="flex-1">
-                        <p class="text-xs text-red-800 dark:text-red-300 font-medium">Parcelas Vencidas</p>
-                        <p class="text-lg font-bold text-red-700 dark:text-red-400">
-                            {{ collect($parcelas)->filter(function($parcela) {
-                                return $parcela['status'] === 'pendente' && \Carbon\Carbon::parse($parcela['data_vencimento'])->isPast();
-                            })->count() }}
-                        </p>
-                    </div>
-                </div>
-            </div>
+        @php
+            $kpiMoney = fn ($v) => 'R$ ' . number_format((float) $v, 2, ',', '.');
+            $kpiVencidas = collect($parcelas)->filter(fn ($p) => $p['status'] === 'pendente' && \Carbon\Carbon::parse($p['data_vencimento'])->isPast())->count();
+            $kpiUltima = count($vendas) > 0 ? \Carbon\Carbon::parse($vendas[0]['created_at'])->locale('pt_BR')->diffForHumans() : 'nunca';
+            $kpiPagoPct = $totalFaturado > 0 ? round($totalPago / $totalFaturado * 100) : 0;
+        @endphp
+        {{-- Resumo do cliente: 4 cards no mesmo padrão do Resumo financeiro (sem card sobrando na última linha) --}}
+        <div class="grid grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3 mb-6">
+            <x-gestao-stat label="Vendas" :value="$totalVendas" icon="bi-cart3" tone="indigo" :hint="'Ticket médio ' . $kpiMoney($ticketMedio)" />
+            <x-gestao-stat label="Faturado" :value="$kpiMoney($totalFaturado)" icon="bi-currency-dollar" tone="emerald" :hint="'Última compra ' . $kpiUltima" />
+            <x-gestao-stat label="Pago" :value="$kpiMoney($totalPago)" icon="bi-check2-circle" tone="sky" :hint="$kpiPagoPct . '% do faturado'" />
+            <x-gestao-stat label="A receber" :value="$kpiMoney($totalPendente)" icon="bi-hourglass-split" :tone="$kpiVencidas > 0 ? 'rose' : 'amber'" :hint="$kpiVencidas > 0 ? $kpiVencidas . ($kpiVencidas == 1 ? ' parcela vencida' : ' parcelas vencidas') : 'Nenhuma parcela vencida'" />
         </div>
 
         <!-- Gráficos Principais -->

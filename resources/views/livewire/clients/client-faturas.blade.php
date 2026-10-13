@@ -1,115 +1,81 @@
 <div class="client-faturas-page w-full mobile-393-base">
-    <!-- Responsive CSS -->
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-faturas-mobile.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-faturas-iphone15.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-faturas-ipad-portrait.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-faturas-ipad-landscape.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-faturas-notebook.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-faturas-ultrawide.css') }}">
     <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
         <x-client-page-header :client="$client" title="Faturas" icon="bi-receipt" active="faturas" />
 
-        <!-- Estatísticas das Faturas -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1 mb-6">
-            <x-gestao-stat label="Faturas" :value="$faturas->total()" icon="bi-receipt" tone="indigo" />
-            <x-gestao-stat label="Valor original" :value="'R$ ' . number_format($faturas->sum('value'), 2, ',', '.')" icon="bi-currency-dollar" tone="amber" />
-            <x-gestao-stat label="Valor atual" :value="'R$ ' . number_format($faturas->sum(function($f) { return $f->dividida ? $f->value / 2 : $f->value; }), 2, ',', '.')" icon="bi-wallet2" tone="emerald" />
+        @php $money = fn ($v) => 'R$ ' . number_format((float) $v, 2, ',', '.'); @endphp
+
+        <div class="cmx mb-4">
+            <div class="cmx-item">
+                <span class="cmx-label"><i class="bi bi-receipt text-indigo-500"></i>Faturas</span>
+                <span class="cmx-value">{{ $faturas->total() }}</span>
+                <span class="cmx-hint">{{ $totalDivididas }} {{ $totalDivididas == 1 ? 'dividida' : 'divididas' }}</span>
+            </div>
+            <div class="cmx-item">
+                <span class="cmx-label"><i class="bi bi-currency-dollar text-amber-500"></i>Original</span>
+                <span class="cmx-value text-amber-600 dark:text-amber-400" title="{{ $money($totalOriginal) }}">{{ $money($totalOriginal) }}</span>
+                <span class="cmx-hint">Soma das faturas</span>
+            </div>
+            <div class="cmx-item">
+                <span class="cmx-label"><i class="bi bi-wallet2 text-emerald-500"></i>Do cliente</span>
+                <span class="cmx-value text-emerald-600 dark:text-emerald-400" title="{{ $money($totalCliente) }}">{{ $money($totalCliente) }}</span>
+                <span class="cmx-hint">Divididas contam a metade</span>
+            </div>
         </div>
 
-        <!-- Lista de Faturas -->
-        <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden">
-            @if($faturas->count() > 0)
-                <!-- Header da tabela -->
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-zinc-700">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        Lista de Faturas
-                    </h3>
+        <section class="crs-card">
+            <div class="crs-head">
+                <span class="crs-head-icon bg-gradient-to-br from-indigo-500 to-purple-600"><i class="bi bi-receipt"></i></span>
+                <div class="min-w-0 flex-1">
+                    <h2 class="crs-title">Faturas <span class="crs-count">{{ $faturas->total() }}</span></h2>
+                    <p class="crs-sub">Toque em Integral ou Dividida para dividir a fatura ao meio</p>
                 </div>
+                <a href="{{ route('invoices.index') }}" class="crs-link"><i class="bi bi-plus-lg"></i>Nova</a>
+            </div>
 
-                <!-- Grid de Faturas -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                    @foreach($faturas as $fatura)
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
-                            <!-- Header da fatura -->
-                            <div class="flex items-start justify-between mb-3">
-                                <div class="flex items-center space-x-2">
-                                    @if($fatura->category && $fatura->category->icone)
-                                        <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                                            <i class="{{ $fatura->category->icone }} text-indigo-600 dark:text-indigo-400 text-sm"></i>
-                                        </div>
-                                    @endif
-                                    <div>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                                            {{ \Carbon\Carbon::parse($fatura->invoice_date)->format('d/m/Y') }}
-                                        </p>
-                                        @if($fatura->category)
-                                            <p class="text-xs text-gray-600 dark:text-gray-300">{{ $fatura->category->name }}</p>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <!-- Toggle Dividida -->
-                                <button wire:click="toggleDividida({{ $fatura->id }})"
-                                        class="flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium transition-colors duration-200 {{ $fatura->dividida ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300' }}">
-                                    <i class="bi bi-{{ $fatura->dividida ? 'check' : 'x' }}"></i>
-                                    <span>{{ $fatura->dividida ? 'Dividida' : 'Integral' }}</span>
-                                </button>
-                            </div>
-
-                            <!-- Descrição -->
-                            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                                {{ $fatura->description }}
-                            </h4>
-
-                            <!-- Valores -->
-                            <div class="space-y-1">
-                                @if($fatura->dividida)
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">Valor Original:</span>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400 line-through">
-                                            R$ {{ number_format($fatura->value, 2, ',', '.') }}
-                                        </span>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Valor Dividido:</span>
-                                        <span class="text-sm font-bold text-blue-600 dark:text-blue-400">
-                                            R$ {{ number_format($fatura->value / 2, 2, ',', '.') }}
-                                        </span>
-                                    </div>
-                                @else
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Valor:</span>
-                                        <span class="text-sm font-bold text-orange-600 dark:text-orange-400">
-                                            R$ {{ number_format($fatura->value, 2, ',', '.') }}
-                                        </span>
-                                    </div>
-                                @endif
-                            </div>
+            <div class="crs-list is-grid">
+                @forelse($faturas as $fatura)
+                    <div class="crs-row" wire:key="fat-{{ $fatura->id }}">
+                        <span class="crs-row-icon bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
+                            <i class="{{ $fatura->category->icone ?? 'bi bi-receipt' }}"></i>
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <p class="crs-row-title" title="{{ $fatura->description }}">{{ $fatura->description }}</p>
+                            <p class="crs-row-meta">
+                                {{ \Carbon\Carbon::parse($fatura->invoice_date)->format('d/m/Y') }}
+                                @if($fatura->category) · {{ $fatura->category->name }} @endif
+                            </p>
                         </div>
-                    @endforeach
-                </div>
-
-                <!-- Paginação -->
-                <div class="px-6 py-4 border-t border-gray-200 dark:border-zinc-700">
-                    {{ $faturas->links() }}
-                </div>
-            @else
-                <!-- Estado vazio -->
-                <div class="text-center py-16">
-                    <div class="mx-auto w-24 h-24 bg-gray-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mb-6">
-                        <i class="bi bi-receipt text-3xl text-gray-400"></i>
+                        <div class="flex flex-col items-end gap-1 shrink-0">
+                            <span class="crs-row-value">
+                                @if($fatura->dividida)
+                                    <s class="mr-1 text-[11px] font-semibold text-slate-400">{{ $money($fatura->value) }}</s>
+                                @endif
+                                {{ $money($fatura->dividida ? $fatura->value / 2 : $fatura->value) }}
+                            </span>
+                            <button type="button" wire:click="toggleDividida({{ $fatura->id }})"
+                                    class="crs-split {{ $fatura->dividida ? 'is-on' : '' }}" title="Dividir fatura ao meio">
+                                <span class="crs-split-dot"></span>{{ $fatura->dividida ? 'Dividida' : 'Integral' }}
+                            </button>
+                        </div>
                     </div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Nenhuma fatura encontrada</h3>
-                    <p class="text-gray-600 dark:text-gray-400 mb-6">Este cliente ainda não possui faturas cadastradas.</p>
-                    <a href="{{ route('invoices.index') }}"
-                       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-                        <i class="bi bi-plus mr-2"></i>
-                        Criar Nova Fatura
-                    </a>
-                </div>
-            @endif
-        </div>
+                @empty
+                    <div class="crs-empty py-12">
+                        <i class="bi bi-receipt"></i>
+                        <p class="font-semibold text-slate-600 dark:text-slate-300">Nenhuma fatura deste cliente</p>
+                        <a href="{{ route('invoices.index') }}" class="crs-link mt-1"><i class="bi bi-plus-lg"></i>Lançar fatura</a>
+                    </div>
+                @endforelse
+            </div>
+        </section>
+
+        @if($faturas->hasPages())
+            <div class="mt-4">
+                <x-pagination-bar :paginator="$faturas" label="faturas" />
+            </div>
+        @endif
     </div>
+
+    <x-client-rows-css />
 
     <!-- Flash Messages -->
     @if (session()->has('success'))

@@ -46,8 +46,16 @@ class ClientFaturas extends Component
             ->orderBy('invoice_date', 'desc')
             ->paginate(12);
             
+        // Totais de todas as faturas do cliente (não só da página aberta)
+        $todas = Invoice::where('client_id', $this->clienteId)
+            ->whereHas('category', fn ($q) => $q->where('user_id', Auth::id()))
+            ->get(['value', 'dividida']);
+
         return view('livewire.clients.client-faturas', [
-            'faturas' => $faturas
+            'faturas' => $faturas,
+            'totalOriginal' => (float) $todas->sum('value'),
+            'totalCliente' => (float) $todas->sum(fn ($f) => $f->dividida ? $f->value / 2 : $f->value),
+            'totalDivididas' => $todas->where('dividida', true)->count(),
         ]);
     }
 }
