@@ -21,7 +21,7 @@ use Smalot\PdfParser\Parser;
 
 class UploadProducts extends Component
 {
-    use WithFileUploads, WithPagination;
+    use WithFileUploads, WithPagination, Concerns\ImportsFromMlCatalog;
 
     public $pdf_file;
     public string $extractionMode = 'standard'; // 'standard' (regex) | 'ai' (Gemini)
@@ -40,6 +40,7 @@ class UploadProducts extends Component
     public $showTipsModal = false; // Controle para exibir modal de dicas
     public $showDetailsModal = false; // Controle para exibir modal de detalhes
     public $selectedUpload = null; // Upload selecionado para visualização
+    public ?int $mlIndex = null; // card da lista que está buscando no Mercado Livre
     public array $barcodeOptions = []; // Opções de código de barras achadas na busca, por card
     public array $detailsPdfQty = []; // Quantidades relidas do PDF (importações antigas)
     public $confirmDeleteUploadId = null; // ID do upload para confirmar exclusão
@@ -116,6 +117,139 @@ class UploadProducts extends Component
     {
         $this->productsUpload[$index]['barcode'] = preg_replace('/\D/', '', (string) $ean);
         unset($this->barcodeOptions[$index]);
+    }
+
+    // ─── Buscar no Mercado Livre por card ────────────────────────────────────
+    // Usa a mesma janela do editar produto (partials/ml-catalog-import). O que for
+    // escolhido fica guardado no card (productsUpload.N.ml) e só entra no produto
+    // quando a lista é salva: fotos, capa, descrição, ficha técnica, marca, modelo e EAN.
+
+    protected function mlTargetProduct(): ?Product
+    {
+        return null;
+    }
+
+    protected function mlKnownPhotoUrls(): array
+    {
+        return [];
+    }
+
+    protected function mlHasMainImage(): bool
+    {
+        $row = $this->productsUpload[$this->mlIndex] ?? [];
+
+        return !empty($row['image_base64']) || !empty($row['temp_image']);
+    }
+
+    public function openMlForRow(int $index): void
+    {
+        $row = $this->productsUpload[$index] ?? null;
+        if (!$row) {
+            return;
+        }
+        $this->resetMlImport();
+        $this->mlIndex = $index;
+        $barcode = preg_replace('/\D/', '', (string) ($row['barcode'] ?? ''));
+        $this->mlQuery = strlen($barcode) >= 8 ? $barcode : trim((string) ($row['name'] ?? ''));
+        $this->showMlImport = true;
+        if (trim($this->mlQuery) !== '') {
+            $this->searchMlCatalog();
+        }
+    }
+
+    public function closeMlImport(): void
+    {
+        $this->showMlImport = false;
+        $this->mlIndex = null;
+        $this->resetMlImport();
+    }
+
+    /** Tira do card o que tinha sido escolhido no Mercado Livre. */
+    public function clearMlRow(): void
+    {
+        if ($this->mlIndex !== null && isset($this->productsUpload[$this->mlIndex])) {
+            unset($this->productsUpload[$this->mlIndex]['ml']);
+        }
+        $this->closeMlImport();
+    }
+
+    public function applyMlImport(): void
+    {
+        $i = $this->mlIndex;
+        if (empty($this->mlData) || $i === null || !isset($this->productsUpload[$i])) {
+            return;
+        }
+        $d = $this->mlData;
+        $t = $this->mlTake;
+        $photos = collect($d['pictures'])->filter(fn ($u, $k) => !empty($this->mlPhotos[$k]))->values()->all();
+
+        $ml = array_filter([
+            'id'          => $d['id'] ?? null,
+            'title'       => mb_substr((string) ($d['name'] ?? ''), 0, 255),
+            'description' => !empty($t['desc']) ? $this->mlDescriptionText() : '',
+            'specs'       => !empty($t['specs']) ? collect($d['specs'])->map(fn ($s) => ['n' => $s['n'], 'v' => mb_substr($s['v'], 0, 255)])->take(60)->all() : [],
+            'brand'       => !empty($t['brand']) ? mb_substr((string) $d['brand'], 0, 100) : '',
+            'model'       => !empty($t['brand']) ? mb_substr((string) $d['model'], 0, 100) : '',
+            'gtin'        => !empty($t['brand']) ? mb_substr((string) $d['gtin'], 0, 15) : '',
+            'photos'      => $photos,
+            'cover'       => !empty($t['cover']) ? ($photos[0] ?? ($d['pictures'][0] ?? '')) : '',
+        ]);
+
+        if (!empty($t['name']) && ($d['name'] ?? '') !== '') {
+            $this->productsUpload[$i]['name'] = mb_substr($d['name'], 0, 255);
+        }
+        // Código de barras do ML preenche o campo do card se estiver vazio
+        if (!empty($ml['gtin']) && empty($this->productsUpload[$i]['barcode'])) {
+            $this->productsUpload[$i]['barcode'] = preg_replace('/\D/', '', $ml['gtin']);
+        }
+
+        $count = count(array_diff(array_keys($ml), ['id', 'title']));
+        if ($count === 0) {
+            $this->dispatch('show-toast', ['type' => 'error', 'message' => 'Nada marcado para trazer.']);
+            return;
+        }
+        $this->productsUpload[$i]['ml'] = $ml;
+        $this->closeMlImport();
+        $this->dispatch('show-toast', ['type' => 'success', 'message' => 'Mercado Livre escolhido. Fotos, descrição e ficha entram no produto quando você salvar.']);
+    }
+
+    /** Ao salvar a lista: aplica no produto o que veio do ML, como o editar produto faz. */
+    private function applyMlRow(Product $product, array $ml, bool $allowCover): void
+    {
+        try {
+            $data = [];
+            if (($ml['description'] ?? '') !== '') {
+                $data['description'] = $ml['description'];
+            }
+            if (!empty($ml['specs'])) {
+                $merged = collect($product->specs ?? [])->keyBy(fn ($s) => mb_strtolower($s['n'] ?? ''));
+                foreach ($ml['specs'] as $s) {
+                    $merged[mb_strtolower($s['n'])] = ['n' => $s['n'], 'v' => $s['v']];
+                }
+                $data['specs'] = $merged->values()->take(60)->all();
+            }
+            if (!empty($ml['brand'])) {
+                $data['brand'] = $ml['brand'];
+            }
+            if (!empty($ml['model'])) {
+                $data['model'] = $ml['model'];
+            }
+            if (!empty($ml['gtin']) && empty($product->barcode)) {
+                $data['barcode'] = preg_replace('/\D/', '', $ml['gtin']);
+            }
+            if ($data) {
+                $product->update($data);
+            }
+            if (!empty($ml['photos'])) {
+                $this->attachMlPhotos($product, $ml['photos']);
+            }
+            $product->refresh();
+            if ($allowCover && !empty($ml['cover']) && (!$product->image || $product->image === 'product-placeholder.png')) {
+                $this->saveCoverFromUrl($product, $ml['cover']);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('UploadProducts::applyMlRow', ['product' => $product->id, 'e' => $e->getMessage()]);
+        }
     }
 
     public function showUploadDetails($uploadId)
@@ -508,6 +642,11 @@ class UploadProducts extends Component
                 // Código de barras digitado (ou preenchido pelo robô) entra no produto que ainda não tem
                 if (!empty($product['barcode']) && empty($resultProduct->barcode)) {
                     $resultProduct->update(['barcode' => preg_replace('/\D/', '', (string) $product['barcode'])]);
+                }
+
+                // O que foi escolhido no Mercado Livre para este card (igual ao editar produto)
+                if (!empty($product['ml'])) {
+                    $this->applyMlRow($resultProduct, $product['ml'], !$shouldUpdateImage);
                 }
 
                 if ($result['action'] === 'stock') {

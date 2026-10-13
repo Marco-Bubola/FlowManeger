@@ -254,6 +254,12 @@
                             <button type="button" onclick="copyProductCode({{ $index }}, {{ $codigoJs }})" title="Copiar código">
                                 <i class="bi bi-upc-scan"></i><span>Código</span>
                             </button>
+                            {{-- Buscar no Mercado Livre (nome ou código de barras): o que escolher só entra no produto ao salvar --}}
+                            <button type="button" wire:click="openMlForRow({{ $index }})" class="upc-ml {{ !empty($product['ml']) ? 'is-set' : '' }}"
+                                    title="{{ !empty($product['ml']) ? 'Mercado Livre escolhido: ' . ($product['ml']['title'] ?? '') . ' (entra ao salvar). Toque para trocar.' : 'Buscar fotos, descrição e ficha no Mercado Livre' }}">
+                                <i class="bi {{ !empty($product['ml']) ? 'bi-check-circle-fill' : 'bi-cloud-download' }}" wire:loading.remove wire:target="openMlForRow({{ $index }})"></i>
+                                <i class="bi bi-arrow-repeat upc-spin" wire:loading wire:target="openMlForRow({{ $index }})"></i><span>ML</span>
+                            </button>
                             <button type="button" wire:click="removeProduct({{ $index }})" class="is-danger" title="Remover da lista">
                                 <i class="bi bi-trash3"></i><span>Remover</span>
                             </button>
@@ -363,7 +369,14 @@
     .upc-promo.is-disabled { cursor: not-allowed; }
     .upc-promo.is-disabled .upc-promo-row { color: rgb(148 163 184); font-weight: 600; }
 
-    .upc-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; border-top: 1px solid rgb(241 245 249); }
+    .upc-actions { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; border-top: 1px solid rgb(241 245 249); }
+    .upc-actions button { flex-direction: column; gap: 1px; padding: 6px 2px; font-size: 10.5px; line-height: 1.1; }
+    .upc-actions button i { font-size: 14px; }
+    .upc-actions button.upc-ml { color: rgb(45 50 119); background: rgb(255 230 0 / .22); }
+    .upc-actions button.upc-ml:hover { background: rgb(255 230 0 / .45); color: rgb(45 50 119); }
+    .upc-actions button.upc-ml.is-set { color: rgb(4 120 87); background: rgb(209 250 229); }
+    .dark .upc-actions button.upc-ml { color: rgb(253 230 138); background: rgb(161 98 7 / .25); }
+    .dark .upc-actions button.upc-ml.is-set { color: rgb(110 231 183); background: rgb(6 78 59 / .4); }
     .dark .upc-actions { border-top-color: rgb(30 41 59); }
     .upc-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 4px; font-size: 11px; font-weight: 600;
         color: rgb(71 85 105); transition: background .15s, color .15s; }

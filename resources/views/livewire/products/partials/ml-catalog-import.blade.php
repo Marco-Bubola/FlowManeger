@@ -65,7 +65,7 @@
         <span class="ep-ico ml"><i class="bi bi-cloud-download"></i></span>
         <div class="min-w-0">
             <h3>Importar do Mercado Livre</h3>
-            <p>{{ empty($mlData) ? 'Escolha o produto certo no catálogo' : 'Marque o que quer trazer para este produto' }}</p>
+            <p>{{ empty($mlData) ? 'Escolha o produto certo no catálogo' : (!empty($mlUploadMode) ? 'Marque o que levar. Entra no produto quando você salvar a lista.' : 'Marque o que quer trazer para este produto') }}</p>
         </div>
         <button type="button" class="mi-close" wire:click="closeMlImport" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
     </div>
@@ -149,7 +149,7 @@
             @if($mlData['brand'] || $mlData['model'] || $mlData['gtin'])
             <div class="mi-sec">
                 <label class="mi-sec-h"><input type="checkbox" wire:model="mlTake.brand"><b>Marca e modelo</b>
-                    <small>{{ collect([$mlData['brand'], $mlData['model'], $mlData['gtin'] && !$barcode ? 'EAN ' . $mlData['gtin'] : null])->filter()->implode(' · ') }}</small></label>
+                    <small>{{ collect([$mlData['brand'], $mlData['model'], $mlData['gtin'] && empty($barcode) ? 'EAN ' . $mlData['gtin'] : null])->filter()->implode(' · ') }}</small></label>
             </div>
             @endif
 
@@ -172,9 +172,12 @@
 
     <div class="mi-f">
         <button type="button" class="ep-btn ep-btn-ghost flex-1 sm:flex-none" wire:click="closeMlImport">Cancelar</button>
+        @if(!empty($mlRowSet))
+            <button type="button" class="ep-btn ep-btn-ghost flex-1 sm:flex-none" style="color:#e11d48" wire:click="clearMlRow" title="Tirar o que foi escolhido do ML para este produto"><i class="bi bi-x-circle"></i><span class="hidden sm:inline">Não usar o ML</span></button>
+        @endif
         @if(!empty($mlData))
             <button type="button" class="ep-btn ep-btn-primary flex-1 sm:ml-auto" wire:click="applyMlImport" wire:loading.attr="disabled" wire:target="applyMlImport">
-                <span wire:loading.remove wire:target="applyMlImport"><i class="bi bi-download"></i> Trazer para o produto</span>
+                <span wire:loading.remove wire:target="applyMlImport"><i class="bi bi-download"></i> {{ !empty($mlUploadMode) ? 'Usar neste produto' : 'Trazer para o produto' }}</span>
                 <span wire:loading wire:target="applyMlImport"><i class="bi bi-arrow-repeat animate-spin"></i> Trazendo...</span>
             </button>
         @endif

@@ -60,6 +60,13 @@
         .dark .ep-ml-box b { color: #fde68a; }
         /* Celular e iPad: fotos (e o atalho do Mercado Livre) vêm primeiro */
         @media (max-width: 1199px) { .ep-side { order: -1; } }
+        .ep-photo label { height: 240px !important; }
+        /* iPad: foto à esquerda, galeria e Mercado Livre à direita (não ocupa a tela toda) */
+        @media (min-width: 640px) and (max-width: 1199px) {
+            .ep-side .ep-card-b { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: .9rem 1.1rem; align-items: start; }
+            .ep-side .ep-card-b > * { margin: 0 !important; grid-column: 2; }
+            .ep-side .ep-card-b > .ep-photo { grid-column: 1; grid-row: 1 / span 5; }
+        }
         /* Área da foto mais enxuta (sem os selos de formato que estouravam) */
         .ep-photo .space-y-8 { display: flex; flex-direction: column; gap: .6rem; }
         .ep-photo .space-y-8 > *, .ep-photo .space-y-4 > * { margin: 0 !important; }

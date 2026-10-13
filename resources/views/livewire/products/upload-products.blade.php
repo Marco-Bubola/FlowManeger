@@ -1948,4 +1948,9 @@
             }, duration);
         }
     </script>
+    {{-- Buscar no Mercado Livre por produto da lista (mesma janela do editar produto) --}}
+    @if($showMlImport)
+        @include('livewire.products.partials.ep-styles')
+        @include('livewire.products.partials.ml-catalog-import', ['mlUploadMode' => true, 'mlRowSet' => $mlIndex !== null && !empty($productsUpload[$mlIndex]['ml'])])
+    @endif
 </div>
