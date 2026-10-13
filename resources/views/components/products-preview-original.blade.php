@@ -1,7 +1,8 @@
 @props([
     'products' => [],
     'categories' => [],
-    'showBackButton' => true
+    'showBackButton' => true,
+    'barcodeOptions' => []
 ])
 
 @php
@@ -78,6 +79,27 @@
                                    class="upc-name"
                                    title="{{ $product['name'] ?? '' }}"
                                    placeholder="Nome do produto">
+
+                            {{-- Código de barras (EAN/GTIN): salvo no produto; id barcode-input-N para o robô preencher --}}
+                            <label class="upc-ean" title="Código de barras (EAN)">
+                                <i class="bi bi-upc-scan"></i>
+                                <input type="text" inputmode="numeric" id="barcode-input-{{ $index }}" wire:model.lazy="productsUpload.{{ $index }}.barcode" placeholder="Cód. de barras" maxlength="14">
+                                <button type="button" class="upc-ean-find" wire:click="lookupBarcode({{ $index }})" wire:loading.attr="disabled" wire:target="lookupBarcode({{ $index }})" title="Buscar código de barras no site do Boticário">
+                                    <i class="bi bi-search" wire:loading.remove wire:target="lookupBarcode({{ $index }})"></i>
+                                    <i class="bi bi-arrow-repeat upc-spin" wire:loading wire:target="lookupBarcode({{ $index }})"></i>
+                                    <span>Buscar</span>
+                                </button>
+                            </label>
+                            @if(!empty($barcodeOptions[$index]))
+                                <div class="upc-ean-opts">
+                                    <span class="upc-ean-opts-t">Qual é o certo?</span>
+                                    @foreach($barcodeOptions[$index] as $opt)
+                                        <button type="button" wire:click="chooseBarcode({{ $index }}, '{{ $opt['ean'] }}')" title="{{ $opt['name'] }} ({{ $opt['store'] }})">
+                                            <b>{{ $opt['ean'] }}</b><small>{{ \Illuminate\Support\Str::limit($opt['name'], 42) }}</small>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @endif
 
 <!-- Select de Categoria Estilizado -->
                             <div class="upc-cat" x-data="{
@@ -286,6 +308,29 @@
     .upc-name:focus { outline: none; border-color: rgb(167 139 250); box-shadow: 0 0 0 3px rgb(167 139 250 / .2); background: #fff; }
     .dark .upc-name { color: rgb(241 245 249); }
     .dark .upc-name:focus { background: rgb(30 41 59); }
+    .upc-ean { display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 10px; background: rgb(248 250 252); border: 1px solid rgb(241 245 249); cursor: text; }
+    .upc-ean i { color: rgb(100 116 139); font-size: 13px; }
+    .upc-ean input { width: 100%; min-width: 0; border: 0; background: transparent; padding: 0; font-size: 12px; font-weight: 600; letter-spacing: .02em; color: rgb(30 41 59); outline: none; box-shadow: none; }
+    .upc-ean input::placeholder { color: rgb(148 163 184); font-weight: 500; letter-spacing: 0; }
+    .upc-ean:focus-within { border-color: rgb(167 139 250); box-shadow: 0 0 0 3px rgb(167 139 250 / .18); }
+    .dark .upc-ean { background: rgb(30 41 59 / .7); border-color: rgb(51 65 85); }
+    .dark .upc-ean input { color: rgb(226 232 240); }
+    .upc-ean-find { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; border: 0; background: rgb(237 233 254); color: rgb(109 40 217); font-size: 11px; font-weight: 700; cursor: pointer; }
+    .upc-ean-find:hover { background: rgb(221 214 254); }
+    .upc-ean-find i { color: inherit !important; font-size: 11px !important; }
+    @media (max-width: 640px) { .upc-ean-find span { display: none; } .upc-ean-find { padding: 4px 7px; } }
+    .upc-spin { display: inline-block; animation: upcSpin .8s linear infinite; }
+    @keyframes upcSpin { to { transform: rotate(360deg); } }
+    .upc-ean-opts { display: flex; flex-direction: column; gap: 4px; padding: 6px; border-radius: 10px; background: rgb(245 243 255); border: 1px dashed rgb(196 181 253); }
+    .upc-ean-opts-t { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: rgb(109 40 217); }
+    .upc-ean-opts button { display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 5px 8px; border-radius: 8px; border: 1px solid rgb(221 214 254); background: #fff; cursor: pointer; }
+    .upc-ean-opts button:hover { border-color: rgb(139 92 246); }
+    .upc-ean-opts b { font-size: 12px; color: rgb(30 41 59); letter-spacing: .02em; }
+    .upc-ean-opts small { font-size: 10px; color: rgb(100 116 139); line-height: 1.25; }
+    .dark .upc-ean-find { background: rgb(76 29 149 / .5); color: rgb(221 214 254); }
+    .dark .upc-ean-opts { background: rgb(46 16 101 / .35); border-color: rgb(91 33 182); }
+    .dark .upc-ean-opts button { background: rgb(15 23 42); border-color: rgb(51 65 85); }
+    .dark .upc-ean-opts b { color: rgb(226 232 240); }
     .upc-cat button { padding: 6px 10px !important; border-radius: 10px !important; border-color: rgb(226 232 240) !important; }
     .dark .upc-cat button { border-color: rgb(51 65 85) !important; }
 

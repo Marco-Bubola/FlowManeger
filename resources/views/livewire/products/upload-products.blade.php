@@ -375,6 +375,7 @@
             <x-products-preview-original
                 :products="$productsUpload ?? []"
                 :categories="$categories ?? []"
+                :barcode-options="$barcodeOptions"
                 :show-back-button="true" />
         @endif
     </div>

@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\ProductCategoryLearning;
 use App\Models\ProductUploadHistory;
 use App\Models\PromotionSetting;
+use App\Services\Products\BarcodeLookupService;
 use App\Services\Products\OrderPdfParser;
 use App\Services\Products\PromotionService;
 use App\Services\Products\VariationService;
@@ -39,6 +40,7 @@ class UploadProducts extends Component
     public $showTipsModal = false; // Controle para exibir modal de dicas
     public $showDetailsModal = false; // Controle para exibir modal de detalhes
     public $selectedUpload = null; // Upload selecionado para visualização
+    public array $barcodeOptions = []; // Opções de código de barras achadas na busca, por card
     public array $detailsPdfQty = []; // Quantidades relidas do PDF (importações antigas)
     public $confirmDeleteUploadId = null; // ID do upload para confirmar exclusão
     public $historyPerPage = 6; // Quantidade de cards por página no histórico
@@ -80,6 +82,40 @@ class UploadProducts extends Component
                 'message' => 'Arquivo PDF não encontrado'
             ]);
         }
+    }
+
+    /**
+     * Procura o código de barras do card no catálogo do Boticário (pelo código e, se não achar, pelo nome).
+     * Um resultado pelo código já preenche; pelo nome mostra as opções para escolher.
+     */
+    public function lookupBarcode($index, BarcodeLookupService $lookup)
+    {
+        $row = $this->productsUpload[$index] ?? null;
+        if (!$row) {
+            return;
+        }
+
+        $options = $lookup->lookup($row['product_code'] ?? null, $row['name'] ?? null);
+        unset($this->barcodeOptions[$index]);
+
+        if (empty($options)) {
+            $this->dispatch('show-toast', ['type' => 'error', 'message' => 'Não achei o código de barras no site do Boticário. Digite ou leia com o leitor.']);
+            return;
+        }
+
+        if (count($options) === 1 || $options[0]['by'] === 'código') {
+            $this->productsUpload[$index]['barcode'] = $options[0]['ean'];
+            $this->dispatch('show-toast', ['type' => 'success', 'message' => 'Código de barras encontrado: ' . $options[0]['ean']]);
+            return;
+        }
+
+        $this->barcodeOptions[$index] = $options;
+    }
+
+    public function chooseBarcode($index, $ean)
+    {
+        $this->productsUpload[$index]['barcode'] = preg_replace('/\D/', '', (string) $ean);
+        unset($this->barcodeOptions[$index]);
     }
 
     public function showUploadDetails($uploadId)
@@ -463,10 +499,16 @@ class UploadProducts extends Component
                     'status'         => $product['status'] ?? 'ativo',
                     'category_id'    => $product['category_id'] ?? 1,
                     'image'          => $imageName,
+                    'barcode'        => preg_replace('/\D/', '', (string) ($product['barcode'] ?? '')) ?: null,
                 ]);
 
                 $resultProduct = $result['product'];
                 $this->applyPromotionData($resultProduct, $product);
+
+                // Código de barras digitado (ou preenchido pelo robô) entra no produto que ainda não tem
+                if (!empty($product['barcode']) && empty($resultProduct->barcode)) {
+                    $resultProduct->update(['barcode' => preg_replace('/\D/', '', (string) $product['barcode'])]);
+                }
 
                 if ($result['action'] === 'stock') {
                     // Atualiza imagem do existente apenas se foi enviada uma nova
@@ -860,6 +902,11 @@ class UploadProducts extends Component
                     $this->productsUpload[$index]['temp_image'] = "data:{$mimeType};base64,{$imageData}";
                     $this->productsUpload[$index]['image_base64'] = "data:{$mimeType};base64,{$imageData}";
                 }
+            }
+
+            // Código de barras já cadastrado
+            if (!empty($existingProduct->barcode) && empty($this->productsUpload[$index]['barcode'])) {
+                $this->productsUpload[$index]['barcode'] = $existingProduct->barcode;
             }
 
             // Preencher categoria
