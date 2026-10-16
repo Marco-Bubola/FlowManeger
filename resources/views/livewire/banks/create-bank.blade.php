@@ -88,10 +88,10 @@ $bankIcons = [
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Dia do mês em que a fatura do cartão abre (ex: dia 6)</p>
                 <div class="relative">
                     <i class="bi bi-calendar-event absolute left-4 top-1/2 -translate-y-1/2 text-blue-400 text-lg pointer-events-none z-10"></i>
-                    <input type="date" id="start_date" wire:model="start_date" placeholder="Selecione a data de abertura..."
-                        class="w-full pl-12 pr-4 py-4 text-base border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-medium shadow-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/80 hover:shadow-lg hover:shadow-blue-500/10" readonly required>
+                    <input type="number" id="start_date" wire:model="start_day" min="1" max="31" inputmode="numeric" placeholder="Ex: 6"
+                        class="w-full pl-12 pr-4 py-4 text-base border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-medium shadow-lg" required>
                 </div>
-                @error('start_date') <div class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
+                @error('start_day') <div class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
             </div>
             <div>
                 <label for="end_date" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 mb-3">
@@ -103,10 +103,10 @@ $bankIcons = [
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Dia do mês em que a fatura do cartão fecha (ex: dia 5)</p>
                 <div class="relative">
                     <i class="bi bi-alarm absolute left-4 top-1/2 -translate-y-1/2 text-orange-400 text-lg pointer-events-none z-10"></i>
-                    <input type="date" id="end_date" wire:model="end_date" placeholder="Selecione a data de fechamento..."
-                        class="w-full pl-12 pr-4 py-4 text-base border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-300 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-medium shadow-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/80 hover:shadow-lg hover:shadow-orange-500/10" readonly required>
+                    <input type="number" id="end_date" wire:model="end_day" min="1" max="31" inputmode="numeric" placeholder="Ex: 5"
+                        class="w-full pl-12 pr-4 py-4 text-base border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-300 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-medium shadow-lg" required>
                 </div>
-                @error('end_date') <div class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
+                @error('end_day') <div class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
             </div>
         </div>
 
@@ -145,7 +145,7 @@ $bankIcons = [
                 <div>
                     <h4 class="text-sm font-bold text-blue-800 dark:text-blue-300 mb-1">💡 Como funciona o ciclo de fatura?</h4>
                     <p class="text-sm text-blue-700 dark:text-blue-400">
-                        <strong>Exemplo:</strong> Se sua fatura abre no dia 6 e fecha no dia 5 do mês seguinte, selecione qualquer data com dia 6 no campo "Abertura" e dia 5 no campo "Fechamento". O sistema usará apenas o dia do mês para calcular seu ciclo de fatura automaticamente.
+                        <strong>Exemplo:</strong> Se sua fatura abre no dia 6 e fecha no dia 5 do mês seguinte, digite 6 em "Abertura" e 5 em "Fechamento". O ciclo de cada fatura é calculado sozinho.
                     </p>
                     <p class="text-sm text-blue-700 dark:text-blue-400 mt-2">
                         <strong>Resultado:</strong> As transações serão agrupadas do dia 6 de um mês até o dia 5 do próximo mês, como uma fatura real de cartão de crédito! 💳

@@ -12,8 +12,9 @@ class CreateBank extends Component
     // Propriedades do estado para o formulário
     public string $name = '';
     public string $description = '';
-    public ?string $start_date = null;
-    public ?string $end_date = null;
+    // Abertura e fechamento são só o dia do mês (1 a 31); no banco seguem como data.
+    public $start_day = null;
+    public $end_day = null;
     public string $caminho_icone = '';
     public $credit_limit = null;
     public $due_day = null;
@@ -40,8 +41,8 @@ class CreateBank extends Component
         return [
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:255',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'start_day' => 'required|integer|between:1,31',
+            'end_day' => 'required|integer|between:1,31',
             'caminho_icone' => 'required|string',
             'credit_limit' => 'nullable|numeric|min:0',
             'due_day' => 'nullable|integer|between:1,31',
@@ -54,6 +55,9 @@ class CreateBank extends Component
         $validated = $this->validate();
         $validated['credit_limit'] = (float) ($validated['credit_limit'] ?? 0) > 0 ? $validated['credit_limit'] : null;
         $validated['due_day'] = $validated['due_day'] ?: null;
+        $validated['start_date'] = self::dayToDate($validated['start_day']);
+        $validated['end_date'] = self::dayToDate($validated['end_day']);
+        unset($validated['start_day'], $validated['end_day']);
 
         // Cria o novo banco
         $bank = new Bank();
@@ -64,6 +68,18 @@ class CreateBank extends Component
         // Redireciona com uma mensagem de sucesso
         Session::flash('success', 'Cartão adicionado com sucesso!');
         $this->redirect(route('banks.index'), navigate: true);
+    }
+
+    protected $validationAttributes = [
+        'start_day' => 'dia de abertura',
+        'end_day' => 'dia de fechamento',
+        'due_day' => 'dia de vencimento',
+    ];
+
+    /** Guarda o dia num mês de 31 dias (só o dia é usado nas faturas). */
+    private static function dayToDate($day): string
+    {
+        return sprintf('%d-01-%02d', now()->year, (int) $day);
     }
 
     public function render()
