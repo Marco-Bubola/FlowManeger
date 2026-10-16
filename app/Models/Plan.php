@@ -126,13 +126,13 @@ class Plan extends Model
         return [
             'use-ml-integration' => ['label' => 'Mercado Livre', 'field' => 'has_ml_integration'],
             'use-shopee-integration' => ['label' => 'Shopee', 'field' => 'has_shopee_integration'],
-            'use-ai-features' => ['label' => 'IA e automacoes', 'field' => 'has_ai_features'],
-            'use-advanced-reports' => ['label' => 'Relatorios avancados', 'field' => 'has_advanced_reports'],
+            'use-ai-features' => ['label' => 'IA e automações', 'field' => 'has_ai_features'],
+            'use-advanced-reports' => ['label' => 'Relatórios avançados', 'field' => 'has_advanced_reports'],
             'use-financial-control' => ['label' => 'Controle financeiro', 'field' => 'has_financial_control'],
-            'use-api-access' => ['label' => 'API de integracao', 'field' => 'has_api_access'],
-            'use-priority-support' => ['label' => 'Suporte prioritario', 'field' => 'has_priority_support'],
-            'use-export-pdf-excel' => ['label' => 'Exportacao PDF/Excel', 'field' => 'has_export_pdf_excel'],
-            'manage-team' => ['label' => 'Equipe multiusuario'],
+            'use-api-access' => ['label' => 'API de integração', 'field' => 'has_api_access'],
+            'use-priority-support' => ['label' => 'Suporte prioritário', 'field' => 'has_priority_support'],
+            'use-export-pdf-excel' => ['label' => 'Exportação PDF/Excel', 'field' => 'has_export_pdf_excel'],
+            'manage-team' => ['label' => 'Equipe multiusuário'],
         ];
     }
 

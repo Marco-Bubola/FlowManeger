@@ -236,7 +236,10 @@ class PlansController extends Controller
             ? $this->adminAccessStats()
             : $this->selfAccessStats($viewer, $defaultPlan);
 
-        return view('admin.plans.users', compact('users', 'plans', 'defaultPlan', 'stats', 'isAdminView'));
+        // Quem não é admin vê só a própria conta, dentro de Configurações.
+        $view = $isAdminView ? 'admin.plans.users' : 'admin.plans.my-access';
+
+        return view($view, compact('users', 'plans', 'defaultPlan', 'stats', 'isAdminView'));
     }
 
     private function adminAccessStats(): array

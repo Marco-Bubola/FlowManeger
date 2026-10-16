@@ -257,7 +257,7 @@ class User extends Authenticatable
         return [
             'view-admin-panel' => 'Painel admin',
             'manage-plans' => 'Gerenciar planos',
-            'manage-users' => 'Gerenciar usuarios',
+            'manage-users' => 'Gerenciar usuários',
             'manage-subscriptions' => 'Gerenciar assinaturas',
         ];
     }
