@@ -18,7 +18,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ClientsIndex extends Component
 {
-    use WithPagination;
+    use WithPagination, \App\Livewire\Concerns\WithInfiniteScroll;
 
     // Filtros
     public string $search = '';
@@ -479,7 +479,7 @@ class ClientsIndex extends Component
                 break;
         }
 
-        $clients = $query->with(['sales', 'consortiumParticipants'])->paginate($this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 12);
+        $clients = $query->with(['sales', 'consortiumParticipants'])->paginate($this->infiniteSize($this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 12), ['*'], 'page', 1);
 
         return view('livewire.clients.clients-index', [
             'clients' => $clients

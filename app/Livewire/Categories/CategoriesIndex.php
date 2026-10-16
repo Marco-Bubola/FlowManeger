@@ -13,7 +13,7 @@ use Livewire\Attributes\On;
 
 class CategoriesIndex extends Component
 {
-    use WithPagination;
+    use WithPagination, \App\Livewire\Concerns\WithInfiniteScroll;
 
     // Filtros
     public string $search = '';
@@ -327,7 +327,7 @@ class CategoriesIndex extends Component
                 break;
         }
 
-        $categories = $query->paginate($this->perPage);
+        $categories = $this->infinitePaginate($query, max(12, (int) $this->perPage));
 
         // Separar categorias por tipo para os resumos (apenas do usuário logado)
         $productCategories = Category::where('type', 'product')
@@ -357,9 +357,9 @@ class CategoriesIndex extends Component
             };
         };
 
-        $paginatedProductCategories = $tabQuery('product')->paginate(6, ['*'], 'product_page');
+        $paginatedProductCategories = $this->infinitePaginate($tabQuery('product'), 12, 'product_page');
 
-        $paginatedTransactionCategories = $tabQuery('transaction')->paginate(6, ['*'], 'transaction_page');
+        $paginatedTransactionCategories = $this->infinitePaginate($tabQuery('transaction'), 12, 'transaction_page');
 
         $visible = match ($this->activeTab) {
             'products' => $paginatedProductCategories,

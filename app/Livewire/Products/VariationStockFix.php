@@ -6,7 +6,6 @@ use App\Models\MlStockLog;
 use App\Models\Product;
 use App\Services\Stock\LowStockService;
 use App\Traits\HasNotifications;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +24,7 @@ use Livewire\WithPagination;
 class VariationStockFix extends Component
 {
     use HasNotifications;
-    use WithPagination;
+    use WithPagination, \App\Livewire\Concerns\WithInfiniteScroll;
 
     public const PER_PAGE = 12;
 
@@ -259,13 +258,7 @@ class VariationStockFix extends Component
             ->sort(fn ($a, $b) => [$b['score'], mb_strtolower($a['parent']->name)] <=> [$a['score'], mb_strtolower($b['parent']->name)])
             ->values();
 
-        $page = max(1, min($this->getPage(), (int) ceil(max(1, $list->count()) / self::PER_PAGE)));
-        $families = new LengthAwarePaginator(
-            $list->forPage($page, self::PER_PAGE)->values(),
-            $list->count(),
-            self::PER_PAGE,
-            $page
-        );
+        $families = $this->infiniteCollection($list, self::PER_PAGE);
 
         // Valores editáveis começam no estoque salvo (edições em andamento ficam)
         foreach ($families as $f) {

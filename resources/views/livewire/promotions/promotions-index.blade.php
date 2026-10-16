@@ -324,9 +324,7 @@
             @endforeach
         </div>
 
-        @if($items->hasPages())
-            <div class="mt-8 products-pagination-area">{{ $items->links() }}</div>
-        @endif
+        <x-infinite-feed :paginator="$items" label="promoções" />
     @endif
 
     {{-- Modal: editar promoção --}}

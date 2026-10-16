@@ -15,7 +15,7 @@ use Livewire\WithPagination;
  */
 class StockMovements extends Component
 {
-    use WithPagination;
+    use WithPagination, \App\Livewire\Concerns\WithInfiniteScroll;
 
     #[Url]
     public string $search = '';
@@ -59,7 +59,7 @@ class StockMovements extends Component
             ->when($this->direction === 'entrada', fn ($q) => $q->where('quantity_change', '>', 0))
             ->when($this->direction === 'saida', fn ($q) => $q->where('quantity_change', '<', 0))
             ->latest('created_at')
-            ->paginate(30);
+            ->paginate($this->infiniteSize(30), ['*'], 'page', 1);
 
         $products = Product::whereIn('id', $logs->pluck('product_id')->unique())
             ->get(['id', 'name', 'product_code', 'stock_quantity'])

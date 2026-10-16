@@ -17,7 +17,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class SalesIndex extends Component
 {
-    use WithPagination;
+    use WithPagination, \App\Livewire\Concerns\WithInfiniteScroll;
 
     protected $listeners = [
         'sales:confirm-delete' => 'confirmDelete',
@@ -532,7 +532,7 @@ class SalesIndex extends Component
                 break;
         }
 
-        return $query->paginate($this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 12);
+        return $this->infinitePaginate($query, $this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 12);
     }
 
     public function getPerPageOptions(): array

@@ -131,7 +131,7 @@
                 @endforelse
             </div>
 
-            {{ $productsList->links() }}
+            <x-infinite-feed :paginator="$productsList" label="produtos" />
         </div>
         @endif
 

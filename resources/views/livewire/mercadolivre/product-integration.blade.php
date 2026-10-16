@@ -417,7 +417,7 @@
         {{-- Paginação Inferior --}}
         @if($products->hasPages())
         <div class="mt-6">
-            {{ $products->links() }}
+            <x-infinite-feed :paginator="$products" label="produtos" />
         </div>
         @endif
     </div>

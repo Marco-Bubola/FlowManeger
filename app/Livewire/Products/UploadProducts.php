@@ -21,7 +21,7 @@ use Smalot\PdfParser\Parser;
 
 class UploadProducts extends Component
 {
-    use WithFileUploads, WithPagination, Concerns\ImportsFromMlCatalog;
+    use WithFileUploads, WithPagination, Concerns\ImportsFromMlCatalog, \App\Livewire\Concerns\WithInfiniteScroll;
 
     public $pdf_file;
     public string $extractionMode = 'standard'; // 'standard' (regex) | 'ai' (Gemini)
@@ -1219,7 +1219,7 @@ class UploadProducts extends Component
 
         $uploadHistory = ProductUploadHistory::forUser(Auth::id())
             ->orderBy('created_at', 'desc')
-            ->paginate($this->historyPerPage, ['*'], 'historyPage');
+            ->paginate($this->infiniteSize($this->historyPerPage, 'historyPage'), ['*'], 'historyPage', 1);
 
         return view('livewire.products.upload-products', [
             'categories' => $categories,

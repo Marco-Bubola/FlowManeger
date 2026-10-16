@@ -16,7 +16,6 @@
                 <x-toolbar.chip wire:click="clearProduct" :active="true" icon="bi-x-lg">Só este produto</x-toolbar.chip>
             @endif
         </x-toolbar.group>
-        <x-toolbar.pager :paginator="$products" />
     </x-list-toolbar>
 
     @if($products->isEmpty())
@@ -114,6 +113,6 @@
             @endforeach
         </div>
 
-        <div class="mt-4">{{ $products->links() }}</div>
+        <x-infinite-feed :paginator="$products" label="produtos" />
     @endif
 </div>

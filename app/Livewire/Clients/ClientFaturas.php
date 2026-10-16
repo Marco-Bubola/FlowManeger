@@ -12,7 +12,7 @@ use Livewire\Attributes\Layout;
 #[Layout('components.layouts.app')]
 class ClientFaturas extends Component
 {
-    use WithPagination;
+    use WithPagination, \App\Livewire\Concerns\WithInfiniteScroll;
     
     public Client $client;
     public $clienteId;
@@ -44,7 +44,7 @@ class ClientFaturas extends Component
                 $query->where('user_id', Auth::id());
             })
             ->orderBy('invoice_date', 'desc')
-            ->paginate(12);
+            ->paginate($this->infiniteSize(12), ['*'], 'page', 1);
             
         // Totais de todas as faturas do cliente (não só da página aberta)
         $todas = Invoice::where('client_id', $this->clienteId)

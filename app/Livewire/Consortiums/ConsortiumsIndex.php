@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class ConsortiumsIndex extends Component
 {
-    use WithPagination;
+    use WithPagination, \App\Livewire\Concerns\WithInfiniteScroll;
 
     // Filtros
     public string $search = '';
@@ -210,7 +210,7 @@ class ConsortiumsIndex extends Component
         $sort = in_array($this->sortBy, ['created_at', 'name', 'monthly_value', 'start_date', 'status'], true) ? $this->sortBy : 'created_at';
         $query->orderBy($sort, $this->sortDirection === 'asc' ? 'asc' : 'desc');
 
-        return $query->paginate($this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 12);
+        return $this->infinitePaginate($query, $this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 12);
     }
 
     public function render()

@@ -15,7 +15,7 @@ use Livewire\WithPagination;
 
 class ProductIntegration extends Component
 {
-    use WithPagination, HasNotifications;
+    use WithPagination, HasNotifications, \App\Livewire\Concerns\WithInfiniteScroll;
 
     // Filtros
     public string $search = '';
@@ -584,7 +584,7 @@ class ProductIntegration extends Component
                 END
             ")
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate($this->infiniteSize(20), ['*'], 'page', 1);
 
         // Busca categorias para o filtro
         $categories = Category::where('user_id', Auth::id())

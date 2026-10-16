@@ -304,7 +304,7 @@
                 @endforeach
             </div>
 
-            <x-pagination-bar :paginator="$orders" label="pedidos" :per-page-options="[12, 24, 48]" fit-grid=".shopee-orders-grid" />
+            <x-infinite-feed :paginator="$orders" label="pedidos" />
         @endif
         </div>
     </div>

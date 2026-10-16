@@ -235,7 +235,7 @@
         </div>
 
         {{-- Paginação --}}
-        {{ $publications->links() }}
+        <x-infinite-feed :paginator="$publications" label="publicações" />
 
     </div>
 </div>

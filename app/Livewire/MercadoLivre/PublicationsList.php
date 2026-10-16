@@ -12,7 +12,7 @@ use Livewire\WithPagination;
 
 class PublicationsList extends Component
 {
-    use WithPagination, HasNotifications;
+    use WithPagination, HasNotifications, \App\Livewire\Concerns\WithInfiniteScroll;
     
     public string $search = '';
     public string $statusFilter = 'all';
@@ -191,7 +191,7 @@ class PublicationsList extends Component
                 END
             ")
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->paginate($this->infiniteSize(15), ['*'], 'page', 1);
     }
     
     /**

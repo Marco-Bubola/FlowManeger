@@ -98,12 +98,6 @@
                 <x-toolbar.chip wire:click="setSortOrder('created_at', 'asc')" :active="$sortBy === 'created_at' && $sortDirection === 'asc'">Antigas</x-toolbar.chip>
                 <x-toolbar.chip wire:click="setSortOrder('total_price', 'desc')" :active="$sortBy === 'total_price' && $sortDirection === 'desc'">Maior valor</x-toolbar.chip>
             </x-toolbar.group>
-            <x-toolbar.group title="Vendas por página">
-                @foreach(array_slice($perPageOptions, 0, 5) as $pp)
-                    <x-toolbar.chip wire:click="$set('perPage', {{ $pp }})" :active="$sales->perPage() == $pp">{{ $pp }}</x-toolbar.chip>
-                @endforeach
-            </x-toolbar.group>
-            <x-toolbar.pager :paginator="$sales" />
         </x-list-toolbar>
 
         <!-- Filtros Avançados -->
@@ -214,7 +208,7 @@
             @endforelse
         </div>
 
-        <x-pagination-bar :paginator="$sales" :per-page-options="$perPageOptions" label="vendas" fit-grid=".sales-grid-v2" />
+        <x-infinite-feed :paginator="$sales" label="vendas" />
         <!-- Componente de Exportação de Venda (modal) -->
         @livewire('sales.export-sale-modal')
 

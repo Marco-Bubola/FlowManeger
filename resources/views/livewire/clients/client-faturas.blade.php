@@ -70,7 +70,7 @@
 
         @if($faturas->hasPages())
             <div class="mt-4">
-                <x-pagination-bar :paginator="$faturas" label="faturas" />
+                <x-infinite-feed :paginator="$faturas" label="faturas" />
             </div>
         @endif
     </div>

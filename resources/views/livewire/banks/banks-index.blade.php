@@ -597,11 +597,7 @@
                     </div>
 
                     <!-- Paginação -->
-                    @if ($paginatedBanks->hasPages())
-                        <div class="mt-6 flex justify-center items-center space-x-2">
-                            {{ $paginatedBanks->links() }}
-                        </div>
-                    @endif
+                    <x-infinite-feed :paginator="$paginatedBanks" label="cartões" />
                 </div>
                 </div>
             </div>

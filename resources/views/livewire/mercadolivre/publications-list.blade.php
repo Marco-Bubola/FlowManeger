@@ -835,7 +835,7 @@
         {{-- Paginação Completa (footer) --}}
         @if($publications->hasPages())
         <div class="mt-8">
-            {{ $publications->links() }}
+            <x-infinite-feed :paginator="$publications" label="publicações" />
         </div>
         @endif
 

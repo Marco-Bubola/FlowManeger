@@ -16,7 +16,7 @@ use Livewire\WithPagination;
  */
 class PublicationsList extends Component
 {
-    use HasNotifications, WithPagination;
+    use HasNotifications, WithPagination, \App\Livewire\Concerns\WithInfiniteScroll;
 
     public string $searchTerm  = '';
     public string $statusFilter = '';
@@ -67,7 +67,7 @@ class PublicationsList extends Component
             ->when($this->syncFilter, fn($q) => $q->where('sync_status', $this->syncFilter))
             ->with(['products' => fn ($q) => $q->withoutGlobalScope('team_visibility')])
             ->latest()
-            ->paginate(15);
+            ->paginate($this->infiniteSize(15), ['*'], 'page', 1);
 
         // Logs recentes de erro
         $errorLogs = ShopeeSyncLog::where('user_id', Auth::id())

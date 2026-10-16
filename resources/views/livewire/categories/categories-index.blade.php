@@ -70,9 +70,9 @@
     @if(in_array($activeTab, ['products', 'transactions', 'all']))
         @php
             $section = match ($activeTab) {
-                'products' => ['title' => 'Categorias de produtos', 'subtitle' => 'Organize seus produtos por categoria', 'icon' => 'fas fa-box', 'list' => $paginatedProductCategories, 'create' => 'createProductCategory', 'button' => 'Nova categoria de produto'],
-                'transactions' => ['title' => 'Categorias de transações', 'subtitle' => 'Classifique receitas e despesas', 'icon' => 'fas fa-exchange-alt', 'list' => $paginatedTransactionCategories, 'create' => 'createTransactionCategory', 'button' => 'Nova categoria de transação'],
-                default => ['title' => 'Todas as categorias', 'subtitle' => 'Produtos e transações juntos', 'icon' => 'fas fa-list', 'list' => $categories, 'create' => null, 'button' => null],
+                'products' => ['title' => 'Categorias de produtos', 'subtitle' => 'Organize seus produtos por categoria', 'icon' => 'fas fa-box', 'list' => $paginatedProductCategories, 'page' => 'product_page', 'create' => 'createProductCategory', 'button' => 'Nova categoria de produto'],
+                'transactions' => ['title' => 'Categorias de transações', 'subtitle' => 'Classifique receitas e despesas', 'icon' => 'fas fa-exchange-alt', 'list' => $paginatedTransactionCategories, 'page' => 'transaction_page', 'create' => 'createTransactionCategory', 'button' => 'Nova categoria de transação'],
+                default => ['title' => 'Todas as categorias', 'subtitle' => 'Produtos e transações juntos', 'icon' => 'fas fa-list', 'list' => $categories, 'page' => 'page', 'create' => null, 'button' => null],
             };
         @endphp
         <div class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white/70 dark:bg-slate-900/50 shadow-sm">
@@ -101,9 +101,7 @@
                             <x-category-tile :category="$category" :usage="$usage[$category->id_category] ?? []" />
                         @endforeach
                     </div>
-                    @if($section['list']->hasPages())
-                        <div class="mt-5">{{ $section['list']->links() }}</div>
-                    @endif
+                    <x-infinite-feed :paginator="$section['list']" :page-name="$section['page']" label="categorias" class="!mb-0" />
                 </div>
             @else
                 <div class="p-10 text-center">

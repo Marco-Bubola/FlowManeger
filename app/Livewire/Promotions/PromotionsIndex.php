@@ -25,7 +25,7 @@ use Livewire\WithPagination;
  */
 class PromotionsIndex extends Component
 {
-    use HasNotifications, SchedulesPromotion, WithPagination;
+    use HasNotifications, SchedulesPromotion, WithPagination, \App\Livewire\Concerns\WithInfiniteScroll;
 
     public string $tab = 'ativas'; // ativas | sugestoes | agendadas | encerradas
     public string $search = '';
@@ -645,7 +645,7 @@ class PromotionsIndex extends Component
             default    => $query->orderByRaw('(promotions.promo_price / promotions.original_price) asc'),
         };
 
-        return $query->paginate($this->perPage);
+        return $this->infinitePaginate($query, (int) $this->perPage);
     }
 
     public function getStatsProperty(): array

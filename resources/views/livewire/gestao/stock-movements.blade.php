@@ -60,5 +60,5 @@
         @endforelse
     </div>
 
-    {{ $logs->links() }}
+    <x-infinite-feed :paginator="$logs" label="movimentações" />
 </div>

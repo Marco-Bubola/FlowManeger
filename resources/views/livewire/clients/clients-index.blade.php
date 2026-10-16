@@ -59,12 +59,6 @@
                 <x-toolbar.chip wire:click="toggleSort('name')" :active="$sortBy === 'name'">A-Z</x-toolbar.chip>
                 <x-toolbar.chip wire:click="toggleSort('most_sales')" :active="$sortBy === 'most_sales'">Mais compras</x-toolbar.chip>
             </x-toolbar.group>
-            <x-toolbar.group title="Clientes por página">
-                @foreach([12, 24, 48, 96] as $pp)
-                    <x-toolbar.chip wire:click="$set('perPage', {{ $pp }})" :active="$perPage == $pp">{{ $pp }}</x-toolbar.chip>
-                @endforeach
-            </x-toolbar.group>
-            <x-toolbar.pager :paginator="$clients" />
         </x-list-toolbar>
 
 
@@ -362,7 +356,7 @@
             </div>
         </div>
 
-        <x-pagination-bar :paginator="$clients" :per-page-options="[12, 24, 48, 96]" label="clientes" fit-grid=".clients-grid" />
+        <x-infinite-feed :paginator="$clients" label="clientes" />
     </div>
 
 

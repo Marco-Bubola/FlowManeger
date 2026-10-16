@@ -362,7 +362,7 @@
                                 @endforelse
                             </div>
 
-                            <x-pagination-bar :paginator="$uploadHistory" label="uploads" :scroll-top="false" class="!mt-4 !shadow-none" />
+                            <x-infinite-feed :paginator="$uploadHistory" page-name="historyPage" label="importações" class="!mt-4" />
                         </div>
                     </div>
                 </div>

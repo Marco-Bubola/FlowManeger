@@ -7,7 +7,6 @@ use App\Models\ClientProductAlert;
 use App\Models\ConsortiumNotification;
 use App\Services\Portal\WishlistService;
 use App\Traits\HasNotifications;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -21,7 +20,7 @@ use Livewire\WithPagination;
 class InterestedClients extends Component
 {
     use HasNotifications;
-    use WithPagination;
+    use WithPagination, \App\Livewire\Concerns\WithInfiniteScroll;
 
     public const PER_PAGE = 10;
 
@@ -142,8 +141,7 @@ class InterestedClients extends Component
             ->sort(fn ($a, $b) => [$b['waiting'], $b['rows']->count()] <=> [$a['waiting'], $a['rows']->count()])
             ->values();
 
-        $page = max(1, min($this->getPage(), (int) ceil(max(1, $list->count()) / self::PER_PAGE)));
-        $products = new LengthAwarePaginator($list->forPage($page, self::PER_PAGE)->values(), $list->count(), self::PER_PAGE, $page);
+        $products = $this->infiniteCollection($list, self::PER_PAGE);
 
         return view('livewire.products.interested-clients', [
             'products'      => $products,

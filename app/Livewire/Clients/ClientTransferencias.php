@@ -12,7 +12,7 @@ use Livewire\Attributes\Layout;
 #[Layout('components.layouts.app')]
 class ClientTransferencias extends Component
 {
-    use WithPagination;
+    use WithPagination, \App\Livewire\Concerns\WithInfiniteScroll;
     
     public Client $client;
     public $clienteId;
@@ -46,7 +46,7 @@ class ClientTransferencias extends Component
             $query->where('type_id', 2);
         }
         
-        $transferencias = $query->orderBy('date', 'desc')->paginate(12);
+        $transferencias = $query->orderBy('date', 'desc')->paginate($this->infiniteSize(12), ['*'], 'page', 1);
         
         // Calcular totais
         $totalRecebido = Cashbook::where('client_id', $this->clienteId)

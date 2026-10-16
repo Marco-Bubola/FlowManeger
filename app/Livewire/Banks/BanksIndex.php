@@ -453,7 +453,8 @@ class BanksIndex extends Component
      public function render()
     {
         // Obtendo os bancos com paginação dinâmica para a view
-        $paginatedBanks = Bank::where('user_id', Auth::id())->paginate(3, ['*'], 'page', $this->page ?? 1)->withQueryString();
+        // Rolagem infinita: os cartões aparecem de 6 em 6 conforme desce
+        $paginatedBanks = Bank::where('user_id', Auth::id())->paginate(6 * max(1, (int) $this->page), ['*'], 'page', 1);
 
         return view('livewire.banks.banks-index', [
             'showDeleteModal' => $this->showDeleteModal,
@@ -470,6 +471,12 @@ class BanksIndex extends Component
     public $page = 1;
 
     // Método para trocar de página
+    /** Rolagem infinita (x-infinite-feed): mostra mais cartões. */
+    public function loadMore($pageName = 'page'): void
+    {
+        $this->page = max(1, (int) $this->page) + 1;
+    }
+
     public function goToPage($page)
     {
         $this->page = $page;

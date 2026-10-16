@@ -71,7 +71,7 @@
 
         @if($transferencias->hasPages())
             <div class="mt-4">
-                <x-pagination-bar :paginator="$transferencias" label="transferências" />
+                <x-infinite-feed :paginator="$transferencias" label="transferências" />
             </div>
         @endif
     </div>

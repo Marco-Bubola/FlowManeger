@@ -12,7 +12,6 @@
             <x-toolbar.chip wire:click="setFilter('suspeitas')" :active="$filter !== 'todas'" icon="bi-exclamation-triangle">Só suspeitas <span class="opacity-75">({{ $suspectCount }})</span></x-toolbar.chip>
             <x-toolbar.chip wire:click="setFilter('todas')" :active="$filter === 'todas'" icon="bi-diagram-3">Todas as famílias <span class="opacity-75">({{ $familyCount }})</span></x-toolbar.chip>
         </x-toolbar.group>
-        <x-toolbar.pager :paginator="$families" />
     </x-list-toolbar>
 
     <details class="mb-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 px-4 py-3 text-sm text-slate-600 dark:text-slate-300 shadow-sm">
@@ -163,9 +162,7 @@
                 @endforeach
             </div>
 
-            @if($families->hasPages())
-                <div class="mt-4">{{ $families->links() }}</div>
-            @endif
+            <x-infinite-feed :paginator="$families" label="famílias" />
         @endif
     </div>
 </div>

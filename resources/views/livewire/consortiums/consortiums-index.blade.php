@@ -126,7 +126,7 @@
             @endforelse
         </div>
 
-    <x-pagination-bar :paginator="$consortiums" :per-page-options="$perPageOptions" label="consórcios" fit-grid=".consortiums-grid" />
+    <x-infinite-feed :paginator="$consortiums" label="consórcios" />
 
     <!-- Modal de Dicas (Wizard Moderno) -->
     @if($showTipsModal)

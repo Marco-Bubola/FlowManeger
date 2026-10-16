@@ -26,7 +26,7 @@ use Livewire\WithPagination;
  */
 class PublishProduct extends Component
 {
-    use HasNotifications, WithPagination;
+    use HasNotifications, WithPagination, \App\Livewire\Concerns\WithInfiniteScroll;
 
     // -------------------------------------------------------------------------
     // Estado de steps
@@ -364,7 +364,7 @@ class PublishProduct extends Component
             }))
             ->when($this->selectedCategory, fn($q) => $q->where('category_id', $this->selectedCategory))
             ->orderBy('name')
-            ->paginate(12);
+            ->paginate($this->infiniteSize(12), ['*'], 'page', 1);
     }
 
     // -------------------------------------------------------------------------

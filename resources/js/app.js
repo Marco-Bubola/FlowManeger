@@ -9,3 +9,6 @@ import.meta.glob('../images/icons/*', { eager: true, query: '?url', import: 'def
 
 // Botão Salvar fixo no celular/iPad para os formulários (data-mobile-save)
 import './mobile-save-bar.js';
+
+// Rolagem infinita nas listas (x-infinite-feed)
+import './infinite-feed.js';
