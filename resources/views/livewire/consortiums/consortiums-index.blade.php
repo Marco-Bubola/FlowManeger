@@ -1,64 +1,42 @@
 <div x-data="{ showFilters: false, showDeleteModal: @entangle('showDeleteModal').live }" class="consortiums-index-page w-full mobile-393-base relative">
     <style>[x-cloak] { display: none !important; }</style>
 
-    {{-- Cabeçalho no mesmo padrão de Clientes --}}
-    <div class="relative overflow-hidden mb-6 rounded-[28px] border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(238,242,255,0.9),rgba(245,243,255,0.94))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
-        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.16),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.12),transparent_32%)]"></div>
-        <div class="pointer-events-none absolute -top-12 right-10 h-36 w-36 rounded-full bg-purple-400/20 blur-2xl"></div>
+    {{-- Cabeçalho e busca no padrão das outras listas (Clientes, Vendas, Categorias) --}}
+    <x-page-header title="Consórcios" icon="bi-piggy-bank" subtitle="Grupos, participantes, parcelas e sorteios">
+        <x-slot:meta>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="bi bi-piggy-bank"></i>{{ $consortiums->total() }} {{ $consortiums->total() === 1 ? 'consórcio' : 'consórcios' }}</span>
+            @if($totalActive > 0)
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"><i class="bi bi-play-circle"></i>{{ $totalActive }} ativo{{ $totalActive === 1 ? '' : 's' }}</span>
+            @endif
+            @if($totalParticipants > 0)
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300"><i class="bi bi-people"></i>{{ $totalParticipants }} participante{{ $totalParticipants === 1 ? '' : 's' }}</span>
+            @endif
+            @if($totalCompleted > 0)
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-sky-50 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300"><i class="bi bi-check-circle"></i>{{ $totalCompleted }} concluído{{ $totalCompleted === 1 ? '' : 's' }}</span>
+            @endif
+        </x-slot:meta>
+        <x-slot:actions>
+            <button type="button" @click="showFilters = !showFilters" title="Filtros" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-sliders text-indigo-500"></i><span class="hidden sm:inline">Filtros</span></button>
+            <button type="button" wire:click="$dispatch('openExportModal')" title="Exportar" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-download text-emerald-500"></i><span class="hidden sm:inline">Exportar</span></button>
+            <button type="button" wire:click="toggleTips" title="Como funciona" class="inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/70 dark:border-slate-700/70 hover:text-amber-500"><i class="bi bi-lightbulb"></i></button>
+            <a href="{{ route('consortiums.create') }}" title="Novo consórcio"
+               class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition whitespace-nowrap"><i class="bi bi-plus-lg"></i>Novo consórcio</a>
+        </x-slot:actions>
+    </x-page-header>
 
-        <div class="relative px-4 sm:px-6 py-4 sm:py-5">
-            <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                <div class="flex items-center gap-3 sm:gap-4 min-w-0">
-                    <div class="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg shadow-purple-500/25">
-                        <i class="bi bi-piggy-bank text-white text-2xl"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <nav class="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                            <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-300"><i class="bi bi-house mr-1"></i>Dashboard</a>
-                            <i class="bi bi-chevron-right text-[10px]"></i>
-                            <span class="text-indigo-600 dark:text-indigo-300"><i class="bi bi-piggy-bank mr-1"></i>Consórcios</span>
-                        </nav>
-                        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-slate-100 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent">Consórcios</h1>
-                        <div class="mt-1.5 flex flex-wrap items-center gap-2 text-xs font-semibold">
-                            <span class="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 border border-indigo-200 dark:border-indigo-700 px-2 py-1 text-indigo-700 dark:text-indigo-300"><i class="bi bi-play-circle"></i>{{ $totalActive }} ativo{{ $totalActive === 1 ? '' : 's' }}</span>
-                            @if($totalParticipants > 0)
-                                <span class="inline-flex items-center gap-1 rounded-lg bg-purple-500/10 border border-purple-200 dark:border-purple-700 px-2 py-1 text-purple-700 dark:text-purple-300"><i class="bi bi-people"></i>{{ $totalParticipants }} participantes</span>
-                            @endif
-                            @if($totalCompleted > 0)
-                                <span class="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 border border-indigo-200 dark:border-indigo-700 px-2 py-1 text-indigo-700 dark:text-indigo-300"><i class="bi bi-check-circle"></i>{{ $totalCompleted }} concluído{{ $totalCompleted === 1 ? '' : 's' }}</span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex flex-col sm:flex-row sm:items-center gap-2 xl:max-w-[60%] w-full xl:w-auto">
-                    <div class="relative flex-1 sm:min-w-[260px]">
-                        <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar consórcio pelo nome"
-                            class="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-200/80 dark:border-slate-600 bg-white/90 dark:bg-slate-800/90 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 shadow-sm focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400">
-                        <button type="button" wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0" x-cloak
-                            class="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-rose-500 dark:hover:bg-slate-700" title="Limpar busca"><i class="bi bi-x-lg text-xs"></i></button>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-600 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm whitespace-nowrap">
-                            <i class="bi bi-piggy-bank text-indigo-500"></i>{{ $consortiums->total() }}
-                        </span>
-                        <button type="button" @click="showFilters = !showFilters" title="Filtros"
-                            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/80 dark:border-slate-600 bg-white/90 dark:bg-slate-800/90 text-slate-600 dark:text-slate-300 shadow-sm hover:text-indigo-600"
-                            :class="{ '!bg-indigo-50 !border-indigo-300 !text-indigo-600 dark:!bg-indigo-500/10': showFilters }"><i class="bi bi-funnel"></i></button>
-                        <button type="button" wire:click="$dispatch('openExportModal')" title="Exportar"
-                            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/80 dark:border-slate-600 bg-white/90 dark:bg-slate-800/90 text-slate-600 dark:text-slate-300 shadow-sm hover:text-indigo-600"><i class="bi bi-download"></i></button>
-                        <button type="button" wire:click="toggleTips" title="Como funciona"
-                            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/80 dark:border-slate-600 bg-white/90 dark:bg-slate-800/90 text-slate-600 dark:text-slate-300 shadow-sm hover:text-amber-500"><i class="bi bi-lightbulb"></i></button>
-                        <a href="{{ route('consortiums.create') }}"
-                            class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold shadow-md shadow-indigo-500/25 whitespace-nowrap">
-                            <i class="bi bi-plus-lg"></i>Consórcio
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-list-toolbar placeholder="Buscar consórcio pelo nome...">
+        <x-toolbar.group>
+            <x-toolbar.chip wire:click="$set('statusFilter', '')" :active="$statusFilter === ''" icon="bi-grid">Todos</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('statusFilter', 'active')" :active="$statusFilter === 'active'" icon="bi-play-circle">Ativos</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('statusFilter', 'completed')" :active="$statusFilter === 'completed'" icon="bi-trophy">Concluídos</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('statusFilter', 'cancelled')" :active="$statusFilter === 'cancelled'" icon="bi-x-circle">Cancelados</x-toolbar.chip>
+        </x-toolbar.group>
+        <x-toolbar.group icon="bi-arrow-down-up">
+            <x-toolbar.chip wire:click="sortByField('created_at')" :active="$sortBy === 'created_at'">Recentes</x-toolbar.chip>
+            <x-toolbar.chip wire:click="sortByField('name')" :active="$sortBy === 'name'">A-Z</x-toolbar.chip>
+            <x-toolbar.chip wire:click="sortByField('monthly_value')" :active="$sortBy === 'monthly_value'">Valor</x-toolbar.chip>
+        </x-toolbar.group>
+    </x-list-toolbar>
 
     <!-- Filtros: mesma janela de Produtos, Vendas e Clientes -->
     @php
@@ -101,27 +79,16 @@
             @forelse($consortiums as $consortium)
                 <x-consortium-card :consortium="$consortium" />
             @empty
+                @php $csFiltered = ($search ?? '') !== '' || $statusFilter !== ''; @endphp
                 <div class="col-span-full">
-                    <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-12 text-center border border-gray-200 dark:border-zinc-700">
-                        <div class="w-20 h-20 bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <i class="bi bi-piggy-bank text-white text-3xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                            Nenhum consórcio encontrado
-                        </h3>
-                        <p class="text-gray-500 dark:text-gray-400 mb-6">
-                            @if ($search ?? false)
-                                Não encontramos consórcios com o termo "{{ $search }}".
-                            @else
-                                Comece criando seu primeiro consórcio.
-                            @endif
-                        </p>
-                        <a href="{{ route('consortiums.create') }}"
-                            class="inline-flex items-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-xl hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                            <i class="bi bi-plus-circle mr-2"></i>
-                            Criar Novo Consórcio
-                        </a>
-                    </div>
+                    <x-empty-state icon="bi-piggy-bank"
+                        :title="$csFiltered ? 'Nenhum consórcio com esses filtros' : 'Nenhum consórcio ainda'"
+                        :text="($search ?? '') !== '' ? 'Não encontramos consórcios com o termo “' . $search . '”.' : ($csFiltered ? 'Troque o status ou limpe os filtros para ver todos.' : 'Crie o primeiro grupo e depois adicione os participantes.')">
+                        @if($csFiltered)
+                            <button type="button" wire:click="clearFilters" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"><i class="bi bi-x-circle"></i>Limpar filtros</button>
+                        @endif
+                        <a href="{{ route('consortiums.create') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25"><i class="bi bi-plus-lg"></i>Novo consórcio</a>
+                    </x-empty-state>
                 </div>
             @endforelse
         </div>
