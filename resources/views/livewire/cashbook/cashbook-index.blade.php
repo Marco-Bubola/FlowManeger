@@ -79,9 +79,9 @@
                                         d="M15 19l-7-7 7-7"></path>
                                 </svg>
                             </button>
-                            <div class="flex items-center gap-2 flex-1">
+                            <div class="flex items-center gap-2 flex-1 min-w-0">
                                 <select wire:model.live="month"
-                                    class="flex-1 rounded-xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg text-gray-900 dark:text-white text-sm font-semibold shadow-md focus:ring-2 focus:ring-blue-500 transition-all">
+                                    class="flex-1 min-w-0 capitalize rounded-xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg text-gray-900 dark:text-white text-sm font-semibold shadow-md focus:ring-2 focus:ring-blue-500 transition-all">
                                     @foreach (range(1, 12) as $m)
                                         <option value="{{ $m }}">
                                             {{ \Carbon\Carbon::create()->month($m)->locale('pt_BR')->isoFormat('MMM') }}
@@ -89,7 +89,7 @@
                                     @endforeach
                                 </select>
                                 <select wire:model.live="year"
-                                    class="rounded-xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg text-gray-900 dark:text-white text-sm font-semibold shadow-md focus:ring-2 focus:ring-blue-500 transition-all">
+                                    style="width: 5.5rem" class="shrink-0 rounded-xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg text-gray-900 dark:text-white text-sm font-semibold shadow-md focus:ring-2 focus:ring-blue-500 transition-all">
                                     @foreach (range(now()->year - 5, now()->year + 2) as $y)
                                         <option value="{{ $y }}">{{ $y }}</option>
                                     @endforeach
@@ -105,11 +105,6 @@
                             </button>
                         </div>
 
-                        <!-- Botão de Dicas -->
-                        <button wire:click="toggleTips"
-                            class="p-2 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105">
-                            <i class="bi bi-lightbulb text-sm"></i>
-                        </button>
                     </div>
 
                     <!-- Conteúdo do calendário -->
@@ -334,178 +329,64 @@
                                 $catBalance = $catIncome - $catExpense;
                             @endphp
 
-                            <div class="category-group mb-8 transform transition-all duration-500 expanded"
+                            <div class="category-group mb-4 transition-all duration-500 expanded"
                                 data-category-id="{{ $index }}">
                                 <!-- Card moderno com glassmorphism e cores da categoria -->
-                                <div class="relative overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1"
+                                <div class="relative overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300"
                                     style="background: linear-gradient(135deg, {{ $catColor }}15 0%, {{ $catColor }}08 100%); border: 2px solid {{ $catColor }}40;">
 
                                     <!-- Efeito de brilho decorativo -->
                                     <div class="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-20"
                                         style="background: {{ $catColor }};"></div>
 
-                                    <!-- Header super estilizado -->
-                                    <div class="relative px-6 py-5 backdrop-blur-sm">
-                                        <div class="flex items-center justify-between gap-6">
-                                            <!-- Esquerda: Ícone + Nome da Categoria -->
-                                            <div class="flex items-center gap-4">
-                                                <!-- Ícone com animação e fundo translúcido -->
-                                                <div class="relative group">
-                                                    <div class="absolute inset-0 rounded-2xl blur-3xl opacity-30 group-hover:opacity-45 transition-opacity duration-300"
-                                                        style="background: {{ $catColor }}33;"></div>
-                                                    <div class="relative w-16 h-16 rounded-2xl flex items-center justify-center transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-xl"
-                                                        style="background: linear-gradient(135deg, {{ $catColor }}33 0%, {{ $catColor }}22 100%);">
-                                                        <i class="{{ $catIcon }} text-gray-900 text-2xl"></i>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Nome e contador -->
-                                                <div>
-                                                    <h3 class="text-2xl font-black mb-1 text-gray-900 dark:text-white">
-                                                        {{ $catName }}
-                                                    </h3>
-                                                    <span
-                                                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold text-gray-900 dark:text-white shadow-lg"
-                                                        style="background: linear-gradient(135deg, {{ $catColor }}22 0%, {{ $catColor }}11 100%);">
-                                                        <svg class="w-4 h-4 text-gray-900" fill="none"
-                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                                            </path>
-                                                        </svg>
-                                                        <span class="text-sm font-medium">{{ $catCount }}
-                                                            {{ $catCount === 1 ? 'transação' : 'transações' }}</span>
-                                                    </span>
-                                                </div>
+                                    {{-- Cabeçalho da categoria: nome, 3 totais que não quebram linha e o botão Ocultar.
+                                         Em telas estreitas (notebook 1366px, iPad, celular) os totais descem para uma linha própria. --}}
+                                    <div class="cx-cat-head relative px-4 sm:px-5 py-4">
+                                        <div class="cx-cat-id">
+                                            <span class="cx-cat-icon" style="background: {{ $catColor }}26; color: {{ $catColor }};">
+                                                <i class="bi bi-tag-fill"></i>
+                                            </span>
+                                            <div class="min-w-0">
+                                                <h3 class="cx-cat-name" title="{{ $catName }}">{{ $catName }}</h3>
+                                                <span class="cx-cat-count">{{ $catCount }} {{ $catCount === 1 ? 'lançamento' : 'lançamentos' }}</span>
                                             </div>
-
-                                            <!-- Divider -->
-                                            <div
-                                                class="h-16 w-px bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent">
-                                            </div>
-
-                                            <!-- Receitas -->
-                                            <div class="flex items-center gap-3">
-                                                <div class="relative group">
-                                                    <div class="absolute inset-0 rounded-xl blur-2xl opacity-40 group-hover:opacity-60 transition-opacity"
-                                                        style="background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);">
-                                                    </div>
-                                                    <div class="relative w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
-                                                        style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.15) 100%);">
-                                                        <svg class="w-5 h-5 text-green-600 dark:text-green-400"
-                                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2.5" d="M7 11l5-5m0 0l5 5m-5-5v12">
-                                                            </path>
-                                                        </svg>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <p
-                                                        class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
-                                                        Receitas</p>
-                                                    <p class="text-lg font-black text-green-600 dark:text-green-400">
-                                                        R$ {{ number_format($catIncome, 2, ',', '.') }}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <!-- Divider -->
-                                            <div
-                                                class="h-16 w-px bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent">
-                                            </div>
-
-                                            <!-- Despesas -->
-                                            <div class="flex items-center gap-3">
-                                                <div class="relative group">
-                                                    <div class="absolute inset-0 rounded-xl blur-2xl opacity-40 group-hover:opacity-60 transition-opacity"
-                                                        style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
-                                                    </div>
-                                                    <div class="relative w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
-                                                        style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%);">
-                                                        <svg class="w-5 h-5 text-red-600 dark:text-red-400"
-                                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2.5" d="M17 13l-5 5m0 0l-5-5m5 5V6">
-                                                            </path>
-                                                        </svg>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <p
-                                                        class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
-                                                        Despesas</p>
-                                                    <p class="text-lg font-black text-red-600 dark:text-red-400">
-                                                        R$ {{ number_format($catExpense, 2, ',', '.') }}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <!-- Divider -->
-                                            <div
-                                                class="h-16 w-px bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent">
-                                            </div>
-
-                                            <!-- Saldo -->
-                                            <div class="flex items-center gap-3">
-                                                <div class="relative group">
-                                                    <div class="absolute inset-0 rounded-xl blur-2xl opacity-40 group-hover:opacity-60 transition-opacity"
-                                                        style="background: linear-gradient(135deg, {{ $catBalance >= 0 ? '#3b82f6 0%, #6366f1' : '#f97316 0%, #ea580c' }} 100%);">
-                                                    </div>
-                                                    <div class="relative w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
-                                                        style="background: linear-gradient(135deg, {{ $catBalance >= 0 ? 'rgba(59, 130, 246, 0.2) 0%, rgba(99, 102, 241, 0.15)' : 'rgba(249, 115, 22, 0.2) 0%, rgba(234, 88, 12, 0.15)' }} 100%);">
-                                                        <svg class="w-5 h-5 {{ $catBalance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400' }}"
-                                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3">
-                                                            </path>
-                                                        </svg>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <p
-                                                        class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
-                                                        Saldo</p>
-                                                    <p
-                                                        class="text-lg font-black {{ $catBalance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400' }}">
-                                                        R$ {{ number_format($catBalance, 2, ',', '.') }}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <!-- Divider -->
-                                            <div
-                                                class="h-16 w-px bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent">
-                                            </div>
-
-                                            <!-- Direita: Botão Toggle -->
-                                            <button type="button"
-                                                class="category-toggle-btn flex items-center gap-3 px-4 py-2 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent"
-                                                data-category-id="{{ $index }}" data-expanded="true"
-                                                style="--cat-color: {{ $catColor }};"
-                                                aria-label="Alternar visibilidade da categoria {{ $catName }}">
-
-                                                <span
-                                                    class="text-xs font-semibold text-gray-700 dark:text-gray-300 toggle-label">Ocultar</span>
-
-                                                <!-- Toggle Switch -->
-                                                <div class="relative w-11 h-6 rounded-full transition-colors duration-300 toggle-switch"
-                                                    style="background: linear-gradient(135deg, {{ $catColor }} 0%, {{ $catColor }}CC 100%); --cat-color: {{ $catColor }};">
-                                                    <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 toggle-thumb"
-                                                        style="transform: translateX(20px);"></div>
-                                                </div>
-                                            </button>
                                         </div>
+
+                                        <div class="cx-cat-stats">
+                                            <div class="cx-cat-stat">
+                                                <span class="cx-cat-stat-l"><i class="bi bi-arrow-up text-emerald-500"></i>Receitas</span>
+                                                <span class="cx-cat-stat-v text-emerald-600 dark:text-emerald-400">R$ {{ number_format($catIncome, 2, ',', '.') }}</span>
+                                            </div>
+                                            <div class="cx-cat-stat">
+                                                <span class="cx-cat-stat-l"><i class="bi bi-arrow-down text-rose-500"></i>Despesas</span>
+                                                <span class="cx-cat-stat-v text-rose-600 dark:text-rose-400">R$ {{ number_format($catExpense, 2, ',', '.') }}</span>
+                                            </div>
+                                            <div class="cx-cat-stat">
+                                                <span class="cx-cat-stat-l"><i class="bi bi-scale {{ $catBalance >= 0 ? 'text-sky-500' : 'text-orange-500' }}"></i>Saldo</span>
+                                                <span class="cx-cat-stat-v {{ $catBalance >= 0 ? 'text-sky-600 dark:text-sky-400' : 'text-orange-600 dark:text-orange-400' }}">R$ {{ number_format($catBalance, 2, ',', '.') }}</span>
+                                            </div>
+                                        </div>
+
+                                        <button type="button"
+                                            class="category-toggle-btn cx-cat-toggle"
+                                            data-category-id="{{ $index }}" data-expanded="true"
+                                            style="--cat-color: {{ $catColor }};"
+                                            aria-label="Alternar visibilidade da categoria {{ $catName }}">
+                                            <span class="toggle-label">Ocultar</span>
+                                            <div class="relative shrink-0 rounded-full transition-colors duration-300 toggle-switch"
+                                                style="width: 40px; height: 22px; background: linear-gradient(135deg, {{ $catColor }} 0%, {{ $catColor }}CC 100%); --cat-color: {{ $catColor }};">
+                                                <div class="absolute bg-white rounded-full shadow-md transition-transform duration-300 toggle-thumb"
+                                                    style="top: 3px; left: 3px; width: 16px; height: 16px; transform: translateX(18px);"></div>
+                                            </div>
+                                        </button>
                                     </div>
 
                                     <!-- Conteúdo (Grid de transações) -->
                                     <div
                                         class="group-transactions-wrapper overflow-hidden transition-all duration-500">
-                                        <div class="px-6 pb-6">
+                                        <div class="px-4 sm:px-5 pb-5">
                                             <div
-                                                class="group-transactions grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ultrawind:grid-cols-6 gap-5">
+                                                class="group-transactions cx-tx-grid">
                                                 @foreach ($categoryGroup['transactions'] as $transaction)
                                                     @php
                                                         $value = abs($transaction['value'] ?? 0);
@@ -526,33 +407,11 @@
 
                                                         <!-- Conteúdo do card -->
                                                         <div class="p-4 pt-5 pb-3">
-                                                            <div class="flex items-start justify-between gap-3 mb-3">
-                                                                <!-- Descrição -->
-                                                                <div class="flex-1 min-w-0">
-                                                                    <h4
-                                                                        class="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 transition-all duration-300">
-                                                                        {{ $desc }}
-                                                                    </h4>
-                                                                    <div
-                                                                        class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                                                        <svg class="w-3.5 h-3.5" fill="none"
-                                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path stroke-linecap="round"
-                                                                                stroke-linejoin="round"
-                                                                                stroke-width="2"
-                                                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                                                            </path>
-                                                                        </svg>
-                                                                        {{ $transactionDate }}
-                                                                    </div>
-                                                                </div>
-
-                                                                <!-- Badge de tipo (receita/despesa) -->
-                                                                <span
-                                                                    class="px-2.5 py-1 text-xs font-bold rounded-lg shadow-md {{ $typeId == 1 ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white' : 'bg-gradient-to-br from-red-500 to-rose-600 text-white' }}">
-                                                                    <i
-                                                                        class="fas {{ $typeId == 1 ? 'fa-arrow-up' : 'fa-arrow-down' }} mr-1"></i>
-                                                                    {{ $typeId == 1 ? 'Receita' : 'Despesa' }}
+                                                            <h4 class="cx-tx-title" title="{{ $desc }}">{{ $desc }}</h4>
+                                                            <div class="flex items-center justify-between gap-2 mb-2">
+                                                                <span class="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"><i class="bi bi-calendar3"></i>{{ $transactionDate }}</span>
+                                                                <span class="cx-tx-badge {{ $typeId == 1 ? 'is-in' : 'is-out' }}">
+                                                                    <i class="bi {{ $typeId == 1 ? 'bi-arrow-up' : 'bi-arrow-down' }}"></i>{{ $typeId == 1 ? 'Receita' : 'Despesa' }}
                                                                 </span>
                                                             </div>
 
@@ -560,7 +419,7 @@
                                                             <div
                                                                 class="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
                                                                 <p
-                                                                    class="text-2xl font-black {{ $typeId == 1 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
+                                                                    class="text-xl font-black whitespace-nowrap {{ $typeId == 1 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
                                                                     {{ $typeId == 1 ? '+' : '-' }} R$
                                                                     {{ number_format($value, 2, ',', '.') }}
                                                                 </p>
@@ -798,6 +657,37 @@
             transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
         }
 
+
+        /* Cabeçalho da categoria e cartões de lançamento (sem quebrar valores no notebook) */
+        .cx-cat-head { display: flex; align-items: center; gap: .75rem 1rem; flex-wrap: wrap; }
+        .cx-cat-id { display: flex; align-items: center; gap: .75rem; min-width: 0; flex: 1 1 180px; }
+        .cx-cat-icon { width: 2.75rem; height: 2.75rem; flex-shrink: 0; border-radius: .9rem; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; }
+        .cx-cat-name { font-size: 1.15rem; font-weight: 900; line-height: 1.2; color: rgb(17 24 39); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dark .cx-cat-name { color: #fff; }
+        .cx-cat-count { font-size: .72rem; font-weight: 600; color: rgb(75 85 99); white-space: nowrap; }
+        .dark .cx-cat-count { color: rgb(156 163 175); }
+        .cx-cat-stats { display: grid; grid-template-columns: repeat(3, minmax(0, auto)); gap: .5rem 1.25rem; order: 2; }
+        .cx-cat-stat { display: flex; flex-direction: column; min-width: 0; }
+        .cx-cat-stat-l { display: inline-flex; align-items: center; gap: .25rem; font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: rgb(75 85 99); white-space: nowrap; }
+        .dark .cx-cat-stat-l { color: rgb(156 163 175); }
+        .cx-cat-stat-v { font-size: .98rem; font-weight: 900; white-space: nowrap; }
+        .cx-cat-toggle { order: 3; display: inline-flex; align-items: center; gap: .5rem; flex-shrink: 0; padding: .4rem .6rem .4rem .8rem; border-radius: .8rem; background: rgb(255 255 255 / .9); box-shadow: 0 2px 8px -3px rgb(15 23 42 / .25); font-size: .72rem; font-weight: 700; color: rgb(55 65 81); }
+        .dark .cx-cat-toggle { background: rgb(31 41 55 / .9); color: rgb(209 213 219); }
+        /* Abaixo de 1500px os totais vão para a linha de baixo, ocupando a largura toda */
+        @media (max-width: 1499px) {
+            .cx-cat-stats { order: 4; flex: 1 1 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: .55rem .75rem; border-radius: .9rem; background: rgb(255 255 255 / .6); }
+            .dark .cx-cat-stats { background: rgb(17 24 39 / .45); }
+        }
+        @media (max-width: 480px) { .cx-cat-stat-v { font-size: .85rem; } .cx-cat-stats { gap: .4rem .6rem; padding: .5rem .6rem; } }
+        .cx-tx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: .9rem; }
+        html body .cashbook-main-grid .group-transactions.cx-tx-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)) !important; }
+        .cx-tx-title { font-size: .95rem; font-weight: 800; line-height: 1.3; color: rgb(17 24 39); margin-bottom: .35rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
+        .dark .cx-tx-title { color: #fff; }
+        .cx-tx-badge { display: inline-flex; align-items: center; gap: .2rem; flex-shrink: 0; font-size: .66rem; font-weight: 700; padding: .15rem .45rem; border-radius: 999px; }
+        .cx-tx-badge.is-in { background: rgb(220 252 231); color: rgb(21 128 61); }
+        .cx-tx-badge.is-out { background: rgb(254 226 226); color: rgb(185 28 28); }
+        .dark .cx-tx-badge.is-in { background: rgb(20 83 45 / .5); color: rgb(134 239 172); }
+        .dark .cx-tx-badge.is-out { background: rgb(127 29 29 / .5); color: rgb(252 165 165); }
         .category-group.expanded .group-transactions-wrapper {
             max-height: 10000px;
             opacity: 1;
@@ -818,7 +708,7 @@
                 const color = btn.style.getPropertyValue('--cat-color');
                 group.classList.toggle('expanded', open);
                 if (wrapper) wrapper.style.maxHeight = open ? wrapper.scrollHeight + 'px' : '0px';
-                if (thumb) thumb.style.transform = open ? 'translateX(20px)' : 'translateX(0)';
+                if (thumb) thumb.style.transform = open ? 'translateX(18px)' : 'translateX(0)';
                 if (sw) sw.style.background = open ? `linear-gradient(135deg, ${color} 0%, ${color}CC 100%)` : '#cbd5e0';
                 if (label) label.textContent = open ? 'Ocultar' : 'Mostrar';
                 btn.dataset.expanded = open ? 'true' : 'false';
