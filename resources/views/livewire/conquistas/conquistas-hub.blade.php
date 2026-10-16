@@ -87,7 +87,7 @@
                 @if(count($todayHabits) === 0)
                     <div class="ch-empty"><i class="bi bi-emoji-smile"></i> Sem hábitos para hoje.</div>
                 @else
-                <div class="ch-habits-grid">
+                <div class="ch-habits-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                     @foreach($todayHabits as $h)
                     <button type="button"
                             wire:click="toggleHabit({{ $h['id'] }})"

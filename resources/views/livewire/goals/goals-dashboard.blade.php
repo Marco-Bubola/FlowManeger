@@ -14,7 +14,8 @@
         </x-slot>
     </x-pessoal-header>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    {{-- Largura toda, alinhado ao cabeçalho (antes ficava numa coluna estreita no ultrawide) --}}
+    <div class="w-full pt-2 pb-6 space-y-6">
 
         <div class="dash-kpis pes-kpis">
             <x-dash.kpi label="Metas" tone="indigo" icon="bi-bullseye" :value="$stats['total']" />

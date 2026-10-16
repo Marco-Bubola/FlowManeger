@@ -22,7 +22,8 @@
 
     <!-- Kanban Board - Scrollable Horizontal -->
     <div class="overflow-x-auto p-4 flex-1 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-transparent">
-        <div class="flex gap-6 h-full" style="min-height: calc(100vh - 140px);">
+        {{-- items-start: cada coluna só cresce até o conteúdo (no iPad ficavam altíssimas e vazias) --}}
+        <div class="flex gap-6 items-start">
 
             @foreach ($lists as $list)
                 <!-- Lista/Coluna -->
