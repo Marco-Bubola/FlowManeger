@@ -614,111 +614,11 @@
         </div>
     @endif
 
-    <!-- Modal de Confirmação de Exclusão -->
-    <div x-data="{
-        show: false,
-        init() {
-            this.$wire.on('show-delete-upload-modal', () => { this.show = true });
-            this.$wire.on('hide-delete-upload-modal', () => { this.show = false });
-        }
-    }">
-        <div x-show="show"
-            class="fixed inset-0 z-50 overflow-y-auto"
-            style="display: none;">
-            <!-- Backdrop -->
-            <div x-show="show"
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                class="fixed inset-0 bg-black/70 backdrop-blur-md"
-                @click="show = false"></div>
-
-            <!-- Modal -->
-            <div class="flex min-h-screen items-center justify-center p-4">
-                <div x-show="show"
-                    x-transition:enter="transition ease-out duration-300 transform"
-                    x-transition:enter-start="opacity-0 scale-90 -translate-y-4"
-                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-200 transform"
-                    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 scale-90 translate-y-4"
-                    class="relative w-full max-w-lg bg-gradient-to-br from-white via-red-50/30 to-pink-50/30 dark:from-gray-800 dark:via-red-900/10 dark:to-pink-900/10 rounded-3xl shadow-2xl overflow-hidden border-2 border-red-200/50 dark:border-red-800/50">
-
-                    <!-- Efeitos decorativos -->
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
-                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-400/20 to-red-400/20 rounded-full blur-2xl"></div>
-
-                    <!-- Header Moderno -->
-                    <div class="relative bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 px-8 py-6">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-center gap-4">
-                                <!-- Ícone animado -->
-                                <div class="relative">
-                                    <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center animate-pulse">
-                                        <i class="bi bi-exclamation-triangle-fill text-white text-3xl"></i>
-                                    </div>
-                                    <div class="absolute inset-0 bg-white/10 rounded-2xl animate-ping"></div>
-                                </div>
-                                <div>
-                                    <h3 class="text-2xl font-black text-white mb-1">Confirmar Exclusão</h3>
-                                    <p class="text-sm text-white/90 font-medium">⚠️ Esta ação não pode ser desfeita</p>
-                                </div>
-                            </div>
-                            <button @click="show = false"
-                                class="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all hover:rotate-90 duration-300">
-                                <i class="bi bi-x-lg text-xl"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Conteúdo -->
-                    <div class="relative p-8">
-                        <!-- Alerta visual -->
-                        <div class="bg-red-100 dark:bg-red-900/30 border-l-4 border-red-600 dark:border-red-500 rounded-lg p-4 mb-6">
-                            <div class="flex gap-3">
-                                <i class="bi bi-info-circle-fill text-red-600 dark:text-red-400 text-xl flex-shrink-0 mt-0.5"></i>
-                                <div class="text-sm text-gray-800 dark:text-gray-200">
-                                    <p class="font-bold mb-1">Você está prestes a excluir:</p>
-                                    <ul class="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
-                                        <li>Histórico de upload completo</li>
-                                        <li>Arquivo PDF associado</li>
-                                        <li>Todas as informações de transações</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <p class="text-gray-700 dark:text-gray-300 text-center mb-8 font-medium">
-                            Deseja realmente continuar com a exclusão?
-                        </p>
-
-                        <!-- Botões Modernos -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <button @click="show = false" type="button"
-                                class="group relative px-6 py-4 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-200 font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden">
-                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                                <div class="relative flex items-center justify-center gap-2">
-                                    <i class="bi bi-x-circle text-lg"></i>
-                                    <span>Cancelar</span>
-                                </div>
-                            </button>
-                            <button wire:click="deleteUpload" @click="show = false" type="button"
-                                class="group relative px-6 py-4 bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 hover:from-red-700 hover:via-rose-700 hover:to-pink-700 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-2xl overflow-hidden">
-                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                                <div class="relative flex items-center justify-center gap-2">
-                                    <i class="bi bi-trash-fill text-lg"></i>
-                                    <span>Excluir Agora</span>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {{-- Excluir importação: mesma janela de confirmação do resto do app --}}
+    <x-delete-dialog show="$wire.confirmDeleteUploadId" confirm="deleteUpload" cancel="$set('confirmDeleteUploadId', null)"
+        title="Excluir esta importação?" confirm-label="Excluir importação">
+        Apaga só o registro da importação e o arquivo enviado. As compras que já entraram na fatura continuam lá.
+    </x-delete-dialog>
 
     <!-- Custom Scrollbar Styles -->
     <style>
