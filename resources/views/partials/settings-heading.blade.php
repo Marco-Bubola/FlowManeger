@@ -33,6 +33,7 @@
         ['settings.connections', 'Conexões', 'bi-link-45deg'],
         ['settings.payments', 'Pagamentos online', 'bi-qr-code'],
         ['settings.whatsapp', 'WhatsApp', 'bi-whatsapp'],
+        ['settings.bank-connections', 'Bancos conectados', 'bi-bank'],
     ];
     if ($hUser->isAdmin()) {
         $hTabs[] = ['admin.plans.index', 'Planos (admin)', 'bi-gear'];

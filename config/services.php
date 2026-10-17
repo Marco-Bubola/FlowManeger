@@ -45,6 +45,11 @@ return [
         'graph_url' => env('WHATSAPP_GRAPH_URL', 'https://graph.facebook.com/v21.0'),
     ],
 
+    // Bancos conectados pelo Open Finance (credenciais por usuário em Configurações › Bancos conectados)
+    'pluggy' => [
+        'base_url' => env('PLUGGY_BASE_URL', 'https://api.pluggy.ai'),
+    ],
+
     'mercadolivre' => [
         'app_id' => env('ML_CLIENT_ID'),
         'secret_key' => env('ML_CLIENT_SECRET'),

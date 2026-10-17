@@ -400,6 +400,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/connections', 'settings.connections')->name('settings.connections');
     Volt::route('settings/pagamentos', 'settings.payments')->name('settings.payments');
     Volt::route('settings/whatsapp', 'settings.whatsapp')->name('settings.whatsapp');
+    Volt::route('settings/bancos-conectados', 'settings.bank-connections')->name('settings.bank-connections');
 
     // --- Outras Rotas ---
     Route::redirect('settings', 'settings/profile');

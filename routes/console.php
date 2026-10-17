@@ -53,6 +53,11 @@ Schedule::command('recorrentes:gerar')
     ->dailyAt('06:00')
     ->withoutOverlapping();
 
+// Bancos conectados (Open Finance): traz as transações novas para o livro caixa e as faturas
+Schedule::command('bancos:sincronizar')
+    ->cron('15 */3 * * *')
+    ->withoutOverlapping();
+
 // Estoque baixo: notifica produtos no mínimo/esgotados com sugestão de reposição
 Schedule::command('stock:check-low')
     ->dailyAt('08:30')
