@@ -1,5 +1,5 @@
 <div class="w-full app-viewport-fit products-index-page promotions-page mobile-393-base relative"
-     x-data="{ fullHd: false, ultra: false,
+     x-data="{ fullHd: false, ultra: false, showFilters: false,
         init() {
             const a = window.matchMedia('(min-width: 1920px)'), b = window.matchMedia('(min-width: 2498px)');
             const sync = () => { this.fullHd = a.matches; this.ultra = b.matches; };
@@ -30,119 +30,79 @@
         $marginLabel = rtrim(rtrim(number_format((float) $settings->min_margin_percent, 2, ',', ''), '0'), ',');
     @endphp
 
-    {{-- ============ HEADER (mesmo padrão de Produtos) ============ --}}
-    <div class="products-index-header relative overflow-hidden bg-gradient-to-r from-white/80 via-rose-50/90 to-orange-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
-        <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-rose-400/20 via-pink-400/20 to-orange-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
-        <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-orange-400/10 via-pink-400/10 to-purple-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
+    {{-- Cabeçalho, abas e busca no padrão das outras listas (Produtos, Vendas, Clientes) --}}
+    @php
+        $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70';
+        $sorts = ['desconto' => 'Desconto', 'validade' => 'Validade', 'recentes' => 'Recentes', 'nome' => 'A-Z'];
+    @endphp
+    <x-page-header title="Promoções" icon="bi-percent" section="produtos" subtitle="Descontos ativos, sugestões, agendadas e encerradas">
+        <x-slot:meta>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300"><i class="bi bi-fire"></i>{{ $stats['ativas'] }} ativa{{ $stats['ativas'] == 1 ? '' : 's' }}</span>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"><i class="bi bi-graph-down-arrow"></i>{{ $stats['desconto'] }}% desconto médio</span>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-sky-50 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300"><i class="bi bi-bag-check"></i>{{ $money($stats['vendas']['revenue']) }} vendido</span>
+            @if($stats['vencendo'])
+                <button type="button" wire:click="$set('sort', 'validade')" title="Ver as que vencem primeiro" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-500/20 dark:text-amber-200"><i class="bi bi-hourglass-split"></i>{{ $stats['vencendo'] }} vence{{ $stats['vencendo'] == 1 ? '' : 'm' }} em 3 dias</button>
+            @endif
+        </x-slot:meta>
+        <x-slot:actions>
+            <button type="button" @click="showFilters = true" title="Filtros" class="{{ $phBtn }}"><i class="bi bi-sliders text-indigo-500"></i><span class="hidden sm:inline">Filtros</span></button>
+            <button type="button" wire:click="openFlyer" title="Folheto com as ofertas para o status do WhatsApp e o Instagram" class="{{ $phBtn }}"><i class="bi bi-images text-pink-500"></i><span class="hidden sm:inline">Folheto</span></button>
+            <a href="{{ route('promotions.report') }}" title="Vendas em promoção: quanto vendeu, desconto dado e lucro" class="{{ $phBtn }} max-sm:!hidden"><i class="bi bi-bar-chart-line text-sky-500"></i><span class="hidden sm:inline">Vendas</span></a>
+            <button type="button" wire:click="openSettings" title="Lucro mínimo, validade e mensagem" class="{{ $phBtn }} max-sm:!hidden"><i class="bi bi-gear text-slate-500"></i><span class="hidden sm:inline">Configurar</span></button>
+            <a href="{{ route('promotions.create') }}" title="Nova promoção"
+               class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 shadow-md shadow-rose-500/25 transition whitespace-nowrap"><i class="bi bi-plus-lg"></i><span class="hidden sm:inline">Nova promoção</span></a>
+        </x-slot:actions>
+        <x-slot:tabs>
+            @foreach($tabs as $key => [$label, $icon, $count])
+                <button type="button" wire:click="setTab('{{ $key }}')"
+                        class="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-semibold transition {{ $tab === $key ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-md shadow-rose-500/25' : 'text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-800/80 hover:text-rose-600 dark:hover:text-rose-300' }}">
+                    <i class="bi {{ $icon }}"></i>{{ $label }}
+                    @if($count)<span class="rounded-full px-1.5 text-[11px] font-bold {{ $tab === $key ? 'bg-white/25' : 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300' }}">{{ $count }}</span>@endif
+                </button>
+            @endforeach
+        </x-slot:tabs>
+    </x-page-header>
 
-        <div class="products-index-header-inner relative px-8 py-6">
-            <div class="products-index-header-layout flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                <div class="products-index-header-left flex items-center gap-6">
-                    <div class="products-index-header-icon relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500 rounded-2xl shadow-xl shadow-rose-500/25">
-                        <i class="bi bi-percent text-white text-3xl"></i>
-                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50"></div>
-                    </div>
-                    <div class="products-index-header-content space-y-2">
-                        <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                            <a href="{{ route('dashboard') }}" class="hover:text-rose-600 dark:hover:text-rose-400 transition-colors"><i class="fas fa-home mr-1"></i>Dashboard</a>
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <span class="text-slate-800 dark:text-slate-200 font-medium"><i class="bi bi-percent mr-1"></i>Promoções</span>
-                        </div>
-                        <h1 class="text-4xl font-bold bg-gradient-to-r from-slate-800 via-rose-700 to-orange-600 dark:from-rose-300 dark:via-pink-300 dark:to-orange-300 bg-clip-text text-transparent">Promoções</h1>
-                        <div class="products-index-header-stats flex items-center gap-3 text-lg flex-wrap">
-                            @foreach([
-                                [$stats['ativas'], 'ativas', 'bi-fire', 'from-rose-400 to-rose-600'],
-                                [$stats['desconto'] . '%', 'desconto médio', 'bi-graph-down-arrow', 'from-emerald-400 to-emerald-600'],
-                                [$money($stats['vendas']['revenue']), 'vendido', 'bi-bag-check', 'from-sky-400 to-blue-600'],
-                            ] as [$value, $label, $icon, $grad])
-                                <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
-                                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br {{ $grad }} rounded-lg"><i class="bi {{ $icon }} text-white text-sm"></i></div>
-                                    <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $value }}</span>
-                                    <span class="text-slate-600 dark:text-slate-400">{{ $label }}</span>
-                                </div>
-                            @endforeach
-                            @if($stats['vencendo'])
-                                <button type="button" wire:click="$set('sort', 'validade')" class="flex items-center gap-2 px-4 py-2 bg-amber-100/80 dark:bg-amber-900/30 rounded-xl border border-amber-200 dark:border-amber-700/50" title="Ver as que vencem primeiro">
-                                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-600 rounded-lg"><i class="bi bi-hourglass-split text-white text-sm"></i></div>
-                                    <span class="font-semibold text-amber-800 dark:text-amber-200">{{ $stats['vencendo'] }}</span>
-                                    <span class="text-amber-700 dark:text-amber-300">vencem em 3 dias</span>
-                                </button>
-                            @endif
-                        </div>
-                    </div>
-                </div>
+    <x-list-toolbar placeholder="Buscar por nome ou código...">
+        @if($tab === 'ativas')
+            <x-toolbar.group icon="bi-arrow-down-up">
+                @foreach($sorts as $key => $label)
+                    <x-toolbar.chip wire:click="$set('sort', '{{ $key }}')" :active="$sort === $key">{{ $label }}</x-toolbar.chip>
+                @endforeach
+            </x-toolbar.group>
+        @endif
+        @if($items->count() && $tab !== 'encerradas')
+            <x-toolbar.group>
+                <x-toolbar.chip wire:click="selectAllOnPage" icon="bi-check2-square" title="Selecionar todas as promoções que estão na tela">Selecionar todas</x-toolbar.chip>
+            </x-toolbar.group>
+        @endif
+    </x-list-toolbar>
 
-                <div class="products-index-header-slot flex-1 flex items-center justify-end gap-4">
-                    <div class="w-full products-index-controls">
-                        {{-- Linha 1: busca + nova promoção --}}
-                        <div class="prod-header-row-1">
-                            <div class="prod-header-search relative group">
-                                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por nome ou código..."
-                                       class="w-full pl-11 pr-10 py-2.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-600/80 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-rose-500/40 focus:border-rose-400 transition-all shadow-sm text-sm font-medium">
-                                <div class="absolute left-3.5 top-1/2 -translate-y-1/2"><i class="bi bi-search text-slate-400 group-focus-within:text-rose-500"></i></div>
-                                @if($search)
-                                    <button type="button" wire:click="$set('search', '')" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 text-slate-600 hover:text-white rounded-lg"><i class="bi bi-x text-sm"></i></button>
-                                @endif
-                            </div>
-                            <a href="{{ route('promotions.create') }}" class="prod-header-btn-create promo-btn-create group">
-                                <i class="bi bi-plus-circle group-hover:rotate-90 transition-transform duration-300"></i>
-                                <span>Nova promoção</span>
-                            </a>
-                        </div>
-
-                        {{-- Linha 2: abas + ordem + ações --}}
-                        <div class="prod-header-row-2">
-                            <div class="prod-header-row-2-left">
-                                <div class="sale-filter-pills promo-tabs">
-                                    @foreach($tabs as $key => [$label, $icon, $count])
-                                        <button type="button" wire:click="setTab('{{ $key }}')" class="sale-filter-pill promo-pill {{ $tab === $key ? 'active' : '' }}">
-                                            <i class="bi {{ $icon }}"></i><span>{{ $label }}</span>
-                                            @if($count)<span class="promo-pill-count">{{ $count }}</span>@endif
-                                        </button>
-                                    @endforeach
-                                </div>
-                                @if($tab === 'ativas')
-                                    <div class="sale-filter-pills sale-sort-pills hidden md:flex">
-                                        <span class="sale-filter-pill-label"><i class="bi bi-arrow-down-up"></i></span>
-                                        @foreach(['desconto' => 'Desconto', 'validade' => 'Validade', 'recentes' => 'Recentes', 'nome' => 'A-Z'] as $key => $label)
-                                            <button type="button" wire:click="$set('sort', '{{ $key }}')" class="sale-filter-pill {{ $sort === $key ? 'active' : '' }}"><span>{{ $label }}</span></button>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="prod-header-row-2-right">
-                                @if($items->hasPages())
-                                    <div class="sale-pagination-compact">
-                                        @if($items->currentPage() > 1)
-                                            <button type="button" wire:click.prevent="previousPage" class="sale-pagination-btn"><i class="bi bi-chevron-left"></i></button>
-                                        @endif
-                                        <span class="sale-pagination-indicator">{{ $items->currentPage() }} / {{ $items->lastPage() }}</span>
-                                        @if($items->hasMorePages())
-                                            <button type="button" wire:click.prevent="nextPage" class="sale-pagination-btn"><i class="bi bi-chevron-right"></i></button>
-                                        @endif
-                                    </div>
-                                @endif
-                                @if($items->count() && $tab !== 'encerradas')
-                                    <button type="button" wire:click="selectAllOnPage" class="sale-action-btn" title="Selecionar todos desta página">
-                                        <i class="bi bi-check2-square"></i><span>Selecionar</span>
-                                    </button>
-                                @endif
-                                <button type="button" wire:click="openFlyer" class="sale-action-btn promo-flyer-btn" title="Folheto com as ofertas para o status do WhatsApp e o Instagram">
-                                    <i class="bi bi-images"></i><span>Folheto</span>
-                                </button>
-                                <a href="{{ route('promotions.report') }}" class="sale-action-btn" title="Vendas em promoção: quanto vendeu, desconto dado e lucro">
-                                    <i class="bi bi-bar-chart-line"></i><span>Vendas</span>
-                                </a>
-                                <button type="button" wire:click="openSettings" class="sale-action-btn sale-action-filter" title="Lucro mínimo, validade e mensagem">
-                                    <i class="bi bi-gear"></i><span>Configurar</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <x-filter-sheet title="Filtros de promoções" subtitle="Situação e ordem" :active="$sort !== 'desconto' || $search !== ''" target="setTab,sort,clearFilters">
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-flag text-rose-500"></i>Situação</h4>
+            <div class="fm-fs-options">
+                @foreach($tabs as $key => [$label, $icon, $count])
+                    <button type="button" wire:click="setTab('{{ $key }}')" class="fm-fs-opt {{ $tab === $key ? 'is-on' : '' }}"><i class="bi {{ $icon }}"></i>{{ $label }}@if($count) ({{ $count }})@endif</button>
+                @endforeach
             </div>
         </div>
-    </div>
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-arrow-down-up text-amber-500"></i>Ordenar promoções ativas por</h4>
+            <div class="fm-fs-options">
+                @foreach($sorts as $key => $label)
+                    <button type="button" wire:click="$set('sort', '{{ $key }}')" class="fm-fs-opt {{ $sort === $key ? 'is-on' : '' }}">{{ $label }}</button>
+                @endforeach
+            </div>
+        </div>
+        <div class="fm-fs-group sm:hidden">
+            <h4><i class="bi bi-three-dots text-slate-500"></i>Mais</h4>
+            <div class="fm-fs-options">
+                <a href="{{ route('promotions.report') }}" class="fm-fs-opt"><i class="bi bi-bar-chart-line"></i>Vendas em promoção</a>
+                <button type="button" @click="showFilters = false" wire:click="openSettings" class="fm-fs-opt"><i class="bi bi-gear"></i>Configurar</button>
+            </div>
+        </div>
+    </x-filter-sheet>
 
 
     {{-- Barra de seleção --}}
@@ -189,29 +149,26 @@
 
     {{-- ============ LISTA ============ --}}
     @if($items->count() === 0)
-        <div class="empty-state flex flex-col items-center justify-center py-16 bg-gradient-to-br from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-700 rounded-2xl border-2 border-dashed border-neutral-300 dark:border-neutral-600 text-center px-4">
-            <div class="w-24 h-24 mb-5 rounded-3xl bg-gradient-to-br from-rose-500/20 to-orange-500/20 flex items-center justify-center">
-                <i class="bi bi-tags text-4xl text-rose-500"></i>
-            </div>
-            <h3 class="text-xl font-bold text-neutral-800 dark:text-neutral-100 mb-2">
-                @switch($tab)
-                    @case('sugestoes') Nenhuma sugestão agora @break
-                    @case('agendadas') Nenhuma promoção agendada @break
-                    @case('encerradas') Nenhuma promoção encerrada ainda @break
-                    @default Nenhuma promoção ativa
-                @endswitch
-            </h3>
-            <p class="text-neutral-600 dark:text-neutral-400 mb-6 max-w-md">
-                @if($tab === 'sugestoes') Nenhum produto com estoque e fora de promoção se encaixa em "{{ \App\Services\Products\PromotionService::SUGGESTION_TYPES[$suggest][0] }}". Tente outro tipo.
-                @else Escolha produtos e defina o desconto de cada um. @endif
-            </p>
-            <div class="flex flex-wrap gap-3 justify-center">
-                <a href="{{ route('promotions.create') }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-rose-500 to-orange-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl"><i class="bi bi-plus-circle mr-2"></i> Nova promoção</a>
-                @if($tab === 'ativas' && $stats['sugestoes'])
-                    <button type="button" wire:click="setTab('sugestoes')" class="inline-flex items-center px-6 py-3 bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-300 font-semibold rounded-xl border border-rose-200 dark:border-rose-800"><i class="bi bi-lightbulb mr-2"></i> Ver {{ $stats['sugestoes'] }} sugestão(ões)</button>
-                @endif
-            </div>
-        </div>
+        @php
+            $emptyTitle = match ($tab) {
+                'sugestoes' => 'Nenhuma sugestão agora',
+                'agendadas' => 'Nenhuma promoção agendada',
+                'encerradas' => 'Nenhuma promoção encerrada ainda',
+                default => $search !== '' ? 'Nenhuma promoção encontrada' : 'Nenhuma promoção ativa',
+            };
+            $emptyText = $tab === 'sugestoes'
+                ? 'Nenhum produto com estoque e fora de promoção se encaixa em "' . \App\Services\Products\PromotionService::SUGGESTION_TYPES[$suggest][0] . '". Tente outro tipo.'
+                : ($search !== '' ? 'Nada com "' . $search . '". Tente outro nome ou código.' : 'Escolha produtos e defina o desconto de cada um.');
+        @endphp
+        <x-empty-state icon="bi-tags" tone="rose" :title="$emptyTitle" :text="$emptyText">
+            @if($search !== '')
+                <button type="button" wire:click="$set('search', '')" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600"><i class="bi bi-x-lg"></i>Limpar busca</button>
+            @endif
+            <a href="{{ route('promotions.create') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-rose-500 to-orange-500 shadow-md"><i class="bi bi-plus-lg"></i>Nova promoção</a>
+            @if($tab === 'ativas' && $stats['sugestoes'])
+                <button type="button" wire:click="setTab('sugestoes')" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-700 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-800"><i class="bi bi-lightbulb"></i>Ver {{ $stats['sugestoes'] }} sugest{{ $stats['sugestoes'] == 1 ? 'ão' : 'ões' }}</button>
+            @endif
+        </x-empty-state>
     @else
         <div class="products-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 ultrawind:grid-cols-8 gap-6"
              x-bind:data-ultrawind="ultra ? 'true' : 'false'" x-bind:data-full-hd="fullHd ? 'true' : 'false'">
@@ -431,6 +388,10 @@
             color: #fff; white-space: nowrap; background: linear-gradient(135deg, #f43f5e, #f97316); box-shadow: 0 3px 10px rgba(244,63,94,.4); border: 1.5px solid rgba(255,255,255,.75); }
         .promo-card .promo-price-badge { background: linear-gradient(135deg, #f43f5e 0%, #f97316 100%) !important; color: #fff !important; }
         .promo-card .promo-price-badge s { opacity: .75; font-size: .8em; margin-right: .25em; }
+        /* Custo e preço da promoção lado a lado, sem um cobrir o outro em cards estreitos */
+        .promo-card .price-area { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .3em; padding: 0 .4em; }
+        .promo-card .price-area .badge-price,
+        .promo-card .price-area .promo-price-badge { position: static !important; transform: none !important; inset: auto !important; margin: 0 !important; white-space: nowrap; max-width: 100%; }
         .promo-card .promo-save { margin-top: .35em; text-align: center; font-size: .68em; font-weight: 700; color: rgb(5 150 105); }
         .promo-card .promo-card-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: .3em; margin: .4em 0 2.1em; font-size: .66em; }
         .promo-card .promo-meta-pill { display: inline-flex; align-items: center; gap: .25em; max-width: 100%; padding: .2em .6em; border-radius: 999px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;

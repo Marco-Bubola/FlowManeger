@@ -101,6 +101,13 @@ class PromotionsIndex extends Component
     public function updatingSearch(): void { $this->resetPage(); }
     public function updatingSort(): void { $this->resetPage(); }
 
+    public function clearFilters(): void
+    {
+        $this->search = '';
+        $this->sort = 'desconto';
+        $this->resetPage();
+    }
+
     public function setTab(string $tab): void
     {
         if (!in_array($tab, ['ativas', 'sugestoes', 'agendadas', 'encerradas'], true)) {
