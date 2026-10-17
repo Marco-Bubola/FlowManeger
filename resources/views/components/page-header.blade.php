@@ -20,6 +20,8 @@
         'produtos' => ['Produtos', 'bi-box-seam', 'products.index'],
         'financas' => ['Finanças', 'bi-wallet2', 'cashbook.index'],
         'gestao' => ['Gestão', 'bi-kanban', 'dashboard'],
+        'mercadolivre' => ['Mercado Livre', 'bi-shop', 'mercadolivre.publications'],
+        'shopee' => ['Shopee', 'bi-bag', 'shopee.orders'],
     ];
     $crumb = $section ? ($crumbs[$section] ?? null) : null;
     // Na tela principal da seção a trilha começa no Início (evita "Vendas > Vendas").

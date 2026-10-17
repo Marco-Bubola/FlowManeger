@@ -4,17 +4,36 @@
      ============================================================ --}}
 <div class="shopee-settings-page min-h-screen">
 
-    {{-- ─── Cabeçalho ─── --}}
-    <div class="max-w-4xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+    <div class="w-full px-4 pt-4 pb-6 sm:px-6 lg:px-8">
 
-        {{-- Título no padrão do app --}}
-        <div class="mb-6">
-            <x-sales-header title="Shopee — Configurações" description="Conecte sua loja Shopee ao FlowManager"
-                icon="bi-shop" iconColor="orange" :back-route="route('dashboard')" />
-        </div>
+        {{-- ─── Cabeçalho ─── --}}
+        <x-page-header title="Configurações" icon="bi-gear" section="shopee" tabs-section="shopee" tabs-active="config"
+                       subtitle="Conecte sua loja Shopee ao FlowManager">
+            <x-slot:meta>
+                @if($isConnected)
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"><i class="bi bi-plug"></i>Loja conectada</span>
+                    @if($expiresAt)
+                        <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300"><i class="bi bi-clock"></i>Token até {{ $expiresAt }}</span>
+                    @endif
+                @else
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200"><i class="bi bi-plug"></i>Não conectado</span>
+                @endif
+            </x-slot:meta>
+            <x-slot:actions>
+                @unless($isConnected)
+                    <button type="button" wire:click="connect" wire:loading.attr="disabled" wire:target="connect" title="Conectar Shopee"
+                            class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-md shadow-orange-500/25 transition whitespace-nowrap disabled:opacity-60">
+                        <i class="bi bi-link-45deg"></i>
+                        <span class="hidden sm:inline" wire:loading.remove wire:target="connect">Conectar Shopee</span>
+                        <span class="hidden sm:inline" wire:loading wire:target="connect">Redirecionando...</span>
+                    </button>
+                @endunless
+            </x-slot:actions>
+        </x-page-header>
 
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 lg:gap-6 items-start">
         {{-- ─── Card Principal de Status ─── --}}
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-6">
+        <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
 
             {{-- Faixa de status --}}
             <div class="px-5 py-3 flex items-center gap-2
@@ -91,15 +110,8 @@
 
                         <button wire:click="connect"
                                 wire:loading.attr="disabled"
-                                class="w-full sm:w-auto px-6 py-3 rounded-xl text-sm font-semibold text-white
-                                       transition-all duration-200 hover:opacity-90 active:scale-95"
-                                style="background: linear-gradient(135deg, #EE4D2D 0%, #FF6633 100%);">
-                            <span wire:loading.remove wire:target="connect">
-                                <svg class="inline-block w-4 h-4 mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-                                </svg>
-                                Conectar Shopee
-                            </span>
+                                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-md shadow-orange-500/25 transition-all duration-200 active:scale-95">
+                            <span wire:loading.remove wire:target="connect"><i class="bi bi-link-45deg"></i> Conectar Shopee</span>
                             <span wire:loading wire:target="connect">Redirecionando...</span>
                         </button>
                     </div>
@@ -108,14 +120,12 @@
         </div>
 
         {{-- ─── Card de Informações da API ─── --}}
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+        <div class="lg:col-span-2 min-w-0 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
             <h3 class="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+                <i class="bi bi-info-circle text-gray-400"></i>
                 Variáveis de Ambiente Necessárias
             </h3>
-            <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 font-mono text-xs space-y-1 text-gray-700 dark:text-gray-300">
+            <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 font-mono text-xs space-y-1 text-gray-700 break-all dark:text-gray-300">
                 <p><span class="text-blue-600 dark:text-blue-400">SHOPEE_PARTNER_ID</span>=seu_partner_id</p>
                 <p><span class="text-blue-600 dark:text-blue-400">SHOPEE_PARTNER_KEY</span>=sua_partner_key</p>
                 <p><span class="text-blue-600 dark:text-blue-400">SHOPEE_REDIRECT_URI</span>={{ config('app.url') }}/shopee/auth/callback</p>
@@ -126,6 +136,7 @@
                 <a href="https://open.shopee.com" target="_blank" rel="noopener noreferrer"
                    class="text-orange-600 hover:underline">Shopee Open Platform</a>.
             </p>
+        </div>
         </div>
 
     </div>

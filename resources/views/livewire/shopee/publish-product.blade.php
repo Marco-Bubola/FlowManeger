@@ -5,28 +5,39 @@
 <div class="shopee-publish-page min-h-screen"
      x-data="{ step: @entangle('currentStep') }">
 
+    <div class="w-full px-4 pt-4 sm:px-6 lg:px-8">
+        <x-page-header title="Publicar produto" icon="bi-megaphone" section="shopee" tabs-section="shopee" tabs-active="publicar"
+                       subtitle="Escolha o produto, a categoria e os detalhes para anunciar na sua loja Shopee">
+            <x-slot:meta>
+                @if(count($selectedProducts))
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"><i class="bi bi-check2-circle"></i>{{ count($selectedProducts) }} produto(s) escolhido(s)</span>
+                @endif
+                @unless($isConnected)
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200"><i class="bi bi-plug"></i>Desconectada</span>
+                @endunless
+            </x-slot:meta>
+        </x-page-header>
+
+        @unless($isConnected)
+            <div class="mb-4 flex items-start gap-3 rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/15 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+                <i class="bi bi-plug-fill mt-0.5"></i>
+                <p>Loja Shopee não conectada: você pode preparar o anúncio, mas precisa conectar para publicar.
+                    <a href="{{ route('shopee.settings') }}" class="font-semibold underline" wire:navigate>Conectar</a></p>
+            </div>
+        @endunless
+    </div>
+
     {{-- ─── Barra de progresso de steps ─── --}}
-    <div class="sticky top-0 z-20 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div class="max-w-4xl mx-auto px-4 py-3 sm:px-6">
-            <div class="flex items-center justify-between mb-1">
-                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                    Publicar na Shopee — Step {{ $currentStep }} de 4
-                </span>
-                <div class="flex items-center gap-1">
-                    {{-- Logo Shopee --}}
-                    <div class="w-6 h-6 rounded-md flex items-center justify-center"
-                         style="background: linear-gradient(135deg,#EE4D2D,#FF6633)">
-                        <svg class="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C8.686 2 6 4.686 6 8c0 1.657.672 3.157 1.757 4.243A6.956 6.956 0 005 18v2h14v-2a6.956 6.956 0 00-2.757-5.757A5.978 5.978 0 0018 8c0-3.314-2.686-6-6-6z"/>
-                        </svg>
-                    </div>
-                </div>
+    <div class="sticky top-0 z-20 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-6xl mx-auto px-4 py-3 sm:px-5 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur border border-slate-200/80 dark:border-slate-700/70 shadow-sm">
+            <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Passo {{ $currentStep }} de 4</span>
+                <i class="bi bi-bag text-orange-500"></i>
             </div>
             {{-- Barra de progresso --}}
-            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                <div class="h-1.5 rounded-full transition-all duration-500"
-                     style="background: linear-gradient(90deg,#EE4D2D,#FF6633);
-                            width: {{ ($currentStep / 4) * 100 }}%">
+            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
+                <div class="h-1.5 rounded-full transition-all duration-500 bg-gradient-to-r from-orange-500 to-red-500"
+                     style="width: {{ ($currentStep / 4) * 100 }}%">
                 </div>
             </div>
             {{-- Labels dos steps --}}
@@ -42,7 +53,7 @@
         </div>
     </div>
 
-    <div class="max-w-4xl mx-auto px-4 py-5 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto px-4 py-5 sm:px-6 lg:px-8">
 
         {{-- ───────────────────────────────────────────────────────
              STEP 1 — Selecionar Produto(s)
@@ -55,18 +66,10 @@
             </div>
 
             {{-- Busca --}}
-            <div class="relative">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <input type="text" wire:model.live.debounce.400ms="searchTerm"
-                       placeholder="Buscar produto..."
-                       class="w-full pl-9 pr-4 py-2.5 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600
-                              rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 dark:text-white">
-            </div>
+            <x-list-toolbar model="searchTerm" placeholder="Buscar produto por nome ou código..." />
 
             {{-- Grid de produtos --}}
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 @forelse($productsList as $product)
                 <div wire:click="selectProduct({{ $product->id }})"
                      class="shopee-product-card bg-white dark:bg-gray-800 rounded-xl border-2 cursor-pointer
@@ -122,12 +125,13 @@
                     </div>
                 </div>
                 @empty
-                <div class="col-span-full py-8 text-center text-gray-400 dark:text-gray-500">
-                    <svg class="w-10 h-10 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                    </svg>
-                    <p class="text-sm">Nenhum produto encontrado</p>
-                </div>
+                <x-empty-state class="col-span-full" icon="bi-box-seam" tone="amber"
+                               :title="$searchTerm !== '' ? 'Nenhum produto encontrado' : 'Nenhum produto para publicar'"
+                               :text="$searchTerm !== '' ? 'Nada com essa busca. Tente outro nome ou código.' : 'Cadastre produtos no estoque para publicar na Shopee.'">
+                    @if($searchTerm !== '')
+                        <button type="button" wire:click="$set('searchTerm', '')" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600"><i class="bi bi-x-lg"></i>Limpar busca</button>
+                    @endif
+                </x-empty-state>
                 @endforelse
             </div>
 

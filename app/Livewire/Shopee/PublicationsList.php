@@ -29,6 +29,12 @@ class PublicationsList extends Component
     public function updatedStatusFilter(): void { $this->resetPage(); }
     public function updatedSyncFilter(): void  { $this->resetPage(); }
 
+    public function clearFilters(): void
+    {
+        $this->reset(['searchTerm', 'statusFilter', 'syncFilter']);
+        $this->resetPage();
+    }
+
     /**
      * Importa pedidos recentes da Shopee manualmente.
      */

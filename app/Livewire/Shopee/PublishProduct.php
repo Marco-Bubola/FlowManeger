@@ -87,8 +87,14 @@ class PublishProduct extends Component
     // Mount
     // -------------------------------------------------------------------------
 
-    public function mount(?Product $product = null): void
+    public function mount($product = null): void
     {
+        // Sem tipo no parâmetro: com "?Product" o Livewire tentava buscar um produto
+        // vazio na rota /publish/create e a página dava 404 (mesma correção do Mercado Livre).
+        if ($product !== null && !$product instanceof Product) {
+            $product = Product::findOrFail($product);
+        }
+
         // Verificar conexão Shopee
         $this->isConnected = ShopeeToken::getActiveForUser(Auth::id()) !== null;
 

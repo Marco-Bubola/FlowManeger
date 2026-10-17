@@ -18,6 +18,23 @@
             'receber' => ['label' => 'A receber', 'icon' => 'bi-cash-coin', 'route' => 'gestao.receivables'],
             'lucro' => ['label' => 'Lucro por venda', 'icon' => 'bi-graph-up-arrow', 'route' => 'gestao.profit'],
         ],
+        'mercadolivre' => [
+            'anuncios' => ['label' => 'Anúncios', 'icon' => 'bi-megaphone', 'route' => 'mercadolivre.publications'],
+            'produtos' => ['label' => 'Produtos', 'icon' => 'bi-box-seam', 'route' => 'mercadolivre.products'],
+            'pedidos' => ['label' => 'Pedidos', 'icon' => 'bi-bag-check', 'route' => 'mercadolivre.orders'],
+            'perguntas' => ['label' => 'Perguntas', 'icon' => 'bi-chat-dots', 'route' => 'mercadolivre.questions'],
+            'mensagens' => ['label' => 'Mensagens', 'icon' => 'bi-envelope', 'route' => 'mercadolivre.messages'],
+            'promocoes' => ['label' => 'Promoções', 'icon' => 'bi-percent', 'route' => 'mercadolivre.promotions'],
+            'mediacoes' => ['label' => 'Mediações', 'icon' => 'bi-shield-exclamation', 'route' => 'mercadolivre.mediations'],
+            'reputacao' => ['label' => 'Reputação', 'icon' => 'bi-star', 'route' => 'mercadolivre.reputation'],
+            'config' => ['label' => 'Configurações', 'icon' => 'bi-gear', 'route' => 'mercadolivre.settings'],
+        ],
+        'shopee' => [
+            'pedidos' => ['label' => 'Pedidos', 'icon' => 'bi-bag-check', 'route' => 'shopee.orders'],
+            'anuncios' => ['label' => 'Publicações', 'icon' => 'bi-megaphone', 'route' => 'shopee.publications'],
+            'publicar' => ['label' => 'Publicar produto', 'icon' => 'bi-plus-circle', 'route' => 'shopee.products.publish.create'],
+            'config' => ['label' => 'Configurações', 'icon' => 'bi-gear', 'route' => 'shopee.settings'],
+        ],
         'categorias' => [
             'lista' => ['label' => 'Categorias', 'icon' => 'bi-tags', 'route' => 'categories.index'],
             'nova' => ['label' => 'Nova categoria', 'icon' => 'bi-plus-circle', 'route' => 'categories.create'],

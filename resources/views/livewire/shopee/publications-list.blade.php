@@ -1,88 +1,85 @@
 {{-- ============================================================
      SHOPEE — LISTA DE PUBLICAÇÕES + LOGS DE ERRO
      ============================================================ --}}
-<div class="shopee-publications-page min-h-screen">
-    <div class="max-w-6xl mx-auto px-4 py-5 sm:px-6 lg:px-8 space-y-5">
+@php
+    $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70';
+    $statusOpts = ['' => ['Todos', 'bi-grid'], 'published' => ['Publicado', 'bi-check-circle'], 'draft' => ['Rascunho', 'bi-pencil'], 'inactive' => ['Inativo', 'bi-pause-circle']];
+    $syncOpts = ['' => ['Qualquer sync', 'bi-arrow-repeat'], 'synced' => ['Sincronizado', 'bi-check2-all'], 'pending' => ['Pendente', 'bi-hourglass-split'], 'error' => ['Com erro', 'bi-exclamation-triangle']];
+    $hasFilters = $searchTerm !== '' || $statusFilter !== '' || $syncFilter !== '';
+@endphp
+<div class="shopee-publications-page min-h-screen" x-data="{ showFilters: false }">
+    <div class="w-full px-4 py-4 sm:px-6 lg:px-8">
 
         {{-- ─── Cabeçalho ─── --}}
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div class="flex-1">
-                <x-sales-header title="Publicações — Shopee" description="Gerenciar anúncios ativos e sincronização"
-                    icon="bi-shop" iconColor="orange" :back-route="route('dashboard')" />
-            </div>
-            <div class="flex items-center gap-2">
+        <x-page-header title="Publicações" icon="bi-shop" section="shopee" tabs-section="shopee" tabs-active="anuncios"
+                       subtitle="Gerenciar anúncios ativos e sincronização">
+            <x-slot:meta>
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-orange-50 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300"><i class="bi bi-megaphone"></i>{{ $publications->total() }} anúncio{{ $publications->total() == 1 ? '' : 's' }}</span>
                 @if($ordersCount > 0)
-                <span class="px-3 py-1.5 text-xs font-semibold rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
-                    {{ $ordersCount }} pedido(s) pendente(s)
-                </span>
+                    <a href="{{ route('shopee.orders') }}" wire:navigate title="{{ $ordersCount }} pedido(s) pendente(s) de envio" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-500/20 dark:text-blue-300"><i class="bi bi-bag-check"></i>{{ $ordersCount }} a enviar</a>
                 @endif
-                <a href="{{ route('shopee.orders') }}" wire:navigate
-                   class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-xl
-                          bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
-                          hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
-                    <i class="bi bi-bag-check"></i> Pedidos
-                </a>
-                <button wire:click="importOrders" wire:loading.attr="disabled"
-                        class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-xl
-                               bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
-                               hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
-                    <span wire:loading.remove wire:target="importOrders">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                        </svg>
-                        Importar Pedidos
-                    </span>
-                    <span wire:loading wire:target="importOrders" class="flex items-center gap-1">
-                        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                        </svg>
-                        Importando...
-                    </span>
+                @if($errorLogs->isNotEmpty())
+                    <span title="Erros de sincronização recentes" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300"><i class="bi bi-exclamation-triangle"></i>{{ $errorLogs->count() }} erro(s)</span>
+                @endif
+            </x-slot:meta>
+            <x-slot:actions>
+                <button type="button" @click="showFilters = true" title="Filtros" class="{{ $phBtn }}">
+                    <i class="bi bi-sliders text-orange-500"></i><span class="hidden sm:inline">Filtros</span>
+                    @if($hasFilters)<span class="h-2 w-2 rounded-full bg-orange-500"></span>@endif
                 </button>
-                <a href="{{ route('shopee.products.publish.create') }}"
-                   class="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl text-white
-                          transition-all hover:opacity-90 active:scale-95"
-                   style="background: linear-gradient(135deg,#EE4D2D,#FF6633)">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Nova Publicação
-                </a>
-            </div>
-        </div>
+                <button type="button" wire:click="importOrders" wire:loading.attr="disabled" wire:target="importOrders" title="Importar pedidos recentes da Shopee" class="{{ $phBtn }} disabled:opacity-60">
+                    <i class="bi bi-download text-sky-500" wire:loading.remove wire:target="importOrders"></i>
+                    <i class="bi bi-arrow-repeat animate-spin text-sky-500" wire:loading wire:target="importOrders"></i>
+                    <span class="hidden sm:inline" wire:loading.remove wire:target="importOrders">Importar pedidos</span>
+                    <span class="hidden sm:inline" wire:loading wire:target="importOrders">Importando...</span>
+                </button>
+                <a href="{{ route('shopee.products.publish.create') }}" title="Nova publicação"
+                   class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-md shadow-orange-500/25 transition whitespace-nowrap"><i class="bi bi-plus-lg"></i><span class="hidden sm:inline">Nova publicação</span></a>
+            </x-slot:actions>
+        </x-page-header>
 
-        {{-- ─── Filtros ─── --}}
-        <div class="flex flex-wrap gap-2">
-            <div class="flex-1 min-w-[160px] relative">
-                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <input wire:model.live.debounce.400ms="searchTerm" type="text" placeholder="Buscar por título ou item ID..."
-                       class="w-full pl-8 pr-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600
-                              rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 dark:text-white">
+        {{-- ─── Busca e filtros ─── --}}
+        <x-list-toolbar model="searchTerm" placeholder="Buscar por título ou item ID...">
+            <x-toolbar.group icon="bi-flag">
+                @foreach($statusOpts as $key => [$label, $icon])
+                    <x-toolbar.chip wire:click="$set('statusFilter', '{{ $key }}')" :active="$statusFilter === $key" :icon="$icon">{{ $label }}</x-toolbar.chip>
+                @endforeach
+            </x-toolbar.group>
+            <x-toolbar.group icon="bi-arrow-repeat">
+                @foreach($syncOpts as $key => [$label, $icon])
+                    @continue($key === '')
+                    <x-toolbar.chip wire:click="$set('syncFilter', '{{ $syncFilter === $key ? '' : $key }}')" :active="$syncFilter === $key">{{ $label }}</x-toolbar.chip>
+                @endforeach
+            </x-toolbar.group>
+            @if($hasFilters)
+                <x-toolbar.group>
+                    <x-toolbar.chip wire:click="clearFilters" icon="bi-x-lg" title="Limpar busca e filtros">Limpar</x-toolbar.chip>
+                </x-toolbar.group>
+            @endif
+        </x-list-toolbar>
+
+        <x-filter-sheet title="Filtros de publicações" subtitle="Situação e sincronização" :active="$hasFilters" target="statusFilter,syncFilter,clearFilters">
+            <div class="fm-fs-group">
+                <h4><i class="bi bi-flag text-orange-500"></i>Situação</h4>
+                <div class="fm-fs-options">
+                    @foreach($statusOpts as $key => [$label, $icon])
+                        <button type="button" wire:click="$set('statusFilter', '{{ $key }}')" class="fm-fs-opt {{ $statusFilter === $key ? 'is-on' : '' }}"><i class="bi {{ $icon }}"></i>{{ $label }}</button>
+                    @endforeach
+                </div>
             </div>
-            <select wire:model.live="statusFilter"
-                    class="px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600
-                           rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 dark:text-white">
-                <option value="">Todos os status</option>
-                <option value="published">Publicado</option>
-                <option value="draft">Rascunho</option>
-                <option value="inactive">Inativo</option>
-            </select>
-            <select wire:model.live="syncFilter"
-                    class="px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600
-                           rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 dark:text-white">
-                <option value="">Qualquer sync</option>
-                <option value="synced">Sincronizado</option>
-                <option value="pending">Pendente</option>
-                <option value="error">Com erro</option>
-            </select>
-        </div>
+            <div class="fm-fs-group">
+                <h4><i class="bi bi-arrow-repeat text-red-500"></i>Sincronização</h4>
+                <div class="fm-fs-options">
+                    @foreach($syncOpts as $key => [$label, $icon])
+                        <button type="button" wire:click="$set('syncFilter', '{{ $key }}')" class="fm-fs-opt {{ $syncFilter === $key ? 'is-on' : '' }}"><i class="bi {{ $icon }}"></i>{{ $label }}</button>
+                    @endforeach
+                </div>
+            </div>
+        </x-filter-sheet>
 
         {{-- ─── Logs de Erro (destaque) ─── --}}
         @if($errorLogs->isNotEmpty())
-        <div class="bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800 p-4">
+        <div class="mb-4 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800 p-4">
             <div class="flex items-center gap-2 mb-3">
                 <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -108,22 +105,16 @@
         @endif
 
         {{-- ─── Tabela de Publicações ─── --}}
-        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div class="{{ $publications->isEmpty() ? '' : 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden' }}">
             @if($publications->isEmpty())
-            <div class="py-16 text-center">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center opacity-30"
-                     style="background: linear-gradient(135deg,#EE4D2D,#FF6633)">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                </div>
-                <p class="text-gray-500 dark:text-gray-400 text-sm">Nenhuma publicação Shopee encontrada.</p>
-                <a href="{{ route('shopee.products.publish.create') }}"
-                   class="mt-3 inline-block px-4 py-2 text-sm font-medium rounded-xl text-white"
-                   style="background: linear-gradient(135deg,#EE4D2D,#FF6633)">
-                    Criar primeira publicação
-                </a>
-            </div>
+            <x-empty-state icon="bi-megaphone" tone="amber"
+                           :title="$hasFilters ? 'Nenhum anúncio encontrado' : 'Nenhuma publicação Shopee ainda'"
+                           :text="$hasFilters ? 'Nada com essa busca ou filtros. Tente outro termo ou limpe os filtros.' : 'Escolha um produto do estoque e publique na sua loja Shopee.'">
+                @if($hasFilters)
+                    <button type="button" wire:click="clearFilters" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600"><i class="bi bi-x-lg"></i>Limpar filtros</button>
+                @endif
+                <a href="{{ route('shopee.products.publish.create') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 shadow-md"><i class="bi bi-plus-lg"></i>Criar primeira publicação</a>
+            </x-empty-state>
             @else
             {{-- Desktop: tabela --}}
             <div class="hidden sm:block overflow-x-auto">
@@ -211,7 +202,7 @@
                         ];
                         @endphp
                         <span class="px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 {{ $syncMap[$pub->sync_status] ?? 'bg-gray-100 text-gray-500' }}">
-                            {{ $pub->sync_status }}
+                            {{ ['synced' => 'Sincronizado', 'pending' => 'Pendente', 'error' => 'Erro', 'updating' => 'Atualizando'][$pub->sync_status] ?? $pub->sync_status }}
                         </span>
                     </div>
                     <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
