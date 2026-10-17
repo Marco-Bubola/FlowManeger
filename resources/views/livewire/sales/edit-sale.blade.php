@@ -23,9 +23,9 @@
     <!-- Header Sticky (mesmo estilo do Create) -->
     <div class="create-sale-sticky-header">
     <x-sales-header tabs-section="vendas"
-        title="Editar Venda #{{ $sale->id }}"
+        title="Editar venda #{{ $sale->id }}"
         icon="bi-pencil-square"
-        description="Atualize as informações da venda seguindo os passos"
+        description="Troque os produtos e confira o resumo antes de salvar"
         :back-route="route('sales.show', $sale->id)"
         :current-step="$currentStep"
         :steps="[
@@ -113,18 +113,18 @@
                     <div class="w-full lg:flex-1 lg:min-w-0 flex flex-col edit-sale-products-pane">
                         <!-- Barra de busca (mesmo visual de cartão das outras telas) -->
                         <div class="mt-3 mb-1 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-3 shadow-sm">
-                            <div class="flex flex-col md:flex-row md:items-center gap-2 sale-search-bar">
-                                <div class="relative flex-1 min-w-0">
+                            <div class="flex items-center gap-2 sale-search-bar">
+                                <div class="relative !flex-1 min-w-0">
                                     <i class="bi bi-search pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                                     <input type="text"
                                         wire:model.live.debounce.300ms="searchTerm"
                                         placeholder="Pesquisar produtos por nome ou código..."
                                         class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition pl-10 pr-4">
                                 </div>
-                                <label class="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 select-none">
+                                <label class="inline-flex shrink-0 !flex-none !w-auto cursor-pointer items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 select-none">
                                     <input type="checkbox" wire:model.live="showOnlySelected" class="peer sr-only">
                                     <span class="relative h-5 w-9 rounded-full bg-slate-300 dark:bg-slate-600 transition peer-checked:bg-indigo-600 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-4"></span>
-                                    Só selecionados
+                                    <span><span class="hidden sm:inline">Só </span>selecionados</span>
                                 </label>
                             </div>
                         </div>
@@ -132,33 +132,21 @@
                         <!-- Grid de Produtos com Scroll -->
                         <div class="flex-1 p-2 sm:p-3 overflow-y-auto min-h-0">
                             @if($this->getFilteredProducts()->isEmpty())
-                            <div class="flex flex-col items-center justify-center h-full">
-                                <div class="w-32 h-32 mx-auto mb-6 text-gray-400">
-                                    <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m8-8v2m0 4h.01M21 21l-5-5m5 5v-4a1 1 0 00-1-1h-4" />
-                                    </svg>
-                                </div>
-                                <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                                    @if($showOnlySelected && empty($selectedProducts))
-                                    Nenhum produto selecionado
-                                    @elseif($searchTerm)
-                                    Nenhum produto encontrado
-                                    @else
-                                    Nenhum produto disponível
-                                    @endif
-                                </h3>
-                                <p class="text-gray-600 dark:text-gray-400 text-center">
-                                    @if($showOnlySelected && empty($selectedProducts))
-                                    Selecione alguns produtos para visualizá-los aqui
-                                    @elseif($searchTerm)
-                                    Tente pesquisar com outros termos
-                                    @else
-                                    Cadastre produtos para começar a vender
-                                    @endif
-                                </p>
-                            </div>
+                            @php
+                                $noneSelected = $showOnlySelected && empty($selectedProducts);
+                            @endphp
+                            <x-empty-state icon="bi-box-seam"
+                                :title="$noneSelected ? 'Nenhum produto selecionado' : ($searchTerm ? 'Nenhum produto encontrado' : 'Nenhum produto disponível')"
+                                :text="$noneSelected ? 'Toque nos produtos para escolher e eles aparecem aqui.' : ($searchTerm ? 'Tente outro nome ou código.' : 'Cadastre produtos para começar a vender.')">
+                                @if($searchTerm)
+                                    <button type="button" wire:click="$set('searchTerm', '')" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600"><i class="bi bi-x-lg"></i>Limpar busca</button>
+                                @endif
+                                @if($showOnlySelected)
+                                    <button type="button" wire:click="$set('showOnlySelected', false)" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600"><i class="bi bi-grid"></i>Ver todos</button>
+                                @endif
+                            </x-empty-state>
                             @else
-                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 products-step-grid products-mobile-compact-grid">
+                            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4 products-step-grid products-mobile-compact-grid">
                                 @foreach(\App\Models\Product::groupByFamily($this->getFilteredProducts()) as $group)
                                     @if($group->count() > 1)
                                         @php $start = \App\Models\Product::familyStart($group); @endphp

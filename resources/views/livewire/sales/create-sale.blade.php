@@ -86,8 +86,8 @@
     <!-- Header Flutuante / Sticky -->
     <div class="create-sale-sticky-header">
     <x-sales-header tabs-section="vendas" tabs-active="nova"
-        title="Nova Venda"
-        description="Monte a venda com cliente, itens e fechamento em um fluxo rapido, seguro e proporcional em qualquer tela"
+        title="Nova venda"
+        description="Escolha os produtos e feche com cliente, data e pagamento"
         :back-route="route('sales.index')"
         :current-step="$currentStep ?? 1"
         :steps="[
@@ -154,8 +154,8 @@
                     <div class="w-full lg:flex-1 lg:min-w-0 flex flex-col create-sale-products-pane">
                         <!-- Barra de busca (mesmo visual de cartão das outras telas) -->
                         <div class="mt-3 mb-1 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-3 shadow-sm">
-                            <div class="flex flex-col md:flex-row md:items-center gap-2 sale-search-bar">
-                                <div class="relative flex-1 min-w-0">
+                            <div class="flex flex-wrap md:flex-nowrap md:items-center gap-2 sale-search-bar">
+                                <div class="relative basis-full md:basis-auto md:flex-1 min-w-0">
                                     <i class="bi bi-search pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                                     <input type="text"
                                         wire:model.live.debounce.300ms="searchProduct"
@@ -163,7 +163,7 @@
                                         class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition pl-10 pr-4">
                                 </div>
 
-                                <div class="flex md:w-72 shrink-0 items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-3.5 pr-1 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition">
+                                <div class="flex flex-1 min-w-0 md:flex-none md:w-72 items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-3.5 pr-1 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition">
                                     <i class="bi bi-upc text-slate-400"></i>
                                     <input type="text"
                                            x-model="manualScanCode"
@@ -177,10 +177,10 @@
                                     </button>
                                 </div>
 
-                                <label class="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 select-none">
+                                <label class="inline-flex shrink-0 !flex-none !w-auto cursor-pointer items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 select-none">
                                     <input type="checkbox" wire:model.live="showOnlySelected" class="peer sr-only">
                                     <span class="relative h-5 w-9 rounded-full bg-slate-300 dark:bg-slate-600 transition peer-checked:bg-indigo-600 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-4"></span>
-                                    Só selecionados
+                                    <span><span class="hidden sm:inline">Só </span>selecionados</span>
                                 </label>
                             </div>
                             <p class="mt-2 text-xs text-slate-600 dark:text-slate-300" x-show="lastScanMessage" x-text="lastScanMessage"></p>
@@ -189,32 +189,19 @@
                         <!-- Grid de Produtos com Scroll -->
                         <div class="flex-1 p-2 sm:p-3 overflow-y-auto min-h-0">
                             @if($this->getFilteredProducts()->isEmpty())
-                            <!-- Estado vazio -->
-                            <div class="flex flex-col items-center justify-center h-full">
-                                <div class="w-32 h-32 mx-auto mb-6 text-gray-400">
-                                    <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m8-8v2m0 4h.01M21 21l-5-5m5 5v-4a1 1 0 00-1-1h-4" />
-                                    </svg>
-                                </div>
-                                <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                                    @if($showOnlySelected && empty($selectedProducts))
-                                    Nenhum produto selecionado
-                                    @elseif($searchProduct)
-                                    Nenhum produto encontrado
-                                    @else
-                                    Nenhum produto disponível
-                                    @endif
-                                </h3>
-                                <p class="text-gray-600 dark:text-gray-400 text-center">
-                                    @if($showOnlySelected && empty($selectedProducts))
-                                    Selecione alguns produtos para visualizá-los aqui
-                                    @elseif($searchProduct)
-                                    Tente pesquisar com outros termos
-                                    @else
-                                    Cadastre produtos para começar a vender
-                                    @endif
-                                </p>
-                            </div>
+                            @php
+                                $noneSelected = $showOnlySelected && empty($selectedProducts);
+                            @endphp
+                            <x-empty-state icon="bi-box-seam"
+                                :title="$noneSelected ? 'Nenhum produto selecionado' : ($searchProduct ? 'Nenhum produto encontrado' : 'Nenhum produto disponível')"
+                                :text="$noneSelected ? 'Toque nos produtos para escolher e eles aparecem aqui.' : ($searchProduct ? 'Tente outro nome ou código.' : 'Cadastre produtos para começar a vender.')">
+                                @if($searchProduct)
+                                    <button type="button" wire:click="$set('searchProduct', '')" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600"><i class="bi bi-x-lg"></i>Limpar busca</button>
+                                @endif
+                                @if($showOnlySelected)
+                                    <button type="button" wire:click="$set('showOnlySelected', false)" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600"><i class="bi bi-grid"></i>Ver todos</button>
+                                @endif
+                            </x-empty-state>
                             @else
                             <!-- Grid de Cards de Produtos usando o mesmo estilo da página de produtos -->
                             <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4 products-step-grid products-mobile-compact-grid">
