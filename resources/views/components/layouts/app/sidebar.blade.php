@@ -554,6 +554,14 @@
                                     <div class="{{ Request::is('cashbook') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-l-full"></div>
                                 </a>
 
+                                <a href="{{ route('finance.print-capture') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('finance.print-capture') ? 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20 text-emerald-600 dark:text-emerald-400 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('finance.print-capture') ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30' : '' }}">
+                                        <i class="bi bi-phone text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Lançar por print</span>
+                                    <div class="{{ request()->routeIs('finance.print-capture') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-l-full"></div>
+                                </a>
+
                                 <a href="{{ url('cofrinhos') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('cofrinhos*') ? 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20 text-emerald-600 dark:text-emerald-400 font-semibold' : '' }}" wire:navigate.hover>
                                     <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('cofrinhos*') ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30' : '' }}">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1698,6 +1706,12 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                         </div>
                         <span class="more-app-label">Livro Caixa</span>
+                    </a>
+                    <a href="{{ route('finance.print-capture') }}" class="more-app-card {{ request()->routeIs('finance.print-capture') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.2" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M11 18.5h2"/></svg>
+                        </div>
+                        <span class="more-app-label">Lançar por print</span>
                     </a>
                     <a href="{{ url('banks') }}" class="more-app-card {{ Request::is('banks*') || Request::is('invoices*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
                         <div class="more-app-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)">

@@ -310,6 +310,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/contas', \App\Livewire\Accounts\AccountsIndex::class)->name('accounts.index');
 
+    // Lançar por print (tela, WhatsApp e bancos conectados)
+    Route::get('/financas/lancar-por-print', \App\Livewire\Finance\PrintCapture::class)->name('finance.print-capture');
+    Route::get('/financas/lancar-por-print/{capture}/imagem', [\App\Http\Controllers\FinanceCaptureController::class, 'image'])
+        ->whereNumber('capture')->name('finance.print-capture.image');
+
     // Gestão: estoque, contas a receber e lucro
     Route::get('/gestao/estoque/movimentacoes', \App\Livewire\Gestao\StockMovements::class)->name('gestao.stock-movements');
     Route::get('/gestao/estoque/repor', \App\Livewire\Gestao\Restock::class)->name('gestao.restock');

@@ -37,12 +37,16 @@ class GeminiClient
         $timeout = $options['timeout'] ?? 120;
         $connectTimeout = $options['connect_timeout'] ?? 30;
 
+        // Imagens (prints) vão junto do texto: ['mime' => 'image/png', 'data' => <bytes>]
+        $parts = [['text' => $prompt]];
+        foreach ($options['images'] ?? [] as $image) {
+            $parts[] = ['inline_data' => ['mime_type' => $image['mime'], 'data' => base64_encode($image['data'])]];
+        }
+
         $payload = [
             'contents' => [
                 [
-                    'parts' => [
-                        ['text' => $prompt],
-                    ],
+                    'parts' => $parts,
                 ],
             ],
             'generationConfig' => [
