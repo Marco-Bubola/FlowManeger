@@ -160,8 +160,26 @@ class AccountsIndex extends Component
             ->selectRaw('SUM(CASE WHEN type_id = 1 THEN value ELSE 0 END) - SUM(CASE WHEN type_id = 2 THEN value ELSE 0 END) as balance')
             ->value('balance');
 
+        // Entradas e saídas do mês em cada conta, e as últimas movimentações já lançadas nelas
+        $month = Cashbook::where('user_id', Auth::id())
+            ->whereNotNull('account_id')
+            ->where('is_pending', false)
+            ->whereBetween('date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
+            ->groupBy('account_id')
+            ->selectRaw('account_id, SUM(CASE WHEN type_id = 1 THEN value ELSE 0 END) as income, SUM(CASE WHEN type_id = 2 THEN value ELSE 0 END) as expense')
+            ->get()->keyBy('account_id');
+
+        $recent = Cashbook::where('user_id', Auth::id())
+            ->whereNotNull('account_id')
+            ->where('is_pending', false)
+            ->orderByDesc('date')->orderByDesc('id')
+            ->limit(8)
+            ->get(['id', 'description', 'value', 'type_id', 'date', 'account_id']);
+
         return view('livewire.accounts.accounts-index', [
             'accounts' => $accounts,
+            'month' => $month,
+            'recent' => $recent,
             'total' => $accounts->filter(fn ($r) => ! $r['account']->archived)->sum('balance'),
             'unassigned' => (float) $unassigned,
             'types' => Account::TYPES,

@@ -8,6 +8,7 @@
         'orange' => 'from-orange-500 to-red-600',
         'cyan' => 'from-cyan-500 to-blue-600',
         'pink' => 'from-pink-500 to-rose-600',
+        'amber' => 'from-amber-400 to-orange-500',
     ];
     $gradient = $colorClasses[$color] ?? $colorClasses['blue'];
 @endphp

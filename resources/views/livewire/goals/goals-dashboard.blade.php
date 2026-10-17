@@ -311,7 +311,7 @@
         </div>
 
         <!-- KPIs de Hábitos Diários -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid gap-4 sm:gap-6 mb-8" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))">
             <x-stat-card
                 title="Hábitos Ativos"
                 :value="$habitStats['total_habits'] ?? 0"
