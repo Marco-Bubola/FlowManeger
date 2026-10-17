@@ -1,319 +1,221 @@
-<x-layouts.app title="Planos e assinatura">
-    <style>
-        :root {
-            --catalog-muted: #64748b;
-            --catalog-border: rgba(148,163,184,.18);
-            --catalog-border-dark: rgba(71,85,105,.48);
-            --catalog-grad: linear-gradient(135deg, #3b82f6 0%, #7c3aed 55%, #06b6d4 100%);
-        }
-        .plans-page {
-            --muted: #64748b;
-            --border: rgba(148,163,184,.18);
-        }
+<x-layouts.app title="Trocar plano">
+<section class="settings-plans-page w-full mobile-393-base" x-data="{ annual: false }">
+    <x-settings.layout :heading="''">
+        <style>
+            .tp-grid { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); padding: 0 1.25rem 1.25rem; }
+            .tp-card { position: relative; display: flex; flex-direction: column; border-radius: 1.1rem; border: 1.5px solid #e2e8f0; background: #fff; padding: 1.1rem; transition: border-color .15s, box-shadow .15s; }
+            .dark .tp-card { background: rgba(15,23,42,.45); border-color: #334155; }
+            .tp-card:hover { border-color: rgba(147,51,234,.35); box-shadow: 0 6px 22px -12px rgba(147,51,234,.35); }
+            .tp-card.is-popular { border-color: rgba(168,85,247,.45); background: rgba(168,85,247,.05); }
+            .tp-card.is-current { border-color: rgba(79,70,229,.5); background: rgba(79,70,229,.05); }
+            .tp-tag { display: inline-flex; align-items: center; gap: .25rem; width: max-content; border-radius: 999px; padding: .15rem .55rem; font-size: .68rem; font-weight: 700; }
+            .tp-price { font-size: 1.85rem; font-weight: 900; letter-spacing: -.04em; line-height: 1.1; color: #0f172a; }
+            .dark .tp-price { color: #f8fafc; }
+            .tp-feats { list-style: none; margin: .9rem 0 1rem; padding: 0; display: flex; flex-direction: column; gap: .4rem; flex: 1; }
+            .tp-feats li { display: flex; align-items: flex-start; gap: .45rem; font-size: .82rem; color: #334155; }
+            .dark .tp-feats li { color: #e2e8f0; }
+            .tp-feats li.off { color: #94a3b8; }
+            .dark .tp-feats li.off { color: #64748b; }
+            .tp-gw { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: .4rem; margin-bottom: .7rem; }
+            .tp-gw input { position: absolute; opacity: 0; pointer-events: none; }
+            .tp-gw label { display: flex; align-items: center; justify-content: center; gap: .35rem; min-height: 2.5rem; padding: .4rem; border-radius: .7rem; border: 1px solid #e2e8f0; background: #f8fafc; font-size: .74rem; font-weight: 600; color: #475569; cursor: pointer; text-align: center; }
+            .dark .tp-gw label { background: rgba(15,23,42,.6); border-color: #334155; color: #cbd5e1; }
+            .tp-gw input:checked + label { border-color: #a855f7; background: rgba(168,85,247,.1); color: #7e22ce; }
+            .dark .tp-gw input:checked + label { color: #d8b4fe; }
+            .tp-gw input:focus-visible + label { outline: 2px solid #a855f7; outline-offset: 2px; }
+            .tp-btn { display: inline-flex; width: 100%; align-items: center; justify-content: center; gap: .4rem; min-height: 2.75rem; border-radius: .8rem; font-size: .88rem; font-weight: 700; }
+            .tp-toggle { display: inline-flex; border-radius: 999px; padding: 3px; border: 1px solid #e2e8f0; background: #f8fafc; }
+            .dark .tp-toggle { background: rgba(15,23,42,.6); border-color: #334155; }
+            .tp-toggle button { border-radius: 999px; padding: .35rem 1rem; font-size: .8rem; font-weight: 700; color: #64748b; }
+            .tp-toggle button.on { background: #9333ea; color: #fff; box-shadow: 0 2px 10px rgba(147,51,234,.35); }
+            .tp-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 0 1.25rem 1.25rem; }
+            .tp-table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: .84rem; }
+            .tp-table th, .tp-table td { padding: .65rem .8rem; text-align: center; border-bottom: 1px solid #f1f5f9; }
+            .dark .tp-table th, .dark .tp-table td { border-color: #1e293b; }
+            .tp-table th { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: #64748b; }
+            .tp-table th:first-child, .tp-table td:first-child { text-align: left; }
+            .tp-table td { color: #334155; }
+            .dark .tp-table td { color: #e2e8f0; }
+            .tp-table th.is-current, .tp-table td.is-current { background: rgba(79,70,229,.06); }
+            @media (max-width: 639px) {
+                .tp-grid, .tp-table-wrap { padding: 0 .6rem .9rem; }
+                .tp-card { padding: .95rem; }
+            }
+        </style>
 
-        .plans-page { width: 100%; padding: 1.25rem var(--app-fluid-padding, clamp(0.65rem, 1.2vw, 1rem)) max(7.5rem, env(safe-area-inset-bottom)); color:#0f172a; }
-        .dark .plans-page { color:#f8fafc; }
-        .back-link { font-size: .78rem; color: var(--catalog-muted); display: inline-flex; align-items: center; gap: .35rem; margin-bottom: .65rem; transition: color .15s; }
-        .back-link:hover { color: #312e81; }
-        .dark .back-link { color:#94a3b8; }
+        @if(session('activated_plan'))
+            <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300"><i class="bi bi-check-circle-fill mr-1"></i>Plano <strong>{{ session('activated_plan') }}</strong> ativado.</div>
+        @endif
+        @if(session('error'))
+            <div class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300"><i class="bi bi-exclamation-triangle-fill mr-1"></i>{{ session('error') }}</div>
+        @endif
 
-        /* Header */
-        .page-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .85rem; }
-        .page-header-left { min-width: 0; }
-        .badge-current { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .6rem; background: rgba(147,51,234,.07); border: 1.5px solid rgba(147,51,234,.18); border-radius: 99px; font-size: .68rem; font-weight: 800; color: #9333ea; margin-bottom: .3rem; }
-        .dark .badge-current { background: rgba(168,85,247,.12); border-color: rgba(168,85,247,.3); color: #c084fc; }
-        .page-title { font-size: clamp(1.25rem,2.5vw,1.65rem); font-weight: 900; letter-spacing: -.04em; }
-        .page-title span { background: var(--catalog-grad); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .page-sub { font-size: .8rem; color: var(--catalog-muted); margin-top: .15rem; }
-        .dark .page-sub { color:#94a3b8; }
-
-        /* Toggle */
-        .billing-toggle { display: flex; align-items: center; justify-content: flex-end; gap: .6rem; flex-shrink: 0; }
-        .toggle-pill { display: flex; background: rgba(255,255,255,.75); border: 1px solid var(--catalog-border); border-radius: 99px; padding: 3px; gap: 2px; }
-        .dark .toggle-pill { background: rgba(15,23,42,.62); border-color: var(--catalog-border-dark); }
-        .toggle-btn { padding: .4rem 1.1rem; border-radius: 99px; font-size: .82rem; font-weight: 700; cursor: pointer; border: none; background: transparent; color: var(--muted); transition: all .2s; }
-        .toggle-btn.active { background: #a855f7; color: #fff; box-shadow: 0 2px 12px rgba(168,85,247,.4); }
-        .toggle-badge { font-size: .7rem; font-weight: 800; padding: .15rem .5rem; border-radius: 99px; background: rgba(16,185,129,.15); color: #34d399; border: 1px solid rgba(16,185,129,.25); }
-
-        /* Cards grid */
-        .plans-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .85rem; }
-
-        /* Plan card */
-        .plan-card {
-            background: white; border: 1.5px solid #f1f5f9;
-            border-radius: 1.1rem; padding: .95rem .95rem 1.1rem;
-            display: flex; flex-direction: column; position: relative;
-            transition: transform .2s, border-color .2s, box-shadow .2s;
-            box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.03);
-        }
-        .dark .plan-card { background: #1e293b; border-color: #334155; }
-        .plan-card:hover { transform: translateY(-2px); border-color: rgba(147,51,234,.2); box-shadow: 0 4px 20px rgba(147,51,234,.08); }
-        .plan-card.popular { border-color: rgba(168,85,247,.4); background: rgba(168,85,247,.06); }
-        .plan-card.popular::before {
-            content: attr(data-badge);
-            position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
-            background: var(--grad); color: #fff; font-size: .68rem; font-weight: 800;
-            padding: .2rem .9rem; border-radius: 99px; white-space: nowrap;
-            box-shadow: 0 2px 12px rgba(168,85,247,.4);
-        }
-        .plan-card.current-plan { border-color: rgba(6,182,212,.4); background: rgba(6,182,212,.04); }
-
-        .plan-name { font-size: .95rem; font-weight: 800; margin-bottom: .15rem; color: #0f172a; }
-        .dark .plan-name { color: #f1f5f9; }
-        .plan-desc { font-size: .75rem; color: var(--catalog-muted); margin-bottom: .85rem; min-height: 2em; }
-        .dark .plan-desc { color:#94a3b8; }
-        .plan-price { margin-bottom: .85rem; }
-        .plan-price-val { font-size: 1.75rem; font-weight: 900; letter-spacing: -.05em; }
-        .plan-price-period { font-size: .75rem; color: var(--catalog-muted); }
-        .plan-price-annual { font-size: .7rem; color: var(--catalog-muted); margin-top: .1rem; }
-        .plan-price-free { font-size: 1.6rem; font-weight: 900; color: #16a34a; }
-        .dark .plan-price-free { color: #34d399; }
-
-        .plan-features { list-style: none; flex: 1; margin-bottom: .85rem; display: flex; flex-direction: column; gap: .35rem; }
-        .plan-features li { display: flex; align-items: flex-start; gap: .45rem; font-size: .78rem; }
-        .plan-features .feat-off { color: #94a3b8; }
-        .dark .plan-features .feat-off { color: #64748b; }
-        .feat-icon.yes { color: #34d399; flex-shrink: 0; margin-top: 1px; }
-        .feat-icon.no  { color: rgba(255,255,255,.2); flex-shrink: 0; margin-top: 1px; }
-
-        /* Billing cycle form */
-        .plan-cta form { width: 100%; }
-        .billing-select { display: none; } /* hidden, toggled by JS */
-        .plan-btn {
-            width: 100%; padding: .75rem; border-radius: 12px; font-size: .88rem; font-weight: 700;
-            cursor: pointer; border: none; transition: all .18s;
-        }
-        .plan-btn-primary { background: var(--catalog-grad); color: #fff; box-shadow: 0 2px 20px rgba(79,70,229,.35); }
-        .plan-btn-primary:hover { opacity: .9; transform: translateY(-1px); }
-        .plan-btn-outline { background: transparent; color: var(--catalog-muted); border: 1px solid var(--catalog-border); }
-        .plan-btn-outline:hover { background: rgba(255,255,255,.05); color: #fff; }
-        .plan-btn-current { background: rgba(6,182,212,.1); color: #22d3ee; border: 1px solid rgba(6,182,212,.25); cursor: default; }
-
-        /* Gateway picker */
-        .gateway-row { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; margin-bottom: .75rem; }
-        .gw-opt { display: none; } /* hidden radio */
-        .gw-label {
-            display: flex; flex-direction: column; align-items: center; gap: .15rem;
-            padding: .45rem .3rem; background: rgba(255,255,255,.72); border: 1px solid var(--catalog-border);
-            border-radius: 9px; cursor: pointer; font-size: .68rem; font-weight: 600; color: var(--catalog-muted);
-            transition: all .15s; text-align: center;
-        }
-        .dark .gw-label { background: rgba(15,23,42,.62); border-color: var(--catalog-border-dark); color:#cbd5e1; }
-        .gw-label .icon { font-size: 1.1rem; }
-        .gw-opt:checked + .gw-label { border-color: #a855f7; background: rgba(168,85,247,.1); color: #c084fc; }
-
-        /* Alert */
-        .alert { padding: .85rem 1.2rem; border-radius: 10px; font-size: .84rem; margin-bottom: 2rem; display: flex; align-items: center; gap: .6rem; }
-        .alert-success { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.25); color: #34d399; }
-
-        /* Comparison table */
-        .compare-section { margin-top: 1.5rem; }
-        .compare-title { font-size: 1.3rem; font-weight: 800; text-align: center; margin-bottom: 1.5rem; }
-        .compare-table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 14px; }
-        .compare-table { width: 100%; min-width: 720px; border-collapse: collapse; background: rgba(255,255,255,.84); border: 1px solid var(--catalog-border); border-radius: 14px; overflow: hidden; }
-        .dark .compare-table { background: rgba(15,23,42,.78); border-color: var(--catalog-border-dark); }
-        .compare-table th, .compare-table td { padding: .8rem 1.2rem; font-size: .82rem; border-bottom: 1px solid rgba(255,255,255,.04); text-align: center; }
-        .compare-table th { font-size: .7rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--catalog-muted); background: rgba(248,250,252,.8); }
-        .dark .compare-table th { color:#94a3b8; background: rgba(15,23,42,.78); }
-        .compare-table th:first-child, .compare-table td:first-child { text-align: left; }
-        .compare-table tr:last-child td { border: none; }
-        .check { color: #34d399; }
-        .cross { color: rgba(255,255,255,.2); }
-
-        @media (max-width: 640px) {
-            .plans-page { padding: .85rem .65rem max(7.5rem, env(safe-area-inset-bottom)); }
-            .page-header { flex-direction: column; align-items: flex-start; }
-            .gateway-row { grid-template-columns: 1fr 1fr; }
-            .compare-title { text-align: left; }
-        }
-    </style>
-
-<div class="plans-page w-full app-viewport-fit mobile-393-base">
-    @include('partials.plan-center-nav', [
-        'scope' => 'account',
-        'title' => 'Escolha o plano certo para você',
-        'subtitle' => 'Sem compromisso. Cancele quando quiser.',
-    ])
-
-
-    @if(session('activated_plan'))
-        <div class="alert alert-success">✓ Plano <strong>{{ session('activated_plan') }}</strong> ativado com sucesso!</div>
-    @endif
-
-    <div class="page-header">
-        <div class="page-header-left">
-            <div class="badge-current">Plano atual: <strong>{{ $currentPlan->name }}</strong></div>
-        </div>
-        <div class="billing-toggle">
-            <div class="toggle-pill">
-                <button class="toggle-btn active" id="btn-monthly" onclick="setBilling('monthly')">Mensal</button>
-                <button class="toggle-btn" id="btn-annual" onclick="setBilling('annual')">Anual</button>
-            </div>
-            <span class="toggle-badge">20% off</span>
-        </div>
-    </div>
-
-    <!-- Plans grid -->
-    <div class="plans-grid">
-        @foreach($plans as $plan)
-        @php
-            $isCurrent = $currentPlan && $currentPlan->id === $plan->id;
-            $isPopular  = $plan->badge_label != null;
-        @endphp
-           <div class="plan-card {{ $isPopular ? 'popular' : '' }} {{ $isCurrent ? 'current-plan' : '' }}"
-               data-badge="{{ $plan->badge_label }}"
-               @if($plan->color) style="border-color: {{ $plan->color }}40;" @endif>
-
-            <div class="plan-name">{{ $plan->name }}</div>
-            <div class="plan-desc">{{ $plan->description }}</div>
-
-            <div class="plan-price">
-                @if($plan->isFree())
-                    <div class="plan-price-free">Grátis</div>
-                    <div class="plan-price-period">sempre gratuito</div>
-                @else
+        {{-- Planos --}}
+        <div class="settings-card">
+            <div class="settings-card-header" style="flex-wrap:wrap;gap:.75rem">
+                <div class="settings-card-title-row">
+                    <div class="settings-card-icon" style="background:rgba(147,51,234,.12);color:#9333ea"><i class="bi bi-stars"></i></div>
                     <div>
-                        <span class="plan-price-val price-display" data-monthly="{{ $plan->price_monthly }}" data-annual="{{ $plan->price_annual }}">
-                            R$ {{ number_format($plan->price_monthly, 2, ',', '.') }}
-                        </span>
-                        <span class="plan-price-period">/mês</span>
+                        <p class="settings-card-title">Escolha o seu plano</p>
+                        <p class="settings-card-desc">Você está no plano <strong>{{ $currentPlan?->name ?? 'sem plano' }}</strong> · sem fidelidade, cancele quando quiser</p>
                     </div>
-                    <div class="plan-price-annual billing-note-monthly" style="display:block">cobrado mensalmente</div>
-                    <div class="plan-price-annual billing-note-annual" style="display:none">
-                        R$ {{ number_format($plan->price_annual * 12, 2, ',', '.') }}/ano · <span style="color:#34d399">{{ $plan->annualSavingsPercent() }}% economia</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="tp-toggle" role="group" aria-label="Forma de cobrança">
+                        <button type="button" :class="annual ? '' : 'on'" @click="annual = false">Mensal</button>
+                        <button type="button" :class="annual ? 'on' : ''" @click="annual = true">Anual</button>
                     </div>
-                @endif
+                    <span class="tp-tag bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">até 20% off</span>
+                </div>
             </div>
 
-            <ul class="plan-features">
-                @php $features = $plan->featuresList(); @endphp
-                @foreach($features as $feat)
-                @php
-                    // featuresList() usa 'active'; recursos extras do banco podem vir como texto simples
-                    $featLabel = is_array($feat) ? ($feat['label'] ?? '') : (string) $feat;
-                    $featOn = is_array($feat) ? (bool) ($feat['included'] ?? $feat['active'] ?? true) : true;
-                @endphp
-                <li>
-                    <span class="feat-icon {{ $featOn ? 'yes' : 'no' }}">{{ $featOn ? '✓' : '✕' }}</span>
-                    <span class="{{ $featOn ? '' : 'feat-off' }}">{{ $featLabel }}</span>
-                </li>
-                @endforeach
-            </ul>
-
-            <div class="plan-cta">
-                @if($isCurrent)
-                    <button class="plan-btn plan-btn-current" disabled>Plano atual</button>
-                @elseif($plan->isFree())
-                    <form method="POST" action="{{ route('subscription.checkout.process') }}">
-                        @csrf
-                        <input type="hidden" name="plan_id" value="{{ $plan->id }}">
-                        <input type="hidden" name="billing_cycle" value="monthly">
-                        <input type="hidden" name="gateway" value="manual">
-                        <button class="plan-btn plan-btn-outline">Começar grátis</button>
-                    </form>
-                @else
-                    <form method="POST" action="{{ route('subscription.checkout.process') }}">
-                        @csrf
-                        <input type="hidden" name="plan_id" value="{{ $plan->id }}">
-                        <input type="hidden" name="billing_cycle" class="billing-cycle-input" value="monthly">
-
-                        <!-- Gateway picker -->
-                        <div class="gateway-row">
-                            <input type="radio" name="gateway" id="gw-stripe-{{ $plan->id }}"   class="gw-opt" value="stripe"      checked>
-                            <label for="gw-stripe-{{ $plan->id }}" class="gw-label"><span class="icon">💳</span>Stripe</label>
-
-                            <input type="radio" name="gateway" id="gw-mp-{{ $plan->id }}"       class="gw-opt" value="mercadopago">
-                            <label for="gw-mp-{{ $plan->id }}" class="gw-label"><span class="icon">🛒</span>Mercado Pago</label>
-
-                            <input type="radio" name="gateway" id="gw-ps-{{ $plan->id }}"       class="gw-opt" value="pagseguro">
-                            <label for="gw-ps-{{ $plan->id }}" class="gw-label"><span class="icon">🏦</span>PagSeguro</label>
-
-                            @if(auth()->user()->isAdmin())
-                            <input type="radio" name="gateway" id="gw-manual-{{ $plan->id }}"   class="gw-opt" value="manual">
-                            <label for="gw-manual-{{ $plan->id }}" class="gw-label"><span class="icon">🔑</span>Manual</label>
+            <div class="tp-grid">
+                @foreach($plans as $plan)
+                    @php
+                        $isCurrent = $currentPlan && $currentPlan->id === $plan->id;
+                        $isPopular = filled($plan->badge_label);
+                    @endphp
+                    <article class="tp-card {{ $isCurrent ? 'is-current' : ($isPopular ? 'is-popular' : '') }}">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <p class="text-base font-bold text-slate-900 dark:text-white">{{ $plan->name }}</p>
+                                @if($plan->description)
+                                    <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{{ $plan->description }}</p>
+                                @endif
+                            </div>
+                            @if($isCurrent)
+                                <span class="tp-tag bg-indigo-600 text-white shrink-0"><i class="bi bi-check2"></i>Seu plano</span>
+                            @elseif($isPopular)
+                                <span class="tp-tag bg-purple-600 text-white shrink-0"><i class="bi bi-star-fill"></i>{{ $plan->badge_label }}</span>
                             @endif
                         </div>
 
-                        <button class="plan-btn plan-btn-primary">
-                            {{ $plan->trial_days > 0 ? 'Começar trial grátis' : 'Assinar agora' }}
-                        </button>
-                    </form>
-                @endif
-            </div>
-
-        </div>
-        @endforeach
-    </div>
-
-    <!-- Comparison table -->
-    <div class="compare-section">
-        <div class="compare-title">Comparação detalhada</div>
-        <div class="compare-table-wrap">
-        <table class="compare-table">
-            <thead>
-                <tr>
-                    <th>Recurso</th>
-                    @foreach($plans as $p)<th>{{ $p->name }}</th>@endforeach
-                </tr>
-            </thead>
-            <tbody>
-                @php
-                $rows = [
-                    ['label' => 'Produtos',           'key' => 'max_products',            'format' => 'limit'],
-                    ['label' => 'Pedidos/mês',        'key' => 'max_orders_per_month',     'format' => 'limit'],
-                    ['label' => 'Clientes',            'key' => 'max_clients',              'format' => 'limit'],
-                    ['label' => 'Usuários na equipe', 'key' => 'max_users',                'format' => 'limit'],
-                    ['label' => 'Integ. Mercado Livre','key' => 'has_ml_integration',      'format' => 'bool'],
-                    ['label' => 'Integ. Shopee',      'key' => 'has_shopee_integration',   'format' => 'bool'],
-                    ['label' => 'Recursos de IA',     'key' => 'has_ai_features',           'format' => 'bool'],
-                    ['label' => 'Relatórios avançados','key' => 'has_advanced_reports',    'format' => 'bool'],
-                    ['label' => 'Contr. financeiro',  'key' => 'has_financial_control',    'format' => 'bool'],
-                    ['label' => 'Acesso API',         'key' => 'has_api_access',            'format' => 'bool'],
-                    ['label' => 'Suporte prioritário','key' => 'has_priority_support',     'format' => 'bool'],
-                    ['label' => 'Export PDF/Excel',   'key' => 'has_export_pdf_excel',     'format' => 'bool'],
-                ];
-                @endphp
-                @foreach($rows as $row)
-                <tr>
-                    <td style="font-weight:500">{{ $row['label'] }}</td>
-                    @foreach($plans as $p)
-                        @php $val = $p->{$row['key']}; @endphp
-                        <td>
-                            @if($row['format'] === 'bool')
-                                @if($val)<span class="check">✓</span>@else<span class="cross">—</span>@endif
+                        <div class="mt-3">
+                            @if($plan->isFree())
+                                <p class="tp-price" style="color:#16a34a">Grátis</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">sempre gratuito</p>
                             @else
-                                {{ $val === -1 ? '∞' : $val }}
+                                <p>
+                                    <span class="tp-price" x-text="annual ? @js('R$ '.number_format($plan->price_annual, 2, ',', '.')) : @js('R$ '.number_format($plan->price_monthly, 2, ',', '.'))">R$ {{ number_format($plan->price_monthly, 2, ',', '.') }}</span>
+                                    <span class="text-xs text-slate-500 dark:text-slate-400">/mês</span>
+                                </p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400" x-show="!annual">cobrado todo mês</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400" x-show="annual" x-cloak>R$ {{ number_format($plan->price_annual * 12, 2, ',', '.') }} por ano · <span class="font-semibold text-emerald-600 dark:text-emerald-400">economia de {{ $plan->annualSavingsPercent() }}%</span></p>
                             @endif
-                        </td>
-                    @endforeach
-                </tr>
+                        </div>
+
+                        <ul class="tp-feats">
+                            @foreach($plan->featuresList() as $feat)
+                                @php
+                                    // featuresList() usa 'active'; recursos extras do banco podem vir como texto simples
+                                    $featLabel = is_array($feat) ? ($feat['label'] ?? '') : (string) $feat;
+                                    $featOn = is_array($feat) ? (bool) ($feat['included'] ?? $feat['active'] ?? true) : true;
+                                @endphp
+                                <li class="{{ $featOn ? '' : 'off' }}">
+                                    <i class="bi {{ $featOn ? 'bi-check-lg text-emerald-500' : 'bi-x-lg' }}" style="margin-top:1px"></i>
+                                    <span>{{ $featLabel }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+
+                        @if($isCurrent)
+                            <a href="{{ route('settings.plan') }}" class="tp-btn border border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300"><i class="bi bi-patch-check"></i>Ver minha assinatura</a>
+                        @elseif($plan->isFree())
+                            <form method="POST" action="{{ route('subscription.checkout.process') }}">
+                                @csrf
+                                <input type="hidden" name="plan_id" value="{{ $plan->id }}">
+                                <input type="hidden" name="billing_cycle" value="monthly">
+                                <input type="hidden" name="gateway" value="manual">
+                                <button class="tp-btn border border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">Mudar para o grátis</button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('subscription.checkout.process') }}">
+                                @csrf
+                                <input type="hidden" name="plan_id" value="{{ $plan->id }}">
+                                <input type="hidden" name="billing_cycle" :value="annual ? 'annual' : 'monthly'" value="monthly">
+
+                                <p class="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Pagar com</p>
+                                <div class="tp-gw">
+                                    <input type="radio" name="gateway" id="gw-stripe-{{ $plan->id }}" value="stripe" checked>
+                                    <label for="gw-stripe-{{ $plan->id }}"><i class="bi bi-credit-card"></i>Stripe</label>
+
+                                    <input type="radio" name="gateway" id="gw-mp-{{ $plan->id }}" value="mercadopago">
+                                    <label for="gw-mp-{{ $plan->id }}"><i class="bi bi-wallet2"></i>Mercado Pago</label>
+
+                                    <input type="radio" name="gateway" id="gw-ps-{{ $plan->id }}" value="pagseguro">
+                                    <label for="gw-ps-{{ $plan->id }}"><i class="bi bi-bank"></i>PagSeguro</label>
+
+                                    @if(auth()->user()->isAdmin())
+                                        <input type="radio" name="gateway" id="gw-manual-{{ $plan->id }}" value="manual">
+                                        <label for="gw-manual-{{ $plan->id }}"><i class="bi bi-key"></i>Manual</label>
+                                    @endif
+                                </div>
+
+                                <button class="tp-btn text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25">
+                                    <i class="bi bi-arrow-up-circle"></i>{{ $plan->trial_days > 0 ? 'Testar grátis por '.$plan->trial_days.' dias' : 'Assinar '.$plan->name }}
+                                </button>
+                            </form>
+                        @endif
+                    </article>
                 @endforeach
-            </tbody>
-        </table>
+            </div>
         </div>
-    </div>
 
- </div>
-
-<script>
-let billing = 'monthly';
-function setBilling(b) {
-    billing = b;
-    document.getElementById('btn-monthly').classList.toggle('active', b === 'monthly');
-    document.getElementById('btn-annual').classList.toggle('active', b === 'annual');
-
-    // Update prices
-    document.querySelectorAll('.price-display').forEach(el => {
-        const v = b === 'annual' ? el.dataset.annual : el.dataset.monthly;
-        el.textContent = 'R$ ' + parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2});
-    });
-
-    // Update billing notes
-    document.querySelectorAll('.billing-note-monthly').forEach(el => el.style.display = b === 'monthly' ? 'block' : 'none');
-    document.querySelectorAll('.billing-note-annual').forEach(el => el.style.display = b === 'annual' ? 'block' : 'none');
-
-    // Update hidden billing cycle inputs
-    document.querySelectorAll('.billing-cycle-input').forEach(el => el.value = b);
-}
-</script>
+        {{-- Comparação --}}
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <div class="settings-card-title-row">
+                    <div class="settings-card-icon" style="background:rgba(14,165,233,.12);color:#0ea5e9"><i class="bi bi-table"></i></div>
+                    <div>
+                        <p class="settings-card-title">Comparar lado a lado</p>
+                        <p class="settings-card-desc">Limites e recursos de cada plano</p>
+                    </div>
+                </div>
+            </div>
+            @php
+                $rows = [
+                    ['Produtos', 'max_products', 'limit'],
+                    ['Pedidos por mês', 'max_orders_per_month', 'limit'],
+                    ['Clientes', 'max_clients', 'limit'],
+                    ['Usuários na equipe', 'max_users', 'limit'],
+                    ['Mercado Livre', 'has_ml_integration', 'bool'],
+                    ['Shopee', 'has_shopee_integration', 'bool'],
+                    ['Recursos de IA', 'has_ai_features', 'bool'],
+                    ['Relatórios avançados', 'has_advanced_reports', 'bool'],
+                    ['Controle financeiro', 'has_financial_control', 'bool'],
+                    ['Acesso à API', 'has_api_access', 'bool'],
+                    ['Suporte prioritário', 'has_priority_support', 'bool'],
+                    ['Exportar PDF e Excel', 'has_export_pdf_excel', 'bool'],
+                ];
+            @endphp
+            <div class="tp-table-wrap">
+                <table class="tp-table">
+                    <thead>
+                        <tr>
+                            <th>Recurso</th>
+                            @foreach($plans as $p)<th class="{{ $currentPlan && $currentPlan->id === $p->id ? 'is-current' : '' }}">{{ $p->name }}</th>@endforeach
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($rows as [$label, $key, $format])
+                            <tr>
+                                <td class="font-medium">{{ $label }}</td>
+                                @foreach($plans as $p)
+                                    @php $val = $p->{$key}; @endphp
+                                    <td class="{{ $currentPlan && $currentPlan->id === $p->id ? 'is-current' : '' }}">
+                                        @if($format === 'bool')
+                                            @if($val)<i class="bi bi-check-lg text-emerald-500"></i>@else<span class="text-slate-300 dark:text-slate-600">—</span>@endif
+                                        @else
+                                            {{ $val === -1 ? 'Ilimitado' : $val }}
+                                        @endif
+                                    </td>
+                                @endforeach
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </x-settings.layout>
+</section>
 </x-layouts.app>
