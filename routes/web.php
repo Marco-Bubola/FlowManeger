@@ -399,6 +399,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/plan', 'settings.plan')->name('settings.plan');
     Volt::route('settings/connections', 'settings.connections')->name('settings.connections');
     Volt::route('settings/pagamentos', 'settings.payments')->name('settings.payments');
+    Volt::route('settings/whatsapp', 'settings.whatsapp')->name('settings.whatsapp');
 
     // --- Outras Rotas ---
     Route::redirect('settings', 'settings/profile');
@@ -533,6 +534,13 @@ Route::post('/pagamentos/mercadopago/{user}/aviso', [\App\Http\Controllers\Porta
     ->whereNumber('user')
     ->name('payments.mercadopago.webhook')
     ->withoutMiddleware(['auth', 'web']);
+
+// WhatsApp Cloud API (Meta): verificação (GET) e mensagens (POST) do número de cada usuário
+Route::get('/whatsapp/{user}/webhook', [\App\Http\Controllers\WhatsAppWebhookController::class, 'verify'])
+    ->whereNumber('user')->name('whatsapp.webhook')->withoutMiddleware(['auth']);
+Route::post('/whatsapp/{user}/webhook', [\App\Http\Controllers\WhatsAppWebhookController::class, 'receive'])
+    ->whereNumber('user')->name('whatsapp.webhook.receive')
+    ->withoutMiddleware(['auth', 'web', \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 // Webhook endpoint (sem middleware auth - ML precisa acessar externamente)
 Route::post('/mercadolivre/webhooks', [WebhookController::class, 'handle'])

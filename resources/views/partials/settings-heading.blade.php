@@ -32,6 +32,7 @@
         ['access.center', 'Acesso e permissões', 'bi-person-lock'],
         ['settings.connections', 'Conexões', 'bi-link-45deg'],
         ['settings.payments', 'Pagamentos online', 'bi-qr-code'],
+        ['settings.whatsapp', 'WhatsApp', 'bi-whatsapp'],
     ];
     if ($hUser->isAdmin()) {
         $hTabs[] = ['admin.plans.index', 'Planos (admin)', 'bi-gear'];

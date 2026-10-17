@@ -40,6 +40,11 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
     ],
 
+    // Lançar por print pelo WhatsApp (as credenciais ficam por usuário em Configurações › WhatsApp)
+    'whatsapp' => [
+        'graph_url' => env('WHATSAPP_GRAPH_URL', 'https://graph.facebook.com/v21.0'),
+    ],
+
     'mercadolivre' => [
         'app_id' => env('ML_CLIENT_ID'),
         'secret_key' => env('ML_CLIENT_SECRET'),
