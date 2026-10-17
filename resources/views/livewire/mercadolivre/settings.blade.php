@@ -7,82 +7,46 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/ml-settings-ultrawide.css') }}">
     <div class=" space-y-3">
 
-        {{-- Header no estilo Sales Index --}}
-        <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-amber-50/90 to-yellow-50/80 dark:from-slate-800/90 dark:via-amber-900/20 dark:to-yellow-900/20 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl">
-            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5"></div>
-            <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-yellow-400/20 via-amber-400/20 to-orange-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
-            <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-amber-400/10 to-yellow-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
-
-            <div class="relative px-4 py-4">
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                    <div class="flex items-center gap-4">
-                        <a href="{{ route('mercadolivre.products') }}"
-                            class="group relative inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-white to-amber-50 dark:from-slate-800 dark:to-slate-700 hover:from-amber-50 hover:to-yellow-100 dark:hover:from-slate-700 dark:hover:to-slate-600 transition-all duration-300 shadow-lg hover:shadow-xl border border-white/50 dark:border-slate-600/50">
-                            <i class="bi bi-arrow-left text-xl text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform"></i>
-                        </a>
-                        <div class="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-600 rounded-2xl shadow-xl shadow-amber-500/25">
-                            <i class="bi bi-gear-fill text-white text-2xl"></i>
-                        </div>
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                                <a href="{{ route('mercadolivre.products') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Mercado Livre</a>
-                                <i class="bi bi-chevron-right text-xs"></i>
-                                <span class="text-slate-800 dark:text-slate-200 font-medium">Configurações</span>
-                            </div>
-                            <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-700 dark:from-slate-100 dark:via-amber-300 dark:to-orange-300 bg-clip-text text-transparent">
-                                Configurações Mercado Livre
-                            </h1>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">Integração, token e preferências da sua conta</p>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-3">
-                        @if($isConnected && $token)
-                            <div class="flex items-center gap-2 px-3 py-2 bg-emerald-500/20 dark:bg-emerald-500/30 rounded-xl border border-emerald-200 dark:border-emerald-700">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <span class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Conectado</span>
-                            </div>
-                            <div class="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-600">
-                                <i class="bi bi-clock text-amber-600 dark:text-amber-400"></i>
-                                <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">{{ $expiresInHours }}h restantes</span>
-                            </div>
-                            <div class="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-600">
-                                @if(config('services.mercadolivre.environment') === 'sandbox')
-                                    <i class="bi bi-braces text-purple-500"></i>
-                                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Sandbox</span>
-                                @else
-                                    <i class="bi bi-rocket text-indigo-500"></i>
-                                    <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Produção</span>
-                                @endif
-                            </div>
-                            <button wire:click="testConnection" wire:loading.attr="disabled" wire:target="testConnection"
-                                class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50">
-                                <i class="bi bi-wifi" wire:loading.remove wire:target="testConnection"></i>
-                                <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="testConnection"></i>
-                                <span wire:loading.remove wire:target="testConnection">Testar</span>
-                                <span wire:loading wire:target="testConnection">Testando...</span>
-                            </button>
-                            <button wire:click="refreshToken" wire:loading.attr="disabled" wire:target="refreshToken"
-                                class="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 hover:bg-amber-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-xl transition-all disabled:opacity-50">
-                                <i class="bi bi-arrow-repeat" wire:loading.remove wire:target="refreshToken"></i>
-                                <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="refreshToken"></i>
-                                Renovar token
-                            </button>
-                        @else
-                            <div class="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-600">
-                                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                                <span class="text-sm font-semibold text-slate-600 dark:text-slate-400">Desconectado</span>
-                            </div>
-                            <button wire:click="connect" wire:loading.attr="disabled"
-                                class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-600 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-700 text-white text-sm font-bold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50">
-                                <i class="bi bi-link-45deg"></i>
-                                Conectar conta
-                            </button>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
+        {{-- Cabeçalho no padrão do app, com o menu do Mercado Livre --}}
+        @php
+            $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70 disabled:opacity-50';
+            $stChip = 'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold';
+        @endphp
+        <x-page-header title="Configurações" icon="bi-gear" section="mercadolivre" tabs-section="mercadolivre" tabs-active="config"
+                       subtitle="Integração, token e preferências da sua conta">
+            <x-slot:meta>
+                @if($isConnected && $token)
+                    <span class="{{ $stChip }} bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Conectado</span>
+                    <span class="{{ $stChip }} bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="bi bi-clock"></i>{{ $expiresInHours }}h restantes</span>
+                    @if(config('services.mercadolivre.environment') === 'sandbox')
+                        <span class="{{ $stChip }} bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300"><i class="bi bi-braces"></i>Sandbox</span>
+                    @else
+                        <span class="{{ $stChip }} bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="bi bi-rocket"></i>Produção</span>
+                    @endif
+                @else
+                    <span class="{{ $stChip }} bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Desconectado</span>
+                @endif
+            </x-slot:meta>
+            <x-slot:actions>
+                @if($isConnected && $token)
+                    <button type="button" wire:click="testConnection" wire:loading.attr="disabled" wire:target="testConnection" title="Testar conexão" class="{{ $phBtn }}">
+                        <i class="bi bi-wifi text-sky-500" wire:loading.remove wire:target="testConnection"></i>
+                        <i class="bi bi-arrow-repeat animate-spin text-sky-500" wire:loading wire:target="testConnection"></i>
+                        <span class="hidden sm:inline" wire:loading.remove wire:target="testConnection">Testar</span>
+                        <span class="hidden sm:inline" wire:loading wire:target="testConnection">Testando...</span>
+                    </button>
+                    <button type="button" wire:click="refreshToken" wire:loading.attr="disabled" wire:target="refreshToken" title="Renovar token"
+                            class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition whitespace-nowrap disabled:opacity-50">
+                        <i class="bi bi-arrow-repeat" wire:loading.class="animate-spin" wire:target="refreshToken"></i><span class="hidden sm:inline">Renovar token</span>
+                    </button>
+                @else
+                    <button type="button" wire:click="connect" wire:loading.attr="disabled" title="Conectar conta"
+                            class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition whitespace-nowrap disabled:opacity-50">
+                        <i class="bi bi-link-45deg"></i><span class="hidden sm:inline">Conectar conta</span>
+                    </button>
+                @endif
+            </x-slot:actions>
+        </x-page-header>
 
         {{-- Aviso sobre expiração do token --}}
         <div class="rounded-2xl border border-blue-200 dark:border-blue-800 bg-blue-50/80 dark:bg-blue-950/40 p-4">
@@ -247,23 +211,13 @@
                     @endif
                 @else
                     {{-- Estado desconectado --}}
-                    <div class="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 shadow-xl">
-                        <div class="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl"></div>
-                        <div class="relative p-8 text-center">
-                            <div class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-                                <i class="bi bi-link-45deg text-white text-4xl"></i>
-                            </div>
-                            <h3 class="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Conta não conectada</h3>
-                            <p class="text-slate-600 dark:text-slate-400 mb-6 max-w-md mx-auto">
-                                Conecte sua conta do Mercado Livre para sincronizar produtos, gerenciar publicações e pedidos.
-                            </p>
-                            <button wire:click="connect" wire:loading.attr="disabled"
-                                class="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-600 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-700 text-white text-lg font-bold rounded-2xl shadow-2xl hover:shadow-amber-500/30 transition-all disabled:opacity-50">
-                                <i class="bi bi-box-arrow-in-right text-2xl"></i>
-                                Conectar com Mercado Livre
-                            </button>
-                        </div>
-                    </div>
+                    <x-empty-state icon="bi-link-45deg" tone="amber" title="Conta não conectada"
+                                   text="Conecte sua conta do Mercado Livre para sincronizar produtos, gerenciar publicações e pedidos.">
+                        <button wire:click="connect" wire:loading.attr="disabled"
+                                class="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition disabled:opacity-50">
+                            <i class="bi bi-box-arrow-in-right"></i> Conectar com Mercado Livre
+                        </button>
+                    </x-empty-state>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xl">

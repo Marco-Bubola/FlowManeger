@@ -315,88 +315,64 @@
 
     <div class="px-1.5 sm:px-3 lg:px-4 py-2 sm:py-3 space-y-2 sm:space-y-3">
 
-        {{-- ═════════════════════════════════════════════════════════ --}}
-        {{-- HEADER ML                                                --}}
-        {{-- ═════════════════════════════════════════════════════════ --}}
-        <div class="products-index-header relative overflow-hidden bg-gradient-to-r from-white/80 via-yellow-50/90 to-amber-50/80 dark:from-slate-800/90 dark:via-amber-900/20 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-xl">
-            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
-            <div class="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-yellow-400/25 via-amber-400/20 to-orange-400/15 rounded-full transform translate-x-10 -translate-y-10"></div>
-            <div class="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-amber-400/15 via-orange-400/10 to-yellow-400/10 rounded-full transform -translate-x-6 translate-y-6"></div>
-
-            <div class="relative px-3 sm:px-4 py-3 sm:py-4">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                    {{-- Esquerda --}}
-                    <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                        <a href="{{ route('mercadolivre.publications') }}"
-                            class="group inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-white to-amber-50 dark:from-slate-800 dark:to-slate-700 hover:from-amber-50 hover:to-yellow-100 transition-all shadow-sm border border-white/40 dark:border-slate-600/40 shrink-0">
-                            <i class="bi bi-arrow-left text-base text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform"></i>
-                        </a>
-                        <div class="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 rounded-xl shadow-lg shadow-amber-500/25 shrink-0">
-                            <i class="bi bi-pencil-square text-white text-lg"></i>
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-yellow-300 to-amber-400 rounded-full border-2 border-white dark:border-slate-800 flex items-center justify-center shadow-sm">
-                                <span class="text-[5px] font-black text-amber-900">ML</span>
-                            </div>
-                        </div>
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
-                                <a href="{{ route('mercadolivre.publications') }}" class="hover:text-amber-600 transition-colors">Publicações</a>
-                                <i class="bi bi-chevron-right text-[8px]"></i>
-                                <span class="text-slate-700 dark:text-slate-300 font-semibold">Editar</span>
-                            </div>
-                            <h1 class="text-base sm:text-xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-yellow-700 dark:from-amber-300 dark:via-yellow-300 dark:to-orange-300 bg-clip-text text-transparent leading-tight truncate">
-                                Editar Publicação
-                            </h1>
-                        </div>
-                    </div>
-
-                    {{-- Badges --}}
-                    <div class="flex flex-wrap items-center gap-1.5">
-                        <span class="ep-badge bg-slate-200/80 dark:bg-slate-700/80 text-slate-700 dark:text-slate-300 font-mono border-slate-300 dark:border-slate-600">{{ $publication->ml_item_id }}</span>
-                        <span class="ep-badge {{ $publication->status === 'active' ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700' : '' }} {{ $publication->status === 'paused' ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700' : '' }} {{ $publication->status === 'closed' ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700' : '' }}">
-                            <i class="bi {{ $publication->status === 'active' ? 'bi-check-circle-fill' : ($publication->status === 'paused' ? 'bi-pause-circle-fill' : 'bi-x-circle-fill') }}"></i>
-                            {{ $publication->status === 'active' ? 'Ativo' : ($publication->status === 'paused' ? 'Pausado' : 'Fechado') }}
-                        </span>
-                        <span class="ep-badge bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700">
-                            <i class="bi {{ $publicationType === 'kit' ? 'bi-boxes' : 'bi-box' }}"></i>
-                            {{ $publicationType === 'kit' ? 'Kit' : 'Simples' }}
-                        </span>
-                        <span class="ep-badge {{ $publication->sync_status === 'synced' ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700' : '' }} {{ $publication->sync_status === 'pending' ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700' : '' }} {{ $publication->sync_status === 'error' ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700' : '' }}">
-                            <i class="bi {{ $publication->sync_status === 'synced' ? 'bi-cloud-check' : ($publication->sync_status === 'error' ? 'bi-cloud-slash' : 'bi-cloud-arrow-up') }}"></i>
-                            {{ $publication->sync_status === 'synced' ? 'Sincronizado' : ($publication->sync_status === 'error' ? 'Erro' : 'Pendente') }}
-                        </span>
-                    </div>
-
-                    {{-- Ações --}}
-                    <div class="flex flex-wrap items-center gap-1.5">
-                        <button wire:click="refreshFromMl" wire:loading.attr="disabled" wire:target="refreshFromMl"
-                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-lg transition-all shadow-md text-xs whitespace-nowrap">
-                            <i class="bi bi-arrow-down-circle" wire:loading.remove wire:target="refreshFromMl"></i>
-                            <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="refreshFromMl"></i>
-                            <span class="hidden sm:inline">Atualizar do ML</span>
-                        </button>
-                        @if($publication->status === 'active')
-                        <button wire:click="pausePublication"
-                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700 font-semibold rounded-lg transition-all text-xs whitespace-nowrap hover:bg-amber-200">
-                            <i class="bi bi-pause-fill"></i> Pausar
-                        </button>
-                        @elseif($publication->status === 'paused')
-                        <button wire:click="activatePublication"
-                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 font-semibold rounded-lg transition-all text-xs whitespace-nowrap hover:bg-emerald-200">
-                            <i class="bi bi-play-fill"></i> Ativar
-                        </button>
-                        @endif
-                        @if($publication->ml_item_id)
-                        @php $mlUrl = $publication->ml_permalink ?: 'https://articulo.mercadolibre.com.br/' . $publication->ml_item_id; @endphp
-                        <a href="{{ $mlUrl }}" target="_blank" rel="noopener"
-                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-slate-900 font-bold rounded-lg shadow-md transition-all text-xs whitespace-nowrap">
-                            <i class="bi bi-box-arrow-up-right"></i>
-                            <span class="hidden sm:inline">Ver no ML</span>
-                        </a>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
+        {{-- Cabeçalho no padrão do app: voltar para o anúncio --}}
+        @php
+            $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70 whitespace-nowrap disabled:opacity-60';
+            $epChip = 'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold';
+            $epStatusCls = match($publication->status) {
+                'active' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
+                'paused' => 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+                default => 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300',
+            };
+            $epSyncCls = match($publication->sync_status) {
+                'synced' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
+                'error' => 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300',
+                default => 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+            };
+            $epBack = \Illuminate\Support\Facades\Route::has('mercadolivre.publications.show') ? route('mercadolivre.publications.show', $publication->id) : route('mercadolivre.publications');
+        @endphp
+        <x-page-header title="Editar anúncio" icon="bi-pencil-square" section="mercadolivre" :back-route="$epBack"
+                       :subtitle="e($publication->title)">
+            <x-slot:meta>
+                @if($publication->ml_item_id)
+                    <span class="{{ $epChip }} font-mono bg-slate-100 text-slate-700 dark:bg-slate-700/60 dark:text-slate-300"><i class="bi bi-link-45deg"></i>{{ $publication->ml_item_id }}</span>
+                @endif
+                <span class="{{ $epChip }} {{ $epStatusCls }}">
+                    <i class="bi {{ $publication->status === 'active' ? 'bi-check-circle-fill' : ($publication->status === 'paused' ? 'bi-pause-circle-fill' : 'bi-x-circle-fill') }}"></i>
+                    {{ $publication->status === 'active' ? 'Ativo' : ($publication->status === 'paused' ? 'Pausado' : 'Fechado') }}
+                </span>
+                <span class="{{ $epChip }} bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300">
+                    <i class="bi {{ $publicationType === 'kit' ? 'bi-boxes' : 'bi-box' }}"></i>{{ $publicationType === 'kit' ? 'Kit' : 'Simples' }}
+                </span>
+                <span class="{{ $epChip }} {{ $epSyncCls }}">
+                    <i class="bi {{ $publication->sync_status === 'synced' ? 'bi-cloud-check' : ($publication->sync_status === 'error' ? 'bi-cloud-slash' : 'bi-cloud-arrow-up') }}"></i>
+                    {{ $publication->sync_status === 'synced' ? 'Sincronizado' : ($publication->sync_status === 'error' ? 'Erro' : 'Pendente') }}
+                </span>
+            </x-slot:meta>
+            <x-slot:actions>
+                <button wire:click="refreshFromMl" wire:loading.attr="disabled" wire:target="refreshFromMl" title="Atualizar com os dados do Mercado Livre" class="{{ $phBtn }}">
+                    <i class="bi bi-arrow-down-circle text-sky-500" wire:loading.remove wire:target="refreshFromMl"></i>
+                    <i class="bi bi-arrow-repeat animate-spin text-sky-500" wire:loading wire:target="refreshFromMl"></i>
+                    <span class="hidden sm:inline">Atualizar do ML</span>
+                </button>
+                @if($publication->status === 'active')
+                    <button wire:click="pausePublication" title="Pausar anúncio" class="{{ $phBtn }}">
+                        <i class="bi bi-pause-fill text-amber-500"></i><span class="hidden sm:inline">Pausar</span>
+                    </button>
+                @elseif($publication->status === 'paused')
+                    <button wire:click="activatePublication" title="Ativar anúncio" class="{{ $phBtn }}">
+                        <i class="bi bi-play-fill text-emerald-500"></i><span class="hidden sm:inline">Ativar</span>
+                    </button>
+                @endif
+                @if($publication->ml_item_id)
+                    @php $mlUrl = $publication->ml_permalink ?: 'https://articulo.mercadolibre.com.br/' . $publication->ml_item_id; @endphp
+                    <a href="{{ $mlUrl }}" target="_blank" rel="noopener" title="Ver no Mercado Livre"
+                       class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition whitespace-nowrap">
+                        <i class="bi bi-box-arrow-up-right"></i><span class="hidden sm:inline">Ver no ML</span>
+                    </a>
+                @endif
+            </x-slot:actions>
+        </x-page-header>
 
         {{-- Erro --}}
         @if($publication->error_message)

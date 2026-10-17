@@ -50,9 +50,11 @@
 @endphp
 
 <div {{ $attributes->merge(['class' => 'app-ph-tabs mt-4 -mx-1 overflow-x-auto']) }}>
-    <nav class="flex min-w-max items-center gap-1 px-1 pb-1">
+    {{-- No celular a barra rola de lado: começa mostrando a aba ativa. --}}
+    <nav class="flex min-w-max items-center gap-1 px-1 pb-1"
+         x-data x-init="$nextTick(() => { const a = $el.querySelector('[aria-current=page]'), box = $el.parentElement; if (a && box.scrollWidth > box.clientWidth) box.scrollLeft = a.offsetLeft - (box.clientWidth - a.offsetWidth) / 2; })">
         @foreach($tabs as $key => $tab)
-            <a href="{{ $tab['url'] }}"
+            <a href="{{ $tab['url'] }}" @if($active === $key) aria-current="page" @endif
                class="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-semibold transition
                       {{ $active === $key
                             ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25'

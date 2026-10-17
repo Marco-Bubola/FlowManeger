@@ -12,71 +12,45 @@
 
     <x-loading-overlay message="Carregando reputação..." />
 
-    {{-- ============================================================
-         HEADER
-    ============================================================ --}}
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/85 via-amber-50/90 to-yellow-50/80
-                dark:from-slate-800/90 dark:via-amber-900/10 dark:to-slate-800/30
-                backdrop-blur-xl border-b border-amber-100/60 dark:border-amber-900/30
-                shadow-2xl mb-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse pointer-events-none"></div>
-        <div class="absolute top-0 right-0 w-52 h-52 bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10 rounded-full transform translate-x-20 -translate-y-20 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-amber-300/15 via-yellow-300/10 to-orange-200/10 rounded-full transform -translate-x-12 translate-y-12 pointer-events-none"></div>
-        <div class="relative w-full px-4 sm:px-6 lg:px-8 py-6">
-            <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-4">
-                <a href="{{ route('dashboard') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1">
-                    <i class="bi bi-house-fill text-[11px]"></i> Início
-                </a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <a href="{{ route('mercadolivre.products') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Mercado Livre</a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <span class="text-amber-700 dark:text-amber-400 font-semibold">Reputação</span>
-            </nav>
-
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                <div class="flex items-start gap-5">
-                    <div class="relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 rounded-2xl shadow-xl shadow-amber-500/30 flex-shrink-0">
-                        <i class="bi bi-star-fill text-white text-3xl"></i>
-                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50 pointer-events-none"></div>
-                        <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center shadow-md ring-2 ring-amber-100 dark:ring-slate-700">
-                            <span class="text-amber-600 dark:text-amber-400 font-black text-[8px] leading-none">ML</span>
-                        </div>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600 dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent leading-tight">
-                            Reputação & Métricas
-                        </h1>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Desempenho do vendedor no Mercado Livre</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 flex-wrap">
-                    <button wire:click="loadData"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl
-                                   bg-white/70 dark:bg-slate-800 border border-amber-200 dark:border-slate-600
-                                   text-sm font-semibold text-slate-600 dark:text-slate-300
-                                   hover:bg-amber-50 dark:hover:bg-slate-700 transition-all shadow-sm">
-                        <i class="bi bi-arrow-clockwise" wire:loading.class="animate-spin" wire:target="loadData"></i>
-                        Atualizar
-                    </button>
-                    <button @click="tipsOpen = true"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl
-                                   bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold
-                                   shadow-lg shadow-amber-500/25 hover:shadow-xl hover:from-amber-600 hover:to-orange-600 transition-all">
-                        <i class="bi bi-lightbulb-fill"></i> Dicas
-                    </button>
-                </div>
-            </div>
-        </div>
+    {{-- Cabeçalho no padrão das outras telas --}}
+    @php
+        $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70';
+        $repLevel = $this->getLevelBadge($rep['level_id'] ?? null);
+    @endphp
+    <div class="px-4 sm:px-6 lg:px-8">
+        <x-page-header title="Reputação" icon="bi-star" section="mercadolivre" tabs-section="mercadolivre" tabs-active="reputacao"
+                       subtitle="Desempenho e métricas do vendedor no Mercado Livre">
+            @if(!empty($seller['nickname']) || !empty($rep['level_id']))
+                <x-slot:meta>
+                    @if(!empty($seller['nickname']))
+                        <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="bi bi-person"></i>{{ $seller['nickname'] }}</span>
+                    @endif
+                    @if(!empty($rep['level_id']))
+                        <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300"><i class="bi bi-thermometer-half"></i>{{ $repLevel['label'] ?? $rep['level_id'] }}</span>
+                    @endif
+                </x-slot:meta>
+            @endif
+            <x-slot:actions>
+                <button type="button" @click="tipsOpen = true" title="Dicas" class="{{ $phBtn }}"><i class="bi bi-lightbulb text-amber-500"></i><span class="hidden sm:inline">Dicas</span></button>
+                <button type="button" wire:click="loadData" wire:loading.attr="disabled" title="Atualizar reputação"
+                        class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition whitespace-nowrap">
+                    <i class="bi bi-arrow-clockwise" wire:loading.class="animate-spin" wire:target="loadData"></i><span class="hidden sm:inline">Atualizar</span>
+                </button>
+            </x-slot:actions>
+        </x-page-header>
     </div>
 
     <div class="w-full px-4 sm:px-6 lg:px-8 pb-10">
 
         @if($errorMessage)
-            <div class="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 mb-6">
-                <i class="bi bi-exclamation-circle-fill text-red-500 text-xl flex-shrink-0"></i>
-                <div class="flex-1 text-sm text-red-700 dark:text-red-400">{{ $errorMessage }}</div>
-                <button wire:click="loadData" class="text-sm font-bold text-red-600 hover:text-red-800 dark:text-red-400">Tentar novamente</button>
-            </div>
+            <x-empty-state icon="bi-exclamation-triangle" tone="rose" title="Não foi possível carregar a reputação" :text="$errorMessage" class="mb-6">
+                <button type="button" wire:click="loadData" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition">
+                    <i class="bi bi-arrow-clockwise"></i> Tentar novamente
+                </button>
+                <a href="{{ route('mercadolivre.settings') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 transition">
+                    <i class="bi bi-gear"></i> Configurações
+                </a>
+            </x-empty-state>
         @endif
 
         @if($loading)
@@ -102,6 +76,8 @@
                     @endfor
                 </div>
             </div>
+        @elseif($errorMessage && empty($rep) && empty($seller))
+            {{-- Sem dados para mostrar: o aviso de erro acima já explica o motivo --}}
         @else
             @php
                 $level      = $this->getLevelBadge($rep['level_id'] ?? null);

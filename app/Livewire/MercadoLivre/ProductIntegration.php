@@ -80,6 +80,15 @@ class ProductIntegration extends Component
         ]);
     }
 
+    /** Limpa busca e filtros (botão Limpar da janela de filtros). */
+    public function clearFilters(): void
+    {
+        $this->search = '';
+        $this->statusFilter = 'all';
+        $this->categoryFilter = 'all';
+        $this->resetPage();
+    }
+
     /**
      * Verifica se está conectado ao ML
      */

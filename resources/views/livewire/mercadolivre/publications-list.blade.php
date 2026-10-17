@@ -29,200 +29,104 @@
 
     <x-loading-overlay message="Carregando anúncios..." />
 
-    {{-- ═══════════════════════════════════════════════════════════════
-         HEADER MODERNO — COMPONENTE x-publications-header (amber/ML)
-    ═══════════════════════════════════════════════════════════════ --}}
-    <x-publications-header
-        title="Publicações ML"
-        :total-publications="$stats['total']"
-        :total-active="$stats['active']"
-        :total-kits="$stats['kits']"
-        :total-errors="$stats['errors']"
-        :total-only-on-ml="$stats['only_on_ml'] ?? 0"
-        :show-quick-actions="false">
+    {{-- Cabeçalho, busca e filtros no padrão das outras listas (Produtos, Promoções) --}}
+    @php
+        $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70';
+        $pubFiltersOn = $statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all' || $search;
+        $pubChip = 'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold';
+    @endphp
+    <x-page-header title="Anúncios" icon="bi-megaphone" section="mercadolivre" tabs-section="mercadolivre" tabs-active="anuncios"
+                   subtitle="Suas publicações no Mercado Livre">
+        <x-slot:meta>
+            @if($stats['errors'] > 0)
+                <button type="button" wire:click="$set('syncFilter', 'error')" title="Ver só as publicações com erro" class="{{ $pubChip }} bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-500/20 dark:text-red-300"><i class="bi bi-exclamation-triangle"></i>{{ $stats['errors'] }} com erro</button>
+            @endif
+            <span class="{{ $pubChip }} bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="bi bi-megaphone"></i>{{ $stats['total'] }} publicaç{{ $stats['total'] == 1 ? 'ão' : 'ões' }}</span>
+            <span class="{{ $pubChip }} bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"><i class="bi bi-check-circle"></i>{{ $stats['active'] }} ativa{{ $stats['active'] == 1 ? '' : 's' }}</span>
+            @if($stats['kits'] > 0)
+                <span class="{{ $pubChip }} bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300"><i class="bi bi-boxes"></i>{{ $stats['kits'] }} kit{{ $stats['kits'] == 1 ? '' : 's' }}</span>
+            @endif
+            @if(($stats['only_on_ml'] ?? 0) > 0)
+                <span class="{{ $pubChip }} bg-cyan-50 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-300"><i class="bi bi-cloud-download"></i>{{ $stats['only_on_ml'] }} só no ML</span>
+            @endif
+        </x-slot:meta>
+        <x-slot:actions>
+            <button type="button" @click="showFilters = true" title="Filtros" class="{{ $phBtn }} relative">
+                <i class="bi bi-sliders text-indigo-500"></i><span class="hidden sm:inline">Filtros</span>
+                @if($pubFiltersOn)<span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white dark:border-slate-800"></span>@endif
+            </button>
+            <button type="button" wire:click="syncAllPublications()" wire:loading.attr="disabled" wire:loading.class="opacity-60 cursor-not-allowed"
+                    title="Sincronizar tudo com o Mercado Livre" class="{{ $phBtn }} relative disabled:opacity-60">
+                <i class="bi bi-arrow-repeat text-sky-500" wire:loading.class="animate-spin" wire:target="syncAllPublications"></i><span class="hidden sm:inline">Sincronizar</span>
+                @if($isSyncing)<span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-cyan-400 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>@endif
+            </button>
+            <button type="button" @click="tipsOpen = true" title="Dicas de publicação" class="{{ $phBtn }} max-sm:!hidden"><i class="bi bi-lightbulb text-amber-500"></i><span class="hidden sm:inline">Dicas</span></button>
+            <a href="{{ route('mercadolivre.settings') }}" title="Configurações do Mercado Livre" class="{{ $phBtn }} max-sm:!hidden"><i class="bi bi-gear text-slate-500"></i><span class="hidden sm:inline">Config</span></a>
+            <a href="{{ route('mercadolivre.products') }}" title="Nova publicação"
+               class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition whitespace-nowrap"><i class="bi bi-plus-lg"></i><span class="hidden sm:inline">Nova publicação</span></a>
+        </x-slot:actions>
+    </x-page-header>
 
-        {{-- ── Breadcrumb ──────────────────────────────────────── --}}
-        <x-slot name="breadcrumb">
-            <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                <a href="{{ route('dashboard') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Dashboard</a>
-                <i class="bi bi-chevron-right text-[10px] text-slate-400"></i>
-                <a href="{{ route('mercadolivre.products') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Mercado Livre</a>
-                <i class="bi bi-chevron-right text-[10px] text-slate-400"></i>
-                <span class="text-slate-700 dark:text-slate-300 font-semibold">Publicações</span>
-            </nav>
-        </x-slot>
+    <x-list-toolbar placeholder="Buscar publicações...">
+        <x-toolbar.group icon="bi-circle-half">
+            <x-toolbar.chip wire:click="$set('statusFilter', 'all')" :active="$statusFilter === 'all'">Todos</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('statusFilter', 'active')" :active="$statusFilter === 'active'" icon="bi-check-circle">Ativas</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('statusFilter', 'paused')" :active="$statusFilter === 'paused'" icon="bi-pause-circle">Pausadas</x-toolbar.chip>
+        </x-toolbar.group>
+        <x-toolbar.group icon="bi-boxes">
+            <x-toolbar.chip wire:click="$set('typeFilter', 'all')" :active="$typeFilter === 'all'">Tipos</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('typeFilter', 'simple')" :active="$typeFilter === 'simple'">Simples</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('typeFilter', 'kit')" :active="$typeFilter === 'kit'">Kits</x-toolbar.chip>
+        </x-toolbar.group>
+        <x-toolbar.group icon="bi-arrow-repeat">
+            <x-toolbar.chip wire:click="$set('syncFilter', 'all')" :active="$syncFilter === 'all'">Sync</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('syncFilter', 'synced')" :active="$syncFilter === 'synced'">OK</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('syncFilter', 'pending')" :active="$syncFilter === 'pending'">Pendente</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('syncFilter', 'error')" :active="$syncFilter === 'error'">Erro</x-toolbar.chip>
+        </x-toolbar.group>
+        <x-toolbar.group>
+            <x-toolbar.chip wire:click="$set('viewMode', 'cards')" :active="$viewMode === 'cards'" icon="bi-grid-3x3-gap" title="Grade">Grade</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('viewMode', 'table')" :active="$viewMode === 'table'" icon="bi-list-ul" title="Lista">Lista</x-toolbar.chip>
+        </x-toolbar.group>
+    </x-list-toolbar>
 
-        {{-- ── Controles: Linha 1 + Linha 2 (padrão products-index) ── --}}
-        <div class="w-full products-index-controls">
-
-            {{-- ── LINHA 1: Pesquisa + Nova Publicação + Sincronizar ── --}}
-            <div class="prod-header-row-1 flex items-center gap-2 w-full mb-2">
-
-                {{-- Campo de Pesquisa --}}
-                <div class="relative group flex-1 xl:flex-none">
-                    <input type="text" wire:model.live.debounce.300ms="search"
-                        placeholder="Buscar publicações..."
-                        class="w-full xl:w-64 pl-9 pr-8 py-2.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-600/80 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-amber-500/40 focus:border-amber-400 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium backdrop-blur-sm">
-                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
-                        <i class="bi bi-search text-slate-400 group-focus-within:text-amber-500 transition-colors"></i>
-                    </div>
-                    @if($search)
-                    <button wire:click="$set('search', '')"
-                        class="absolute right-2.5 top-1/2 transform -translate-y-1/2 p-1 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-lg transition-all duration-200">
-                        <i class="bi bi-x text-sm"></i>
-                    </button>
-                    @endif
-                    <div wire:loading.delay wire:target="search" class="absolute right-9 top-1/2 transform -translate-y-1/2">
-                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-amber-500 border-t-transparent"></div>
-                    </div>
+    <x-filter-sheet title="Filtros de anúncios" subtitle="Status, tipo e sincronização" :active="(bool) $pubFiltersOn" target="statusFilter,typeFilter,syncFilter,clearFilters">
+        @foreach([
+            ['statusFilter', 'Status da publicação', 'bi-circle-half text-amber-500', [
+                ['all', 'Todos', 'bi-list-check'], ['active', 'Ativas', 'bi-check-circle'], ['paused', 'Pausadas', 'bi-pause-circle'],
+                ['closed', 'Fechadas', 'bi-x-circle'], ['under_review', 'Em revisão', 'bi-search'],
+            ]],
+            ['typeFilter', 'Tipo de publicação', 'bi-boxes text-blue-500', [
+                ['all', 'Todos', 'bi-box-seam'], ['simple', 'Simples', 'bi-box'], ['kit', 'Kits', 'bi-boxes'],
+            ]],
+            ['syncFilter', 'Sincronização', 'bi-arrow-repeat text-teal-500', [
+                ['all', 'Todos', 'bi-arrow-repeat'], ['synced', 'Sincronizados', 'bi-check-circle'], ['pending', 'Pendentes', 'bi-clock'], ['error', 'Com erros', 'bi-exclamation-triangle'],
+            ]],
+        ] as [$prop, $label, $ico, $opts])
+            <div class="fm-fs-group">
+                <h4><i class="bi {{ $ico }}"></i>{{ $label }}</h4>
+                <div class="fm-fs-options">
+                    @foreach($opts as [$val, $txt, $oi])
+                        <button type="button" wire:click="$set('{{ $prop }}', '{{ $val }}')" class="fm-fs-opt {{ $$prop === $val ? 'is-on' : '' }}"><i class="bi {{ $oi }}"></i>{{ $txt }}</button>
+                    @endforeach
                 </div>
-
-                {{-- Botão Nova Publicação --}}
-                <a href="{{ route('mercadolivre.products') }}"
-                   class="inline-flex items-center gap-1.5 px-3 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 text-sm whitespace-nowrap">
-                    <i class="bi bi-plus-circle"></i>
-                    <span class="hidden sm:inline">Nova Publicação</span>
-                </a>
-
-                {{-- Botão Sincronizar Tudo --}}
-                <button wire:click="syncAllPublications()"
-                        wire:loading.attr="disabled"
-                        wire:loading.class="opacity-60 cursor-not-allowed"
-                        class="relative inline-flex items-center gap-1.5 px-3 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 text-sm whitespace-nowrap disabled:opacity-60">
-                    <i class="bi bi-arrow-repeat"
-                       wire:loading.class="animate-spin"
-                       wire:target="syncAllPublications"></i>
-                    <span class="hidden sm:inline">Sincronizar</span>
-                    @if($isSyncing)
-                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-cyan-400 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
-                    @endif
-                </button>
-
             </div>
-
-            {{-- ── LINHA 2: Pills de filtro + Paginação + Ações ── --}}
-            <div class="prod-header-row-2 flex items-center gap-2 flex-wrap justify-start xl:justify-end">
-
-                {{-- Status pills --}}
-                <div class="sale-filter-pills hidden md:inline-flex">
-                    <button type="button" wire:click="$set('statusFilter', 'all')"
-                        class="sale-filter-pill {{ $statusFilter === 'all' ? 'active' : '' }}" title="Todos os status">
-                        <i class="bi bi-list-check"></i>
-                        <span>Todos</span>
-                    </button>
-                    <button type="button" wire:click="$set('statusFilter', 'active')"
-                        class="sale-filter-pill pill-success {{ $statusFilter === 'active' ? 'active' : '' }}" title="Apenas ativas">
-                        <i class="bi bi-check-circle"></i>
-                        <span>Ativas</span>
-                    </button>
-                    <button type="button" wire:click="$set('statusFilter', 'paused')"
-                        class="sale-filter-pill pill-warning {{ $statusFilter === 'paused' ? 'active' : '' }}" title="Apenas pausadas">
-                        <i class="bi bi-pause-circle"></i>
-                        <span>Pausadas</span>
-                    </button>
-                </div>
-
-                {{-- Tipo pills --}}
-                <div class="sale-filter-pills hidden md:inline-flex">
-                    <button type="button" wire:click="$set('typeFilter', 'all')"
-                        class="sale-filter-pill {{ $typeFilter === 'all' ? 'active' : '' }}" title="Todos os tipos">
-                        <i class="bi bi-box-seam"></i>
-                        <span>Tipos</span>
-                    </button>
-                    <button type="button" wire:click="$set('typeFilter', 'simple')"
-                        class="sale-filter-pill {{ $typeFilter === 'simple' ? 'active' : '' }}" title="Simples">
-                        <i class="bi bi-box"></i>
-                        <span>Simples</span>
-                    </button>
-                    <button type="button" wire:click="$set('typeFilter', 'kit')"
-                        class="sale-filter-pill {{ $typeFilter === 'kit' ? 'active' : '' }}" title="Kits">
-                        <i class="bi bi-boxes"></i>
-                        <span>Kits</span>
-                    </button>
-                </div>
-
-                {{-- Sync pills --}}
-                <div class="sale-filter-pills hidden lg:inline-flex">
-                    <button type="button" wire:click="$set('syncFilter', 'all')"
-                        class="sale-filter-pill {{ $syncFilter === 'all' ? 'active' : '' }}" title="Todos sync">
-                        <i class="bi bi-arrow-repeat"></i>
-                        <span>Sync</span>
-                    </button>
-                    <button type="button" wire:click="$set('syncFilter', 'synced')"
-                        class="sale-filter-pill pill-success {{ $syncFilter === 'synced' ? 'active' : '' }}" title="Sincronizados">
-                        <span>OK</span>
-                    </button>
-                    <button type="button" wire:click="$set('syncFilter', 'pending')"
-                        class="sale-filter-pill pill-warning {{ $syncFilter === 'pending' ? 'active' : '' }}" title="Pendentes">
-                        <span>Pendente</span>
-                    </button>
-                    <button type="button" wire:click="$set('syncFilter', 'error')"
-                        class="sale-filter-pill {{ $syncFilter === 'error' ? 'active' : '' }}"
-                        style="{{ $syncFilter === 'error' ? 'background: #ef4444; color: #fff;' : '' }}"
-                        title="Com erro">
-                        <span>Erro</span>
-                    </button>
-                </div>
-
-                {{-- Paginação Compacta --}}
-                @if($publications->hasPages())
-                <div class="sale-pagination-compact">
-                    @if($publications->currentPage() > 1)
-                    <button wire:click.prevent="previousPage" class="sale-pagination-btn" title="Página anterior">
-                        <i class="bi bi-chevron-left"></i>
-                    </button>
-                    @endif
-                    <span class="sale-pagination-indicator">{{ $publications->currentPage() }} / {{ $publications->lastPage() }}</span>
-                    @if($publications->hasMorePages())
-                    <button wire:click.prevent="nextPage" class="sale-pagination-btn" title="Próxima página">
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
-                    @endif
-                </div>
-                @endif
-
-                {{-- Toggle Visualização --}}
-                <div class="sale-pagination-compact">
-                    <button wire:click="$set('viewMode', 'cards')"
-                            title="Cards"
-                            class="sale-pagination-btn {{ $viewMode === 'cards' ? 'bg-amber-500 text-white' : '' }}">
-                        <i class="bi bi-grid-3x3-gap"></i>
-                    </button>
-                    <button wire:click="$set('viewMode', 'table')"
-                            title="Tabela"
-                            class="sale-pagination-btn {{ $viewMode === 'table' ? 'bg-amber-500 text-white' : '' }}">
-                        <i class="bi bi-list-ul"></i>
-                    </button>
-                </div>
-
-                {{-- Botão Filtros Avançados --}}
-                <button @click="openFiltersModal()"
-                        class="sale-action-btn relative" title="Filtros avançados">
-                    <i class="bi bi-funnel"></i>
-                    <span class="hidden sm:inline">Filtros</span>
-                    @if($statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all' || $search)
-                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white dark:border-slate-800"></span>
-                    @endif
-                </button>
-
-                {{-- Botão Dicas --}}
-                <button @click="tipsOpen = true"
-                        class="sale-action-btn" title="Dicas de publicação">
-                    <i class="bi bi-lightbulb"></i>
-                    <span class="hidden sm:inline">Dicas</span>
-                </button>
-
-                {{-- Botão Configurações --}}
-                <a href="{{ route('mercadolivre.settings') }}"
-                   class="sale-action-btn" title="Configurações ML">
-                    <i class="bi bi-gear"></i>
-                    <span class="hidden sm:inline">Config</span>
-                </a>
-
+        @endforeach
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-layout-split text-indigo-500"></i>Visualização</h4>
+            <div class="fm-fs-options">
+                <button type="button" wire:click="$set('viewMode', 'cards')" class="fm-fs-opt {{ $viewMode === 'cards' ? 'is-on' : '' }}"><i class="bi bi-grid-3x3-gap"></i>Grade</button>
+                <button type="button" wire:click="$set('viewMode', 'table')" class="fm-fs-opt {{ $viewMode === 'table' ? 'is-on' : '' }}"><i class="bi bi-list-ul"></i>Lista</button>
             </div>
         </div>
-
-    </x-publications-header>
+        <div class="fm-fs-group sm:hidden">
+            <h4><i class="bi bi-three-dots text-slate-500"></i>Mais</h4>
+            <div class="fm-fs-options">
+                <button type="button" @click="showFilters = false; tipsOpen = true" class="fm-fs-opt"><i class="bi bi-lightbulb"></i>Dicas de publicação</button>
+                <a href="{{ route('mercadolivre.settings') }}" class="fm-fs-opt"><i class="bi bi-gear"></i>Configurações</a>
+            </div>
+        </div>
+    </x-filter-sheet>
 
     {{-- ═══════════════════════════════════════════════
          INDICADOR DE SINCRONIZAÇÃO AUTOMÁTICA (INLINE)
@@ -588,25 +492,14 @@
 
                     </div>{{-- /pub-publication-card --}}
             @empty
-                {{-- Estado Vazio --}}
                 <div class="col-span-full">
-                    <div class="rounded-2xl bg-slate-100 dark:bg-slate-900/50 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 text-center">
-                        <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
-                            <i class="bi bi-inbox text-4xl text-slate-400"></i>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">Nenhuma publicação encontrada</h3>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                            @if($search || $statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all')
-                                Ajuste os filtros ou pesquise novamente
-                            @else
-                                Crie sua primeira publicação no Mercado Livre
-                            @endif
-                        </p>
-                        <a href="{{ route('mercadolivre.products') }}"
-                           class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all">
-                            <i class="bi bi-plus-lg"></i> Nova Publicação
-                        </a>
-                    </div>
+                    <x-empty-state icon="bi-megaphone" tone="amber" title="Nenhuma publicação encontrada"
+                        :text="($search || $statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all') ? 'Ajuste os filtros ou pesquise novamente.' : 'Crie sua primeira publicação no Mercado Livre.'">
+                        @if($search || $statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all')
+                            <button type="button" wire:click="clearFilters" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"><i class="bi bi-eraser"></i>Limpar filtros</button>
+                        @endif
+                        <a href="{{ route('mercadolivre.products') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-amber-500/25"><i class="bi bi-plus-lg"></i>Nova publicação</a>
+                    </x-empty-state>
                 </div>
             @endforelse
         </div>
@@ -806,23 +699,15 @@
                             @empty
                                 <tr>
                                     <td colspan="7" class="px-4 py-12">
-                                        <div class="text-center">
-                                            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
-                                                <i class="bi bi-inbox text-4xl text-slate-400"></i>
-                                            </div>
-                                            <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">Nenhuma publicação encontrada</h3>
-                                            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                                                @if($search || $statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all')
-                                                    Ajuste os filtros ou pesquise novamente
-                                                @else
-                                                    Crie sua primeira publicação no Mercado Livre
-                                                @endif
-                                            </p>
-                                            <a href="{{ route('mercadolivre.products') }}"
-                                               class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all">
-                                                <i class="bi bi-plus-lg"></i> Nova Publicação
-                                            </a>
-                                        </div>
+                <div class="col-span-full">
+                    <x-empty-state icon="bi-megaphone" tone="amber" title="Nenhuma publicação encontrada"
+                        :text="($search || $statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all') ? 'Ajuste os filtros ou pesquise novamente.' : 'Crie sua primeira publicação no Mercado Livre.'">
+                        @if($search || $statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all')
+                            <button type="button" wire:click="clearFilters" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200"><i class="bi bi-eraser"></i>Limpar filtros</button>
+                        @endif
+                        <a href="{{ route('mercadolivre.products') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-amber-500/25"><i class="bi bi-plus-lg"></i>Nova publicação</a>
+                    </x-empty-state>
+                </div>
                                     </td>
                                 </tr>
                             @endforelse
@@ -881,174 +766,6 @@
 
     </div>
 
-    {{-- ═══════════════════════════════════════════════════════════════
-         MODAL DE FILTROS AVANÇADOS (full-screen z-[9999], estilo ML)
-    ═══════════════════════════════════════════════════════════════ --}}
-    <div x-show="showFilters"
-         x-cloak
-         class="fixed inset-0 z-[9999] products-mobile-filter-modal"
-         @keydown.escape.window="closeFiltersModal()">
-
-        {{-- Overlay backdrop --}}
-        <div class="absolute inset-0 bg-slate-950/55 backdrop-blur-md cursor-pointer"
-             @click="closeFiltersModal()"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"></div>
-
-        {{-- Painel do Modal --}}
-        <div class="absolute inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center">
-            <div class="relative w-full md:w-auto md:min-w-[540px] md:max-w-lg mx-0 md:mx-4 bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl rounded-t-3xl md:rounded-3xl shadow-2xl border border-white/20 dark:border-slate-700/50 overflow-hidden"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 translate-y-8 md:scale-95 md:translate-y-0"
-                 x-transition:enter-end="opacity-100 translate-y-0 md:scale-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 translate-y-0 md:scale-100"
-                 x-transition:leave-end="opacity-0 translate-y-8 md:scale-95 md:translate-y-0">
-
-                {{-- Mobile handle --}}
-                <div class="md:hidden mx-auto mt-3 mb-1 w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
-
-                {{-- Header do modal (amber/ML) --}}
-                <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-r from-amber-50/80 to-orange-50/80 dark:from-amber-950/30 dark:to-orange-950/30">
-                    <div class="flex items-center gap-3">
-                        <div class="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg shadow-amber-500/25">
-                            <i class="bi bi-funnel-fill text-white text-lg"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Filtros Avançados</h2>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">Filtre suas publicações no ML</p>
-                        </div>
-                    </div>
-                    <button @click="closeFiltersModal()"
-                            class="flex items-center justify-center w-9 h-9 rounded-xl hover:bg-amber-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all duration-200">
-                        <i class="bi bi-x-lg text-lg"></i>
-                    </button>
-                </div>
-
-                {{-- Body --}}
-                <div class="px-6 py-5 space-y-5 max-h-[60vh] md:max-h-[70vh] overflow-y-auto">
-
-                    {{-- Status --}}
-                    <div>
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
-                            <i class="bi bi-circle-half text-amber-500"></i> Status da Publicação
-                        </label>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach([
-                                ['value' => 'all',          'label' => 'Todos',      'icon' => 'list-check',    'color' => 'amber'],
-                                ['value' => 'active',       'label' => 'Ativas',     'icon' => 'check-circle',  'color' => 'emerald'],
-                                ['value' => 'paused',       'label' => 'Pausadas',   'icon' => 'pause-circle',  'color' => 'amber'],
-                                ['value' => 'closed',       'label' => 'Fechadas',   'icon' => 'x-circle',      'color' => 'red'],
-                                ['value' => 'under_review', 'label' => 'Em Revisão', 'icon' => 'search',        'color' => 'violet'],
-                            ] as $opt)
-                            <button wire:click="$set('statusFilter', '{{ $opt['value'] }}')"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 border-2
-                                           {{ $statusFilter === $opt['value']
-                                              ? 'bg-'.$opt['color'].'-500 border-'.$opt['color'].'-500 text-white shadow-md'
-                                              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-'.$opt['color'].'-300' }}">
-                                <i class="bi bi-{{ $opt['icon'] }}"></i> {{ $opt['label'] }}
-                            </button>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Tipo --}}
-                    <div>
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
-                            <i class="bi bi-boxes text-blue-500"></i> Tipo de Publicação
-                        </label>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach([
-                                ['value' => 'all',    'label' => 'Todos',   'icon' => 'box-seam', 'color' => 'blue'],
-                                ['value' => 'simple', 'label' => 'Simples', 'icon' => 'box',      'color' => 'blue'],
-                                ['value' => 'kit',    'label' => 'Kits',    'icon' => 'boxes',    'color' => 'purple'],
-                            ] as $opt)
-                            <button wire:click="$set('typeFilter', '{{ $opt['value'] }}')"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 border-2
-                                           {{ $typeFilter === $opt['value']
-                                              ? 'bg-'.$opt['color'].'-500 border-'.$opt['color'].'-500 text-white shadow-md'
-                                              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-'.$opt['color'].'-300' }}">
-                                <i class="bi bi-{{ $opt['icon'] }}"></i> {{ $opt['label'] }}
-                            </button>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Sincronização --}}
-                    <div>
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
-                            <i class="bi bi-arrow-repeat text-teal-500"></i> Status de Sincronização
-                        </label>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach([
-                                ['value' => 'all',     'label' => 'Todos',         'icon' => 'arrow-repeat',         'color' => 'teal'],
-                                ['value' => 'synced',  'label' => 'Sincronizados', 'icon' => 'check-circle',         'color' => 'emerald'],
-                                ['value' => 'pending', 'label' => 'Pendentes',     'icon' => 'clock',                'color' => 'amber'],
-                                ['value' => 'error',   'label' => 'Com Erros',     'icon' => 'exclamation-triangle', 'color' => 'red'],
-                            ] as $opt)
-                            <button wire:click="$set('syncFilter', '{{ $opt['value'] }}')"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 border-2
-                                           {{ $syncFilter === $opt['value']
-                                              ? 'bg-'.$opt['color'].'-500 border-'.$opt['color'].'-500 text-white shadow-md'
-                                              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-'.$opt['color'].'-300' }}">
-                                <i class="bi bi-{{ $opt['icon'] }}"></i> {{ $opt['label'] }}
-                            </button>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Resumo dos filtros ativos --}}
-                    @if($statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all' || $search)
-                    <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
-                        <p class="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-1.5">
-                            <i class="bi bi-funnel-fill mr-1"></i> Filtros ativos:
-                        </p>
-                        <div class="flex flex-wrap gap-1.5">
-                            @if($search)
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 text-xs font-medium">
-                                    <i class="bi bi-search"></i> "{{ $search }}"
-                                </span>
-                            @endif
-                            @if($statusFilter !== 'all')
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 text-xs font-medium">
-                                    Status: {{ $statusFilter }}
-                                </span>
-                            @endif
-                            @if($typeFilter !== 'all')
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 text-xs font-medium">
-                                    Tipo: {{ $typeFilter }}
-                                </span>
-                            @endif
-                            @if($syncFilter !== 'all')
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 text-xs font-medium">
-                                    Sync: {{ $syncFilter }}
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                    @endif
-
-                </div>
-
-                {{-- Footer com ações --}}
-                <div class="px-6 pb-6 pt-4 flex items-center justify-between gap-3 border-t border-slate-200/60 dark:border-slate-700/60 bg-slate-50/50 dark:bg-slate-800/30">
-                    <button wire:click="clearFilters" @click="closeFiltersModal()"
-                            class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold transition-all text-sm">
-                        <i class="bi bi-x-circle"></i> Limpar Tudo
-                    </button>
-                    <button @click="applyFiltersModal()"
-                            class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm">
-                        <i class="bi bi-check-lg"></i> Aplicar Filtros
-                    </button>
-                </div>
-
-            </div>
-        </div>
-    </div>
 
     {{-- ═══════════════════════════════════════════════════════════════
          MODAL "LIGAR A UM PRODUTO" (depois de importar do ML)

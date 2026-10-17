@@ -30,211 +30,76 @@
          closeFiltersModal() { this.showFiltersModal = false; }
      }">
     <x-loading-overlay message="Carregando pedidos..." />
-    {{-- ============================================================
-         HEADER – AMBER / ML
-    ============================================================ --}}
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/85 via-amber-50/90 to-yellow-50/80
-                dark:from-slate-800/90 dark:via-amber-900/10 dark:to-slate-800/30
-                backdrop-blur-xl border border-amber-100/60 dark:border-amber-900/30
-                rounded-3xl shadow-2xl mb-6 mx-4 sm:mx-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse pointer-events-none"></div>
-        <div class="absolute top-0 right-0 w-52 h-52 bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10 rounded-full transform translate-x-20 -translate-y-20 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-amber-300/15 via-yellow-300/10 to-orange-200/10 rounded-full transform -translate-x-12 translate-y-12 pointer-events-none"></div>
-        <div class="relative w-full px-4 sm:px-6 lg:px-8 py-6">
-
-            {{-- Breadcrumb --}}
-            <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-4">
-                <a href="{{ route('dashboard') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1">
-                    <i class="bi bi-house-fill text-[11px]"></i> Início
-                </a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <a href="{{ route('mercadolivre.products') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Mercado Livre</a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <span class="text-amber-700 dark:text-amber-400 font-semibold">Pedidos</span>
-            </nav>
-
-            {{-- Title row --}}
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-
-                {{-- Ícone + Título --}}
-                <div class="flex items-start gap-5">
-                    <div class="relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 rounded-2xl shadow-xl shadow-amber-500/30 flex-shrink-0">
-                        <i class="bi bi-bag-check-fill text-white text-3xl"></i>
-                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50 pointer-events-none"></div>
-                        <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center shadow-md ring-2 ring-amber-100 dark:ring-slate-700">
-                            <span class="text-amber-600 dark:text-amber-400 font-black text-[8px] leading-none">ML</span>
-                        </div>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600 dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent leading-tight">
-                            Pedidos do Mercado Livre
-                        </h1>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Gerencie, filtre e importe seus pedidos em tempo real
-                        </p>
-                    </div>
-                </div>
-
-                {{-- Ações do header --}}
-                <div class="flex items-center gap-2 flex-wrap">
-                    {{-- Search mini --}}
-                    <div class="relative">
-                        <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text"
-                               wire:model.live.debounce.400ms="searchTerm"
-                               placeholder="Pedido ou comprador…"
-                               class="pl-8 pr-3 py-2 text-sm rounded-xl bg-white/80 dark:bg-slate-800
-                                      border border-amber-200/80 dark:border-slate-600
-                                      focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20
-                                      text-slate-800 dark:text-white placeholder-slate-400
-                                      transition-all w-48 sm:w-56">
-                    </div>
-
-                    {{-- Filtros --}}
-                    <button @click="openFiltersModal()"
-                            class="inline-flex items-center gap-2 px-3 py-2 rounded-xl
-                                   bg-white/80 dark:bg-slate-800 border border-amber-200 dark:border-slate-600
-                                   text-sm font-semibold text-amber-700 dark:text-amber-400
-                                   hover:bg-amber-50 dark:hover:bg-slate-700 transition-all shadow-sm">
-                        <i class="bi bi-sliders2"></i>
-                        Filtros
-                        @if($statusFilter || $dateFrom || $dateTo)
-                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                        @endif
-                    </button>
-
-                    {{-- Dicas --}}
-                    <button @click="tipsOpen = true"
-                            class="inline-flex items-center gap-2 px-3 py-2 rounded-xl
-                                   bg-white/80 dark:bg-slate-800 border border-amber-200 dark:border-slate-600
-                                   text-sm font-semibold text-slate-600 dark:text-slate-300
-                                   hover:bg-amber-50 dark:hover:bg-slate-700 transition-all shadow-sm">
-                        <i class="bi bi-lightbulb-fill text-amber-500"></i>
-                        Dicas
-                    </button>
-
-                    {{-- Atualizar --}}
-                    <button wire:click="loadOrders" wire:loading.attr="disabled"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl
-                                   bg-gradient-to-r from-amber-500 to-orange-500
-                                   text-white text-sm font-bold shadow
-                                   hover:shadow-md hover:from-amber-600 hover:to-orange-600 transition-all">
-                        <span wire:loading.remove wire:target="loadOrders"><i class="bi bi-arrow-clockwise"></i> Atualizar</span>
-                        <span wire:loading wire:target="loadOrders"><i class="bi bi-arrow-repeat animate-spin"></i> Carregando…</span>
-                    </button>
-                </div>
-
-            </div>
-
-            {{-- Pills de status + view toggle --}}
-            <div class="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-amber-100/60 dark:border-amber-900/20">
-
-                @php $s = $this->getStats(); @endphp
-
-                <button wire:click="$set('statusFilter', '')"
-                        class="px-3 py-1 rounded-full text-xs font-bold border transition-all
-                               {{ $statusFilter === '' ? 'bg-amber-500 border-amber-500 text-white shadow' : 'bg-white/60 dark:bg-slate-800 border-amber-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-amber-400' }}">
-                    Todos <span class="ml-1 opacity-75">({{ $s['total'] }})</span>
-                </button>
-
-                <button wire:click="$set('statusFilter', 'paid')"
-                        class="px-3 py-1 rounded-full text-xs font-bold border transition-all
-                               {{ $statusFilter === 'paid' ? 'bg-emerald-500 border-emerald-500 text-white shadow' : 'bg-white/60 dark:bg-slate-800 border-emerald-200 dark:border-slate-600 text-emerald-700 dark:text-emerald-400 hover:border-emerald-400' }}">
-                    <i class="bi bi-check-circle-fill mr-1"></i>Pagos
-                    <span class="ml-1 opacity-75">({{ $s['paid'] }})</span>
-                </button>
-
-                <button wire:click="$set('statusFilter', 'payment_in_process')"
-                        class="px-3 py-1 rounded-full text-xs font-bold border transition-all
-                               {{ $statusFilter === 'payment_in_process' ? 'bg-blue-500 border-blue-500 text-white shadow' : 'bg-white/60 dark:bg-slate-800 border-blue-200 dark:border-slate-600 text-blue-700 dark:text-blue-400 hover:border-blue-400' }}">
-                    <i class="bi bi-clock-fill mr-1"></i>Em processo
-                    <span class="ml-1 opacity-75">({{ $s['processing'] }})</span>
-                </button>
-
-                <button wire:click="$set('statusFilter', 'cancelled')"
-                        class="px-3 py-1 rounded-full text-xs font-bold border transition-all
-                               {{ $statusFilter === 'cancelled' ? 'bg-red-500 border-red-500 text-white shadow' : 'bg-white/60 dark:bg-slate-800 border-red-200 dark:border-slate-600 text-red-700 dark:text-red-400 hover:border-red-400' }}">
-                    <i class="bi bi-x-circle-fill mr-1"></i>Cancelados
-                    <span class="ml-1 opacity-75">({{ $s['cancelled'] }})</span>
-                </button>
-
-                @if($statusFilter || $dateFrom || $dateTo || $searchTerm)
-                    <button wire:click="clearFilters"
-                            class="px-3 py-1 rounded-full text-xs font-semibold bg-red-50 dark:bg-red-900/20
-                                   border border-red-200 dark:border-red-700 text-red-600 dark:text-red-400
-                                   hover:bg-red-100 transition-all">
-                        <i class="bi bi-x-lg mr-1"></i>Limpar filtros
-                    </button>
+    {{-- Cabeçalho, contadores, busca e status no padrão das outras listas --}}
+    @php
+        $s = $this->getStats();
+        $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70';
+        $statusPills = [
+            '' => ['Todos', 'bi-grid', $s['total']],
+            'paid' => ['Pagos', 'bi-check-circle', $s['paid']],
+            'payment_in_process' => ['Em processo', 'bi-clock', $s['processing']],
+            'cancelled' => ['Cancelados', 'bi-x-circle', $s['cancelled']],
+        ];
+    @endphp
+    <div class="px-4 sm:px-6 lg:px-8">
+        <x-page-header title="Pedidos" icon="bi-bag-check" section="mercadolivre" tabs-section="mercadolivre" tabs-active="pedidos"
+                       subtitle="Gerencie, filtre e importe seus pedidos do Mercado Livre">
+            <x-slot:meta>
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="bi bi-bag"></i>{{ $s['total'] }} pedido{{ $s['total'] == 1 ? '' : 's' }}</span>
+                @if($dateFrom || $dateTo)
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300"><i class="bi bi-calendar3"></i>{{ $dateFrom ? \Carbon\Carbon::parse($dateFrom)->format('d/m') : '...' }} a {{ $dateTo ? \Carbon\Carbon::parse($dateTo)->format('d/m') : 'hoje' }}</span>
                 @endif
+            </x-slot:meta>
+            <x-slot:actions>
+                <button type="button" @click="openFiltersModal()" title="Filtros" class="{{ $phBtn }} relative">
+                    <i class="bi bi-sliders text-amber-500"></i><span class="hidden sm:inline">Filtros</span>
+                    @if($statusFilter)
+                        <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-900"></span>
+                    @endif
+                </button>
+                <button type="button" @click="tipsOpen = true" title="Dicas" class="{{ $phBtn }} max-sm:!hidden"><i class="bi bi-lightbulb text-amber-500"></i><span class="hidden sm:inline">Dicas</span></button>
+                <button type="button" wire:click="loadOrders" wire:loading.attr="disabled" title="Atualizar pedidos"
+                        class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition whitespace-nowrap">
+                    <i class="bi bi-arrow-clockwise" wire:loading.class="animate-spin" wire:target="loadOrders"></i><span class="hidden sm:inline">Atualizar</span>
+                </button>
+            </x-slot:actions>
+        </x-page-header>
 
-                <div class="flex-1"></div>
-
-                {{-- Toggle view --}}
-                <div class="flex items-center gap-1 bg-white/70 dark:bg-slate-800 border border-amber-200 dark:border-slate-600
-                            rounded-xl p-1 shadow-sm">
-                    <button wire:click="$set('viewMode','cards')"
-                            class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all
-                                   {{ $viewMode === 'cards' ? 'bg-amber-500 text-white shadow' : 'text-slate-500 hover:text-amber-600' }}"
-                            title="Cards">
-                        <i class="bi bi-grid-3x3-gap-fill"></i>
-                    </button>
-                    <button wire:click="$set('viewMode','table')"
-                            class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all
-                                   {{ $viewMode === 'table' ? 'bg-amber-500 text-white shadow' : 'text-slate-500 hover:text-amber-600' }}"
-                            title="Tabela">
-                        <i class="bi bi-table"></i>
-                    </button>
-                </div>
-
-            </div>
-
-            {{-- Stats cards --}}
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-                <div class="bg-white/70 dark:bg-slate-800/80 border border-amber-100 dark:border-slate-700
-                            rounded-xl px-4 py-3 flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
-                        <i class="bi bi-bag-fill text-amber-600 dark:text-amber-400 text-base"></i>
-                    </div>
-                    <div>
-                        <p class="text-2xl font-black text-slate-800 dark:text-white leading-none">{{ $s['total'] }}</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Total pedidos</p>
+        {{-- Contadores --}}
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            @foreach([
+                ['Total pedidos', $s['total'], 'bi-bag-fill', 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400', 'text-slate-800 dark:text-white'],
+                ['Pagos', $s['paid'], 'bi-check-circle-fill', 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', 'text-emerald-700 dark:text-emerald-400'],
+                ['Em processamento', $s['processing'], 'bi-clock-fill', 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400', 'text-blue-700 dark:text-blue-400'],
+                ['Cancelados', $s['cancelled'], 'bi-x-circle-fill', 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400', 'text-red-700 dark:text-red-400'],
+            ] as [$label, $value, $icon, $iconCls, $valCls])
+                <div class="bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-700/70 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm min-w-0">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 {{ $iconCls }}"><i class="bi {{ $icon }} text-base"></i></div>
+                    <div class="min-w-0">
+                        <p class="text-2xl font-black leading-none {{ $valCls }}">{{ $value }}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">{{ $label }}</p>
                     </div>
                 </div>
-                <div class="bg-white/70 dark:bg-slate-800/80 border border-emerald-100 dark:border-slate-700
-                            rounded-xl px-4 py-3 flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
-                        <i class="bi bi-check-circle-fill text-emerald-600 dark:text-emerald-400 text-base"></i>
-                    </div>
-                    <div>
-                        <p class="text-2xl font-black text-emerald-700 dark:text-emerald-400 leading-none">{{ $s['paid'] }}</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Pagos</p>
-                    </div>
-                </div>
-                <div class="bg-white/70 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700
-                            rounded-xl px-4 py-3 flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                        <i class="bi bi-clock-fill text-blue-600 dark:text-blue-400 text-base"></i>
-                    </div>
-                    <div>
-                        <p class="text-2xl font-black text-blue-700 dark:text-blue-400 leading-none">{{ $s['processing'] }}</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Em processamento</p>
-                    </div>
-                </div>
-                <div class="bg-white/70 dark:bg-slate-800/80 border border-red-100 dark:border-slate-700
-                            rounded-xl px-4 py-3 flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
-                        <i class="bi bi-x-circle-fill text-red-600 dark:text-red-400 text-base"></i>
-                    </div>
-                    <div>
-                        <p class="text-2xl font-black text-red-700 dark:text-red-400 leading-none">{{ $s['cancelled'] }}</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Cancelados</p>
-                    </div>
-                </div>
-            </div>
-
+            @endforeach
         </div>
+
+        <x-list-toolbar model="searchTerm" placeholder="Buscar por pedido ou comprador...">
+            <x-toolbar.group icon="bi-flag">
+                @foreach($statusPills as $key => [$label, $icon, $count])
+                    <x-toolbar.chip wire:click="$set('statusFilter', '{{ $key }}')" :active="$statusFilter === $key" :icon="$icon">{{ $label }} ({{ $count }})</x-toolbar.chip>
+                @endforeach
+            </x-toolbar.group>
+            <x-toolbar.group>
+                <x-toolbar.chip wire:click="$set('viewMode','cards')" :active="$viewMode === 'cards'" icon="bi-grid-3x3-gap" title="Cards" />
+                <x-toolbar.chip wire:click="$set('viewMode','table')" :active="$viewMode === 'table'" icon="bi-table" title="Tabela" />
+            </x-toolbar.group>
+            @if($statusFilter || $searchTerm)
+                <x-toolbar.group>
+                    <x-toolbar.chip wire:click="clearFilters" icon="bi-x-lg">Limpar</x-toolbar.chip>
+                </x-toolbar.group>
+            @endif
+        </x-list-toolbar>
     </div>
-    {{-- /HEADER --}}
 
     <div class="w-full px-4 sm:px-6 lg:px-8 pb-8">
 
@@ -265,36 +130,18 @@
         ============================================================ --}}
         @elseif($viewMode === 'cards')
             @if(count($orders) === 0)
-                <div class="flex flex-col items-center justify-center py-16 sm:py-24">
-                    <div class="relative mb-6">
-                        <div class="w-28 h-28 rounded-3xl bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10
-                                    dark:from-amber-900/30 dark:via-amber-800/20 dark:to-orange-900/10
-                                    border border-amber-200/60 dark:border-amber-700/30
-                                    flex items-center justify-center shadow-xl">
-                            <i class="bi bi-bag-x-fill text-5xl text-amber-400 dark:text-amber-500"></i>
-                        </div>
-                        <div class="absolute -top-2 -right-2 w-8 h-8 rounded-xl bg-gradient-to-br from-slate-400 to-slate-500
-                                    flex items-center justify-center shadow-lg">
-                            <i class="bi bi-search text-white text-xs"></i>
-                        </div>
-                    </div>
-                    <h3 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white mb-2 text-center">
-                        Nenhum pedido encontrado
-                    </h3>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-sm text-center leading-relaxed">
-                        Ajuste os filtros ou aguarde novos pedidos chegarem do Mercado Livre.
-                        Os pedidos são atualizados automaticamente.
-                    </p>
-                    @if($statusFilter || $dateFrom || $dateTo || $searchTerm)
-                        <button wire:click="clearFilters"
-                                class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl
-                                       bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-sm
-                                       shadow-lg shadow-amber-500/25 hover:shadow-xl hover:from-amber-600 hover:to-orange-600
-                                       transition-all duration-200 active:scale-95">
-                            <i class="bi bi-x-circle-fill"></i> Limpar Filtros
+                <x-empty-state icon="bi-bag-x" tone="amber" title="Nenhum pedido encontrado"
+                               text="Ajuste os filtros ou aguarde novos pedidos chegarem do Mercado Livre. Os pedidos são atualizados automaticamente.">
+                    @if($statusFilter || $searchTerm)
+                        <button type="button" wire:click="clearFilters"
+                                class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition">
+                            <i class="bi bi-eraser"></i> Limpar filtros
                         </button>
                     @endif
-                </div>
+                    <button type="button" wire:click="loadOrders" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 transition">
+                        <i class="bi bi-arrow-clockwise"></i> Atualizar
+                    </button>
+                </x-empty-state>
 
             @else
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -496,17 +343,8 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-5 py-20 text-center">
-                                        <div class="flex flex-col items-center gap-3">
-                                            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400/20 to-orange-300/10
-                                                        dark:from-amber-900/30 dark:to-orange-900/10
-                                                        border border-amber-200/60 dark:border-amber-700/30
-                                                        flex items-center justify-center">
-                                                <i class="bi bi-inbox-fill text-3xl text-amber-400 dark:text-amber-500"></i>
-                                            </div>
-                                            <p class="font-extrabold text-slate-700 dark:text-slate-300 text-base">Nenhum pedido encontrado</p>
-                                            <p class="text-xs text-slate-400 max-w-xs">Ajuste os filtros para ver mais resultados</p>
-                                        </div>
+                                    <td colspan="6" class="p-4">
+                                        <x-empty-state icon="bi-inbox" tone="amber" title="Nenhum pedido encontrado" text="Ajuste os filtros para ver mais resultados." class="border-0" />
                                     </td>
                                 </tr>
                             @endforelse
@@ -534,97 +372,42 @@
     {{-- /max-w --}}
 
     {{-- ============================================================
-         MODAL – FILTROS  (z-[9999])
+         FILTROS
     ============================================================ --}}
-    <div x-show="showFiltersModal"
-         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-         @keydown.escape.window="closeFiltersModal()"
-         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-end sm:items-center justify-center p-4"
-         style="display:none">
-        <div x-show="showFiltersModal"
-             x-transition:enter="transition ease-out duration-250" x-transition:enter-start="opacity-0 translate-y-8 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-8 sm:scale-95"
-             @click.stop
-             class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md
-                    border border-amber-100 dark:border-amber-700/30 overflow-hidden"
-             style="display:none">
-
-            <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500">
-                <div class="flex items-center gap-3">
-                    <i class="bi bi-sliders2 text-white text-lg"></i>
-                    <div>
-                        <h3 class="text-base font-extrabold text-white leading-tight">Filtros de Pedido</h3>
-                        <p class="text-amber-100 text-xs">Refine sua pesquisa</p>
-                    </div>
-                </div>
-                <button @click="closeFiltersModal()"
-                        class="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 transition-all flex items-center justify-center text-white">
-                    <i class="bi bi-x-lg text-sm"></i>
-                </button>
-            </div>
-
-            <div class="px-6 py-5 space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">
-                        <i class="bi bi-funnel-fill text-amber-500 mr-1"></i> Status
-                    </label>
-                    <select wire:model.live="statusFilter"
-                            class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm
-                                   focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all text-slate-900 dark:text-white">
-                        <option value="">Todos os status</option>
-                        <option value="confirmed">Confirmado</option>
-                        <option value="payment_required">Aguardando Pagamento</option>
-                        <option value="payment_in_process">Pagamento em Processo</option>
-                        <option value="paid">Pago</option>
-                        <option value="fulfilled">Entregue</option>
-                        <option value="cancelled">Cancelado</option>
-                    </select>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">De</label>
-                        <input type="date" wire:model.live="dateFrom"
-                               class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm
-                                      focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all text-slate-900 dark:text-white">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">Até</label>
-                        <input type="date" wire:model.live="dateTo"
-                               class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm
-                                      focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all text-slate-900 dark:text-white">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5">
-                        <i class="bi bi-list-ol text-amber-500 mr-1"></i> Pedidos por página
-                    </label>
-                    <select wire:model.live="perPage"
-                            class="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm
-                                   focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all text-slate-900 dark:text-white">
-                        <option value="10">10 pedidos</option>
-                        <option value="20">20 pedidos</option>
-                        <option value="50">50 pedidos</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="flex gap-3 px-6 pb-6">
-                <button wire:click="clearFilters" @click="closeFiltersModal()"
-                        class="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-sm
-                               hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
-                    <i class="bi bi-x-circle mr-1"></i> Limpar
-                </button>
-                <button wire:click="loadOrders" @click="closeFiltersModal()"
-                        class="flex-1 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-extrabold text-sm
-                               hover:shadow-lg hover:shadow-amber-400/30 transition-all">
-                    <i class="bi bi-check-lg mr-1"></i> Aplicar
-                </button>
+    <x-filter-sheet show="showFiltersModal" title="Filtros de pedidos" subtitle="Status, período e quantidade" :active="$statusFilter !== '' || $searchTerm !== ''" target="statusFilter,dateFrom,dateTo,perPage,clearFilters">
+        <div class="fm-fs-group fm-fs-wide">
+            <h4><i class="bi bi-flag text-amber-500"></i>Status</h4>
+            <div class="fm-fs-options">
+                @foreach([
+                    '' => 'Todos', 'confirmed' => 'Confirmado', 'payment_required' => 'Aguardando pagamento',
+                    'payment_in_process' => 'Pagamento em processo', 'paid' => 'Pago', 'fulfilled' => 'Entregue', 'cancelled' => 'Cancelado',
+                ] as $key => $label)
+                    <button type="button" wire:click="$set('statusFilter', '{{ $key }}')" class="fm-fs-opt {{ $statusFilter === $key ? 'is-on' : '' }}">{{ $label }}</button>
+                @endforeach
             </div>
         </div>
-    </div>
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-calendar3 text-sky-500"></i>Período</h4>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="block min-w-0"><span class="block text-xs font-semibold text-slate-500 mb-1">De</span><input type="date" wire:model.live="dateFrom"></label>
+                <label class="block min-w-0"><span class="block text-xs font-semibold text-slate-500 mb-1">Até</span><input type="date" wire:model.live="dateTo"></label>
+            </div>
+        </div>
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-list-ol text-indigo-500"></i>Pedidos por página</h4>
+            <div class="fm-fs-options">
+                @foreach([10, 20, 50] as $n)
+                    <button type="button" wire:click="$set('perPage', {{ $n }})" class="fm-fs-opt {{ (int) $perPage === $n ? 'is-on' : '' }}">{{ $n }} pedidos</button>
+                @endforeach
+            </div>
+        </div>
+        <div class="fm-fs-group sm:hidden">
+            <h4><i class="bi bi-three-dots text-slate-500"></i>Mais</h4>
+            <div class="fm-fs-options">
+                <button type="button" @click="showFiltersModal = false; tipsOpen = true" class="fm-fs-opt"><i class="bi bi-lightbulb"></i>Dicas</button>
+            </div>
+        </div>
+    </x-filter-sheet>
 
     {{-- ============================================================
          MODAL – DICAS  (z-[9999])

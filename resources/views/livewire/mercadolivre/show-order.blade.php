@@ -16,108 +16,51 @@
 </style>
 @endpush
 
-<div class="show-order-page min-h-screen bg-slate-50 dark:bg-slate-950"
+<div class="show-order-page min-h-screen"
      x-data="{ ready: false }" x-init="setTimeout(()=>ready=true, 80)">
 
-    {{-- ============================================================
-         HERO HEADER
-    ============================================================ --}}
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/85 via-amber-50/90 to-yellow-50/80
-                dark:from-slate-800/90 dark:via-amber-900/10 dark:to-slate-800/30
-                backdrop-blur-xl border-b border-amber-100/60 dark:border-amber-900/30
-                shadow-2xl mb-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse pointer-events-none"></div>
-        <div class="absolute top-0 right-0 w-52 h-52 bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10 rounded-full transform translate-x-20 -translate-y-20 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-amber-300/15 via-yellow-300/10 to-orange-200/10 rounded-full transform -translate-x-12 translate-y-12 pointer-events-none"></div>
-        <div class="relative w-full px-4 sm:px-6 lg:px-8 py-6">
-
-            {{-- Breadcrumb --}}
-            <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-4">
-                <a href="{{ route('dashboard') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1">
-                    <i class="bi bi-house-fill text-[11px]"></i> Início
-                </a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <a href="{{ route('mercadolivre.orders') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Pedidos ML</a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <span class="text-amber-700 dark:text-amber-400 font-semibold">#{{ $orderId }}</span>
-            </nav>
-
-            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                <div class="flex items-center gap-5">
-                    <div class="relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 rounded-2xl shadow-xl shadow-amber-500/30 flex-shrink-0">
-                        <i class="bi bi-bag-check-fill text-white text-3xl"></i>
-                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50 pointer-events-none"></div>
-                        <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center shadow-md ring-2 ring-amber-100 dark:ring-slate-700">
-                            <span class="text-amber-600 dark:text-amber-400 font-black text-[8px] leading-none">ML</span>
-                        </div>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Pedido Mercado Livre</p>
-                        <h1 class="text-2xl sm:text-3xl font-bold
-                                   bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600
-                                   dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300
-                                   bg-clip-text text-transparent leading-tight">
-                            #{{ $orderId }}
-                        </h1>
-                        @if($order)
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                {{ $this->formatDate($order['date_created'] ?? now()) }}
-                            </p>
-                        @endif
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    @if($order && !$loading)
-                        @php $st = $this->getStatusBadge($order['status'] ?? ''); @endphp
-                        @php
-                            $badgeCol = match($st['color']){
-                                'emerald','green'=>'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700',
-                                'blue'=>'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700',
-                                'yellow'=>'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700',
-                                'red'=>'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700',
-                                default=>'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
-                            };
-                        @endphp
-                        <span class="px-3 py-1.5 rounded-full text-xs font-extrabold uppercase border {{ $badgeCol }}">
-                            {{ $st['text'] }}
-                        </span>
-                    @endif
-                    <a href="{{ route('mercadolivre.orders') }}"
-                       class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold
-                              bg-white/80 dark:bg-slate-800 border border-amber-200 dark:border-slate-600
-                              text-slate-700 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-slate-700 transition-all shadow-sm">
-                        <i class="bi bi-arrow-left"></i> Voltar
-                    </a>
-                    @if($order && !$loading)
-                        <button wire:click="importOrder" wire:loading.attr="disabled"
-                                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white shadow
-                                       bg-gradient-to-r from-amber-500 to-orange-500
-                                       hover:shadow-md hover:from-amber-600 hover:to-orange-600 transition-all
-                                       disabled:opacity-60 disabled:cursor-not-allowed">
-                            <span wire:loading.remove wire:target="importOrder">
-                                <i class="bi bi-download"></i> Importar
-                            </span>
-                            <span wire:loading wire:target="importOrder">
-                                <i class="bi bi-arrow-repeat animate-spin"></i> Importando…
-                            </span>
-                        </button>
-                    @endif
-                    <button wire:click="loadOrder" wire:loading.attr="disabled"
-                            class="p-2 rounded-xl bg-white/80 dark:bg-slate-800 border border-amber-200 dark:border-slate-600
-                                   text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-slate-700 transition-all shadow-sm"
-                            title="Recarregar">
-                        <span wire:loading.remove wire:target="loadOrder"><i class="bi bi-arrow-clockwise text-lg"></i></span>
-                        <span wire:loading wire:target="loadOrder"><i class="bi bi-arrow-repeat animate-spin text-lg"></i></span>
+    {{-- Cabeçalho no padrão das telas de detalhe (voltar para a lista de pedidos) --}}
+    @php
+        $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70';
+    @endphp
+    <div class="px-4 sm:px-6 lg:px-8">
+        <x-page-header title="Pedido #{{ $orderId }}" icon="bi-bag-check" section="mercadolivre" :back-route="route('mercadolivre.orders')"
+                       subtitle="Detalhes do pedido no Mercado Livre">
+            @if($order && !$loading)
+                @php
+                    $st = $this->getStatusBadge($order['status'] ?? '');
+                    $badgeCol = match($st['color']){
+                        'emerald','green'=>'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
+                        'blue'=>'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
+                        'yellow'=>'bg-yellow-50 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300',
+                        'red'=>'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300',
+                        default=>'bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300',
+                    };
+                @endphp
+                <x-slot:meta>
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $badgeCol }}"><i class="bi bi-circle-fill text-[8px]"></i>{{ $st['text'] }}</span>
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300"><i class="bi bi-calendar3"></i>{{ $this->formatDate($order['date_created'] ?? now()) }}</span>
+                </x-slot:meta>
+            @endif
+            <x-slot:actions>
+                <button type="button" wire:click="loadOrder" wire:loading.attr="disabled" title="Recarregar" class="{{ $phBtn }}">
+                    <i class="bi bi-arrow-clockwise text-amber-500" wire:loading.class="animate-spin" wire:target="loadOrder"></i><span class="hidden sm:inline">Recarregar</span>
+                </button>
+                @if($order && !$loading)
+                    <button type="button" wire:click="importOrder" wire:loading.attr="disabled" title="Importar pedido"
+                            class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+                        <i class="bi bi-download" wire:loading.remove wire:target="importOrder"></i>
+                        <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="importOrder"></i>
+                        <span class="hidden sm:inline" wire:loading.remove wire:target="importOrder">Importar</span>
+                        <span class="hidden sm:inline" wire:loading wire:target="importOrder">Importando...</span>
                     </button>
-                </div>
-            </div>
-
-        </div>
+                @endif
+            </x-slot:actions>
+        </x-page-header>
     </div>
-    {{-- /HERO --}}
 
-    <div class="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-5">
+
+    <div class="w-full px-4 sm:px-6 lg:px-8 pb-6 space-y-5">
 
         {{-- ============================================================
              LOADING STATE
@@ -147,17 +90,14 @@
              ERROR STATE
         ============================================================ --}}
         @elseif($errorMessage)
-            <div class="flex flex-col items-center justify-center py-20 text-center so-card">
-                <div class="w-20 h-20 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
-                    <i class="bi bi-exclamation-triangle-fill text-4xl text-red-400 dark:text-red-500"></i>
-                </div>
-                <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300 mb-1">Erro ao carregar pedido</h3>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-sm">{{ $errorMessage }}</p>
-                <button wire:click="loadOrder"
-                        class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm transition-all shadow">
-                    <i class="bi bi-arrow-clockwise mr-2"></i> Tentar Novamente
+            <x-empty-state icon="bi-exclamation-triangle" tone="rose" title="Erro ao carregar pedido" :text="$errorMessage" class="so-card">
+                <button type="button" wire:click="loadOrder" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition">
+                    <i class="bi bi-arrow-clockwise"></i> Tentar novamente
                 </button>
-            </div>
+                <a href="{{ route('mercadolivre.orders') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 transition">
+                    <i class="bi bi-arrow-left"></i> Voltar para Pedidos
+                </a>
+            </x-empty-state>
 
         {{-- ============================================================
              ORDER DATA

@@ -9,110 +9,98 @@
 <div class="promotions-page min-h-screen"
      x-data="{
          tipsOpen:        @entangle('tipsOpen'),
-         showDetailModal: @entangle('showDetailModal')
+         showDetailModal: @entangle('showDetailModal'),
+         showFilters: false
      }">
 
     <x-loading-overlay message="Carregando promoções..." />
 
-    {{-- ============================================================
-         HEADER
-    ============================================================ --}}
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/85 via-amber-50/90 to-yellow-50/80
-                dark:from-slate-800/90 dark:via-amber-900/10 dark:to-slate-800/30
-                backdrop-blur-xl border-b border-amber-100/60 dark:border-amber-900/30
-                shadow-2xl mb-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse pointer-events-none"></div>
-        <div class="absolute top-0 right-0 w-52 h-52 bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10 rounded-full transform translate-x-20 -translate-y-20 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-amber-300/15 via-yellow-300/10 to-orange-200/10 rounded-full transform -translate-x-12 translate-y-12 pointer-events-none"></div>
-        <div class="relative w-full px-4 sm:px-6 lg:px-8 py-6">
-            <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-4">
-                <a href="{{ route('dashboard') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1">
-                    <i class="bi bi-house-fill text-[11px]"></i> Início
-                </a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <a href="{{ route('mercadolivre.products') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Mercado Livre</a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <span class="text-amber-700 dark:text-amber-400 font-semibold">Promoções</span>
-            </nav>
-
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                <div class="flex items-start gap-5">
-                    <div class="relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 rounded-2xl shadow-xl shadow-amber-500/30 flex-shrink-0">
-                        <i class="bi bi-percent text-white text-3xl"></i>
-                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50 pointer-events-none"></div>
-                        <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center shadow-md ring-2 ring-amber-100 dark:ring-slate-700">
-                            <span class="text-amber-600 dark:text-amber-400 font-black text-[8px] leading-none">ML</span>
-                        </div>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600 dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent leading-tight">
-                            Promoções ML
-                        </h1>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Ofertas do dia, promoções relâmpago e marcas
-                        </p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 flex-wrap">
-                    <button wire:click="loadPromotions"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl
-                                   bg-white/70 dark:bg-slate-800 border border-amber-200 dark:border-slate-600
-                                   text-sm font-semibold text-slate-600 dark:text-slate-300
-                                   hover:bg-amber-50 dark:hover:bg-slate-700 transition-all shadow-sm">
-                        <i class="bi bi-arrow-clockwise" wire:loading.class="animate-spin" wire:target="loadPromotions"></i>
-                        Atualizar
-                    </button>
-                    <button @click="tipsOpen = true"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl
-                                   bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold
-                                   shadow-lg shadow-amber-500/25 hover:shadow-xl hover:from-amber-600 hover:to-orange-600 transition-all">
-                        <i class="bi bi-lightbulb-fill"></i> Dicas
-                    </button>
-                </div>
-            </div>
-
-            {{-- Filtros rápidos --}}
-            <div class="mt-5 pt-4 border-t border-amber-100/60 dark:border-amber-900/20 flex flex-wrap gap-3">
-                {{-- Tipo --}}
-                <div class="flex items-center gap-1.5 bg-white/80 dark:bg-slate-800 rounded-xl px-3 py-1.5 border border-amber-200 dark:border-slate-600">
-                    <i class="bi bi-tag-fill text-amber-500 text-sm"></i>
-                    <select wire:model.live="typeFilter"
-                            class="text-xs font-semibold bg-transparent text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
-                        <option value="">Todos os tipos</option>
-                        @foreach($promotionTypes as $typeValue => $typeLabel)
-                            <option value="{{ $typeValue }}">{{ $typeLabel }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                {{-- Status --}}
-                <div class="flex items-center gap-1.5 bg-white/80 dark:bg-slate-800 rounded-xl px-3 py-1.5 border border-amber-200 dark:border-slate-600">
-                    <i class="bi bi-circle-fill text-emerald-500 text-[8px]"></i>
-                    <select wire:model.live="statusFilter"
-                            class="text-xs font-semibold bg-transparent text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
-                        <option value="">Todos os status</option>
-                        <option value="started">Ativas</option>
-                        <option value="pending">Agendadas</option>
-                        <option value="candidate">Convites</option>
-                        <option value="finished">Encerradas</option>
-                    </select>
-                </div>
-                @if($total > 0)
-                    <span class="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20">
-                        {{ $total }} promoç{{ $total === 1 ? 'ão' : 'ões' }}
-                    </span>
+    {{-- Cabeçalho, status e filtros no padrão das outras listas --}}
+    @php
+        $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70';
+        $pStatus = [
+            '' => ['Todas', 'bi-grid'],
+            'started' => ['Ativas', 'bi-fire'],
+            'pending' => ['Agendadas', 'bi-calendar-event'],
+            'candidate' => ['Convites', 'bi-envelope-open'],
+            'finished' => ['Encerradas', 'bi-archive'],
+        ];
+    @endphp
+    <div class="px-4 sm:px-6 lg:px-8">
+        <x-page-header title="Promoções" icon="bi-percent" section="mercadolivre" tabs-section="mercadolivre" tabs-active="promocoes"
+                       subtitle="Ofertas do dia, promoções relâmpago e marcas">
+            <x-slot:meta>
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="bi bi-percent"></i>{{ $total }} promoç{{ $total === 1 ? 'ão' : 'ões' }}</span>
+                @if($typeFilter)
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="bi bi-tag"></i>{{ $promotionTypes[$typeFilter] ?? $typeFilter }}</span>
                 @endif
+            </x-slot:meta>
+            <x-slot:actions>
+                <button type="button" @click="showFilters = true" title="Filtros" class="{{ $phBtn }} relative">
+                    <i class="bi bi-sliders text-amber-500"></i><span class="hidden sm:inline">Filtros</span>
+                    @if($typeFilter || $statusFilter)
+                        <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-900"></span>
+                    @endif
+                </button>
+                <button type="button" @click="tipsOpen = true" title="Dicas" class="{{ $phBtn }} max-sm:!hidden"><i class="bi bi-lightbulb text-amber-500"></i><span class="hidden sm:inline">Dicas</span></button>
+                <button type="button" wire:click="loadPromotions" wire:loading.attr="disabled" title="Atualizar promoções"
+                        class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition whitespace-nowrap">
+                    <i class="bi bi-arrow-clockwise" wire:loading.class="animate-spin" wire:target="loadPromotions"></i><span class="hidden sm:inline">Atualizar</span>
+                </button>
+            </x-slot:actions>
+        </x-page-header>
+
+        <x-list-toolbar model="">
+            <x-toolbar.group icon="bi-flag">
+                @foreach($pStatus as $key => [$label, $icon])
+                    <x-toolbar.chip wire:click="$set('statusFilter', '{{ $key }}')" :active="$statusFilter === $key" :icon="$icon">{{ $label }}</x-toolbar.chip>
+                @endforeach
+            </x-toolbar.group>
+            @if($typeFilter || $statusFilter)
+                <x-toolbar.group>
+                    <x-toolbar.chip wire:click="clearFilters" icon="bi-x-lg">Limpar</x-toolbar.chip>
+                </x-toolbar.group>
+            @endif
+        </x-list-toolbar>
+    </div>
+
+    <x-filter-sheet title="Filtros de promoções" subtitle="Tipo e situação" :active="$typeFilter !== '' || $statusFilter !== ''" target="typeFilter,statusFilter,clearFilters">
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-tag text-amber-500"></i>Tipo</h4>
+            <div class="fm-fs-options">
+                <button type="button" wire:click="$set('typeFilter', '')" class="fm-fs-opt {{ $typeFilter === '' ? 'is-on' : '' }}">Todos os tipos</button>
+                @foreach($promotionTypes as $typeValue => $typeLabel)
+                    <button type="button" wire:click="$set('typeFilter', '{{ $typeValue }}')" class="fm-fs-opt {{ $typeFilter === $typeValue ? 'is-on' : '' }}">{{ $typeLabel }}</button>
+                @endforeach
             </div>
         </div>
-    </div>
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-flag text-emerald-500"></i>Situação</h4>
+            <div class="fm-fs-options">
+                @foreach($pStatus as $key => [$label, $icon])
+                    <button type="button" wire:click="$set('statusFilter', '{{ $key }}')" class="fm-fs-opt {{ $statusFilter === $key ? 'is-on' : '' }}"><i class="bi {{ $icon }}"></i>{{ $label }}</button>
+                @endforeach
+            </div>
+        </div>
+        <div class="fm-fs-group sm:hidden">
+            <h4><i class="bi bi-three-dots text-slate-500"></i>Mais</h4>
+            <div class="fm-fs-options">
+                <button type="button" @click="showFilters = false; tipsOpen = true" class="fm-fs-opt"><i class="bi bi-lightbulb"></i>Dicas</button>
+            </div>
+        </div>
+    </x-filter-sheet>
 
     <div class="w-full px-4 sm:px-6 lg:px-8 pb-10">
 
         @if($errorMessage)
-            <div class="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 mb-6">
-                <i class="bi bi-exclamation-circle-fill text-red-500 text-xl flex-shrink-0"></i>
-                <p class="flex-1 text-sm text-red-700 dark:text-red-400">{{ $errorMessage }}</p>
-                <button wire:click="loadPromotions" class="text-sm font-bold text-red-600 hover:text-red-800">Tentar novamente</button>
-            </div>
+            <x-empty-state icon="bi-exclamation-triangle" tone="rose" title="Não foi possível carregar as promoções" :text="$errorMessage" class="mb-6">
+                <button type="button" wire:click="loadPromotions" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition">
+                    <i class="bi bi-arrow-clockwise"></i> Tentar novamente
+                </button>
+                <a href="{{ route('mercadolivre.settings') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 transition">
+                    <i class="bi bi-gear"></i> Configurações
+                </a>
+            </x-empty-state>
         @endif
 
         @if($loading)
@@ -127,43 +115,20 @@
                 @endfor
             </div>
         @elseif(count($promotions) === 0)
-            <div class="flex flex-col items-center justify-center py-16 sm:py-24">
-                <div class="relative mb-6">
-                    <div class="w-28 h-28 rounded-3xl bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10
-                                dark:from-amber-900/30 dark:via-amber-800/20 dark:to-orange-900/10
-                                border border-amber-200/60 dark:border-amber-700/30
-                                flex items-center justify-center shadow-xl">
-                        <i class="bi bi-percent text-5xl text-amber-400 dark:text-amber-500"></i>
-                    </div>
-                    <div class="absolute -top-2 -right-2 w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500
-                                flex items-center justify-center shadow-lg">
-                        <i class="bi bi-tag-fill text-white text-xs"></i>
-                    </div>
-                </div>
-                <h3 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white mb-2 text-center">
-                    Nenhuma promoção encontrada
-                </h3>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-sm text-center leading-relaxed">
-                    Você não participa de nenhuma promoção com os filtros selecionados.
-                    Tente outro filtro ou aguarde convites de promoção do Mercado Livre.
-                </p>
-                <div class="flex flex-wrap gap-3 justify-center">
-                    <button wire:click="clearFilters"
-                            class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl
-                                   bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-sm
-                                   shadow-lg shadow-amber-500/25 hover:shadow-xl hover:from-amber-600 hover:to-orange-600
-                                   transition-all duration-200 active:scale-95">
-                        <i class="bi bi-funnel-fill"></i> Ver Todas
-                    </button>
-                    <button wire:click="loadPromotions"
-                            class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl
-                                   bg-white dark:bg-slate-800 border border-amber-200 dark:border-slate-600
-                                   text-slate-700 dark:text-slate-300 font-semibold text-sm
-                                   hover:bg-amber-50 dark:hover:bg-slate-700 transition-all duration-200">
+            @unless($errorMessage)
+                <x-empty-state icon="bi-percent" tone="amber" title="Nenhuma promoção encontrada"
+                               text="Você não participa de nenhuma promoção com os filtros selecionados. Tente outro filtro ou aguarde convites de promoção do Mercado Livre.">
+                    @if($typeFilter || $statusFilter)
+                        <button type="button" wire:click="clearFilters"
+                                class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition">
+                            <i class="bi bi-funnel"></i> Ver todas
+                        </button>
+                    @endif
+                    <button type="button" wire:click="loadPromotions" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 transition">
                         <i class="bi bi-arrow-clockwise"></i> Atualizar
                     </button>
-                </div>
-            </div>
+                </x-empty-state>
+            @endunless
         @else
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($promotions as $promo)

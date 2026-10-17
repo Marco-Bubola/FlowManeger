@@ -15,89 +15,65 @@
 
     <x-loading-overlay message="Carregando mediações..." />
 
-    {{-- ============================================================
-         HEADER
-    ============================================================ --}}
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/85 via-amber-50/90 to-yellow-50/80
-                dark:from-slate-800/90 dark:via-amber-900/10 dark:to-slate-800/30
-                backdrop-blur-xl border-b border-amber-100/60 dark:border-amber-900/30
-                shadow-2xl mb-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse pointer-events-none"></div>
-        <div class="absolute top-0 right-0 w-52 h-52 bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10 rounded-full transform translate-x-20 -translate-y-20 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-amber-300/15 via-yellow-300/10 to-orange-200/10 rounded-full transform -translate-x-12 translate-y-12 pointer-events-none"></div>
-        <div class="relative w-full px-4 sm:px-6 lg:px-8 py-6">
-            <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-4">
-                <a href="{{ route('dashboard') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1">
-                    <i class="bi bi-house-fill text-[11px]"></i> Início
-                </a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <a href="{{ route('mercadolivre.products') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Mercado Livre</a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <span class="text-amber-700 dark:text-amber-400 font-semibold">Mediações</span>
-            </nav>
+    {{-- Cabeçalho, status e filtros no padrão das outras listas --}}
+    @php
+        $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70';
+        $dStatus = ['opened' => ['Abertas', 'bi-exclamation-circle'], 'closed' => ['Encerradas', 'bi-check-circle'], 'all' => ['Todas', 'bi-grid']];
+    @endphp
+    <div class="px-4 sm:px-6 lg:px-8">
+        <x-page-header title="Mediações" icon="bi-shield-exclamation" section="mercadolivre" tabs-section="mercadolivre" tabs-active="mediacoes"
+                       subtitle="Reclamações, devoluções e disputas no Mercado Livre">
+            <x-slot:meta>
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="bi bi-shield-exclamation"></i>{{ $total }} {{ $total == 1 ? 'mediação' : 'mediações' }}</span>
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300"><i class="bi bi-flag"></i>{{ $dStatus[$statusFilter][0] ?? 'Todas' }}</span>
+            </x-slot:meta>
+            <x-slot:actions>
+                <button type="button" @click="showFiltersModal = true" title="Filtros" class="{{ $phBtn }}"><i class="bi bi-sliders text-amber-500"></i><span class="hidden sm:inline">Filtros</span></button>
+                <button type="button" @click="tipsOpen = true" title="Dicas" class="{{ $phBtn }} max-sm:!hidden"><i class="bi bi-lightbulb text-amber-500"></i><span class="hidden sm:inline">Dicas</span></button>
+                <button type="button" wire:click="loadClaims" wire:loading.attr="disabled" title="Atualizar mediações"
+                        class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition whitespace-nowrap">
+                    <i class="bi bi-arrow-clockwise" wire:loading.class="animate-spin" wire:target="loadClaims"></i><span class="hidden sm:inline">Atualizar</span>
+                </button>
+            </x-slot:actions>
+        </x-page-header>
 
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                <div class="flex items-start gap-5">
-                    <div class="relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 rounded-2xl shadow-xl shadow-amber-500/30 flex-shrink-0">
-                        <i class="bi bi-shield-exclamation text-white text-3xl"></i>
-                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50 pointer-events-none"></div>
-                        <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center shadow-md ring-2 ring-amber-100 dark:ring-slate-700">
-                            <span class="text-amber-600 dark:text-amber-400 font-black text-[8px] leading-none">ML</span>
-                        </div>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600 dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent leading-tight">
-                            Mediações & Devoluções
-                        </h1>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Reclamações e disputas no Mercado Livre
-                        </p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 flex-wrap">
-                    <button wire:click="loadClaims"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl
-                                   bg-white/70 dark:bg-slate-800 border border-amber-200 dark:border-slate-600
-                                   text-sm font-semibold text-slate-600 dark:text-slate-300
-                                   hover:bg-amber-50 dark:hover:bg-slate-700 transition-all shadow-sm">
-                        <i class="bi bi-arrow-clockwise" wire:loading.class="animate-spin" wire:target="loadClaims"></i>
-                        Atualizar
-                    </button>
-                    <button @click="tipsOpen = true"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl
-                                   bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold
-                                   shadow-lg shadow-amber-500/25 hover:shadow-xl hover:from-amber-600 hover:to-orange-600 transition-all">
-                        <i class="bi bi-lightbulb-fill"></i> Dicas
-                    </button>
-                </div>
-            </div>
+        <x-list-toolbar model="">
+            <x-toolbar.group icon="bi-flag">
+                @foreach($dStatus as $val => [$label, $icon])
+                    <x-toolbar.chip wire:click="$set('statusFilter', '{{ $val }}')" :active="$statusFilter === $val" :icon="$icon">{{ $label }}@if($statusFilter === $val && $total > 0) ({{ $total }})@endif</x-toolbar.chip>
+                @endforeach
+            </x-toolbar.group>
+        </x-list-toolbar>
+    </div>
 
-            {{-- Status pills --}}
-            <div class="flex flex-wrap gap-2 mt-5 pt-4 border-t border-amber-100/60 dark:border-amber-900/20">
-                @foreach(['opened' => 'Abertas', 'closed' => 'Encerradas', 'all' => 'Todas'] as $val => $label)
-                    <button wire:click="$set('statusFilter', '{{ $val }}')"
-                            class="px-4 py-1.5 rounded-full text-xs font-semibold border transition-all
-                                   {{ $statusFilter === $val
-                                      ? 'bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-300/30'
-                                      : 'bg-white/80 dark:bg-slate-800 border-amber-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-slate-700' }}">
-                        {{ $label }}
-                        @if($statusFilter === $val && $total > 0)
-                            <span class="ml-1 px-1.5 py-0.5 rounded-full bg-white/30 text-white text-[10px]">{{ $total }}</span>
-                        @endif
-                    </button>
+    <x-filter-sheet show="showFiltersModal" title="Filtros de mediações" subtitle="Situação da reclamação" :active="$statusFilter !== 'opened'" target="statusFilter,clearFilters">
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-flag text-amber-500"></i>Situação</h4>
+            <div class="fm-fs-options">
+                @foreach($dStatus as $val => [$label, $icon])
+                    <button type="button" wire:click="$set('statusFilter', '{{ $val }}')" class="fm-fs-opt {{ $statusFilter === $val ? 'is-on' : '' }}"><i class="bi {{ $icon }}"></i>{{ $label }}</button>
                 @endforeach
             </div>
         </div>
-    </div>
+        <div class="fm-fs-group sm:hidden">
+            <h4><i class="bi bi-three-dots text-slate-500"></i>Mais</h4>
+            <div class="fm-fs-options">
+                <button type="button" @click="showFiltersModal = false; tipsOpen = true" class="fm-fs-opt"><i class="bi bi-lightbulb"></i>Dicas</button>
+            </div>
+        </div>
+    </x-filter-sheet>
 
     <div class="w-full px-4 sm:px-6 lg:px-8 pb-10">
 
         @if($errorMessage)
-            <div class="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 mb-6">
-                <i class="bi bi-exclamation-circle-fill text-red-500 text-xl flex-shrink-0"></i>
-                <p class="flex-1 text-sm text-red-700 dark:text-red-400">{{ $errorMessage }}</p>
-                <button wire:click="loadClaims" class="text-sm font-bold text-red-600 hover:text-red-800">Tentar novamente</button>
-            </div>
+            <x-empty-state icon="bi-exclamation-triangle" tone="rose" title="Não foi possível carregar as mediações" :text="$errorMessage" class="mb-6">
+                <button type="button" wire:click="loadClaims" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition">
+                    <i class="bi bi-arrow-clockwise"></i> Tentar novamente
+                </button>
+                <a href="{{ route('mercadolivre.settings') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 transition">
+                    <i class="bi bi-gear"></i> Configurações
+                </a>
+            </x-empty-state>
         @endif
 
         @if($loading)
@@ -112,44 +88,23 @@
                 @endfor
             </div>
         @elseif(count($claims) === 0)
-            <div class="flex flex-col items-center justify-center py-16 sm:py-24">
-                <div class="relative mb-6">
-                    <div class="w-28 h-28 rounded-3xl bg-gradient-to-br from-emerald-400/20 via-teal-300/15 to-green-300/10
-                                dark:from-emerald-900/30 dark:via-emerald-800/20 dark:to-teal-900/10
-                                border border-emerald-200/60 dark:border-emerald-700/30
-                                flex items-center justify-center shadow-xl">
-                        <i class="bi bi-shield-check text-5xl text-emerald-400 dark:text-emerald-500"></i>
-                    </div>
-                    <div class="absolute -top-2 -right-2 w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500
-                                flex items-center justify-center shadow-lg">
-                        <i class="bi bi-check-lg text-white text-sm"></i>
-                    </div>
-                </div>
-                <h3 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white mb-2 text-center">
-                    {{ $statusFilter === 'opened' ? 'Tudo tranquilo!' : 'Nenhuma mediação encontrada' }}
-                </h3>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-sm text-center leading-relaxed">
-                    {{ $statusFilter === 'opened'
-                        ? 'Excelente! Você não tem disputas abertas no momento. Continue oferecendo uma ótima experiência de compra.'
-                        : 'Sem registros de mediação para o filtro selecionado. Tente outro filtro.' }}
-                </p>
-                @if($statusFilter === 'opened')
-                    <div class="flex flex-wrap gap-2 justify-center">
-                        <span class="px-4 py-2 rounded-2xl text-sm font-bold bg-emerald-50 dark:bg-emerald-900/20
-                                     text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-700/30">
-                            <i class="bi bi-trophy-fill mr-2"></i>Vendedor em conformidade
+            @unless($errorMessage)
+                @php $dCalm = $statusFilter === 'opened'; @endphp
+                <x-empty-state :icon="$dCalm ? 'bi-shield-check' : 'bi-shield'" tone="emerald"
+                               :title="$dCalm ? 'Tudo tranquilo!' : 'Nenhuma mediação encontrada'"
+                               :text="$dCalm ? 'Excelente! Você não tem disputas abertas no momento. Continue oferecendo uma ótima experiência de compra.' : 'Sem registros de mediação para o filtro selecionado. Tente outro filtro.'">
+                    @if($dCalm)
+                        <span class="px-4 py-2 rounded-xl text-sm font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-700/30">
+                            <i class="bi bi-trophy-fill mr-1.5"></i>Vendedor em conformidade
                         </span>
-                    </div>
-                @else
-                    <button wire:click="$set('statusFilter', 'opened')"
-                            class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl
-                                   bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-sm
-                                   shadow-lg shadow-amber-500/25 hover:shadow-xl hover:from-amber-600 hover:to-orange-600
-                                   transition-all duration-200 active:scale-95">
-                        <i class="bi bi-funnel-fill"></i> Ver Abertas
-                    </button>
-                @endif
-            </div>
+                    @else
+                        <button type="button" wire:click="$set('statusFilter', 'opened')"
+                                class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition">
+                            <i class="bi bi-funnel"></i> Ver abertas
+                        </button>
+                    @endif
+                </x-empty-state>
+            @endunless
         @else
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($claims as $claim)

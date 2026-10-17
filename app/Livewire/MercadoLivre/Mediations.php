@@ -69,6 +69,13 @@ class Mediations extends Component
         $this->loadClaims();
     }
 
+    /** Volta o filtro para as mediações abertas (botão Limpar da janela de filtros). */
+    public function clearFilters(): void
+    {
+        $this->statusFilter = 'opened';
+        $this->updatedStatusFilter();
+    }
+
     // ---------------------------------------------------------------
     // Detalhe e mensagens de uma mediação
     // ---------------------------------------------------------------

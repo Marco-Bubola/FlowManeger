@@ -17,141 +17,88 @@
 
     <x-loading-overlay message="Carregando perguntas..." />
 
-    {{-- ============================================================
-         HEADER – AMBER / ML
-    ============================================================ --}}
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/85 via-amber-50/90 to-yellow-50/80
-                dark:from-slate-800/90 dark:via-amber-900/10 dark:to-slate-800/30
-                backdrop-blur-xl border-b border-amber-100/60 dark:border-amber-900/30
-                shadow-2xl mb-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse pointer-events-none"></div>
-        <div class="absolute top-0 right-0 w-52 h-52 bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10 rounded-full transform translate-x-20 -translate-y-20 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-amber-300/15 via-yellow-300/10 to-orange-200/10 rounded-full transform -translate-x-12 translate-y-12 pointer-events-none"></div>
-        <div class="relative w-full px-4 sm:px-6 lg:px-8 py-6">
-
-            <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-4">
-                <a href="{{ route('dashboard') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1">
-                    <i class="bi bi-house-fill text-[11px]"></i> Início
-                </a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <a href="{{ route('mercadolivre.products') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Mercado Livre</a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <span class="text-amber-700 dark:text-amber-400 font-semibold">Perguntas</span>
-            </nav>
-
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-
-                <div class="flex items-start gap-5">
-                    <div class="relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 rounded-2xl shadow-xl shadow-amber-500/30 flex-shrink-0">
-                        <i class="bi bi-chat-dots-fill text-white text-3xl"></i>
-                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50 pointer-events-none"></div>
-                        <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center shadow-md ring-2 ring-amber-100 dark:ring-slate-700">
-                            <span class="text-amber-600 dark:text-amber-400 font-black text-[8px] leading-none">ML</span>
-                        </div>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600 dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent leading-tight">
-                            Perguntas do ML
-                        </h1>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Responda compradores e aumente sua reputação
-                        </p>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-2 flex-wrap">
-                    <div class="relative">
-                        <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text"
-                               wire:model.live.debounce.400ms="itemIdFilter"
-                               placeholder="Filtrar por ID do anúncio…"
-                               class="pl-8 pr-3 py-2 text-sm rounded-xl bg-white/80 dark:bg-slate-800
-                                      border border-amber-200/80 dark:border-slate-600
-                                      focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20
-                                      text-slate-800 dark:text-white placeholder-slate-400 transition-all w-52">
-                    </div>
-                    <button @click="tipsOpen = true"
-                            class="inline-flex items-center gap-2 px-3 py-2 rounded-xl
-                                   bg-white/80 dark:bg-slate-800 border border-amber-200 dark:border-slate-600
-                                   text-sm font-semibold text-slate-600 dark:text-slate-300
-                                   hover:bg-amber-50 dark:hover:bg-slate-700 transition-all shadow-sm">
-                        <i class="bi bi-lightbulb-fill text-amber-500"></i> Dicas
-                    </button>
-                    <button wire:click="loadQuestions" wire:loading.attr="disabled"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl
-                                   bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold
-                                   shadow hover:shadow-md hover:from-amber-600 hover:to-orange-600 transition-all">
-                        <span wire:loading.remove wire:target="loadQuestions"><i class="bi bi-arrow-clockwise"></i> Atualizar</span>
-                        <span wire:loading wire:target="loadQuestions"><i class="bi bi-arrow-repeat animate-spin"></i> Carregando…</span>
-                    </button>
-                </div>
-            </div>
-
-            {{-- Status pills --}}
-            <div class="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-amber-100/60 dark:border-amber-900/20">
-                <button wire:click="$set('statusFilter', 'UNANSWERED')"
-                        class="px-3 py-1 rounded-full text-xs font-bold border transition-all
-                               {{ $statusFilter === 'UNANSWERED' ? 'bg-amber-500 border-amber-500 text-white shadow' : 'bg-white/60 dark:bg-slate-800 border-amber-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-amber-400' }}">
-                    <i class="bi bi-question-circle-fill mr-1"></i> Não respondidas
+    {{-- Cabeçalho, contadores, busca e status no padrão das outras listas --}}
+    @php
+        $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70';
+        $qPending = count(array_filter($questions, fn($q) => ($q['status'] ?? '') === 'UNANSWERED'));
+        $qAnswered = count(array_filter($questions, fn($q) => ($q['status'] ?? '') === 'ANSWERED'));
+        $qStatus = [
+            'UNANSWERED' => ['Não respondidas', 'bi-question-circle'],
+            'ANSWERED' => ['Respondidas', 'bi-check-circle'],
+            '' => ['Todas', 'bi-grid'],
+        ];
+    @endphp
+    <div class="px-4 sm:px-6 lg:px-8">
+        <x-page-header title="Perguntas" icon="bi-chat-dots" section="mercadolivre" tabs-section="mercadolivre" tabs-active="perguntas"
+                       subtitle="Responda compradores e aumente sua reputação">
+            <x-slot:meta>
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="bi bi-chat-dots"></i>{{ $total }} pergunta{{ $total == 1 ? '' : 's' }}</span>
+                @if($qPending)
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300"><i class="bi bi-question-circle"></i>{{ $qPending }} pendente{{ $qPending == 1 ? '' : 's' }}</span>
+                @endif
+            </x-slot:meta>
+            <x-slot:actions>
+                <button type="button" @click="showFiltersModal = true" title="Filtros" class="{{ $phBtn }}"><i class="bi bi-sliders text-amber-500"></i><span class="hidden sm:inline">Filtros</span></button>
+                <button type="button" @click="tipsOpen = true" title="Dicas" class="{{ $phBtn }} max-sm:!hidden"><i class="bi bi-lightbulb text-amber-500"></i><span class="hidden sm:inline">Dicas</span></button>
+                <button type="button" wire:click="loadQuestions" wire:loading.attr="disabled" title="Atualizar perguntas"
+                        class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition whitespace-nowrap">
+                    <i class="bi bi-arrow-clockwise" wire:loading.class="animate-spin" wire:target="loadQuestions"></i><span class="hidden sm:inline">Atualizar</span>
                 </button>
-                <button wire:click="$set('statusFilter', 'ANSWERED')"
-                        class="px-3 py-1 rounded-full text-xs font-bold border transition-all
-                               {{ $statusFilter === 'ANSWERED' ? 'bg-emerald-500 border-emerald-500 text-white shadow' : 'bg-white/60 dark:bg-slate-800 border-emerald-200 dark:border-slate-600 text-emerald-700 dark:text-emerald-400 hover:border-emerald-400' }}">
-                    <i class="bi bi-check-circle-fill mr-1"></i> Respondidas
-                </button>
-                <button wire:click="$set('statusFilter', '')"
-                        class="px-3 py-1 rounded-full text-xs font-bold border transition-all
-                               {{ $statusFilter === '' ? 'bg-slate-700 border-slate-700 text-white shadow' : 'bg-white/60 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-slate-400' }}">
-                    Todas
-                </button>
+            </x-slot:actions>
+        </x-page-header>
 
-                <div class="flex-1"></div>
-                <span class="text-xs text-slate-500 dark:text-slate-400">
-                    {{ $total }} pergunta(s)
-                </span>
-            </div>
-
-            {{-- Stats mini --}}
-            <div class="grid grid-cols-3 gap-3 mt-4">
-                <div class="bg-white/70 dark:bg-slate-800/80 border border-amber-100 dark:border-slate-700
-                            rounded-xl px-4 py-3 flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                        <i class="bi bi-chat-dots-fill text-amber-600 dark:text-amber-400 text-sm"></i>
-                    </div>
-                    <div>
-                        <p class="text-xl font-black text-slate-800 dark:text-white leading-none">{{ $total }}</p>
-                        <p class="text-xs text-slate-500 mt-0.5">Total</p>
+        {{-- Contadores --}}
+        <div class="grid grid-cols-3 gap-3 mb-4">
+            @foreach([
+                ['Total', $total, 'bi-chat-dots-fill', 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400', 'text-slate-800 dark:text-white'],
+                ['Pendentes', $qPending, 'bi-question-circle-fill', 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400', 'text-red-600 dark:text-red-400'],
+                ['Respondidas', $qAnswered, 'bi-check-circle-fill', 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', 'text-emerald-600 dark:text-emerald-400'],
+            ] as [$label, $value, $icon, $iconCls, $valCls])
+                <div class="bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-700/70 rounded-2xl px-3 sm:px-4 py-3 flex items-center gap-3 shadow-sm min-w-0">
+                    <div class="hidden sm:flex w-9 h-9 rounded-xl items-center justify-center flex-shrink-0 {{ $iconCls }}"><i class="bi {{ $icon }} text-base"></i></div>
+                    <div class="min-w-0">
+                        <p class="text-xl sm:text-2xl font-black leading-none {{ $valCls }}">{{ $value }}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">{{ $label }}</p>
                     </div>
                 </div>
-                <div class="bg-white/70 dark:bg-slate-800/80 border border-red-100 dark:border-slate-700
-                            rounded-xl px-4 py-3 flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                        <i class="bi bi-question-circle-fill text-red-600 dark:text-red-400 text-sm"></i>
-                    </div>
-                    <div>
-                        <p class="text-xl font-black text-red-600 dark:text-red-400 leading-none">
-                            {{ count(array_filter($questions, fn($q) => ($q['status'] ?? '') === 'UNANSWERED')) }}
-                        </p>
-                        <p class="text-xs text-slate-500 mt-0.5">Pendentes</p>
-                    </div>
-                </div>
-                <div class="bg-white/70 dark:bg-slate-800/80 border border-emerald-100 dark:border-slate-700
-                            rounded-xl px-4 py-3 flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                        <i class="bi bi-check-circle-fill text-emerald-600 dark:text-emerald-400 text-sm"></i>
-                    </div>
-                    <div>
-                        <p class="text-xl font-black text-emerald-600 dark:text-emerald-400 leading-none">
-                            {{ count(array_filter($questions, fn($q) => ($q['status'] ?? '') === 'ANSWERED')) }}
-                        </p>
-                        <p class="text-xs text-slate-500 mt-0.5">Respondidas</p>
-                    </div>
-                </div>
-            </div>
-
+            @endforeach
         </div>
+
+        <x-list-toolbar model="itemIdFilter" placeholder="Filtrar por ID do anúncio...">
+            <x-toolbar.group icon="bi-flag">
+                @foreach($qStatus as $key => [$label, $icon])
+                    <x-toolbar.chip wire:click="$set('statusFilter', '{{ $key }}')" :active="$statusFilter === $key" :icon="$icon">{{ $label }}</x-toolbar.chip>
+                @endforeach
+            </x-toolbar.group>
+            @if($itemIdFilter || $statusFilter !== 'UNANSWERED')
+                <x-toolbar.group>
+                    <x-toolbar.chip wire:click="clearFilters" icon="bi-x-lg">Limpar</x-toolbar.chip>
+                </x-toolbar.group>
+            @endif
+        </x-list-toolbar>
     </div>
-    {{-- /HEADER --}}
+
+    <x-filter-sheet show="showFiltersModal" title="Filtros de perguntas" subtitle="Situação da pergunta" :active="$itemIdFilter !== '' || $statusFilter !== 'UNANSWERED'" target="statusFilter,clearFilters">
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-flag text-amber-500"></i>Situação</h4>
+            <div class="fm-fs-options">
+                @foreach($qStatus as $key => [$label, $icon])
+                    <button type="button" wire:click="$set('statusFilter', '{{ $key }}')" class="fm-fs-opt {{ $statusFilter === $key ? 'is-on' : '' }}"><i class="bi {{ $icon }}"></i>{{ $label }}</button>
+                @endforeach
+            </div>
+        </div>
+        <div class="fm-fs-group">
+            <h4><i class="bi bi-upc text-indigo-500"></i>ID do anúncio</h4>
+            <input type="text" wire:model.live.debounce.400ms="itemIdFilter" placeholder="Ex.: MLB1234567890">
+        </div>
+        <div class="fm-fs-group sm:hidden">
+            <h4><i class="bi bi-three-dots text-slate-500"></i>Mais</h4>
+            <div class="fm-fs-options">
+                <button type="button" @click="showFiltersModal = false; tipsOpen = true" class="fm-fs-opt"><i class="bi bi-lightbulb"></i>Dicas</button>
+            </div>
+        </div>
+    </x-filter-sheet>
+
 
     <div class="w-full px-4 sm:px-6 lg:px-8 pb-8">
 
@@ -172,46 +119,20 @@
 
         {{-- EMPTY --}}
         @elseif(count($questions) === 0)
-            <div class="flex flex-col items-center justify-center py-16 sm:py-24">
-                <div class="relative mb-6">
-                    <div class="w-28 h-28 rounded-3xl bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10
-                                dark:from-amber-900/30 dark:via-amber-800/20 dark:to-orange-900/10
-                                border border-amber-200/60 dark:border-amber-700/30
-                                flex items-center justify-center shadow-xl">
-                        <i class="bi bi-chat-dots-fill text-5xl text-amber-400 dark:text-amber-500"></i>
-                    </div>
-                    <div class="absolute -top-2 -right-2 w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500
-                                flex items-center justify-center shadow-lg">
-                        <i class="bi bi-{{ $statusFilter === 'UNANSWERED' ? 'check-lg' : 'search' }} text-white text-xs"></i>
-                    </div>
-                </div>
-                <h3 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white mb-2 text-center">
-                    {{ $statusFilter === 'UNANSWERED' ? 'Tudo em dia!' : 'Nenhuma pergunta encontrada' }}
-                </h3>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-sm text-center leading-relaxed">
-                    {{ $statusFilter === 'UNANSWERED'
-                        ? 'Parabéns! Você respondeu todas as perguntas dos compradores. Continue assim para manter sua reputação.'
-                        : 'Nenhuma pergunta encontrada para o filtro atual. Tente outro status ou limpe os filtros.' }}
-                </p>
-                <div class="flex flex-wrap gap-3 justify-center">
-                    @if($itemIdFilter || $statusFilter !== 'UNANSWERED')
-                        <button wire:click="clearFilters"
-                                class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl
-                                       bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-sm
-                                       shadow-lg shadow-amber-500/25 hover:shadow-xl hover:from-amber-600 hover:to-orange-600
-                                       transition-all duration-200 active:scale-95">
-                            <i class="bi bi-x-circle-fill"></i> Limpar Filtros
-                        </button>
-                    @endif
-                    <button wire:click="loadQuestions"
-                            class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl
-                                   bg-white dark:bg-slate-800 border border-amber-200 dark:border-slate-600
-                                   text-slate-700 dark:text-slate-300 font-semibold text-sm
-                                   hover:bg-amber-50 dark:hover:bg-slate-700 transition-all duration-200">
-                        <i class="bi bi-arrow-clockwise"></i> Atualizar
+            @php $qAllDone = $statusFilter === 'UNANSWERED'; @endphp
+            <x-empty-state :icon="$qAllDone ? 'bi-check2-circle' : 'bi-chat-dots'" :tone="$qAllDone ? 'emerald' : 'amber'"
+                           :title="$qAllDone ? 'Tudo em dia!' : 'Nenhuma pergunta encontrada'"
+                           :text="$qAllDone ? 'Parabéns! Você respondeu todas as perguntas dos compradores. Continue assim para manter sua reputação.' : 'Nenhuma pergunta encontrada para o filtro atual. Tente outro status ou limpe os filtros.'">
+                @if($itemIdFilter || $statusFilter !== 'UNANSWERED')
+                    <button type="button" wire:click="clearFilters"
+                            class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition">
+                        <i class="bi bi-eraser"></i> Limpar filtros
                     </button>
-                </div>
-            </div>
+                @endif
+                <button type="button" wire:click="loadQuestions" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 transition">
+                    <i class="bi bi-arrow-clockwise"></i> Atualizar
+                </button>
+            </x-empty-state>
 
         {{-- QUESTIONS LIST --}}
         @else

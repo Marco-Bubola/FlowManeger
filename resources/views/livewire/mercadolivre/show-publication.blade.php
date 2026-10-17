@@ -331,119 +331,74 @@
 
     <div class="px-1.5 sm:px-3 lg:px-4 py-2 sm:py-3 space-y-2 sm:space-y-3">
 
-        {{-- ═════════════════════════════════════════════════════════ --}}
-        {{-- HEADER ML                                                --}}
-        {{-- ═════════════════════════════════════════════════════════ --}}
-        <div class="products-index-header relative overflow-hidden bg-gradient-to-r from-white/80 via-yellow-50/90 to-amber-50/80 dark:from-slate-800/90 dark:via-amber-900/20 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-xl">
-            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
-            <div class="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-yellow-400/25 via-amber-400/20 to-orange-400/15 rounded-full transform translate-x-10 -translate-y-10"></div>
-            <div class="absolute bottom-0 left-0 w-20 h-20 bg-gradient-to-tr from-amber-400/15 via-orange-400/10 to-yellow-400/10 rounded-full transform -translate-x-6 translate-y-6"></div>
+        {{-- Cabeçalho no padrão do app: voltar para a lista de anúncios --}}
+        @php
+            $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70 whitespace-nowrap';
+            $spChip = 'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold';
+            $statusCfg = match($publication->status) {
+                'active' => ['cls' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300', 'icon' => 'bi-check-circle-fill', 'text' => 'Ativo'],
+                'paused' => ['cls' => 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300', 'icon' => 'bi-pause-circle-fill', 'text' => 'Pausado'],
+                'closed' => ['cls' => 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300', 'icon' => 'bi-x-circle-fill', 'text' => 'Fechado'],
+                'under_review' => ['cls' => 'bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300', 'icon' => 'bi-search', 'text' => 'Em Revisão'],
+                default => ['cls' => 'bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300', 'icon' => 'bi-question-circle', 'text' => ucfirst($publication->status ?? 'Desconhecido')],
+            };
+            $syncCfg = match($publication->sync_status) {
+                'synced' => ['cls' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300', 'icon' => 'bi-cloud-check', 'text' => 'Sincronizado'],
+                'pending' => ['cls' => 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300', 'icon' => 'bi-cloud-arrow-up', 'text' => 'Pendente'],
+                'error' => ['cls' => 'bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300', 'icon' => 'bi-cloud-slash', 'text' => 'Erro'],
+                default => ['cls' => 'bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300', 'icon' => 'bi-cloud', 'text' => 'Desconhecido'],
+            };
+        @endphp
+        <x-page-header :title="$publication->title" icon="bi-megaphone" section="mercadolivre" :back-route="route('mercadolivre.publications')">
+            <x-slot:meta>
+                @if($publication->ml_item_id)
+                    <span class="{{ $spChip }} font-mono bg-slate-100 text-slate-700 dark:bg-slate-700/60 dark:text-slate-300"><i class="bi bi-link-45deg"></i>{{ $publication->ml_item_id }}</span>
+                @endif
+                <span class="{{ $spChip }} {{ $statusCfg['cls'] }}"><i class="bi {{ $statusCfg['icon'] }}"></i>{{ $statusCfg['text'] }}</span>
+                <span class="{{ $spChip }} bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300"><i class="bi {{ $publication->publication_type === 'kit' ? 'bi-boxes' : 'bi-box' }}"></i>{{ $publication->publication_type === 'kit' ? 'Kit' : 'Simples' }}</span>
+                <span class="{{ $spChip }} {{ $syncCfg['cls'] }}"><i class="bi {{ $syncCfg['icon'] }}"></i>{{ $syncCfg['text'] }}</span>
+            </x-slot:meta>
+            <x-slot:actions>
+                <button wire:click="syncToMercadoLivre" wire:loading.attr="disabled" wire:target="syncToMercadoLivre" title="Sincronizar com o Mercado Livre"
+                    @if($stats['total_products'] > 0) wire:confirm="Trazer os dados do ML e enviar ao ML o estoque calculado pelos seus produtos ({{ $stats['total_stock_available'] }} un.)?" @endif
+                    class="{{ $phBtn }} disabled:opacity-60">
+                    <i class="bi bi-arrow-repeat text-sky-500" wire:loading.class="animate-spin" wire:target="syncToMercadoLivre"></i>
+                    <span class="hidden sm:inline" wire:loading.remove wire:target="syncToMercadoLivre">Sincronizar</span>
+                    <span class="hidden sm:inline" wire:loading wire:target="syncToMercadoLivre">Sincronizando...</span>
+                </button>
+                @if($publication->ml_permalink)
+                    <a href="{{ $publication->ml_permalink }}" target="_blank" rel="noopener" title="Ver no Mercado Livre" class="{{ $phBtn }}">
+                        <i class="bi bi-box-arrow-up-right text-amber-500"></i><span class="hidden sm:inline">Ver no ML</span>
+                    </a>
+                @endif
+                <a href="{{ route('mercadolivre.publications.edit', $publication->id) }}" title="Editar anúncio"
+                   class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition whitespace-nowrap">
+                    <i class="bi bi-pencil-square"></i><span class="hidden sm:inline">Editar</span>
+                </a>
+            </x-slot:actions>
+        </x-page-header>
 
-            <div class="relative px-3 sm:px-4 py-3 sm:py-4">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-                    {{-- Esquerda --}}
-                    <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                        <a href="{{ route('mercadolivre.publications') }}"
-                            class="group inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-white to-amber-50 dark:from-slate-800 dark:to-slate-700 hover:from-amber-50 hover:to-yellow-100 transition-all shadow-sm border border-white/40 dark:border-slate-600/40 shrink-0">
-                            <i class="bi bi-arrow-left text-base text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform"></i>
-                        </a>
-                        <div class="relative flex items-center justify-center w-10 h-10 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 rounded-xl shadow-lg shadow-amber-500/25 shrink-0">
-                            <i class="bi bi-eye-fill text-white text-lg"></i>
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-yellow-300 to-amber-400 rounded-full border-2 border-white dark:border-slate-800 flex items-center justify-center shadow-sm">
-                                <span class="text-[5px] font-black text-amber-900">ML</span>
-                            </div>
-                        </div>
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
-                                <a href="{{ route('mercadolivre.publications') }}" class="hover:text-amber-600 transition-colors">Publicações</a>
-                                <i class="bi bi-chevron-right text-[8px]"></i>
-                                <span class="text-slate-700 dark:text-slate-300 font-semibold">Detalhes</span>
-                            </div>
-                            <h1 class="text-sm sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-yellow-700 dark:from-amber-300 dark:via-yellow-300 dark:to-orange-300 bg-clip-text text-transparent leading-tight truncate">
-                                {{ $publication->title }}
-                            </h1>
-                        </div>
-                    </div>
-
-                    {{-- Badges --}}
-                    <div class="flex flex-wrap items-center gap-1.5">
-                        @if($publication->ml_item_id)
-                        <span class="sp-badge bg-slate-200/80 dark:bg-slate-700/80 text-slate-700 dark:text-slate-300 font-mono border-slate-300 dark:border-slate-600">
-                            <i class="bi bi-link-45deg"></i> {{ $publication->ml_item_id }}
-                        </span>
-                        @endif
-                        @php
-                            $statusCfg = match($publication->status) {
-                                'active' => ['cls' => 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700', 'icon' => 'bi-check-circle-fill', 'text' => 'Ativo'],
-                                'paused' => ['cls' => 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700', 'icon' => 'bi-pause-circle-fill', 'text' => 'Pausado'],
-                                'closed' => ['cls' => 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700', 'icon' => 'bi-x-circle-fill', 'text' => 'Fechado'],
-                                'under_review' => ['cls' => 'bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700', 'icon' => 'bi-search', 'text' => 'Em Revisão'],
-                                default => ['cls' => 'bg-slate-100 dark:bg-slate-700/40 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-600', 'icon' => 'bi-question-circle', 'text' => ucfirst($publication->status ?? 'Desconhecido')],
-                            };
-                        @endphp
-                        <span class="sp-badge {{ $statusCfg['cls'] }}"><i class="bi {{ $statusCfg['icon'] }}"></i> {{ $statusCfg['text'] }}</span>
-                        <span class="sp-badge bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700">
-                            <i class="bi {{ $publication->publication_type === 'kit' ? 'bi-boxes' : 'bi-box' }}"></i>
-                            {{ $publication->publication_type === 'kit' ? 'Kit' : 'Simples' }}
-                        </span>
-                        @php
-                            $syncCfg = match($publication->sync_status) {
-                                'synced' => ['cls' => 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700', 'icon' => 'bi-cloud-check', 'text' => 'Sincronizado'],
-                                'pending' => ['cls' => 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700', 'icon' => 'bi-cloud-arrow-up', 'text' => 'Pendente'],
-                                'error' => ['cls' => 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700', 'icon' => 'bi-cloud-slash', 'text' => 'Erro'],
-                                default => ['cls' => 'bg-slate-100 dark:bg-slate-700/40 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-600', 'icon' => 'bi-cloud', 'text' => 'Desconhecido'],
-                            };
-                        @endphp
-                        <span class="sp-badge {{ $syncCfg['cls'] }}"><i class="bi {{ $syncCfg['icon'] }}"></i> {{ $syncCfg['text'] }}</span>
-                    </div>
-
-                    {{-- Ações --}}
-                    <div class="flex flex-wrap items-center gap-1.5">
-                        <a href="{{ route('mercadolivre.publications.edit', $publication->id) }}"
-                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-semibold rounded-lg transition-all shadow-md text-xs whitespace-nowrap">
-                            <i class="bi bi-pencil-square"></i>
-                            <span class="hidden sm:inline">Editar</span>
-                        </a>
-                        <button wire:click="syncToMercadoLivre" wire:loading.attr="disabled" wire:target="syncToMercadoLivre"
-                            @if($stats['total_products'] > 0) wire:confirm="Trazer os dados do ML e enviar ao ML o estoque calculado pelos seus produtos ({{ $stats['total_stock_available'] }} un.)?" @endif
-                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-lg transition-all shadow-md text-xs whitespace-nowrap">
-                            <i class="bi bi-arrow-repeat" wire:loading.class="animate-spin" wire:target="syncToMercadoLivre"></i>
-                            <span class="hidden sm:inline" wire:loading.remove wire:target="syncToMercadoLivre">Sincronizar</span>
-                            <span class="hidden sm:inline" wire:loading wire:target="syncToMercadoLivre">Sincronizando...</span>
-                        </button>
-                        @if($publication->ml_permalink)
-                        <a href="{{ $publication->ml_permalink }}" target="_blank" rel="noopener"
-                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-slate-900 font-bold rounded-lg shadow-md transition-all text-xs whitespace-nowrap">
-                            <i class="bi bi-box-arrow-up-right"></i>
-                            <span class="hidden sm:inline">Ver no ML</span>
-                        </a>
-                        @endif
-                    </div>
-                </div>
+        {{-- Números do anúncio, ocupando a largura toda --}}
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+            <div class="sp-stat col-span-2 sm:col-span-1">
+                <span class="sp-stat-value" style="color: var(--primary-dark, #512da8);">R$ {{ number_format($publication->price, 2, ',', '.') }}</span>
+                <span class="sp-stat-label"><i class="bi bi-tag-fill mr-0.5"></i>Preço</span>
             </div>
-
-            {{-- Stats compactos --}}
-            <div class="relative grid grid-cols-3 sm:grid-cols-5 gap-2 px-3 sm:px-4 pb-3 sm:pb-4">
-                <div class="sp-stat" style="border-color: var(--card-accent2, #f8bbd0);">
-                    <span class="sp-stat-value" style="color: var(--primary-dark, #512da8);">R$ {{ number_format($publication->price, 2, ',', '.') }}</span>
-                    <span class="sp-stat-label"><i class="bi bi-tag-fill mr-0.5"></i>Preço</span>
-                </div>
-                <div class="sp-stat">
-                    <span class="sp-stat-value" style="color: var(--primary-dark, #512da8);">{{ $stats['total_stock_available'] }}</span>
-                    <span class="sp-stat-label"><i class="bi bi-stack mr-0.5"></i>Disponível</span>
-                </div>
-                <div class="sp-stat">
-                    <span class="sp-stat-value" style="color: var(--primary-dark, #512da8);">{{ $stats['total_products'] }}</span>
-                    <span class="sp-stat-label"><i class="bi bi-box-seam mr-0.5"></i>Produtos</span>
-                </div>
-                <div class="sp-stat hidden sm:flex">
-                    <span class="sp-stat-value text-emerald-600 dark:text-emerald-400">{{ $stats['total_sales'] }}</span>
-                    <span class="sp-stat-label"><i class="bi bi-cart-check mr-0.5"></i>Vendas</span>
-                </div>
-                <div class="sp-stat hidden sm:flex">
-                    <span class="sp-stat-value text-emerald-600 dark:text-emerald-400">R$ {{ number_format($stats['total_revenue'], 2, ',', '.') }}</span>
-                    <span class="sp-stat-label"><i class="bi bi-graph-up-arrow mr-0.5"></i>Receita</span>
-                </div>
+            <div class="sp-stat">
+                <span class="sp-stat-value" style="color: var(--primary-dark, #512da8);">{{ $stats['total_stock_available'] }}</span>
+                <span class="sp-stat-label"><i class="bi bi-stack mr-0.5"></i>Disponível</span>
+            </div>
+            <div class="sp-stat">
+                <span class="sp-stat-value" style="color: var(--primary-dark, #512da8);">{{ $stats['total_products'] }}</span>
+                <span class="sp-stat-label"><i class="bi bi-box-seam mr-0.5"></i>Produtos</span>
+            </div>
+            <div class="sp-stat">
+                <span class="sp-stat-value text-emerald-600 dark:text-emerald-400">{{ $stats['total_sales'] }}</span>
+                <span class="sp-stat-label"><i class="bi bi-cart-check mr-0.5"></i>Vendas</span>
+            </div>
+            <div class="sp-stat">
+                <span class="sp-stat-value text-emerald-600 dark:text-emerald-400">R$ {{ number_format($stats['total_revenue'], 2, ',', '.') }}</span>
+                <span class="sp-stat-label"><i class="bi bi-graph-up-arrow mr-0.5"></i>Receita</span>
             </div>
         </div>
 

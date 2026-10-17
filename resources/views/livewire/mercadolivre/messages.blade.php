@@ -14,136 +14,60 @@
 
     <x-loading-overlay message="Carregando mensagens..." />
 
-    {{-- ============================================================
-         HEADER – AMBER / ML
-    ============================================================ --}}
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/85 via-amber-50/90 to-yellow-50/80
-                dark:from-slate-800/90 dark:via-amber-900/10 dark:to-slate-800/30
-                backdrop-blur-xl border-b border-amber-100/60 dark:border-amber-900/30
-                shadow-2xl mb-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse pointer-events-none"></div>
-        <div class="absolute top-0 right-0 w-52 h-52 bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10 rounded-full transform translate-x-20 -translate-y-20 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-amber-300/15 via-yellow-300/10 to-orange-200/10 rounded-full transform -translate-x-12 translate-y-12 pointer-events-none"></div>
-        <div class="relative w-full px-4 sm:px-6 lg:px-8 py-6">
-
-            <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-4">
-                <a href="{{ route('dashboard') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1">
-                    <i class="bi bi-house-fill text-[11px]"></i> Início
-                </a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <a href="{{ route('mercadolivre.products') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Mercado Livre</a>
-                <i class="bi bi-chevron-right text-[9px]"></i>
-                <span class="text-amber-700 dark:text-amber-400 font-semibold">Mensagens</span>
-            </nav>
-
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                <div class="flex items-start gap-5">
-                    <div class="relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 rounded-2xl shadow-xl shadow-amber-500/30 flex-shrink-0">
-                        <i class="bi bi-envelope-fill text-white text-3xl"></i>
-                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50 pointer-events-none"></div>
-                        <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center shadow-md ring-2 ring-amber-100 dark:ring-slate-700">
-                            <span class="text-amber-600 dark:text-amber-400 font-black text-[8px] leading-none">ML</span>
-                        </div>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600 dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent leading-tight">
-                            Mensagens ML
-                        </h1>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Comunicação pós-venda com compradores
-                        </p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button @click="tipsOpen = true"
-                            class="inline-flex items-center gap-2 px-3 py-2 rounded-xl
-                                   bg-white/80 dark:bg-slate-800 border border-amber-200 dark:border-slate-600
-                                   text-sm font-semibold text-slate-600 dark:text-slate-300
-                                   hover:bg-amber-50 dark:hover:bg-slate-700 transition-all shadow-sm">
-                        <i class="bi bi-lightbulb-fill text-amber-500"></i> Dicas
+    {{-- Cabeçalho e busca da conversa no padrão das outras listas --}}
+    @php
+        $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70';
+    @endphp
+    <div class="px-4 sm:px-6 lg:px-8">
+        <x-page-header title="Mensagens" icon="bi-envelope" section="mercadolivre" tabs-section="mercadolivre" tabs-active="mensagens"
+                       subtitle="Comunicação pós-venda com compradores">
+            @if(!empty($packId))
+                <x-slot:meta>
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="bi bi-hash"></i>{{ $packId }}</span>
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300"><i class="bi bi-chat-dots"></i>{{ count($messages) }} mensagem(ns)</span>
+                </x-slot:meta>
+            @endif
+            <x-slot:actions>
+                <button type="button" @click="tipsOpen = true" title="Dicas" class="{{ $phBtn }}"><i class="bi bi-lightbulb text-amber-500"></i><span class="hidden sm:inline">Dicas</span></button>
+                @if(!empty($packId))
+                    <button type="button" wire:click="loadMessages" wire:loading.attr="disabled" title="Atualizar conversa"
+                            class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-amber-500/25 transition whitespace-nowrap">
+                        <i class="bi bi-arrow-clockwise" wire:loading.class="animate-spin" wire:target="loadMessages"></i><span class="hidden sm:inline">Atualizar</span>
                     </button>
-                </div>
-            </div>
+                @endif
+            </x-slot:actions>
+        </x-page-header>
 
-            {{-- Busca por Pack/Order ID --}}
-            <div class="mt-4 flex gap-2">
-                <div class="flex-1 relative">
-                    <i class="bi bi-hash absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                    <input type="text"
-                           wire:model="packIdInput"
-                           wire:keydown.enter="searchPack"
-                           placeholder="Pack ID ou Order ID do pedido…"
-                           class="pl-8 pr-3 py-2.5 text-sm rounded-xl w-full bg-white/80 dark:bg-slate-800
-                                  border border-amber-200/80 dark:border-slate-600
-                                  focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20
-                                  text-slate-800 dark:text-white placeholder-slate-400 transition-all">
-                </div>
-                <button wire:click="searchPack" wire:loading.attr="disabled"
-                        class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500
-                               text-white text-sm font-bold shadow hover:shadow-md transition-all
-                               disabled:opacity-60">
-                    <span wire:loading.remove wire:target="searchPack"><i class="bi bi-search"></i> Buscar</span>
-                    <span wire:loading wire:target="searchPack"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                </button>
+        {{-- Busca por Pack/Order ID (mesmo visual da x-list-toolbar; a busca roda no Enter ou no botão) --}}
+        <div class="app-toolbar mb-4 flex items-center gap-2 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-3 shadow-sm">
+            <div class="relative flex-1 min-w-0">
+                <i class="bi bi-hash absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" wire:model="packIdInput" wire:keydown.enter="searchPack" placeholder="Pack ID ou Order ID do pedido..."
+                       class="app-toolbar-input w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2.5 pl-10 pr-3 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30">
             </div>
-
+            <button type="button" wire:click="searchPack" wire:loading.attr="disabled" title="Buscar conversa"
+                    class="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-sm transition disabled:opacity-60">
+                <i class="bi bi-search" wire:loading.remove wire:target="searchPack"></i>
+                <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="searchPack"></i>
+                <span class="hidden sm:inline">Buscar</span>
+            </button>
         </div>
     </div>
-    {{-- /HEADER --}}
+
 
     <div class="w-full px-4 sm:px-6 lg:px-8 pb-8">
 
         @if(empty($packId))
             {{-- Estado inicial --}}
-            <div class="flex flex-col items-center justify-center py-16 sm:py-24">
-                <div class="relative mb-6">
-                    <div class="w-28 h-28 rounded-3xl bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10
-                                dark:from-amber-900/30 dark:via-amber-800/20 dark:to-orange-900/10
-                                border border-amber-200/60 dark:border-amber-700/30
-                                flex items-center justify-center shadow-xl">
-                        <i class="bi bi-envelope-fill text-5xl text-amber-400 dark:text-amber-500"></i>
-                    </div>
-                    <div class="absolute -top-2 -right-2 w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500
-                                flex items-center justify-center shadow-lg animate-bounce">
-                        <i class="bi bi-hash text-white text-xs"></i>
-                    </div>
-                </div>
-                <h3 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white mb-2 text-center">
-                    Nenhuma conversa selecionada
-                </h3>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-sm text-center leading-relaxed">
-                    Digite o <span class="font-bold text-amber-600 dark:text-amber-400">Pack ID</span> ou
-                    <span class="font-bold text-amber-600 dark:text-amber-400">Order ID</span> de um pedido
-                    para carregar as mensagens da conversa com o comprador.
-                </p>
-                <div class="flex items-center gap-3 w-full max-w-md">
-                    <div class="flex-1 relative">
-                        <i class="bi bi-hash absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text"
-                               wire:model="packIdInput"
-                               wire:keydown.enter="searchPack"
-                               placeholder="Ex: 2000000012345678"
-                               class="pl-8 pr-3 py-3 text-sm rounded-2xl w-full
-                                      bg-white dark:bg-slate-800
-                                      border border-amber-200/80 dark:border-slate-600
-                                      focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20
-                                      text-slate-800 dark:text-white placeholder-slate-400 transition-all shadow-sm">
-                    </div>
-                    <button wire:click="searchPack" wire:loading.attr="disabled"
-                            class="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500
-                                   text-white text-sm font-bold shadow-lg shadow-amber-500/25
-                                   hover:shadow-xl hover:from-amber-600 hover:to-orange-600 transition-all
-                                   disabled:opacity-60 whitespace-nowrap">
-                        <span wire:loading.remove wire:target="searchPack"><i class="bi bi-search"></i> Buscar</span>
-                        <span wire:loading wire:target="searchPack"><i class="bi bi-arrow-repeat animate-spin"></i></span>
-                    </button>
-                </div>
-                <div class="mt-6 flex flex-wrap gap-2 justify-center">
-                    <span class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-700/30">
-                        <i class="bi bi-lightbulb-fill mr-1"></i> Encontre o ID em Pedidos → Ver Detalhes
-                    </span>
-                </div>
-            </div>
+            <x-empty-state icon="bi-envelope" tone="amber" title="Nenhuma conversa selecionada"
+                           text="Digite o Pack ID ou o Order ID de um pedido na busca acima para carregar as mensagens da conversa com o comprador.">
+                <span class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200/60 dark:border-amber-700/30">
+                    <i class="bi bi-lightbulb-fill mr-1"></i> Encontre o ID em Pedidos, no botão Ver detalhes
+                </span>
+                <a href="{{ route('mercadolivre.orders') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 transition">
+                    <i class="bi bi-bag-check"></i> Ir para Pedidos
+                </a>
+            </x-empty-state>
 
         @elseif($loading)
             {{-- Skeleton chat --}}
@@ -189,10 +113,7 @@
                      id="messages-container">
 
                     @if(count($messages) === 0)
-                        <div class="flex flex-col items-center justify-center h-full py-10 text-center">
-                            <i class="bi bi-chat text-3xl text-slate-300 dark:text-slate-600 mb-2"></i>
-                            <p class="text-sm text-slate-400">Nenhuma mensagem nesta conversa.</p>
-                        </div>
+                        <x-empty-state icon="bi-chat" tone="amber" title="Nenhuma mensagem nesta conversa" text="Envie a primeira mensagem para o comprador logo abaixo." class="border-0 bg-transparent dark:bg-transparent" />
                     @else
                         @foreach($messages as $msg)
                             @php
