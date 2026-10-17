@@ -144,43 +144,43 @@
 
     {{-- Números principais --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        <div class="rounded-2xl border border-indigo-200/70 dark:border-indigo-500/30 bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-500/10 dark:to-slate-900 p-4">
-            <div class="flex items-center gap-3">
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow"><i class="bi bi-people"></i></span>
+        <div class="rounded-2xl border border-indigo-200/70 dark:border-indigo-500/30 bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-500/10 dark:to-slate-900 p-3 sm:p-4">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <span class="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow"><i class="bi bi-people"></i></span>
                 <div class="min-w-0">
                     <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Participantes</p>
                     <p class="text-xl font-bold text-slate-900 dark:text-white">{{ $sum['members'] }}<span class="text-sm font-semibold text-slate-400">/{{ $c->max_participants }}</span></p>
                 </div>
             </div>
         </div>
-        <div class="rounded-2xl border border-amber-200/70 dark:border-amber-500/30 bg-gradient-to-br from-amber-50 to-white dark:from-amber-500/10 dark:to-slate-900 p-4">
-            <div class="flex items-center gap-3">
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow"><i class="bi bi-trophy"></i></span>
+        <div class="rounded-2xl border border-amber-200/70 dark:border-amber-500/30 bg-gradient-to-br from-amber-50 to-white dark:from-amber-500/10 dark:to-slate-900 p-3 sm:p-4">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <span class="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow"><i class="bi bi-trophy"></i></span>
                 <div class="min-w-0">
                     <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Contemplados</p>
                     <p class="text-xl font-bold text-slate-900 dark:text-white">{{ $sum['contemplated'] }}<span class="text-sm font-semibold text-slate-400">/{{ $sum['members'] }}</span></p>
                 </div>
             </div>
         </div>
-        <div class="rounded-2xl border border-emerald-200/70 dark:border-emerald-500/30 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-900 p-4">
-            <div class="flex items-center gap-3">
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow"><i class="bi bi-cash-stack"></i></span>
+        <div class="rounded-2xl border border-emerald-200/70 dark:border-emerald-500/30 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-900 p-3 sm:p-4">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <span class="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow"><i class="bi bi-cash-stack"></i></span>
                 <div class="min-w-0 flex-1">
                     <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Arrecadado · {{ $pct }}%</p>
-                    <p class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white truncate">{{ $money($sum['collected']) }}</p>
+                    <p class="text-base sm:text-xl font-bold text-slate-900 dark:text-white truncate">{{ $money($sum['collected']) }}</p>
                 </div>
             </div>
             <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-emerald-100 dark:bg-emerald-900/40"><div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500" style="width: {{ $pct }}%"></div></div>
         </div>
-        <div class="rounded-2xl border {{ $sum['late_count'] ? 'border-rose-200/70 dark:border-rose-500/30 from-rose-50' : 'border-slate-200/70 dark:border-slate-700 from-slate-50' }} bg-gradient-to-br to-white dark:from-slate-800/40 dark:to-slate-900 p-4">
-            <div class="flex items-center gap-3">
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl {{ $sum['late_count'] ? 'bg-gradient-to-br from-rose-500 to-red-600' : 'bg-gradient-to-br from-slate-400 to-slate-500' }} text-white shadow"><i class="bi {{ $sum['late_count'] ? 'bi-exclamation-triangle' : 'bi-check2-circle' }}"></i></span>
+        <div class="rounded-2xl border {{ $sum['late_count'] ? 'border-rose-200/70 dark:border-rose-500/30 from-rose-50' : 'border-slate-200/70 dark:border-slate-700 from-slate-50' }} bg-gradient-to-br to-white dark:from-slate-800/40 dark:to-slate-900 p-3 sm:p-4">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <span class="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl {{ $sum['late_count'] ? 'bg-gradient-to-br from-rose-500 to-red-600' : 'bg-gradient-to-br from-slate-400 to-slate-500' }} text-white shadow"><i class="bi {{ $sum['late_count'] ? 'bi-exclamation-triangle' : 'bi-check2-circle' }}"></i></span>
                 <div class="min-w-0">
                     <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Parcelas vencidas</p>
                     @if ($sum['late_count'])
-                        <p class="text-lg sm:text-xl font-bold text-rose-600 dark:text-rose-400 truncate">{{ $sum['late_count'] }} · {{ $money($sum['late_amount']) }}</p>
+                        <p class="text-base sm:text-xl font-bold text-rose-600 dark:text-rose-400 truncate">{{ $sum['late_count'] }} · {{ $money($sum['late_amount']) }}</p>
                     @else
-                        <p class="text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-400">Nenhuma</p>
+                        <p class="text-base sm:text-xl font-bold text-emerald-600 dark:text-emerald-400">Nenhuma</p>
                     @endif
                 </div>
             </div>

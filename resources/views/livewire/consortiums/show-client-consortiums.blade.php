@@ -15,41 +15,41 @@
     </x-client-page-header>
 
     <!-- Estatísticas -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-8">
+    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <!-- Total Consórcios -->
-        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700 shadow-lg hover:shadow-xl transition-all duration-300">
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-3 sm:p-5 border border-blue-200 dark:border-blue-700 shadow-lg hover:shadow-xl transition-all duration-300">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-blue-700 dark:text-blue-400">Total Consórcios</span>
-                <i class="bi bi-collection text-2xl text-blue-600 dark:text-blue-400"></i>
+                <span class="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-400">Total Consórcios</span>
+                <i class="hidden sm:inline bi bi-collection text-2xl text-blue-600 dark:text-blue-400"></i>
             </div>
-            <div class="text-3xl font-bold text-blue-900 dark:text-blue-100">{{ $this->participations->count() }}</div>
+            <div class="text-xl sm:text-3xl font-bold text-blue-900 dark:text-blue-100">{{ $this->participations->count() }}</div>
         </div>
 
         <!-- Ativos -->
-        <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300">
+        <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl p-3 sm:p-5 border border-emerald-200 dark:border-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-emerald-700 dark:text-emerald-400">Ativos</span>
-                <i class="bi bi-check-circle text-2xl text-emerald-600 dark:text-emerald-400"></i>
+                <span class="text-xs sm:text-sm font-medium text-emerald-700 dark:text-emerald-400">Ativos</span>
+                <i class="hidden sm:inline bi bi-check-circle text-2xl text-emerald-600 dark:text-emerald-400"></i>
             </div>
-            <div class="text-3xl font-bold text-emerald-900 dark:text-emerald-100">{{ $this->participations->where('status', 'active')->count() }}</div>
+            <div class="text-xl sm:text-3xl font-bold text-emerald-900 dark:text-emerald-100">{{ $this->participations->where('status', 'active')->count() }}</div>
         </div>
 
         <!-- Contemplados -->
-        <div class="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-yellow-200 dark:border-yellow-700 shadow-lg hover:shadow-xl transition-all duration-300">
+        <div class="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl p-3 sm:p-5 border border-yellow-200 dark:border-yellow-700 shadow-lg hover:shadow-xl transition-all duration-300">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-yellow-700 dark:text-yellow-400">Contemplados</span>
-                <i class="bi bi-trophy text-2xl text-yellow-600 dark:text-yellow-400"></i>
+                <span class="text-xs sm:text-sm font-medium text-yellow-700 dark:text-yellow-400">Contemplados</span>
+                <i class="hidden sm:inline bi bi-trophy text-2xl text-yellow-600 dark:text-yellow-400"></i>
             </div>
-            <div class="text-3xl font-bold text-yellow-900 dark:text-yellow-100">{{ $this->participations->where('is_contemplated', true)->count() }}</div>
+            <div class="text-xl sm:text-3xl font-bold text-yellow-900 dark:text-yellow-100">{{ $this->participations->where('is_contemplated', true)->count() }}</div>
         </div>
 
         <!-- Total Pago -->
-        <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-700 shadow-lg hover:shadow-xl transition-all duration-300">
+        <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-3 sm:p-5 border border-purple-200 dark:border-purple-700 shadow-lg hover:shadow-xl transition-all duration-300">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-purple-700 dark:text-purple-400">Total Pago</span>
-                <i class="bi bi-wallet2 text-2xl text-purple-600 dark:text-purple-400"></i>
+                <span class="text-xs sm:text-sm font-medium text-purple-700 dark:text-purple-400">Total Pago</span>
+                <i class="hidden sm:inline bi bi-wallet2 text-2xl text-purple-600 dark:text-purple-400"></i>
             </div>
-            <div class="text-2xl font-bold text-purple-900 dark:text-purple-100">
+            <div class="text-lg sm:text-2xl font-bold text-purple-900 dark:text-purple-100">
                 R$ {{ number_format($this->participations->sum('total_paid'), 2, ',', '.') }}
             </div>
         </div>
@@ -62,22 +62,22 @@
         @endphp
 
         <!-- Parcelas Pagas -->
-        <div class="bg-gradient-to-br from-green-50 to-lime-50 dark:from-green-900/20 dark:to-lime-900/20 rounded-xl p-6 border border-green-200 dark:border-green-700 shadow-lg hover:shadow-xl transition-all duration-300">
+        <div class="bg-gradient-to-br from-green-50 to-lime-50 dark:from-green-900/20 dark:to-lime-900/20 rounded-xl p-3 sm:p-5 border border-green-200 dark:border-green-700 shadow-lg hover:shadow-xl transition-all duration-300">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-green-700 dark:text-green-400">Parcelas Pagas</span>
-                <i class="bi bi-check2-circle text-2xl text-green-600 dark:text-green-400"></i>
+                <span class="text-xs sm:text-sm font-medium text-green-700 dark:text-green-400">Parcelas Pagas</span>
+                <i class="hidden sm:inline bi bi-check2-circle text-2xl text-green-600 dark:text-green-400"></i>
             </div>
-            <div class="text-3xl font-bold text-green-900 dark:text-green-100">{{ $parcelasPagas }}</div>
+            <div class="text-xl sm:text-3xl font-bold text-green-900 dark:text-green-100">{{ $parcelasPagas }}</div>
             <div class="text-xs text-green-700 dark:text-green-400 mt-1">de {{ $totalParcelas }} parcelas</div>
         </div>
 
         <!-- Parcelas Não Pagas -->
-        <div class="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-xl p-6 border border-red-200 dark:border-red-700 shadow-lg hover:shadow-xl transition-all duration-300">
+        <div class="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-xl p-3 sm:p-5 border border-red-200 dark:border-red-700 shadow-lg hover:shadow-xl transition-all duration-300">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-red-700 dark:text-red-400">Não Pagas</span>
-                <i class="bi bi-x-circle text-2xl text-red-600 dark:text-red-400"></i>
+                <span class="text-xs sm:text-sm font-medium text-red-700 dark:text-red-400">Não Pagas</span>
+                <i class="hidden sm:inline bi bi-x-circle text-2xl text-red-600 dark:text-red-400"></i>
             </div>
-            <div class="text-3xl font-bold text-red-900 dark:text-red-100">{{ $parcelasNaoPagas }}</div>
+            <div class="text-xl sm:text-3xl font-bold text-red-900 dark:text-red-100">{{ $parcelasNaoPagas }}</div>
             <div class="text-xs text-red-700 dark:text-red-400 mt-1">pendentes/vencidas</div>
         </div>
     </div>

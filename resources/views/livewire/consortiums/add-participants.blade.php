@@ -117,7 +117,7 @@
                     <div class="p-6">
                         <!-- Grid Responsivo: progressão suave até 5 colunas -->
                         <div
-                            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 ultrawind:grid-cols-8 gap-4">
+                            class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 ultrawind:grid-cols-8 gap-4">
                             @foreach ($availableClients as $client)
                                 @php
                                     $isSelected = in_array($client->id, $selectedClients);

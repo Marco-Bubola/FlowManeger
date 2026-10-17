@@ -334,10 +334,10 @@
                                             <i class="bi bi-trophy-fill text-6xl text-white"></i>
                                         </div>
                                     </div>
-                                    <div class="text-4xl font-black text-white mb-4 drop-shadow-xl">
+                                    <div class="text-2xl sm:text-4xl font-black text-white mb-3 sm:mb-4 drop-shadow-xl">
                                         {{ $liberado ? 'Sorteio pronto!' : 'Sorteio ainda não liberado' }}
                                     </div>
-                                    <div class="text-xl text-white/80 mb-8">
+                                    <div class="text-base sm:text-xl text-white/80 mb-6 sm:mb-8">
                                         {{ $liberado ? 'Clique no botão abaixo para realizar o sorteio' : $motivo }}
                                     </div>
                                     <div class="flex justify-center gap-4">
@@ -443,65 +443,28 @@
         <!-- COLUNA LATERAL (4 colunas) - Estatísticas e Histórico -->
         <div class="col-span-12 lg:col-span-4 space-y-6">
 
-            <!-- Cards de Estatísticas MODERNOS -->
-            <div class="grid grid-cols-2 lg:grid-cols-1 gap-4">
-                <!-- Total de Sorteios -->
-                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg overflow-hidden">
-                    <div class="p-4">
-                        <div class="flex items-start justify-between mb-2">
-                            <div class="flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg">
-                                <i class="bi bi-trophy-fill text-2xl text-white"></i>
+            <!-- Números do consórcio (mesmo padrão dos cards da tela do consórcio) -->
+            @php
+                $drawStatsTotal = $consortium->participants()->count();
+                $drawStats = [
+                    ['Sorteios feitos', $consortium->draws()->count(), 'bi-shuffle', 'indigo', 'from-indigo-500 to-purple-600'],
+                    ['Contemplados', $consortium->contemplated_count, 'bi-trophy', 'amber', 'from-amber-400 to-orange-500'],
+                    ['Participantes', $drawStatsTotal, 'bi-people', 'sky', 'from-sky-500 to-blue-600'],
+                    ['Já contemplados', ($drawStatsTotal > 0 ? round(($consortium->contemplated_count / $drawStatsTotal) * 100) : 0) . '%', 'bi-speedometer2', 'emerald', 'from-emerald-500 to-teal-600'],
+                ];
+            @endphp
+            <div class="grid grid-cols-2 lg:grid-cols-1 gap-3">
+                @foreach ($drawStats as [$label, $value, $icon, $tone, $grad])
+                    <div class="rounded-2xl border border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-900/60 p-3 sm:p-4">
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <span class="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $grad }} text-white shadow"><i class="bi {{ $icon }}"></i></span>
+                            <div class="min-w-0">
+                                <p class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ $label }}</p>
+                                <p class="text-base sm:text-xl font-bold text-slate-900 dark:text-white">{{ $value }}</p>
                             </div>
-                            <span class="text-4xl font-black text-white">{{ $consortium->draws()->count() }}</span>
                         </div>
-                        <div class="text-white/90 text-sm font-semibold">Total de Sorteios</div>
-                        <div class="text-white/70 text-xs mt-1">Realizados até hoje</div>
                     </div>
-                </div>
-
-                <!-- Contemplados -->
-                <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg overflow-hidden">
-                    <div class="p-4">
-                        <div class="flex items-start justify-between mb-2">
-                            <div class="flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg">
-                                <i class="bi bi-star-fill text-2xl text-white"></i>
-                            </div>
-                            <span class="text-4xl font-black text-white">{{ $consortium->contemplated_count }}</span>
-                        </div>
-                        <div class="text-white/90 text-sm font-semibold">Contemplados</div>
-                        <div class="text-white/70 text-xs mt-1">Vencedores totais</div>
-                    </div>
-                </div>
-
-                <!-- Participantes Totais -->
-                <div class="bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl shadow-lg overflow-hidden">
-                    <div class="p-4">
-                        <div class="flex items-start justify-between mb-2">
-                            <div class="flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg">
-                                <i class="bi bi-people-fill text-2xl text-white"></i>
-                            </div>
-                            <span class="text-4xl font-black text-white">{{ $consortium->participants()->count() }}</span>
-                        </div>
-                        <div class="text-white/90 text-sm font-semibold">Participantes</div>
-                        <div class="text-white/70 text-xs mt-1">Total no consórcio</div>
-                    </div>
-                </div>
-
-                <!-- Taxa de Conclusão -->
-                <div class="bg-gradient-to-br from-orange-500 to-red-600 rounded-xl shadow-lg overflow-hidden">
-                    <div class="p-4">
-                        <div class="flex items-start justify-between mb-2">
-                            <div class="flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg">
-                                <i class="bi bi-speedometer2 text-2xl text-white"></i>
-                            </div>
-                            <span class="text-4xl font-black text-white">
-                                {{ $consortium->participants()->count() > 0 ? round(($consortium->contemplated_count / $consortium->participants()->count()) * 100) : 0 }}%
-                            </span>
-                        </div>
-                        <div class="text-white/90 text-sm font-semibold">Conclusão</div>
-                        <div class="text-white/70 text-xs mt-1">Taxa contemplados</div>
-                    </div>
-                </div>
+                @endforeach
             </div>
 
             <!-- Histórico Recente COMPACTO -->
