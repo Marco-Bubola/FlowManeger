@@ -15,12 +15,17 @@
         'catalogo' => ['label' => 'Catálogo', 'icon' => 'bi-grid', 'url' => route('products.index')],
         'novo' => ['label' => 'Novo produto', 'icon' => 'bi-plus-circle', 'url' => route('products.create')],
         'kit' => ['label' => 'Novo kit', 'icon' => 'bi-boxes', 'url' => route('products.kit.create')],
-        'importar' => ['label' => 'Importar', 'icon' => 'bi-cloud-upload', 'url' => route('products.upload')],
+        'importar' => ['label' => 'Importar PDF', 'icon' => 'bi-cloud-upload', 'url' => route('products.upload')],
+        'planilha' => ['label' => 'Importar planilha', 'icon' => 'bi-file-earmark-spreadsheet', 'url' => route('products.import-sheet')],
         'massa' => ['label' => 'Edição em massa', 'icon' => 'bi-pencil-square', 'url' => route('products.bulk-edit')],
         'scanner' => ['label' => 'Scanner', 'icon' => 'bi-upc-scan', 'url' => route('products.barcode-scanner')],
         'variacoes' => ['label' => 'Estoque das variações', 'icon' => 'bi-diagram-3', 'url' => route('products.variation-stock')],
         'interessados' => ['label' => 'Clientes interessados', 'icon' => 'bi-heart', 'url' => route('products.interested')],
     ];
+    // Conta sem PDF de fornecedor (móveis, peças próprias): some o Importar PDF
+    if (! \App\Services\Products\ProductPreferences::showPdfUpload(auth()->user()) && ($active ?? '') !== 'importar') {
+        unset($tabs['importar']);
+    }
     $headerIcon = str_contains($icon, ' ') ? $icon : 'bi ' . $icon;
 @endphp
 

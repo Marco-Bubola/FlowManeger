@@ -345,12 +345,15 @@
     @if ($products->isEmpty())
         @php $temFiltro = $search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim; @endphp
         <x-empty-state icon="bi-box-seam" :title="$temFiltro ? 'Nenhum produto com esses filtros' : 'Nenhum produto ainda'"
-            :text="$temFiltro ? 'Tente outros filtros ou limpe a busca.' : 'Cadastre o primeiro produto ou envie um PDF com vários de uma vez.'">
+            :text="$temFiltro ? 'Tente outros filtros ou limpe a busca.' : 'Cadastre o primeiro produto ou importe vários de uma vez por PDF ou planilha.'">
             @if ($temFiltro)
                 <button type="button" wire:click="clearFilters" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md"><i class="bi bi-x-circle"></i> Limpar filtros</button>
             @else
                 <a href="{{ route('products.create') }}" wire:navigate class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md"><i class="bi bi-plus-lg"></i> Novo produto</a>
-                <a href="{{ route('products.upload') }}" wire:navigate class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-500/10"><i class="bi bi-file-earmark-arrow-up"></i> Enviar em lote</a>
+                <a href="{{ route('products.import-sheet') }}" wire:navigate class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-500/10"><i class="bi bi-file-earmark-spreadsheet"></i> Importar planilha</a>
+                @if(\App\Services\Products\ProductPreferences::showPdfUpload(auth()->user()))
+                <a href="{{ route('products.upload') }}" wire:navigate class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-indigo-700 dark:text-indigo-300 bg-indigo-500/10"><i class="bi bi-file-earmark-arrow-up"></i> Importar PDF</a>
+                @endif
             @endif
         </x-empty-state>
     @else

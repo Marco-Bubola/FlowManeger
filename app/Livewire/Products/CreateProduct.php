@@ -16,7 +16,7 @@ use Livewire\WithFileUploads;
 
 class CreateProduct extends Component
 {
-    use WithFileUploads, HasNotifications, Concerns\ImportsFromMlCatalog;
+    use WithFileUploads, HasNotifications, Concerns\ImportsFromMlCatalog, Concerns\HasMakerFields;
 
     // Propriedades do formulário
     public string $name = '';
@@ -62,7 +62,7 @@ class CreateProduct extends Component
             'model' => 'nullable|max:100',
             'warranty_months' => 'nullable|integer|min:0|max:120',
             'condition' => 'nullable|in:new,used,refurbished',
-        ];
+        ] + $this->makerRules();
     }
 
     public function nextStep()
@@ -150,6 +150,8 @@ class CreateProduct extends Component
             'price_sale' => $this->price_sale,
         ]);
 
+        $this->normalizeMakerNumbers();
+
         try {
             // Validação completa do formulário na etapa final
             $validated = $this->validate();
@@ -229,17 +231,19 @@ class CreateProduct extends Component
             'condition'       => $this->condition ?: 'new',
         ]);
 
-        // Ficha técnica no produto novo (não mexe num produto que só ganhou estoque)
-        $specs = $this->cleanSpecs();
-        if ($specs && $result['action'] !== 'stock') {
-            $result['product']->update(['specs' => $specs]);
+        // Ficha técnica, embalagem, encomenda e ficha de custo no produto novo
+        // (não mexe num produto que só ganhou estoque)
+        if ($result['action'] !== 'stock') {
+            $result['product']->update(array_filter(['specs' => $this->cleanSpecs() ?: null] + $this->makerData(), fn ($v) => $v !== null));
         }
 
         // Fotos e capa trazidas do catálogo do ML
         $this->attachPendingMlMedia($result['product']);
 
         session()->flash('success', match ($result['action']) {
-            'stock'     => 'Produto já existia com esse preço — estoque somado!',
+            'stock'     => !empty($result['cost_updated'])
+                ? 'Produto já existia — estoque somado e custo/venda atualizados!'
+                : 'Produto já existia com esse preço — estoque somado!',
             'variation' => 'Preço diferente detectado — cadastrado como nova variação!',
             default     => 'Produto adicionado com sucesso!',
         });
@@ -346,6 +350,8 @@ class CreateProduct extends Component
         }
         $this->brand = (string) ($p->brand ?: $this->brand);
         $this->model = (string) ($p->model ?: $this->model);
+        // Embalagem, encomenda e ficha de custo também (outro tamanho da mesma peça)
+        $this->fillMakerFields($p);
         if (!$this->image && $this->mlPendingCover === '' && $p->image && $p->image !== 'product-placeholder.png') {
             $this->copiedImage = $p->image;
         }

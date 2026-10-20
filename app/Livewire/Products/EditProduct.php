@@ -16,7 +16,7 @@ use Livewire\WithFileUploads;
 
 class EditProduct extends Component
 {
-    use WithFileUploads, HasNotifications, Concerns\ImportsFromMlCatalog;
+    use WithFileUploads, HasNotifications, Concerns\ImportsFromMlCatalog, Concerns\HasMakerFields;
 
     public Product $product;
     public int $currentStep = 1;
@@ -54,6 +54,15 @@ class EditProduct extends Component
     public string $linkVariantValue = '';             // valor da variação ao vincular
     public string $linkSearch = '';                   // busca por código/nome
     public string $linkSelectedLabel = '';            // rótulo do produto selecionado
+
+    // Gerar variações de uma vez (tamanhos, e cores se tiver): "30 cm · Preto"
+    public string $gridAttribute = '';
+    public string $gridValues = '';
+    public string $gridColors = '';
+    public string $gridSelfValue = '';
+    public string $gridPrice = '';
+    public string $gridPriceSale = '';
+    public string $gridStock = '0';
 
     // Galeria de imagens adicionais
     public array $extraImages = [];
@@ -97,6 +106,9 @@ class EditProduct extends Component
         if ($product->variation_attribute) {
             $this->variationAttribute = $product->variation_attribute;
         }
+        $this->gridAttribute = $product->variation_attribute && $product->variation_attribute !== 'Variação' ? $product->variation_attribute : '';
+
+        $this->fillMakerFields($product);
 
         $this->specs = collect($product->specs ?? [])
             ->map(fn ($s) => ['n' => (string) ($s['n'] ?? ''), 'v' => (string) ($s['v'] ?? '')])
@@ -154,7 +166,7 @@ class EditProduct extends Component
             'warranty_months' => 'nullable|integer|min:0|max:120',
             'condition' => 'nullable|in:new,used,refurbished',
             // Removido o status obrigatório pois ele é definido automaticamente
-        ];
+        ] + $this->makerRules();
     }
 
     public function update()
@@ -178,6 +190,7 @@ class EditProduct extends Component
             // Sanitizar o nome no backend (remover '/', '(', ')', '-' e normalizar espaços)
             $this->name = preg_replace('/\s+/', ' ', trim(preg_replace('/[\/()\-]/', '', $this->name)));
 
+            $this->normalizeMakerNumbers();
             $validated = $this->validate();
 
             // Atualizar imagem se necessário
@@ -240,7 +253,7 @@ class EditProduct extends Component
                 'model' => $this->model ?: null,
                 'warranty_months' => $this->warranty_months ?: 3,
                 'condition' => $this->condition ?: 'new',
-            ]);
+            ] + $this->makerData());
 
             if (!$updateResult) {
                 throw new \Exception('Falha ao atualizar o produto no banco de dados.');
@@ -597,6 +610,149 @@ class EditProduct extends Component
             $this->notifySuccess('Variação criada com sucesso!');
         } catch (\Throwable $e) {
             $this->notifyError('Erro ao criar variação: ' . $e->getMessage());
+        }
+    }
+
+    /** Combinações que o "Gerar variações" vai criar (tamanho × cor). */
+    public function gridPreviewList(): array
+    {
+        $split = fn (string $v) => collect(preg_split('/[,;\n]+/', $v) ?: [])
+            ->map(fn ($x) => preg_replace('/\s+/', ' ', trim($x)))->filter()->unique(fn ($x) => mb_strtolower($x))->values()->all();
+        $sizes = $split($this->gridValues);
+        $colors = $split($this->gridColors);
+        if (!$sizes) {
+            return $colors;
+        }
+        if (!$colors) {
+            return $sizes;
+        }
+        $out = [];
+        foreach ($sizes as $a) {
+            foreach ($colors as $b) {
+                $out[] = $a . ' · ' . $b;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Cria várias variações de uma vez a partir das listas de tamanhos e cores.
+     * Cada uma copia descrição, ficha, embalagem, encomenda e foto deste produto.
+     */
+    public function generateVariations(VariationService $variations): void
+    {
+        if ($this->product->parent_id) {
+            return;
+        }
+        $values = $this->gridPreviewList();
+        $attribute = trim($this->gridAttribute) ?: (trim($this->gridColors) !== '' && trim($this->gridValues) !== '' ? 'Tamanho e cor' : 'Tamanho');
+        $this->validate([
+            'gridAttribute' => 'nullable|string|max:40',
+            'gridSelfValue' => 'nullable|string|max:120',
+            'gridStock' => 'nullable|integer|min:0|max:99999',
+        ]);
+        if (!$values) {
+            $this->addError('gridValues', 'Escreva pelo menos um tamanho ou uma cor, separados por vírgula.');
+            return;
+        }
+        if (count($values) > 40) {
+            $this->addError('gridValues', 'São ' . count($values) . ' combinações. Crie no máximo 40 de uma vez.');
+            return;
+        }
+
+        $root = $this->product;
+        $taken = $root->family()->pluck('variation_value')->filter()->map(fn ($v) => mb_strtolower($v))->all();
+        $base = trim(preg_replace('/\s+/', ' ', $root->name));
+        // "Mão Francesa 30 cm · Preto" sendo o 30 cm · Preto: o nome do grupo fica
+        // "Mão Francesa" e o tamanho vai só no valor (o ML usa o nome do grupo).
+        $self = trim(preg_replace('/\s+/', ' ', $this->gridSelfValue));
+        $renameRoot = false;
+        if ($self !== '' && mb_strlen($base) > mb_strlen($self) && mb_strtolower(mb_substr($base, -mb_strlen($self))) === mb_strtolower($self)) {
+            $base = rtrim(mb_substr($base, 0, -mb_strlen($self)), " -·|/");
+            $renameRoot = $base !== '';
+        }
+        $price = trim($this->gridPrice) === '' ? (float) $root->price : (float) str_replace(',', '.', $this->gridPrice);
+        $priceSale = trim($this->gridPriceSale) === '' ? (float) $root->price_sale : (float) str_replace(',', '.', $this->gridPriceSale);
+        $codeBase = trim((string) $root->product_code);
+        $usedCodes = \App\Models\Product::where('user_id', Auth::id())->pluck('product_code')->map(fn ($c) => mb_strtolower((string) $c))->flip();
+
+        $created = 0;
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($root, $values, $attribute, $taken, $base, $renameRoot, $price, $priceSale, $codeBase, $usedCodes, $variations, &$created) {
+                // O próprio produto vira o principal com o atributo escolhido
+                $root->update(array_filter([
+                    'name' => $renameRoot ? $base : null,
+                    'is_variation_parent' => true,
+                    'variation_attribute' => $attribute,
+                    'variation_value' => trim($this->gridSelfValue) !== '' ? trim($this->gridSelfValue) : null,
+                ], fn ($v) => $v !== null));
+                $root->family()->where('id', '!=', $root->id)->update(['variation_attribute' => $attribute]);
+
+                $n = 0;
+                foreach ($values as $value) {
+                    if (in_array(mb_strtolower($value), $taken, true) || mb_strtolower($value) === mb_strtolower(trim($this->gridSelfValue))) {
+                        continue;
+                    }
+                    // Código: o do principal + o valor (SV-30 → SV-30-40-cm), sem repetir
+                    $code = $codeBase !== '' ? mb_substr($codeBase . '-' . \Illuminate\Support\Str::slug($value), 0, 60) : $variations->generateCode();
+                    while (isset($usedCodes[mb_strtolower($code)])) {
+                        $code = mb_substr($code, 0, 55) . '-' . (++$n);
+                    }
+                    $usedCodes[mb_strtolower($code)] = true;
+
+                    $variations->createVariant($root->fresh(), [
+                        'name' => mb_stripos($base, $value) === false ? $base . ' ' . $value : $base,
+                        'product_code' => $code,
+                        'price' => $price,
+                        'price_sale' => $priceSale,
+                        'stock_quantity' => (int) ($this->gridStock ?: 0),
+                        'category_id' => $root->category_id,
+                        'description' => $root->description,
+                        'specs' => $root->specs,
+                        'brand' => $root->brand,
+                        'model' => $root->model,
+                        'warranty_months' => $root->warranty_months,
+                        'condition' => $root->condition ?: 'new',
+                        'weight_grams' => $root->weight_grams,
+                        'length_cm' => $root->length_cm,
+                        'width_cm' => $root->width_cm,
+                        'height_cm' => $root->height_cm,
+                        'made_to_order' => (bool) $root->made_to_order,
+                        'production_days' => $root->production_days,
+                        'cost_items' => $root->cost_items,
+                    ], $value);
+                    $created++;
+                }
+            });
+        } catch (\Throwable $e) {
+            $this->notifyError('Erro ao gerar variações: ' . $e->getMessage());
+            return;
+        }
+
+        $this->product->refresh();
+        $this->name = $this->product->name;
+        $this->variationAttribute = $attribute;
+        $this->reset(['gridValues', 'gridColors', 'gridSelfValue', 'gridPrice', 'gridPriceSale', 'gridStock']);
+        $this->dispatch('product-updated');
+        $created
+            ? $this->notifySuccess($created === 1 ? '1 variação criada. Ponha a foto e o estoque de cada uma.' : "{$created} variações criadas. Ponha a foto e o estoque de cada uma.")
+            : $this->notifyWarning('Essas variações já existem no grupo.');
+    }
+
+    /** Troca o nome da variação (ex.: "R$ 48,90" → "30 cm"). */
+    public function renameVariation(int $id, string $value): void
+    {
+        $value = trim(preg_replace('/\s+/', ' ', $value));
+        if ($value === '' || mb_strlen($value) > 120) {
+            return;
+        }
+        $root = $this->product->parent_id ? $this->product->parent : $this->product;
+        $target = $root?->family()->where('products.id', $id)->first();
+        if ($target) {
+            $target->update(['variation_value' => $value]);
+            $this->product->refresh();
+            $this->notifySuccess('Variação renomeada para "' . $value . '".');
         }
     }
 

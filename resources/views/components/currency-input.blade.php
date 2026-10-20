@@ -63,7 +63,9 @@
              e.target.value = this.fmt();
              this.push();
          }
-     }">
+     }"
+     {{-- O servidor pode trocar o valor (ex.: Ficha de custo › Usar como custo) --}}
+     x-on:currency-input-set.window="if ($event.detail.name === @js($name)) { cts = Math.round(parseFloat($event.detail.value || 0) * 100) || 0; document.getElementById(@js($id)).value = fmt(); }">
     <label for="{{ $id }}" class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-{{ $iconColor }}-600 dark:group-hover:text-{{ $iconColor }}-400 transition-colors duration-200">
         <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br {{ $iconColorClass }} rounded-lg mr-3 shadow-sm transition-transform duration-150">
             <i class="{{ $icon }}"></i>

@@ -261,6 +261,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/kit/create', CreateKit::class)->name('products.kit.create');
     Route::get('/products/kit/{kit}/edit', EditKit::class)->name('products.kit.edit');
     Route::get('/products/upload', UploadProducts::class)->name('products.upload');
+    Route::get('/products/importar-planilha', \App\Livewire\Products\ImportSheet::class)->name('products.import-sheet');
+    Route::get('/products/importar-planilha/modelo.csv', fn () => \App\Livewire\Products\ImportSheet::templateResponse())->name('products.import-sheet.template');
     Route::get('/products/bulk-edit', BulkEditProducts::class)->name('products.bulk-edit');
     Route::get('/products/barcode-scanner', BarcodeScanner::class)->name('products.barcode-scanner');
     Route::get('/products/variation-stock', \App\Livewire\Products\VariationStockFix::class)->name('products.variation-stock');
@@ -400,6 +402,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/connections', 'settings.connections')->name('settings.connections');
     Volt::route('settings/pagamentos', 'settings.payments')->name('settings.payments');
     Volt::route('settings/whatsapp', 'settings.whatsapp')->name('settings.whatsapp');
+    Volt::route('settings/produtos', 'settings.products')->name('settings.products');
     Volt::route('settings/bancos-conectados', 'settings.bank-connections')->name('settings.bank-connections');
 
     // --- Outras Rotas ---

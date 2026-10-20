@@ -96,6 +96,10 @@
                         <div class="vx-act">
                             <a href="{{ route('products.edit', $vp) }}" title="Editar"><i class="bi bi-pencil-square"></i><span>Editar</span></a>
                             @unless($isVariant)
+                            <button type="button" title="Trocar o nome da variação"
+                                x-on:click="const v = prompt('Nome da variação (ex.: 30 cm, Preto)', @js((string) $vp->variation_value)); if (v !== null && v.trim() !== '') $wire.renameVariation({{ $vp->id }}, v)"><i class="bi bi-tag"></i><span>Nome</span></button>
+                            @endunless
+                            @unless($isVariant)
                             <button type="button" wire:click="detachVariation({{ $vp->id }})" wire:confirm="Tirar esta variação do grupo? Ela continua cadastrada como produto separado." class="is-danger" title="Tirar do grupo"><i class="bi bi-x-lg"></i><span>Tirar</span></button>
                             @endunless
                         </div>
@@ -103,6 +107,67 @@
                     </div>
                 @endforeach
             </div>
+
+            {{-- Gerar variações de uma vez: tamanhos (e cores) da mesma peça --}}
+            @unless($isVariant)
+            @php $gridPreview = $this->gridPreviewList(); @endphp
+            <div class="vx-gen" id="gerar-variacoes">
+                <div class="vx-sug-h">
+                    <div class="min-w-0">
+                        <p class="vx-sug-t"><i class="bi bi-grid-3x3-gap"></i> Gerar variações</p>
+                        <p class="vx-sug-s">Escreva os tamanhos (e as cores, se tiver) separados por vírgula. Cada combinação vira uma variação com a descrição, a ficha e a embalagem deste produto.</p>
+                    </div>
+                </div>
+                <div class="vx-gen-grid">
+                    <div>
+                        <label class="ep-label" for="grid-values"><span>Tamanhos ou modelos</span></label>
+                        <input id="grid-values" type="text" wire:model.live.debounce.400ms="gridValues" class="ep-input {{ $errors->has('gridValues') ? 'is-err' : '' }}" placeholder="Ex: 30 cm, 40 cm, 50 cm">
+                        @error('gridValues')<p class="ep-err">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
+                        <label class="ep-label" for="grid-colors"><span>Cores (opcional)</span></label>
+                        <input id="grid-colors" type="text" wire:model.live.debounce.400ms="gridColors" class="ep-input" placeholder="Ex: Preto, Branco, Ouro velho">
+                    </div>
+                    <div>
+                        <label class="ep-label" for="grid-attr"><span>Nome da variação</span></label>
+                        <input id="grid-attr" type="text" list="grid-attr-list" wire:model.blur="gridAttribute" class="ep-input" maxlength="40" placeholder="{{ trim($gridColors) !== '' && trim($gridValues) !== '' ? 'Tamanho e cor' : 'Tamanho' }}">
+                        <datalist id="grid-attr-list"><option value="Tamanho"><option value="Cor"><option value="Tamanho e cor"><option value="Modelo"><option value="Vagas"><option value="Acabamento"></datalist>
+                    </div>
+                    @if(!$variants->count())
+                    <div>
+                        <label class="ep-label" for="grid-self"><span>Este produto é o</span></label>
+                        <input id="grid-self" type="text" wire:model.blur="gridSelfValue" class="ep-input" maxlength="120" placeholder="Ex: 20 cm (opcional)">
+                    </div>
+                    @endif
+                    <div>
+                        <label class="ep-label" for="grid-price"><span>Custo de cada</span></label>
+                        <input id="grid-price" type="text" inputmode="decimal" wire:model.blur="gridPrice" class="ep-input" placeholder="{{ number_format((float) $product->price, 2, ',', '.') }}">
+                    </div>
+                    <div>
+                        <label class="ep-label" for="grid-sale"><span>Venda de cada</span></label>
+                        <input id="grid-sale" type="text" inputmode="decimal" wire:model.blur="gridPriceSale" class="ep-input" placeholder="{{ number_format((float) $product->price_sale, 2, ',', '.') }}">
+                    </div>
+                    <div>
+                        <label class="ep-label" for="grid-stock"><span>Estoque de cada</span></label>
+                        <input id="grid-stock" type="number" min="0" wire:model.blur="gridStock" class="ep-input">
+                    </div>
+                </div>
+                @if(count($gridPreview))
+                    <div class="vx-gen-chips">
+                        @foreach(array_slice($gridPreview, 0, 40) as $gv)
+                            <span>{{ $gv }}</span>
+                        @endforeach
+                        @if(count($gridPreview) > 40)<span class="is-more">+{{ count($gridPreview) - 40 }}</span>@endif
+                    </div>
+                @endif
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" wire:click="generateVariations" wire:loading.attr="disabled" wire:target="generateVariations" class="vx-btn is-primary" @disabled(!count($gridPreview)) data-testid="grid-generate">
+                        <i class="bi bi-magic"></i>{{ count($gridPreview) ? 'Criar ' . count($gridPreview) . (count($gridPreview) === 1 ? ' variação' : ' variações') : 'Criar variações' }}
+                    </button>
+                    <span class="vx-sug-s">Preço e estoque vazios: usa os deste produto e 0.</span>
+                </div>
+            </div>
+            @endunless
 
             {{-- Sugestões: primeiro os de mesmo código, depois os de mesmo nome --}}
             @unless($isVariant)
@@ -215,6 +280,14 @@
         .vx-sale { color: rgb(4 120 87); background: rgb(209 250 229); }
         .dark .vx-cost { color: rgb(253 186 116); background: rgb(124 45 18 / .35); }
         .dark .vx-sale { color: rgb(110 231 183); background: rgb(6 78 59 / .4); }
+        .vx-gen { display: grid; gap: .85rem; padding: .9rem; border-radius: 1.1rem; border: 1px dashed rgba(139,92,246,.4); background: rgba(139,92,246,.04); }
+        .vx-gen-grid { display: grid; gap: .7rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+        .vx-gen-grid > div:nth-child(-n+2) { grid-column: span 2; }
+        @media (max-width: 640px) { .vx-gen-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .vx-gen-grid > div:nth-child(-n+2) { grid-column: 1 / -1; } }
+        .vx-gen-chips { display: flex; flex-wrap: wrap; gap: .35rem; }
+        .vx-gen-chips span { padding: .2rem .6rem; border-radius: 999px; font-size: .74rem; font-weight: 700; color: #6d28d9; background: rgba(139,92,246,.12); }
+        .dark .vx-gen-chips span { color: #ddd6fe; }
+        .vx-gen-chips .is-more { color: #475569; background: rgba(148,163,184,.18); }
         .vx-act { display: flex; border-top: 1px solid rgb(241 245 249); }
         .dark .vx-act { border-top-color: rgb(30 41 59); }
         .vx-act > * { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 4px; font-size: 11.5px; font-weight: 700; color: rgb(71 85 105); transition: background .15s, color .15s; }

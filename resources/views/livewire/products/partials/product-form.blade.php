@@ -26,7 +26,7 @@
                     <div>
                         <label for="name" class="ep-label"><span>Nome <span class="req">*</span></span></label>
                         <div class="relative" x-data="{ copied: false }">
-                            <input type="text" wire:model.blur="name" id="name" class="ep-input pr-11 {{ $errors->has('name') ? 'is-err' : '' }}" placeholder="Ex: Batom matte vermelho">
+                            <input type="text" wire:model.blur="name" id="name" class="ep-input pr-11 {{ $errors->has('name') ? 'is-err' : '' }}" placeholder="Ex: Suporte para vaso redondo 30 cm">
                             <button type="button" title="Copiar nome"
                                 @click="navigator.clipboard.writeText(document.getElementById('name').value).then(() => { copied = true; setTimeout(() => copied = false, 1600) })"
                                 class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:bg-indigo-500/10">
@@ -37,7 +37,7 @@
                     </div>
                     <div>
                         <label for="product_code" class="ep-label"><span>Código <span class="req">*</span></span></label>
-                        <input type="text" wire:model.blur="product_code" id="product_code" class="ep-input {{ $errors->has('product_code') ? 'is-err' : '' }}" placeholder="Ex: 1234.567">
+                        <input type="text" wire:model.blur="product_code" id="product_code" class="ep-input {{ $errors->has('product_code') ? 'is-err' : '' }}" placeholder="Ex: 1234 ou SV-30">
                         @error('product_code')<p class="ep-err">{{ $message }}</p>@enderror
                     </div>
                     <div>
@@ -82,7 +82,7 @@
                         <span class="ep-dup-ico"><i class="bi bi-upc-scan"></i></span>
                         <div class="min-w-0">
                             <b>Já {{ $sameCodeProducts->count() === 1 ? 'tem 1 produto' : 'tem ' . $sameCodeProducts->count() . ' produtos' }} com esse código ou nome</b>
-                            <p>Ao criar: se o custo e a venda forem iguais aos de um deles, a quantidade soma no estoque dele. Preço diferente vira uma variação nova do grupo.</p>
+                            <p>@if(\App\Services\Products\ProductPreferences::costChangeUpdates(auth()->id()))Ao criar: a quantidade soma no estoque do mesmo produto, e o custo e a venda dele passam a ser os novos.@else Ao criar: se o custo e a venda forem iguais aos de um deles, a quantidade soma no estoque dele. Preço diferente vira uma variação nova do grupo.@endif</p>
                         </div>
                     </div>
                     <div class="ep-dup-list">
@@ -133,6 +133,91 @@
                 </div>
             </section>
 
+            {{-- Embalagem, frete e encomenda (móveis e peças grandes) --}}
+            <section class="ep-card" id="ep-embalagem">
+                <div class="ep-card-h">
+                    <span class="ep-ico amber"><i class="bi bi-box-seam"></i></span>
+                    <div><h3>Embalagem e prazo</h3><p>Peso e medidas da caixa para o frete, e se a peça é feita sob encomenda</p></div>
+                </div>
+                <div class="ep-card-b space-y-4">
+                    <div class="ep-row c4">
+                        <div>
+                            <label for="weight_kg" class="ep-label"><span>Peso (kg)</span></label>
+                            <input type="text" inputmode="decimal" wire:model.blur="weight_kg" id="weight_kg" class="ep-input {{ $errors->has('weight_kg') ? 'is-err' : '' }}" placeholder="Ex: 2,5">
+                            @error('weight_kg')<p class="ep-err">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="length_cm" class="ep-label"><span>Comprimento (cm)</span></label>
+                            <input type="text" inputmode="decimal" wire:model.blur="length_cm" id="length_cm" class="ep-input {{ $errors->has('length_cm') ? 'is-err' : '' }}" placeholder="Ex: 40">
+                            @error('length_cm')<p class="ep-err">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="width_cm" class="ep-label"><span>Largura (cm)</span></label>
+                            <input type="text" inputmode="decimal" wire:model.blur="width_cm" id="width_cm" class="ep-input {{ $errors->has('width_cm') ? 'is-err' : '' }}" placeholder="Ex: 40">
+                            @error('width_cm')<p class="ep-err">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="height_cm" class="ep-label"><span>Altura (cm)</span></label>
+                            <input type="text" inputmode="decimal" wire:model.blur="height_cm" id="height_cm" class="ep-input {{ $errors->has('height_cm') ? 'is-err' : '' }}" placeholder="Ex: 12">
+                            @error('height_cm')<p class="ep-err">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                    <p class="ep-hint -mt-2"><i class="bi bi-info-circle"></i>Medidas da caixa já embalada. O Mercado Livre e a Shopee usam para calcular o frete.</p>
+
+                    <div class="ep-mto {{ $made_to_order ? 'on' : '' }}">
+                        <label class="ep-mto-row">
+                            <input type="checkbox" wire:model.live="made_to_order" class="w-4 h-4 accent-indigo-600">
+                            <span class="min-w-0 flex-1">
+                                <b>Sob encomenda</b>
+                                <small>A peça é feita depois da venda: aparece no catálogo e entra na venda mesmo sem estoque.</small>
+                            </span>
+                        </label>
+                        @if($made_to_order)
+                            <div class="ep-mto-days">
+                                <label for="production_days" class="ep-label"><span>Fica pronta em (dias)</span></label>
+                                <input type="number" min="0" max="365" wire:model.blur="production_days" id="production_days" class="ep-input {{ $errors->has('production_days') ? 'is-err' : '' }}" placeholder="Ex: 7">
+                                @error('production_days')<p class="ep-err">{{ $message }}</p>@enderror
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </section>
+
+            {{-- Ficha de custo: materiais e horas que somam o custo da peça --}}
+            @php $epCostTotal = $this->costItemsTotal; @endphp
+            <section class="ep-card" id="ep-ficha-custo">
+                <div class="ep-card-h">
+                    <span class="ep-ico orange"><i class="bi bi-calculator"></i></span>
+                    <div class="flex-1 min-w-0"><h3>Ficha de custo</h3><p>Opcional. Materiais e mão de obra da peça; a soma vira o custo</p></div>
+                    @if($epCostTotal > 0)
+                        <span class="ep-pill good shrink-0">R$ {{ number_format($epCostTotal, 2, ',', '.') }}</span>
+                    @endif
+                </div>
+                <div class="ep-card-b">
+                    @if(count($cost_items))
+                        <div class="ep-cost-head"><span>Item</span><span>Qtd.</span><span>Valor (R$)</span><span></span></div>
+                    @endif
+                    @forelse($cost_items as $i => $ci)
+                        <div class="ep-cost" wire:key="cost-{{ $i }}">
+                            <input type="text" wire:model.blur="cost_items.{{ $i }}.n" class="ep-input" placeholder="Ex: Tubo de ferro 20 mm" maxlength="80" aria-label="Item">
+                            <input type="text" inputmode="decimal" wire:model.blur="cost_items.{{ $i }}.q" class="ep-input" placeholder="1" aria-label="Quantidade">
+                            <input type="text" inputmode="decimal" wire:model.blur="cost_items.{{ $i }}.v" class="ep-input" placeholder="0,00" aria-label="Valor de cada">
+                            <button type="button" wire:click="removeCostItem({{ $i }})" class="ep-x" title="Tirar"><i class="bi bi-trash3"></i></button>
+                        </div>
+                    @empty
+                        <p class="ep-hint"><i class="bi bi-info-circle"></i>Ex.: madeira, tubo de ferro, tinta, rodízios, parafusos, horas de CNC e de solda.</p>
+                    @endforelse
+                    <div class="flex flex-wrap items-center gap-2 mt-3">
+                        <button type="button" wire:click="addCostItem" class="ep-btn ep-btn-soft" style="padding:.45rem .8rem;font-size:.8rem"><i class="bi bi-plus-lg"></i>Adicionar item</button>
+                        @if($epCostTotal > 0)
+                            <button type="button" wire:click="applyCostItemsTotal" class="ep-btn ep-btn-primary" style="padding:.45rem .8rem;font-size:.8rem" data-testid="apply-cost">
+                                <i class="bi bi-arrow-up-circle"></i>Usar R$ {{ number_format($epCostTotal, 2, ',', '.') }} como custo
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            </section>
+
             {{-- Descrição e ficha técnica --}}
             <section class="ep-card">
                 <div class="ep-card-h">
@@ -168,7 +253,7 @@
                     <div class="ep-row fit pt-1">
                         <div>
                             <label for="brand" class="ep-label"><span>Marca</span></label>
-                            <input type="text" wire:model.blur="brand" id="brand" class="ep-input" maxlength="100" placeholder="Ex: Natura">
+                            <input type="text" wire:model.blur="brand" id="brand" class="ep-input" maxlength="100" placeholder="Ex: nome da marca">
                         </div>
                         <div>
                             <label for="model" class="ep-label"><span>Modelo</span></label>

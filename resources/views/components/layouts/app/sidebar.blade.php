@@ -329,7 +329,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                             </svg>
                                         </button>
-                                        <button onclick="event.preventDefault(); event.stopPropagation(); window.location.href='{{ route('products.upload') }}'" class="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-500/10 hover:bg-blue-500 hover:text-white text-blue-600 dark:text-blue-400 transition-all duration-200" title="Upload Produtos">
+                                        <button onclick="event.preventDefault(); event.stopPropagation(); window.location.href='{{ \App\Services\Products\ProductPreferences::showPdfUpload(auth()->user()) ? route('products.upload') : route('products.import-sheet') }}'" class="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-500/10 hover:bg-blue-500 hover:text-white text-blue-600 dark:text-blue-400 transition-all duration-200" title="Upload Produtos">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                             </svg>
@@ -1288,11 +1288,11 @@
                                 </div>
                                 <span>Kit</span>
                             </a>
-                            <a href="{{ route('products.upload') }}" class="fab-area-action fab-area-action-upload" wire:navigate.hover onclick="closeFabSheet()">
+                            <a href="{{ \App\Services\Products\ProductPreferences::showPdfUpload(auth()->user()) ? route('products.upload') : route('products.import-sheet') }}" class="fab-area-action fab-area-action-upload" wire:navigate.hover onclick="closeFabSheet()">
                                 <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                                 </div>
-                                <span>Upload CSV</span>
+                                <span>{{ \App\Services\Products\ProductPreferences::showPdfUpload(auth()->user()) ? 'Importar PDF' : 'Planilha' }}</span>
                             </a>
                         </div>
                     </div>

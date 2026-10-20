@@ -31,6 +31,7 @@
         ['subscription.plans', 'Trocar plano', 'bi-stars'],
         ['access.center', 'Acesso e permissões', 'bi-person-lock'],
         ['settings.connections', 'Conexões', 'bi-link-45deg'],
+        ['settings.products', 'Produtos', 'bi-box-seam'],
         ['settings.payments', 'Pagamentos online', 'bi-qr-code'],
         ['settings.whatsapp', 'WhatsApp', 'bi-whatsapp'],
         ['settings.bank-connections', 'Bancos conectados', 'bi-bank'],

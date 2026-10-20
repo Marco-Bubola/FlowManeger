@@ -15,6 +15,21 @@
         .ep-ico.green { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 6px 16px rgba(16,185,129,.25); }
         .ep-ico.teal { background: linear-gradient(135deg, #14b8a6, #0ea5e9); box-shadow: 0 6px 16px rgba(14,165,233,.22); }
         .ep-ico.pink { background: linear-gradient(135deg, #ec4899, #a855f7); }
+        .ep-ico.amber { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 6px 16px rgba(245,158,11,.25); }
+        .ep-ico.orange { background: linear-gradient(135deg, #fb923c, #ea580c); box-shadow: 0 6px 16px rgba(234,88,12,.22); }
+        .ep-mto { border-radius: 1rem; padding: .75rem .85rem; border: 1px solid rgba(148,163,184,.35); background: rgba(248,250,252,.7); display: grid; gap: .75rem; }
+        .dark .ep-mto { background: rgba(30,41,59,.5); border-color: rgba(71,85,105,.6); }
+        .ep-mto.on { border-color: rgba(99,102,241,.45); background: rgba(99,102,241,.06); }
+        .ep-mto-row { display: flex; gap: .65rem; align-items: flex-start; cursor: pointer; }
+        .ep-mto-row input { margin-top: .2rem; flex-shrink: 0; }
+        .ep-mto-row b { display: block; font-size: .9rem; color: #0f172a; }
+        .dark .ep-mto-row b { color: #f1f5f9; }
+        .ep-mto-row small { display: block; font-size: .74rem; color: #64748b; line-height: 1.35; }
+        .ep-mto-days { max-width: 14rem; }
+        .ep-cost, .ep-cost-head { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 1fr) minmax(0, 1.4fr) 2.1rem; gap: .4rem; align-items: center; }
+        .ep-cost + .ep-cost { margin-top: .4rem; }
+        .ep-cost .ep-input { padding: .5rem .7rem; font-size: .86rem; }
+        .ep-cost-head { margin-bottom: .3rem; font-size: .64rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #64748b; }
         .ep-ico.ml { background: #ffe600; color: #2d3277; box-shadow: 0 6px 16px rgba(234,179,8,.25); }
         .ep-label { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .35rem; font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #64748b; }
         .ep-label .req { color: #f43f5e; }

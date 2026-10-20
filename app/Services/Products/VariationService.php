@@ -172,6 +172,27 @@ class VariationService
         // (todas as cores com o mesmo código) precisa do nome para saber qual é.
         $codeIsUnique = $code !== '' && $members->filter($sameCode)->count() === 1;
 
+        // Conta que atualiza o custo (móveis: madeira e ferro mudam de preço):
+        // o mesmo item com outro custo ganha o estoque e passa a ter o custo novo,
+        // em vez de virar a variação "R$ xx". A Boticário continua no padrão.
+        if (ProductPreferences::costChangeUpdates($userId)) {
+            $item = $members->first(fn ($p) => $sameCode($p) && $sameName($p))
+                ?? ($codeIsUnique ? $members->first($sameCode) : null)
+                ?? $members->first(fn ($p) => $sameName($p) && ($code === '' || !$members->contains($sameCode) || $sameCode($p)));
+            if ($item && !$samePrice($item)) {
+                $changes = array_filter([
+                    'price' => $price > 0 ? $price : null,
+                    'price_sale' => $priceSale > 0 ? $priceSale : null,
+                ], fn ($v) => $v !== null);
+                if ($stock > 0) {
+                    $changes['stock_quantity'] = (int) $item->stock_quantity + $stock;
+                }
+                $item->update($changes);
+
+                return ['action' => 'stock', 'product' => $item->fresh(), 'cost_updated' => true];
+            }
+        }
+
         $match = $family->first(fn ($p) => $sameCode($p) && $sameName($p))
             ?? ($codeIsUnique ? $family->first($sameCode) : null)
             ?? $family->first(fn ($p) => $sameName($p) && ($code === '' || !$members->contains($sameCode) || $sameCode($p)));

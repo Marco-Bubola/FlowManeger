@@ -36,7 +36,11 @@
             alt="{{ $product->name }}">
 
         {{-- Cada card mostra só o próprio estoque (o principal não soma as variações) --}}
-        @if ($product->stock_quantity == 0 && $product->tipo !== 'kit')
+        @if ($product->made_to_order && $product->stock_quantity == 0)
+            <div class="out-of-stock" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+                <i class="bi bi-hammer"></i> Sob encomenda
+            </div>
+        @elseif ($product->stock_quantity == 0 && $product->tipo !== 'kit')
             <div class="out-of-stock">
                 <i class="bi bi-x-circle"></i> Fora de Estoque
             </div>

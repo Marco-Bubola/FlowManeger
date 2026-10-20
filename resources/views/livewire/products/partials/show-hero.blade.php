@@ -29,6 +29,8 @@
             @endforeach
             @if ($promo)
                 <span class="sph-flag is-promo"><i class="bi bi-fire"></i>-{{ $promo->discount_percent }}%</span>
+            @elseif ($v->made_to_order)
+                <span class="sph-flag is-promo" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"><i class="bi bi-hammer"></i>{{ $v->madeToOrderLabel() }}</span>
             @elseif ($stock <= 0)
                 <span class="sph-flag is-out"><i class="bi bi-x-circle"></i>Sem estoque</span>
             @endif
