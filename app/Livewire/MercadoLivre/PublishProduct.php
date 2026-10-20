@@ -106,7 +106,7 @@ class PublishProduct extends Component
             }
             $this->product = $product->load('category');
             $this->productCondition = $product->condition ?? 'new';
-            $this->publishQuantity = max(1, (int)($product->stock_quantity ?? 1));
+            $this->publishQuantity = max(1, $product->made_to_order ? max((int) $product->stock_quantity, Product::MADE_TO_ORDER_ML_QUANTITY) : (int) ($product->stock_quantity ?? 1));
             
             // Pré-preencher descrição com a do produto (catálogo sobrescreverá se selecionado)
             if (!empty($product->description)) {
@@ -123,7 +123,7 @@ class PublishProduct extends Component
                 'product_code' => $product->product_code,
                 'barcode' => $product->barcode ?? '',
                 'price_sale' => (float)($product->price_sale ?? $product->price),
-                'stock_quantity' => (int)$product->stock_quantity,
+                'stock_quantity' => $product->made_to_order ? max((int) $product->stock_quantity, Product::MADE_TO_ORDER_ML_QUANTITY) : (int) $product->stock_quantity,
                 'image_url' => $product->image_url,
                 'quantity' => 1,
                 'unit_cost' => (float)($product->price_sale ?? $product->price),
@@ -199,7 +199,7 @@ class PublishProduct extends Component
     {
         return $this->productQuery()
             ->with('category')
-            ->where('stock_quantity', '>', 0)
+            ->where(fn ($q) => $q->where('stock_quantity', '>', 0)->orWhere('made_to_order', true))
             ->orderBy('name')
             ->get()
             ->filter(fn($p) => $p->isReadyForMercadoLivre()['ready'])
@@ -268,7 +268,7 @@ class PublishProduct extends Component
                 'product_code' => $product->product_code,
                 'barcode' => $product->barcode ?? '',
                 'price_sale' => (float)($product->price_sale ?? $product->price),
-                'stock_quantity' => (int)$product->stock_quantity,
+                'stock_quantity' => $product->made_to_order ? max((int) $product->stock_quantity, Product::MADE_TO_ORDER_ML_QUANTITY) : (int) $product->stock_quantity,
                 'image_url' => $product->image_url,
                 'quantity' => 1,
                 'unit_cost' => (float)($product->price_sale ?? $product->price),
@@ -756,7 +756,7 @@ class PublishProduct extends Component
             'name' => $product->name,
             'product_code' => $product->product_code,
             'price_sale' => (float)($product->price_sale ?? $product->price),
-            'stock_quantity' => (int)$product->stock_quantity,
+            'stock_quantity' => $product->made_to_order ? max((int) $product->stock_quantity, Product::MADE_TO_ORDER_ML_QUANTITY) : (int) $product->stock_quantity,
             'image_url' => $product->image_url,
             'quantity' => 1,
             'unit_cost' => (float)($product->price_sale ?? $product->price),
@@ -1086,11 +1086,13 @@ class PublishProduct extends Component
 
             $colorIds = $this->selectedExtraColorIds();
             if (!empty($colorIds)) {
-                $publishData['attributes'] = $this->withColor($publishData['attributes'] ?? [], $mainProduct);
+                $publishData['attributes'] = $this->withVariation($publishData['attributes'] ?? [], $mainProduct);
                 // Com várias cores o nome não pode citar uma cor só (ex.: "Vermelho"):
                 // todas usam o nome da família, que é o que o ML agrupa.
+                // Tamanho/vagas/modelo não têm atributo de cor: o valor vai no título.
                 $title = $this->familyTitle();
                 $publishData['family_name'] = $title;
+                $title = $this->variantTitle($title, $mainProduct);
             }
 
             $main = $this->createPublication($mainProduct, $this->selectedProducts, $publishData, $title, $description, $price);
@@ -1109,13 +1111,16 @@ class PublishProduct extends Component
                 }
                 $data = $publishData;
                 unset($data['catalog_product_id']);
-                $data['attributes'] = $this->withColor(
-                    array_filter($data['attributes'] ?? [], function ($a, $k) {
+                $variationAttrs = array_keys($this->variationMlValues($color));
+                $data['attributes'] = $this->withVariation(
+                    array_filter($data['attributes'] ?? [], function ($a, $k) use ($variationAttrs) {
                         $id = is_array($a) ? ($a['id'] ?? $k) : $k;
-                        return !in_array($id, ['GTIN', 'EMPTY_GTIN_REASON', 'COLOR', 'MODEL', 'SELLER_SKU'], true);
+                        return !in_array($id, array_merge(['GTIN', 'EMPTY_GTIN_REASON', 'MODEL', 'SELLER_SKU'], $variationAttrs), true);
                     }, ARRAY_FILTER_USE_BOTH),
                     $color
                 );
+                // Cada tamanho pode ter embalagem própria (peça de 50 cm pesa mais que a de 30 cm).
+                $data['attributes'] = $this->mergeAttributes($data['attributes'], $this->packageAttributesOf($color));
                 $colorPics = array_slice($color->load('images')->all_images, 0, 10);
                 $data['pictures'] = $colorPics
                     ? array_map(fn ($u) => ['source' => $u], $colorPics)
@@ -1129,7 +1134,7 @@ class PublishProduct extends Component
                     'quantity' => 1,
                     'unit_cost' => (float) ($color->price_sale ?? $color->price),
                 ]];
-                $res = $this->createPublication($color, $row, $data, $title, $description, $price);
+                $res = $this->createPublication($color, $row, $data, $this->variantTitle($this->familyTitle(), $color), $description, $price);
                 if (!$res['success']) {
                     $failed[] = ($color->variation_value ?: $color->name) . ': ' . ($res['error'] ?? 'erro');
                 }
@@ -1249,23 +1254,131 @@ class PublishProduct extends Component
         return ['success' => true, 'ml_item_id' => $mlItemId];
     }
 
-    /** Coloca (ou troca) o atributo COLOR pela cor da variação do produto. */
-    protected function withColor(array $attributes, Product $product): array
+    /**
+     * Atributo do ML que recebe o valor da variação: COLOR quando a família varia
+     * por cor; para Tamanho, Diâmetro, Material… o atributo da categoria com o
+     * mesmo nome (ou SIZE), quando a categoria tem. Null = só vai no título.
+     */
+    public function variationMlAttribute(Product $product): ?string
     {
-        $color = trim((string) ($product->variation_value ?? ''));
-        if ($color === '') {
+        $root = $product->parent ?? $product;
+        $label = $this->normalizeLabel((string) ($product->variation_attribute ?: $root->variation_attribute ?: 'Variação'));
+
+        if (in_array($label, ['cor', 'cores', 'color', 'colour', 'variacao', 'variacoes', ''], true)) {
+            // "Variação" sem nome era o padrão antigo (Boticário): sempre foi cor.
+            return 'COLOR';
+        }
+
+        $ids = array_column($this->mlAllAttributes, 'id');
+        foreach ($this->mlAllAttributes as $a) {
+            if ($this->normalizeLabel((string) ($a['name'] ?? '')) === $label) {
+                return $a['id'];
+            }
+        }
+        $aliases = [
+            'tamanho' => 'SIZE', 'medida' => 'SIZE', 'medidas' => 'SIZE',
+            'diametro' => 'DIAMETER', 'altura' => 'HEIGHT', 'largura' => 'WIDTH',
+            'comprimento' => 'LENGTH', 'material' => 'MATERIAL', 'voltagem' => 'VOLTAGE',
+            'acabamento' => 'FINISH',
+        ];
+        $guess = $aliases[$label] ?? null;
+
+        return $guess && in_array($guess, $ids, true) ? $guess : null;
+    }
+
+    /**
+     * Atributos do ML preenchidos pela variação. "Tamanho e cor" com valor
+     * "30 cm · Preto" vira SIZE = 30 cm (se a categoria tiver) e COLOR = Preto.
+     *
+     * @return array<string, string>
+     */
+    public function variationMlValues(Product $product): array
+    {
+        $value = trim((string) ($product->variation_value ?? ''));
+        if ($value === '') {
+            return [];
+        }
+        $root = $product->parent ?? $product;
+        $label = $this->normalizeLabel((string) ($product->variation_attribute ?: $root->variation_attribute ?: ''));
+        $parts = array_values(array_filter(array_map('trim', preg_split('/\s+[·|\/]\s+/u', $value) ?: [])));
+
+        if (count($parts) === 2 && str_contains($label, 'cor')) {
+            $ids = array_column($this->mlAllAttributes, 'id');
+            return array_filter([
+                'SIZE' => in_array('SIZE', $ids, true) ? $parts[0] : null,
+                'COLOR' => $parts[1],
+            ]);
+        }
+
+        $attrId = $this->variationMlAttribute($product);
+
+        return $attrId ? [$attrId => $value] : [];
+    }
+
+    /** Coloca (ou troca) os atributos da variação (cor, tamanho…) pelos valores do produto. */
+    protected function withVariation(array $attributes, Product $product): array
+    {
+        $values = $this->variationMlValues($product);
+        if (!$values) {
             return $attributes;
         }
         $out = [];
         foreach ($attributes as $k => $a) {
             $id = is_array($a) ? ($a['id'] ?? $k) : $k;
-            if ($id === 'COLOR') {
+            if (isset($values[$id])) {
                 continue;
             }
             $out[] = is_array($a) ? $a : ['id' => $k, 'value_name' => (string) $a];
         }
-        $out[] = ['id' => 'COLOR', 'value_name' => $color];
+        foreach ($values as $id => $v) {
+            $out[] = ['id' => $id, 'value_name' => $v];
+        }
         return $out;
+    }
+
+    /** Nome do anúncio de uma variação: só a cor fica fora do título; tamanho/modelo vão nele. */
+    protected function variantTitle(string $family, Product $product): string
+    {
+        $value = trim((string) ($product->variation_value ?? ''));
+        if ($value === '' || array_keys($this->variationMlValues($product)) === ['COLOR'] || mb_stripos($family, $value) !== false) {
+            return $family;
+        }
+        $suffix = ' ' . $value;
+        return rtrim(mb_substr($family, 0, 60 - mb_strlen($suffix))) . $suffix;
+    }
+
+    /** Peso e medidas da embalagem do próprio produto (vazio quando não cadastrou). */
+    protected function packageAttributesOf(Product $product): array
+    {
+        $out = [];
+        foreach (['height_cm' => 'SELLER_PACKAGE_HEIGHT', 'width_cm' => 'SELLER_PACKAGE_WIDTH', 'length_cm' => 'SELLER_PACKAGE_LENGTH'] as $col => $id) {
+            if ((float) $product->{$col} > 0) {
+                $out[] = ['id' => $id, 'value_name' => rtrim(rtrim(number_format((float) $product->{$col}, 2, '.', ''), '0'), '.') . ' cm'];
+            }
+        }
+        if ((int) $product->weight_grams > 0) {
+            $out[] = ['id' => 'SELLER_PACKAGE_WEIGHT', 'value_name' => (int) $product->weight_grams . ' g'];
+        }
+        return $out;
+    }
+
+    protected function normalizeLabel(string $text): string
+    {
+        return trim(mb_strtolower(\Illuminate\Support\Str::ascii($text)));
+    }
+
+    /** Nome do tipo de variação da família, para os textos da tela ("cores", "tamanhos"). */
+    public function familyKindLabel(): string
+    {
+        $main = !empty($this->selectedProducts) ? Product::find($this->selectedProducts[0]['id']) : null;
+        $root = $main?->parent ?? $main;
+        $label = trim((string) ($root?->variation_attribute ?? ''));
+        $norm = $this->normalizeLabel($label);
+        if ($label === '' || in_array($norm, ['cor', 'cores', 'variacao', 'variacoes'], true)) {
+            return 'cores';
+        }
+        $plural = ['tamanho' => 'tamanhos', 'modelo' => 'modelos', 'medida' => 'medidas', 'material' => 'materiais', 'vagas' => 'opções de vagas', 'voltagem' => 'voltagens', 'acabamento' => 'acabamentos'];
+        return $plural[$norm] ?? 'variações';
     }
 
     /**
@@ -1388,6 +1501,10 @@ class PublishProduct extends Component
         if ($main) {
             if ($this->sellerSku === '') {
                 $this->sellerSku = (string) ($main->product_code ?? '');
+            }
+            // Sob encomenda: o prazo de produção vira o "prazo de fabricação" do ML
+            if ($this->manufacturingDays === '' && $main->made_to_order && (int) $main->production_days > 0) {
+                $this->manufacturingDays = (string) min(45, (int) $main->production_days);
             }
             foreach (['packageWeight' => 'weight_grams', 'packageLength' => 'length_cm', 'packageWidth' => 'width_cm', 'packageHeight' => 'height_cm'] as $prop => $col) {
                 if ($this->{$prop} === '' && !empty($main->{$col}) && (float) $main->{$col} > 0) {

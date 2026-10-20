@@ -45,6 +45,10 @@ class Product extends Model
         'variation_attribute',
         'variation_value',
         'variation_sort',
+        // Móveis e peças feitas à mão
+        'made_to_order',   // sob encomenda: vende sem estoque e fica pronto em production_days
+        'production_days',
+        'cost_items',      // ficha de custo [{n: item, q: quantidade, v: valor unitário}]
     ];
 
     /**
@@ -67,9 +71,15 @@ class Product extends Model
         'parent_id'           => 'integer',
         'is_variation_parent' => 'boolean',
         'variation_sort'      => 'integer',
+        'made_to_order'       => 'boolean',
+        'production_days'     => 'integer',
+        'cost_items'          => 'array',
     ];
 
     protected $appends = ['image_url', 'all_images'];
+
+    /** Unidades que um anúncio sob encomenda mostra no Mercado Livre. */
+    public const MADE_TO_ORDER_ML_QUANTITY = 10;
 
     protected static function booted(): void
     {
@@ -287,6 +297,37 @@ class Product extends Model
      * Portal: de cada família de variações com estoque, fica só a variação mais cara
      * (empate: a de menor id). Produto sem variação passa direto.
      */
+    /** À venda no portal: com estoque, ou feito sob encomenda. */
+    public function scopeAvailableForSale($query)
+    {
+        $t = $this->getTable();
+
+        return $query->where(function ($q) use ($t) {
+            $q->where("{$t}.stock_quantity", '>', 0)->orWhere("{$t}.made_to_order", true);
+        });
+    }
+
+    /** Soma da ficha de custo (quantidade × valor de cada item). */
+    public static function costItemsTotal(?array $items): float
+    {
+        return round(collect($items ?? [])->sum(function ($i) {
+            $q = trim((string) ($i['q'] ?? '')) === '' ? 1.0 : (float) str_replace(',', '.', (string) $i['q']);
+            $v = (float) str_replace(',', '.', (string) ($i['v'] ?? 0));
+            return ($q > 0 ? $q : 0) * ($v > 0 ? $v : 0);
+        }), 2);
+    }
+
+    /** Texto do prazo para o cliente: "Sob encomenda · pronto em 7 dias". */
+    public function madeToOrderLabel(): ?string
+    {
+        if (!$this->made_to_order) {
+            return null;
+        }
+        $d = (int) $this->production_days;
+
+        return 'Sob encomenda' . ($d > 0 ? ' · pronto em ' . $d . ($d === 1 ? ' dia' : ' dias') : '');
+    }
+
     public function scopeTopOfFamily($query)
     {
         $t = $this->getTable();
@@ -296,7 +337,7 @@ class Product extends Model
                 ->whereColumn('fam.user_id', "{$t}.user_id")
                 ->whereRaw("COALESCE(fam.parent_id, fam.id) = COALESCE({$t}.parent_id, {$t}.id)")
                 ->whereColumn('fam.id', '!=', "{$t}.id")
-                ->where('fam.stock_quantity', '>', 0)
+                ->where(fn ($a) => $a->where('fam.stock_quantity', '>', 0)->orWhere('fam.made_to_order', true))
                 ->whereIn('fam.status', ['active', 'ativo'])
                 ->where(function ($w) use ($t) {
                     $w->whereColumn('fam.price_sale', '>', "{$t}.price_sale")
@@ -432,7 +473,7 @@ class Product extends Model
             $errors[] = 'Preço deve ser maior que R$ 0,00';
         }
 
-        if ($this->stock_quantity <= 0) {
+        if ($this->stock_quantity <= 0 && !$this->made_to_order) {
             $errors[] = 'Produto sem estoque';
         }
 
@@ -444,10 +485,8 @@ class Product extends Model
             $errors[] = 'Condição (novo/usado) não informada';
         }
 
-        // ⚠️ OBRIGATÓRIO: Código de barras para ML
-        if (empty($this->barcode)) {
-            $errors[] = 'Código de barras (EAN) obrigatório';
-        }
+        // Código de barras não é obrigatório: sem ele o anúncio vai com
+        // "o produto não tem código cadastrado" (peça feita à mão, móvel...).
 
         if (empty($this->category_id)) {
             $errors[] = 'Categoria não selecionada';

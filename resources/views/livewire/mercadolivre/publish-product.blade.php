@@ -448,7 +448,8 @@
                     <section class="pp-card">
                         <div class="pp-card-h">
                             <div class="pp-ico pink"><i class="bi bi-palette"></i></div>
-                            <div class="flex-1"><h3>Publicar outras cores junto</h3><p>Cada cor vira um anúncio com o nome "{{ $this->familyTitle() }}"; o ML mostra todas na mesma página</p></div>
+                            @php $famKind = $this->familyKindLabel(); @endphp
+                            <div class="flex-1"><h3>Publicar outras {{ $famKind }} junto</h3><p>Cada uma vira um anúncio da família "{{ $this->familyTitle() }}"{{ $famKind === 'cores' ? '' : ' e o '.($famKind === 'tamanhos' ? 'tamanho' : 'nome da variação').' no fim do título' }}; o ML mostra todas na mesma página</p></div>
                         </div>
                         <div class="pp-body space-y-2">
                             @foreach($families as $f)

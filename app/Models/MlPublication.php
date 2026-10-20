@@ -357,7 +357,11 @@ class MlPublication extends Model
     public static function productAvailableStock(Product $product): int
     {
         if (! $product->isKit()) {
-            return $product->availableStock();
+            // Sob encomenda: o anúncio fica sempre com algumas unidades à venda
+            // (a peça é feita depois), em vez de pausar com estoque 0.
+            return $product->made_to_order
+                ? max($product->availableStock(), Product::MADE_TO_ORDER_ML_QUANTITY)
+                : $product->availableStock();
         }
         $min = null;
         foreach (self::kitComponents($product) as [$comp, $per]) {
