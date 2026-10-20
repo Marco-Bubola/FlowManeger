@@ -27,7 +27,7 @@
                 <div class="absolute top-3 left-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow">
                     <i class="bi bi-boxes mr-0.5"></i> KIT
                 </div>
-            @elseif($product->stock_quantity <= 5)
+            @elseif(!$product->made_to_order && $product->stock_quantity <= 5)
                 <div class="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-[10px] font-medium shadow">
                     <i class="bi bi-exclamation-triangle mr-0.5"></i> Baixo
                 </div>

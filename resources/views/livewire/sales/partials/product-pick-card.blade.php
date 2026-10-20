@@ -26,7 +26,7 @@
             alt="{{ $product->name }}"
             class="product-img">
 
-        @if($product->stock_quantity <= 5)
+        @if(!$product->made_to_order && $product->stock_quantity <= 5)
         <div class="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
             <i class="bi bi-exclamation-triangle mr-1"></i>
             Baixo estoque

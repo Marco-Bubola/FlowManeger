@@ -296,7 +296,7 @@ class EditSale extends Component
                     if ($diff > 0) {
                         $product = Product::find($pid);
                         // Kit: vale o estoque dos componentes.
-                        if (!$product || $product->availableStock() < $diff) {
+                        if (!$product || (!$product->made_to_order && $product->availableStock() < $diff)) {
                             $nome = $product?->name ?? "#{$pid}";
                             throw new \Exception("Estoque insuficiente para o produto: {$nome}");
                         }
@@ -412,7 +412,7 @@ class EditSale extends Component
             }
 
             // Caso contrário, somente produtos com estoque positivo
-            return isset($product->stock_quantity) ? ((int)$product->stock_quantity > 0) : true;
+            return isset($product->stock_quantity) ? ((int)$product->stock_quantity > 0 || $product->made_to_order) : true;
         });
 
         // Se showOnlySelected estiver ativo, filtrar apenas produtos selecionados

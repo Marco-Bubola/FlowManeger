@@ -646,8 +646,9 @@
                                 @if($selectedProduct)
                                 @php
                                     $isKit = ($selectedProduct->tipo ?? 'simples') === 'kit';
+                                    $isOrder = (bool) $selectedProduct->made_to_order;
                                     $qty = (int) $productItem['quantity'];
-                                    $atMax = ! $isKit && $qty >= (int) $selectedProduct->stock_quantity;
+                                    $atMax = ! $isKit && ! $isOrder && $qty >= (int) $selectedProduct->stock_quantity;
                                 @endphp
                                 <div class="cs-item flex gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-800/60 p-2.5 sm:p-3 shadow-sm" wire:key="selected-product-{{ $selectedProduct->id }}">
                                     <div class="relative shrink-0">
@@ -665,9 +666,11 @@
                                                 <h4 class="text-sm font-semibold text-slate-800 dark:text-white leading-snug line-clamp-2" title="{{ $selectedProduct->name }}">{{ $selectedProduct->name }}</h4>
                                                 <p class="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-slate-500 dark:text-slate-400">
                                                     <span class="font-mono">#{{ $selectedProduct->product_code }}</span>
-                                                    @unless($isKit)
+                                                    @if($isOrder)
+                                                        <span class="text-indigo-600 dark:text-indigo-300 font-semibold"><i class="bi bi-hammer"></i> {{ $selectedProduct->madeToOrderLabel() }}</span>
+                                                    @elseif(! $isKit)
                                                         <span class="{{ $atMax ? 'text-amber-600 dark:text-amber-400 font-semibold' : '' }}"><i class="bi bi-stack"></i> {{ (int) $selectedProduct->stock_quantity }} em estoque</span>
-                                                    @endunless
+                                                    @endif
                                                 </p>
                                             </div>
                                             <button type="button" wire:click.stop="toggleProduct({{ $selectedProduct->id }})"
@@ -685,7 +688,7 @@
                                                        wire:key="quantity-{{ $selectedProduct->id }}-{{ $qty }}"
                                                        id="quantity-{{ $selectedProduct->id }}"
                                                        wire:change="updateProductQuantity({{ $selectedProduct->id }}, $event.target.value)"
-                                                       value="{{ $qty }}" min="1" @unless($isKit) max="{{ $selectedProduct->stock_quantity }}" @endunless
+                                                       value="{{ $qty }}" min="1" @unless($isKit || $isOrder) max="{{ $selectedProduct->stock_quantity }}" @endunless
                                                        class="cs-qty-input !h-9 !w-10 !border-0 !bg-transparent !p-0 !text-center !text-sm !font-bold text-slate-800 dark:text-white focus:!ring-0" aria-label="Quantidade">
                                                 <button type="button" wire:click="updateProductQuantity({{ $selectedProduct->id }}, {{ $qty + 1 }})" @disabled($atMax)
                                                         class="inline-flex h-9 w-8 items-center justify-center rounded-r-xl text-slate-600 dark:text-slate-300 hover:text-indigo-600 disabled:opacity-30" aria-label="Aumentar"><i class="bi bi-plus-lg"></i></button>

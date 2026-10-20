@@ -524,7 +524,7 @@ class ClientPortalController extends Controller
 
         $products = Product::withoutGlobalScope('team_visibility')
             ->where('user_id', $client->user_id)
-            ->where('stock_quantity', '>', 0)
+            ->availableForSale()
             ->whereIn('status', ['active', 'ativo'])
             ->topOfFamily()
             ->with(['category', 'images', 'activePromotion'])
@@ -570,7 +570,7 @@ class ClientPortalController extends Controller
 
         $query = Product::withoutGlobalScope('team_visibility')
             ->where('user_id', $ownerId)
-            ->where('stock_quantity', '>', 0)
+            ->availableForSale()
             ->whereIn('status', ['active', 'ativo'])
             ->topOfFamily(); // de cada grupo de variações, só a mais cara com estoque
 
@@ -629,15 +629,16 @@ class ClientPortalController extends Controller
         // Tudo que está à venda (com estoque): contagens e conferência do carrinho.
         $inStock = Product::withoutGlobalScope('team_visibility')
             ->where('user_id', $ownerId)
-            ->where('stock_quantity', '>', 0)
+            ->availableForSale()
             ->whereIn('status', ['active', 'ativo'])
-            ->get(['id', 'category_id', 'stock_quantity']);
-        $stockMap = $inStock->pluck('stock_quantity', 'id')->map(fn ($q) => min((int) $q, 10)); // teto: não expõe o estoque real
+            ->get(['id', 'category_id', 'stock_quantity', 'made_to_order']);
+        // teto: não expõe o estoque real; sob encomenda aceita até 10 por pedido
+        $stockMap = $inStock->mapWithKeys(fn ($p) => [$p->id => $p->made_to_order ? 10 : min((int) $p->stock_quantity, 10)]);
         $unitsInStock = (int) $inStock->sum('stock_quantity');
         // Contagem por categoria só do que aparece (uma variação por grupo).
         $countByCategory = Product::withoutGlobalScope('team_visibility')
             ->where('user_id', $ownerId)
-            ->where('stock_quantity', '>', 0)
+            ->availableForSale()
             ->whereIn('status', ['active', 'ativo'])
             ->topOfFamily()
             ->pluck('category_id')
@@ -652,7 +653,7 @@ class ClientPortalController extends Controller
         $focus = $request->integer('produto') > 0
             ? Product::withoutGlobalScope('team_visibility')
                 ->where('user_id', $ownerId)
-                ->where('stock_quantity', '>', 0)
+                ->availableForSale()
                 ->whereIn('status', ['active', 'ativo'])
                 ->with(['category', 'activePromotion', 'images'])
                 ->find($request->integer('produto'))
@@ -727,7 +728,8 @@ class ClientPortalController extends Controller
             'old'     => $promo ? (float) $promo->original_price : null,
             'pct'     => $promo ? (int) $promo->discount_percent : null,
             'ends'    => $endsIn,
-            'stock'   => min((int) $p->stock_quantity, 10), // teto: o cliente não vê o estoque real
+            'stock'   => $p->made_to_order ? 10 : min((int) $p->stock_quantity, 10), // teto: o cliente não vê o estoque real
+            'order'   => $p->madeToOrderLabel(), // "Sob encomenda · pronto em 7 dias"
             'img'     => $imgs[0] ?? null,
             'imgs'    => $imgs,
             'cat'     => $p->category?->name,
@@ -903,7 +905,7 @@ class ClientPortalController extends Controller
 
         $products = Product::withoutGlobalScope('team_visibility')
             ->where('user_id', $client->user_id)
-            ->where('stock_quantity', '>', 0)
+            ->availableForSale()
             ->whereIn('status', ['active', 'ativo'])
             ->with(['category', 'images', 'activePromotion'])
             ->orderBy('name')

@@ -388,7 +388,7 @@
             <div class="ml-sheet" role="dialog" aria-modal="true" :aria-label="p.name"
                  x-transition:enter="ml-anim-in" x-transition:leave="ml-anim-out">
                 <div class="ml-sheet-grip">
-                    <small x-text="p.stock <= 3 ? 'Últimas unidades' : 'Em estoque'"></small>
+                    <small x-text="p.order ? 'Sob encomenda' : (p.stock <= 3 ? 'Últimas unidades' : 'Em estoque')"></small>
                     <div class="ml-sheet-acts">
                         <button type="button" class="ml-sheet-fav" :class="{ on: $store.favs.has(p.id) }" @click="fav(p.id)"
                                 :aria-pressed="$store.favs.has(p.id)" :aria-label="$store.favs.has(p.id) ? 'Tirar dos favoritos' : 'Salvar nos favoritos'" data-testid="sheet-fav">
@@ -433,6 +433,10 @@
                         </template>
                         <div class="ml-ask" x-show="!(p.price > 0)">Preço sob consulta</div>
                         <div class="ml-ends" x-show="p.ends" style="margin-top:6px"><i class="fas fa-clock"></i> <span x-text="p.ends"></span></div>
+                        <div class="ml-perk" x-show="p.order">
+                            <i class="fas fa-clock"></i>
+                            <span><b x-text="p.order"></b><small>Feito depois do pedido. A loja confirma o prazo com você.</small></span>
+                        </div>
 
                         <div class="ml-perk" x-show="p.old">
                             <i class="fas fa-piggy-bank"></i>
@@ -448,7 +452,7 @@
                         </div>
 
                         <div class="ml-qty">
-                            <span class="ml-qty-label">Quantidade<small x-text="p.stock <= 3 ? '(últimas unidades)' : ''"></small></span>
+                            <span class="ml-qty-label">Quantidade<small x-text="!p.order && p.stock <= 3 ? '(últimas unidades)' : ''"></small></span>
                             <div class="ml-step">
                                 <button type="button" @click="qty = Math.max(1, qty - 1)" :disabled="qty <= 1" aria-label="Menos"><i class="fas fa-minus"></i></button>
                                 <span x-text="qty"></span>

@@ -80,7 +80,7 @@ class CreateSale extends Component
                                             $q->where(function($q2) {
                                                 $q2->where('tipo', 'simples')
                                                    ->where('stock_quantity', '>', 0);
-                                            })->orWhere('tipo', 'kit');
+                                            })->orWhere('tipo', 'kit')->orWhere('made_to_order', true);
                                         })
                                         ->with('activePromotion')
                                         ->get();
@@ -283,7 +283,8 @@ class CreateSale extends Component
 
                 // Verifica estoque do próprio produto se for simples
                 if (($product->tipo ?? 'simples') === 'simples') {
-                    if ($exigeEstoque && $product->stock_quantity < $item['quantity']) {
+                    // Sob encomenda: a peça é feita depois da venda, então não exige saldo.
+                    if ($exigeEstoque && !$product->made_to_order && $product->stock_quantity < $item['quantity']) {
                         session()->flash('error', "Estoque insuficiente para o produto: {$product->name}");
                         return;
                     }
@@ -476,6 +477,13 @@ class CreateSale extends Component
             return;
         }
 
+        if ($product->made_to_order) {
+            if ((int) $product->stock_quantity < $quantity) {
+                $this->notifyInfo("{$product->name} é sob encomenda" . ($product->production_days ? " (pronto em {$product->production_days} dias)" : '') . '.');
+            }
+            return;
+        }
+
         if ((int) $product->stock_quantity < $quantity) {
             $this->notifyWarning((int) $product->stock_quantity <= 0
                 ? "{$product->name} está sem estoque."
@@ -525,7 +533,7 @@ class CreateSale extends Component
 
                 $nextQuantity = ((int) ($item['quantity'] ?? 1)) + 1;
 
-                if (($product->tipo ?? 'simples') === 'simples') {
+                if (($product->tipo ?? 'simples') === 'simples' && !$product->made_to_order) {
                     $maxStock = max(1, (int) $product->stock_quantity);
                     if ($nextQuantity > $maxStock) {
                         $this->dispatch(
@@ -641,7 +649,7 @@ class CreateSale extends Component
                 $q->where(function ($q2) {
                     $q2->where('tipo', 'simples')
                         ->where('stock_quantity', '>', 0);
-                })->orWhere('tipo', 'kit');
+                })->orWhere('tipo', 'kit')->orWhere('made_to_order', true);
             });
 
         $exact = (clone $baseQuery)
@@ -732,7 +740,7 @@ class CreateSale extends Component
             ? $this->availableProducts->firstWhere('id', (int) $productId)
             : null;
 
-        if ($selectedProduct && ($selectedProduct->tipo ?? 'simples') === 'simples') {
+        if ($selectedProduct && ($selectedProduct->tipo ?? 'simples') === 'simples' && !$selectedProduct->made_to_order) {
             $max = max(1, (int) $selectedProduct->stock_quantity);
             if ($quantity > $max) {
                 $this->notifyWarning("Só tem {$selectedProduct->stock_quantity} de {$selectedProduct->name} em estoque. A quantidade ficou em {$max}.");

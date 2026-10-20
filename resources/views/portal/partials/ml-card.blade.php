@@ -45,7 +45,9 @@
             <span class="ml-ends"><i class="fas fa-clock"></i> {{ $d['ends'] }}</span>
         @endif
         {{-- O cliente não vê quantas unidades há em estoque. --}}
-        @if($d['stock'] <= 3)
+        @if(!empty($d['order']))
+            <span class="ml-stock"><i class="fas fa-clock"></i> {{ $d['order'] }}</span>
+        @elseif($d['stock'] <= 3)
             <span class="ml-stock low">Últimas unidades!</span>
         @else
             <span class="ml-stock"><i class="fas fa-box"></i> Em estoque</span>

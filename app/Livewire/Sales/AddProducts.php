@@ -284,7 +284,7 @@ class AddProducts extends Component
                     }
                 }
             } else {
-                if ($product->stock_quantity < $qty) {
+                if (!$product->made_to_order && $product->stock_quantity < $qty) {
                     session()->flash('error', "Estoque insuficiente para o produto '{$product->name}'. Necessário: {$qty}, Disponível: {$product->stock_quantity}.");
                     return;
                 }
@@ -387,7 +387,8 @@ class AddProducts extends Component
         // Por isso, não podemos excluir todos os kits pelo filtro de estoque.
         $query->where(function ($q) {
             $q->where('stock_quantity', '>', 0)
-              ->orWhere('tipo', 'kit');
+              ->orWhere('tipo', 'kit')
+              ->orWhere('made_to_order', true);
         });
 
         // Filtro de estoque (modal)
