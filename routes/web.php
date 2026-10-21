@@ -262,6 +262,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/kit/{kit}/edit', EditKit::class)->name('products.kit.edit');
     Route::get('/products/upload', UploadProducts::class)->name('products.upload');
     Route::get('/products/importar-planilha', \App\Livewire\Products\ImportSheet::class)->name('products.import-sheet');
+    Route::get('/products/importar-ficha', \App\Livewire\Products\ImportFicha::class)->name('products.import-ficha');
+    Route::get('/products/importar-ficha/questionario.md', fn () => response()->download(resource_path('views/docs/questionario-produto-stylo.md'), 'questionario-produto-stylo.md', ['Content-Type' => 'text/markdown; charset=UTF-8']))->name('products.import-ficha.questionario');
     Route::get('/products/importar-planilha/modelo.csv', fn () => \App\Livewire\Products\ImportSheet::templateResponse())->name('products.import-sheet.template');
     Route::get('/products/bulk-edit', BulkEditProducts::class)->name('products.bulk-edit');
     Route::get('/products/barcode-scanner', BarcodeScanner::class)->name('products.barcode-scanner');

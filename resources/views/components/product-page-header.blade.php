@@ -17,6 +17,7 @@
         'kit' => ['label' => 'Novo kit', 'icon' => 'bi-boxes', 'url' => route('products.kit.create')],
         'importar' => ['label' => 'Importar PDF', 'icon' => 'bi-cloud-upload', 'url' => route('products.upload')],
         'planilha' => ['label' => 'Importar planilha', 'icon' => 'bi-file-earmark-spreadsheet', 'url' => route('products.import-sheet')],
+        'ficha' => ['label' => 'Importar ficha', 'icon' => 'bi-file-earmark-richtext', 'url' => route('products.import-ficha')],
         'massa' => ['label' => 'Edição em massa', 'icon' => 'bi-pencil-square', 'url' => route('products.bulk-edit')],
         'scanner' => ['label' => 'Scanner', 'icon' => 'bi-upc-scan', 'url' => route('products.barcode-scanner')],
         'variacoes' => ['label' => 'Estoque das variações', 'icon' => 'bi-diagram-3', 'url' => route('products.variation-stock')],
