@@ -141,7 +141,7 @@ Copie o modelo abaixo e preencha. Os campos marcados com `*` são obrigatórios.
 
 ## Parte 3 · Como entregar ao robô
 
-**Jeito mais fácil:** no robô, toque em **＋ Colar ficha da IA**, cole a resposta inteira da IA, escolha as fotos e toque em **Criar ficha**. O robô cria a pasta sozinho.
+**Jeito mais fácil:** no robô, toque em **Colar ficha da IA**, cole a resposta inteira da IA, escolha as fotos e toque em **Criar ficha**. O robô cria a pasta sozinho.
 
 **À mão:** crie uma pasta por produto dentro de `produtos\` (ao lado do robô), com o código e o nome no nome da pasta:
 

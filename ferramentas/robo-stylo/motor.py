@@ -49,6 +49,7 @@ PADRAO = {
     "lado_maximo_foto": "1600",
     "tamanho_maximo_foto_kb": "1500",
     "pausa_entre_produtos": "1",
+    "tema": "claro",
 }
 
 
@@ -102,6 +103,18 @@ class Ficha:
     @property
     def pronta(self):
         return not self.erros and self.status in ("pronta", "falhou")
+
+    @property
+    def todas_fotos(self):
+        """As fotos citadas (na ordem da ficha) e depois as outras da pasta."""
+        return list(self.fotos) + [self.pasta / n for n in self.sobrando]
+
+    @property
+    def modificada(self):
+        try:
+            return (self.arquivo or self.pasta).stat().st_mtime
+        except OSError:
+            return 0
 
 
 def extrair_json(texto):
@@ -182,7 +195,7 @@ def ler_ficha(pasta):
 
     multi = len(variacoes) > 1 or any(str(v.get("valor") or "").strip() for v in variacoes)
     codigos = {}
-    sem_peso = []
+    sem_peso, sem_custo = [], []
     soma_custo = sum((numero(i.get("quantidade")) or 1) * numero(i.get("valor"))
                      for i in d.get("ficha_de_custo") or [] if isinstance(i, dict))
     for i, v in enumerate(variacoes, 1):
@@ -190,7 +203,7 @@ def ler_ficha(pasta):
         if numero(v.get("venda")) <= 0:
             f.erros.append(f"{rotulo}: falta o preço de venda.")
         if v.get("custo") in (None, "") and soma_custo <= 0:
-            f.avisos.append(f"{rotulo}: sem custo (entra R$ 0,00).")
+            sem_custo.append(rotulo)
         if multi and not str(v.get("valor") or "").strip():
             f.erros.append(f"Variação {i}: falta o \"valor\" (ex.: 30 cm).")
         cod = str(v.get("codigo") or "").strip().lower()
@@ -202,9 +215,14 @@ def ler_ficha(pasta):
         if not isinstance(emb, dict) or numero(emb.get("peso_kg")) <= 0:
             sem_peso.append(rotulo)
 
+    if sem_custo:
+        quais = "" if not multi else (" em " + ", ".join(sem_custo) if len(sem_custo) < len(variacoes) else " em nenhuma variação")
+        f.avisos.append(f"Sem custo{quais} (entra R$ 0,00).")
     if sem_peso:
         quais = "" if not multi else (" em " + ", ".join(sem_peso) if len(sem_peso) < len(variacoes) else " em nenhuma variação")
         f.avisos.append(f"Sem peso da embalagem{quais} (o frete do Mercado Livre precisa).")
+    if not str(d.get("codigo") or "").strip() and not any(str(v.get("codigo") or "").strip() for v in variacoes):
+        f.avisos.append("Sem código: o site cria um código automático (ex.: VAR-1A2B3C). Dá para pôr o código no editor.")
     if sim(d.get("sob_encomenda")) and numero(d.get("prazo_dias")) <= 0:
         f.avisos.append('Sob encomenda sem "prazo_dias".')
     if multi and not str(d.get("variacao_por") or "").strip():
@@ -242,14 +260,135 @@ def ler_ficha(pasta):
     return f
 
 
-def listar_fichas(pasta_produtos):
+IGNORAR = ("feitos", "_modelo", "_lixeira")
+
+
+def listar_fichas(pasta_produtos, incluir_feitas=False):
     raiz = Path(pasta_produtos)
     raiz.mkdir(parents=True, exist_ok=True)
     fichas = []
     for p in sorted(raiz.iterdir(), key=lambda x: x.name.lower()):
-        if p.is_dir() and p.name.lower() not in ("feitos", "_modelo") and not p.name.startswith("."):
+        if p.is_dir() and p.name.lower() not in IGNORAR and not p.name.startswith("."):
             fichas.append(ler_ficha(p))
+    if incluir_feitas and (raiz / "feitos").is_dir():
+        for p in sorted((raiz / "feitos").iterdir(), key=lambda x: x.stat().st_mtime, reverse=True):
+            if p.is_dir():
+                f = ler_ficha(p)
+                f.status, f.mensagem, f.resultado = "feita", "Já cadastrada no site.", []
+                try:
+                    info = json.loads((p / "resultado.json").read_text(encoding="utf-8"))
+                    f.resultado = info.get("produtos") or []
+                    f.mensagem = info.get("mensagem") or f.mensagem
+                except Exception:
+                    pass
+                fichas.append(f)
     return fichas
+
+
+# ------------------------------------------------------------ editar fichas
+
+MODELO_VAZIO = {
+    "versao": 1, "nome": "", "codigo": "", "categoria": "", "marca": "Móveis Stylo", "modelo": None,
+    "material": "", "acabamento": "", "uso": "", "descricao": "", "o_que_vem_na_caixa": "", "montagem": "",
+    "carga_maxima_kg": None, "garantia_meses": 3, "condicao": "novo", "codigo_barras": None,
+    "sob_encomenda": False, "prazo_dias": None, "ficha_tecnica": [], "ficha_de_custo": [],
+    "variacao_por": None,
+    "variacoes": [{"valor": None, "codigo": "", "custo": None, "venda": None, "preco_tabela": None, "estoque": 0,
+                   "medidas_peca_cm": {}, "embalagem": {}, "fotos": []}],
+    "mercado_livre": {"link_referencia": None, "titulo_anuncio": "", "tipo_anuncio": "classico", "quantidade_anuncio": 10},
+}
+
+
+def texto_da_ficha(dados):
+    nome = str(dados.get("nome") or "Produto")
+    corpo = json.dumps(dados, ensure_ascii=False, indent=2)
+    return f"# Ficha · {nome}\n\n```json\n{corpo}\n```\n"
+
+
+def salvar_ficha(ficha, dados):
+    """Grava a ficha (mantém o resto da pasta) e devolve a ficha relida."""
+    arq = ficha.arquivo if ficha.arquivo and ficha.arquivo.suffix.lower() in (".md", ".txt") else ficha.pasta / "ficha.md"
+    if ficha.arquivo and ficha.arquivo != arq and ficha.arquivo.exists():
+        ficha.arquivo.unlink()
+    arq.write_text(texto_da_ficha(dados), encoding="utf-8")
+    return ler_ficha(ficha.pasta)
+
+
+def nova_pasta(pasta_produtos, dados):
+    destino = Path(pasta_produtos) / nome_de_pasta(dados)
+    base, n = destino, 2
+    while destino.exists():
+        destino = base.with_name(f"{base.name} ({n})")
+        n += 1
+    destino.mkdir(parents=True)
+    return destino
+
+
+def nova_ficha(pasta_produtos, nome="Novo produto"):
+    dados = json.loads(json.dumps(MODELO_VAZIO))
+    dados["nome"] = nome
+    destino = nova_pasta(pasta_produtos, dados)
+    (destino / "ficha.md").write_text(texto_da_ficha(dados), encoding="utf-8")
+    return destino
+
+
+def excluir_ficha(ficha, pasta_produtos):
+    """Não apaga: move para produtos\\_lixeira (dá para recuperar)."""
+    lixo = Path(pasta_produtos) / "_lixeira"
+    lixo.mkdir(exist_ok=True)
+    destino = lixo / ficha.pasta.name
+    if destino.exists():
+        destino = lixo / f"{ficha.pasta.name} {datetime.now():%Y%m%d-%H%M%S}"
+    shutil.move(str(ficha.pasta), str(destino))
+    return destino
+
+
+def duplicar_ficha(ficha, pasta_produtos):
+    dados = json.loads(json.dumps(ficha.dados))
+    dados["nome"] = f"{ficha.nome} (cópia)"
+    dados["codigo"] = ""
+    for v in dados.get("variacoes") or []:
+        if isinstance(v, dict):
+            v["codigo"] = ""
+    destino = nova_pasta(pasta_produtos, dados)
+    for p in ficha.todas_fotos:
+        if p.exists():
+            shutil.copy2(p, destino / p.name)
+    (destino / "ficha.md").write_text(texto_da_ficha(dados), encoding="utf-8")
+    return destino
+
+
+def adicionar_fotos(pasta, arquivos):
+    """Copia as fotos para a pasta da ficha (nome repetido ganha -2, -3...). Devolve os nomes."""
+    nomes = []
+    for a in arquivos:
+        a = Path(a)
+        if not a.is_file() or a.suffix.lower() not in FOTO_EXTS | FOTO_CONVERTER:
+            continue
+        destino = Path(pasta) / a.name
+        if destino.exists() and destino.resolve() == a.resolve():
+            nomes.append(a.name)
+            continue
+        n = 2
+        while destino.exists():
+            destino = Path(pasta) / f"{a.stem}-{n}{a.suffix}"
+            n += 1
+        shutil.copy2(a, destino)
+        nomes.append(destino.name)
+    return nomes
+
+
+def remover_foto(pasta, nome):
+    """Tira a foto da pasta (vai para a subpasta _removidas, não apaga)."""
+    origem = Path(pasta) / nome
+    if not origem.exists():
+        return
+    lixo = Path(pasta) / "_removidas"
+    lixo.mkdir(exist_ok=True)
+    destino = lixo / nome
+    if destino.exists():
+        destino = lixo / f"{origem.stem}-{datetime.now():%H%M%S}{origem.suffix}"
+    shutil.move(str(origem), str(destino))
 
 
 def nome_de_pasta(dados):
@@ -263,13 +402,7 @@ def nome_de_pasta(dados):
 def criar_pasta_da_ficha(pasta_produtos, texto, fotos):
     """Para o botão "Colar ficha da IA": cria a pasta com ficha.md e copia as fotos."""
     dados = extrair_json(texto)
-    destino = Path(pasta_produtos) / nome_de_pasta(dados)
-    n = 2
-    base = destino
-    while destino.exists():
-        destino = base.with_name(f"{base.name} ({n})")
-        n += 1
-    destino.mkdir(parents=True)
+    destino = nova_pasta(pasta_produtos, dados)
     (destino / "ficha.md").write_text(texto.strip() + "\n", encoding="utf-8")
     for p in fotos:
         p = Path(p)
@@ -474,6 +607,324 @@ class Site:
         self.ctx = self.page = self.pw = None
 
 
+# ------------------------------------------------------------ Mercado Livre
+
+JS_BUSCA = r"""
+() => {
+  const vistos = new Set(), out = [];
+  const cards = document.querySelectorAll('li.ui-search-layout__item, .poly-card, .ui-search-result__wrapper, .andes-card.ui-search-result');
+  for (const c of cards) {
+    const a = c.querySelector('a.poly-component__title, .poly-component__title a, h3 a, h2 a, a.ui-search-link, a.ui-search-item__group__element, a[href*="MLB"]');
+    if (!a || !a.href) continue;
+    const link = a.href.split('#')[0];
+    if (vistos.has(link)) continue;
+    const t = (c.querySelector('.poly-component__title, .ui-search-item__title, h3, h2') || a).innerText.trim();
+    if (!t) continue;
+    let preco = null;
+    const caixa = c.querySelector('.poly-price__current, .ui-search-price__second-line, .ui-search-price') || c;
+    const valores = [...caixa.querySelectorAll('.andes-money-amount')].filter(x =>
+        !x.classList.contains('andes-money-amount--previous') && !x.closest('s') && !x.closest('.andes-money-amount--previous'));
+    if (valores.length) {
+      const f = valores[0].querySelector('.andes-money-amount__fraction');
+      const ce = valores[0].querySelector('.andes-money-amount__cents');
+      if (f) preco = parseFloat(f.innerText.replace(/\./g, '') + '.' + (ce ? ce.innerText.trim() : '00'));
+    }
+    const img = c.querySelector('img');
+    let src = img ? (img.getAttribute('data-src') || img.currentSrc || img.src || '') : '';
+    if (src.startsWith('data:')) src = '';
+    const vend = c.querySelector('.poly-component__seller, .ui-search-official-store-label');
+    vistos.add(link);
+    out.push({titulo: t, link, preco, imagem: src, vendedor: vend ? vend.innerText.trim() : ''});
+    if (out.length >= 48) break;
+  }
+  return out;
+}
+"""
+
+JS_PRODUTO = r"""
+() => {
+  const r = {titulo: '', preco: null, preco_de: null, imagens: [], descricao: '', specs: [], categoria: [], variacoes: [], marca: '', gtin: ''};
+  for (const s of document.querySelectorAll('script[type="application/ld+json"]')) {
+    try {
+      const j = JSON.parse(s.textContent);
+      const lista = Array.isArray(j) ? j : (j['@graph'] || [j]);
+      for (const o of lista) {
+        if (o['@type'] === 'Product') {
+          r.titulo = r.titulo || o.name || '';
+          const of = Array.isArray(o.offers) ? o.offers[0] : o.offers;
+          if (of && of.price && r.preco === null) r.preco = parseFloat(of.price);
+          let im = o.image; if (typeof im === 'string') im = [im];
+          (im || []).forEach(u => r.imagens.push(u));
+          if (o.brand) r.marca = typeof o.brand === 'string' ? o.brand : (o.brand.name || '');
+          r.gtin = o.gtin13 || o.gtin || '';
+        } else if (o['@type'] === 'BreadcrumbList' && o.itemListElement) {
+          o.itemListElement.forEach(i => { const n = i.name || (i.item && i.item.name); if (n) r.categoria.push(n); });
+        }
+      }
+    } catch (e) {}
+  }
+  const h1 = document.querySelector('h1.ui-pdp-title') || document.querySelector('h1');
+  if (h1 && h1.innerText.trim()) r.titulo = h1.innerText.trim();
+  const mp = document.querySelector('meta[itemprop="price"]');
+  if (mp && mp.content) r.preco = parseFloat(mp.content);
+  const ant = document.querySelector('.ui-pdp-price__original-value, s.andes-money-amount--previous, .andes-money-amount--previous');
+  if (ant) {
+    const f = ant.querySelector('.andes-money-amount__fraction'), ce = ant.querySelector('.andes-money-amount__cents');
+    if (f) r.preco_de = parseFloat(f.innerText.replace(/\./g, '') + '.' + (ce ? ce.innerText.trim() : '00'));
+  }
+  document.querySelectorAll('.ui-pdp-gallery img, figure.ui-pdp-gallery__figure img, img.ui-pdp-image').forEach(img => {
+    const u = img.getAttribute('data-zoom') || img.getAttribute('data-src') || img.src;
+    if (u && !u.startsWith('data:')) r.imagens.push(u);
+  });
+  const og = document.querySelector('meta[property="og:image"]');
+  if (og && og.content) r.imagens.push(og.content);
+  const d = document.querySelector('.ui-pdp-description__content, .ui-pdp-description p');
+  if (d) r.descricao = d.innerText.trim();
+  document.querySelectorAll('.andes-table tr, .ui-vpp-striped-specs__table tr, .ui-pdp-specs__table tr').forEach(tr => {
+    const th = tr.querySelector('th'), td = tr.querySelector('td');
+    if (th && td && th.innerText.trim()) r.specs.push([th.innerText.trim(), td.innerText.trim()]);
+  });
+  document.querySelectorAll('.ui-vpp-highlighted-specs__key-value, .ui-pdp-highlighted-specs-res__key-value').forEach(el => {
+    const t = el.innerText.trim(), i = t.indexOf(':');
+    if (i > 0) r.specs.push([t.slice(0, i).trim(), t.slice(i + 1).trim()]);
+  });
+  if (!r.categoria.length) document.querySelectorAll('.andes-breadcrumb a').forEach(a => r.categoria.push(a.innerText.trim()));
+  document.querySelectorAll('.ui-pdp-variations__picker').forEach(p => {
+    const tt = p.querySelector('.ui-pdp-variations__title, .ui-pdp-variations__label, p');
+    const nome = tt ? tt.innerText.split(':')[0].trim() : '';
+    const ops = [];
+    p.querySelectorAll('a, button, [role=option], .ui-pdp-thumbnail').forEach(o => {
+      const v = (o.getAttribute('aria-label') || o.getAttribute('title') || o.innerText || '').trim();
+      if (v && v.length < 60 && !ops.includes(v)) ops.push(v);
+    });
+    if (nome && ops.length) r.variacoes.push({nome, opcoes: ops});
+  });
+  return r;
+}
+"""
+
+ML_BUSCA = "https://lista.mercadolivre.com.br/"
+BLOQUEIO_ML = ("account-verification", "/gz/", "captcha", "/login", "registration")
+
+
+def eh_link_ml(texto):
+    t = str(texto or "").strip().lower()
+    return t.startswith("http") and ("mercadolivre.com" in t or "mercadolibre.com" in t) or bool(re.fullmatch(r"mlb-?\d{6,}", t))
+
+
+def foto_grande_ml(url):
+    """Troca a miniatura do Mercado Livre pela foto no tamanho original."""
+    u = str(url or "").split("?")[0]
+    u = re.sub(r"D_Q_NP_(2X_)?", "D_NQ_NP_", u)
+    return re.sub(r"-[A-Z](\.\w+)$", r"-O\1", u)
+
+
+def _chave_foto_ml(url):
+    m = re.search(r"(\d+-ML[A-Z]\d+_\d+)", url)
+    return m.group(1) if m else url
+
+
+def _limpar_opcao(nome, texto):
+    t = re.sub(r"(?i),?\s*(selecionad[oa]|indispon[ií]vel|esgotad[oa])\b.*$", "", str(texto)).strip()
+    if ":" in t and t.split(":")[0].strip().lower() == nome.lower():
+        t = t.split(":", 1)[1].strip()
+    return t
+
+
+class MercadoLivre:
+    """Busca e lê anúncios do Mercado Livre na janela do navegador do robô (aba própria)."""
+
+    def __init__(self, site, avisar=print, parar=lambda: False):
+        self.site = site
+        self.avisar = avisar
+        self.parar = parar
+        self.page = None
+
+    def _pagina(self):
+        self.site.abrir()
+        if self.page is None or self.page.is_closed():
+            self.page = self.site.ctx.new_page()
+            self.page.set_default_timeout(40000)
+        return self.page
+
+    def _esperar_liberar(self, espera=300):
+        """Se o Mercado Livre pedir verificação ou login, espera a pessoa resolver no navegador."""
+        pg = self.page
+        if not any(b in pg.url for b in BLOQUEIO_ML):
+            return False
+        self.avisar("ml_verificar")
+        try:
+            pg.bring_to_front()
+        except Exception:
+            pass
+        fim = time.time() + espera
+        while any(b in pg.url for b in BLOQUEIO_ML):
+            if self.parar():
+                raise Parar()
+            if time.time() > fim:
+                raise RuntimeError("O Mercado Livre pediu uma verificação no navegador que não foi feita.")
+            time.sleep(1)
+        time.sleep(1.5)
+        return True
+
+    def _rolar(self, vezes=4):
+        for _ in range(vezes):
+            try:
+                self.page.mouse.wheel(0, 1600)
+            except Exception:
+                pass
+            time.sleep(0.4)
+
+    def buscar(self, termo):
+        pg = self._pagina()
+        slug = re.sub(r"\s+", "-", str(termo).strip())
+        from urllib.parse import quote
+        url = ML_BUSCA + quote(slug, safe="-")
+        pg.goto(url, wait_until="domcontentloaded")
+        if self._esperar_liberar():
+            pg.goto(url, wait_until="domcontentloaded")
+        try:
+            pg.wait_for_selector("li.ui-search-layout__item, .poly-card, .ui-search-rescue, .ui-search-result", timeout=20000)
+        except Exception:
+            pass
+        self._rolar(3)
+        itens = pg.evaluate(JS_BUSCA)
+        for i in itens:
+            i["imagem"] = i.get("imagem") or ""
+        return itens
+
+    def baixar(self, url, timeout=30000):
+        """Bytes de uma imagem (usa a sessão do navegador)."""
+        try:
+            r = self._pagina().request.get(url, timeout=timeout)
+            return r.body() if r.ok else None
+        except Exception:
+            return None
+
+    def extrair(self, link):
+        pg = self._pagina()
+        link = str(link).strip()
+        if re.fullmatch(r"(?i)mlb-?\d{6,}", link):
+            link = "https://produto.mercadolivre.com.br/MLB-" + re.sub(r"\D", "", link)
+        pg.goto(link, wait_until="domcontentloaded")
+        if self._esperar_liberar():
+            pg.goto(link, wait_until="domcontentloaded")
+        try:
+            pg.wait_for_selector("h1", timeout=25000)
+        except Exception:
+            raise RuntimeError("Não consegui abrir esse anúncio do Mercado Livre.") from None
+        self._rolar(5)
+        for texto in ("Ver todas as características", "Ver mais características", "Ver descrição completa"):
+            try:
+                b = pg.get_by_text(texto, exact=False).first
+                if b.count() and b.is_visible():
+                    b.click(timeout=3000)
+                    time.sleep(0.6)
+            except Exception:
+                pass
+        info = pg.evaluate(JS_PRODUTO)
+        info["link"] = pg.url.split("#")[0].split("?")[0]
+        fotos, alt, vistas = [], [], set()
+        for u in info.get("imagens") or []:
+            if "mlstatic" not in u or not re.search(r"\d+-ML[A-Z]\d+_\d+", u):
+                continue
+            k = _chave_foto_ml(u)
+            if k not in vistas:
+                vistas.add(k)
+                fotos.append(foto_grande_ml(u))
+                alt.append(u)
+        info["imagens"], info["imagens_alt"] = fotos[:12], alt[:12]
+        specs, vistos = [], set()
+        for k, v in info.get("specs") or []:
+            if k.lower() not in vistos and v:
+                vistos.add(k.lower())
+                specs.append([k, v])
+        info["specs"] = specs
+        for p in info.get("variacoes") or []:
+            p["opcoes"] = [o for o in dict.fromkeys(_limpar_opcao(p["nome"], x) for x in p["opcoes"]) if o][:20]
+        if not info.get("titulo"):
+            raise RuntimeError("A página aberta não parece um anúncio do Mercado Livre.")
+        return info
+
+    def fechar(self):
+        try:
+            if self.page and not self.page.is_closed():
+                self.page.close()
+        except Exception:
+            pass
+        self.page = None
+
+
+def _limpar_descricao(texto):
+    t = re.sub(r"https?://\S+", "", str(texto or ""))
+    t = re.sub(r"\(?\d{2}\)?\s?9?\d{4}[-\s]?\d{4}", "", t)
+    return re.sub(r"\n{3,}", "\n\n", t).strip()[:5000]
+
+
+def ficha_do_ml(info, pasta_produtos, baixar=None, max_fotos=10):
+    """Cria uma pasta de ficha nova com os dados e as fotos de um anúncio do Mercado Livre."""
+    dados = json.loads(json.dumps(MODELO_VAZIO))
+    titulo = re.sub(r"\s+", " ", str(info.get("titulo") or "")).strip()
+    dados["nome"] = titulo[:120] or "Produto do Mercado Livre"
+    cat = [c for c in info.get("categoria") or [] if c and c.lower() not in ("início", "inicio", "voltar à lista", "voltar")]
+    dados["categoria"] = cat[-1] if cat else ""
+    specs = {k.lower(): v for k, v in info.get("specs") or []}
+    dados["material"] = specs.get("material") or specs.get("materiais") or ""
+    dados["acabamento"] = specs.get("acabamento") or specs.get("tipo de acabamento") or ""
+    dados["modelo"] = None
+    carga = re.search(r"([\d.,]+)\s*kg", specs.get("carga máxima") or specs.get("capacidade máxima de carga") or specs.get("peso máximo suportado") or "")
+    dados["carga_maxima_kg"] = numero(carga.group(1)) if carga else None
+    dados["descricao"] = _limpar_descricao(info.get("descricao"))
+    dados["ficha_tecnica"] = [{"nome": k, "valor": v} for k, v in info.get("specs") or []
+                              if k.lower() not in ("marca", "modelo", "código universal de produto", "gtin", "sku")][:40]
+    preco = info.get("preco")
+    preco_de = info.get("preco_de")
+    base = {"valor": None, "codigo": "", "custo": None, "venda": round(float(preco), 2) if preco else None,
+            "preco_tabela": round(float(preco_de), 2) if preco_de else None, "estoque": 0,
+            "medidas_peca_cm": {}, "embalagem": {}, "fotos": []}
+    pickers = [p for p in info.get("variacoes") or [] if p.get("opcoes")]
+    tam = next((p for p in pickers if re.search(r"(?i)tamanho|medida|dimens", p["nome"])), None)
+    cor = next((p for p in pickers if re.search(r"(?i)\bcor\b|cores|acabamento", p["nome"])), None)
+    valores, por = [], None
+    if tam and cor:
+        por = "Tamanho e cor"
+        valores = [f"{t} · {c}" for t in tam["opcoes"] for c in cor["opcoes"]]
+    elif tam or cor or pickers:
+        p = tam or cor or pickers[0]
+        por = "Tamanho" if p is tam else "Cor" if p is cor else p["nome"].capitalize()
+        valores = list(p["opcoes"])
+    if valores:
+        dados["variacao_por"] = por
+        dados["variacoes"] = [dict(json.loads(json.dumps(base)), valor=v) for v in valores[:40]]
+    else:
+        dados["variacoes"] = [base]
+    dados["mercado_livre"] = {"link_referencia": info.get("link"), "titulo_anuncio": titulo[:60],
+                              "tipo_anuncio": "classico", "quantidade_anuncio": 10}
+    destino = nova_pasta(pasta_produtos, dados)
+    nomes = []
+    if baixar and Image is not None:
+        import io
+        alt = info.get("imagens_alt") or []
+        for n, url in enumerate((info.get("imagens") or [])[:max_fotos], 1):
+            corpo = baixar(url)
+            if not corpo and n - 1 < len(alt) and alt[n - 1] != url:
+                corpo = baixar(alt[n - 1])
+            if not corpo:
+                continue
+            try:
+                with Image.open(io.BytesIO(corpo)) as im:
+                    im = im.convert("RGB")
+                    nome = f"{n:02d}-ml.jpg"
+                    im.save(destino / nome, "JPEG", quality=90, optimize=True)
+                    nomes.append(nome)
+            except Exception:
+                continue
+    dados["variacoes"][0]["fotos"] = nomes
+    (destino / "ficha.md").write_text(texto_da_ficha(dados), encoding="utf-8")
+    (destino / "origem-ml.json").write_text(json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8")
+    return destino
+
+
 # ------------------------------------------------------------ rodada completa
 
 def relatorio_path():
@@ -537,6 +988,12 @@ def rodar(fichas, cfg, avisar, parar, site=None):
                     ficha.status, ficha.resultado = "feita", res
                     ficha.mensagem = f"{len(res)} produto(s) criado(s)."
                     feitas += 1
+                try:
+                    (ficha.pasta / "resultado.json").write_text(json.dumps({
+                        "quando": datetime.now().isoformat(timespec="seconds"), "site": r.get("site"),
+                        "mensagem": ficha.mensagem, "produtos": ficha.resultado}, ensure_ascii=False, indent=2), encoding="utf-8")
+                except OSError:
+                    pass
                 if sim(r.get("mover_feitos")):
                     mover_para_feitos(ficha, r.get("pasta_produtos"))
             except Parar:

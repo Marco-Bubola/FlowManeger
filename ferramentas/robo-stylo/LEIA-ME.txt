@@ -17,18 +17,41 @@ Instalar (uma vez)
 
 Usar
 ----
-1. Abra o robô pelo atalho (ou "Abrir robo.vbs"). Abre uma janela, sem terminal.
-2. Toque em "Questionário": ele é copiado. Cole numa IA (ChatGPT, Gemini...)
-   junto com as fotos da peça e responda o que ela perguntar.
-3. Copie a resposta final da IA (a ficha com o bloco json).
-4. No robô, toque em "＋ Colar ficha da IA", cole, escolha as fotos e toque em
-   "Criar ficha". O robô cria a pasta do produto sozinho.
-   (Também dá para criar a pasta à mão: produtos\<código - nome>\ficha.md + fotos)
-5. Confira: verde = pronta, vermelho = tem erro (o motivo aparece ao lado).
-6. Toque em "Cadastrar". Na primeira vez abre o navegador: entre na conta da
-   Móveis Stylo (e-mail e senha). O robô guarda o login e continua sozinho.
-7. No fim, cada ficha mostra os links dos produtos criados. As pastas vão para
-   produtos\feitos e o relatório fica em relatorios\.
+A janela tem 4 telas no menu da esquerda:
+
+FICHAS
+- Busca por nome, código, categoria ou material; filtros (Prontas, Com erro,
+  Com aviso, Sob encomenda) e ordem (mais recentes, nome, preço, código).
+- "＋ Nova ficha" abre o editor em branco.
+- "Colar ficha da IA": cole a resposta da IA (bloco json) e adicione as fotos.
+  Pode adicionar uma foto por vez: elas vão se juntando.
+- Toque numa ficha para ver os detalhes. Duplo clique ou "Editar" abre o editor.
+- "Duplicar" cria uma cópia (sem os códigos). "Excluir" manda a pasta para
+  produtos\_lixeira (dá para recuperar).
+- Marque as prontas e toque em "Cadastrar". Na primeira vez abre o navegador:
+  entre na conta da Móveis Stylo. O robô guarda o login e continua sozinho.
+
+EDITOR
+- Todos os campos da ficha. Dinheiro já sai no formato 79,00 enquanto digita;
+  estoque e prazo só aceitam números; medidas e peso aceitam vírgula.
+- "Aplicar a todas" muda custo, venda, preço "de", estoque ou peso de todas as
+  variações de uma vez. A margem de cada variação aparece ao lado.
+- "Gerar variações": escreva os tamanhos e as cores separados por vírgula.
+- Fotos: adicione uma por vez ou várias, ou "Colar imagem" (Ctrl+C numa foto).
+  ★ vira capa, ◀ ▶ mudam a ordem, ✕ tira. Cada foto vale para todas as
+  variações ou só para uma (ex.: a foto da cor branca só no Branco).
+
+MERCADO LIVRE
+- Escreva o que procura (ex.: mão francesa ferro) ou cole o link do anúncio.
+  O robô abre o Mercado Livre no navegador dele e mostra os resultados.
+- Filtre por palavra e preço, ordene, e toque em "Importar ficha": o robô lê
+  título, preço, fotos, cores/tamanhos, características e descrição e cria uma
+  ficha nova. Depois confira custo, estoque, medidas e o código no editor.
+- Se o Mercado Livre pedir verificação ou login, resolva na janela do
+  navegador; o robô espera e continua.
+
+CADASTRADAS
+- O que já subiu para o site, com o link de cada produto e "Nova a partir desta".
 
 Bom saber
 ---------
@@ -37,5 +60,4 @@ Bom saber
 - O robô nunca publica no Mercado Livre nem apaga nada.
 - O login da Móveis Stylo fica separado do robô da Boticário.
 - Se algo der errado, o motivo aparece na ficha e fica em erros.log.
-- Configurações (endereço do site, pasta, mover para "feitos", mostrar o
-  navegador) ficam no botão "Configurações" da janela.
+- Modo escuro: chave no canto de baixo do menu.
