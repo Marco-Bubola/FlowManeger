@@ -789,6 +789,13 @@ class MercadoLivre:
             pass
         self._rolar(3)
         itens = pg.evaluate(JS_BUSCA)
+        if not itens:
+            try:
+                html = pg.content()
+            except Exception:
+                html = ""
+            if "ui-empty-state" in html and ("Hubo un error" in html or "not-found" in html):
+                raise RuntimeError("O Mercado Livre não mostrou a busca (bloqueou o navegador). Tente de novo com o navegador aberto.")
         for i in itens:
             i["imagem"] = i.get("imagem") or ""
         return itens
@@ -882,6 +889,16 @@ def ficha_do_ml(info, pasta_produtos, baixar=None, max_fotos=10):
     base = {"valor": None, "codigo": "", "custo": None, "venda": round(float(preco), 2) if preco else None,
             "preco_tabela": round(float(preco_de), 2) if preco_de else None, "estoque": 0,
             "medidas_peca_cm": {}, "embalagem": {}, "fotos": []}
+    def cm(*nomes):
+        for n in nomes:
+            m = re.search(r"([\d.,]+)\s*(mm|cm|m)\b", specs.get(n) or "")
+            if m:
+                v = numero(m.group(1))
+                return round(v / 10 if m.group(2) == "mm" else v * 100 if m.group(2) == "m" else v, 1)
+        return None
+    medidas = {k: v for k, v in {"altura": cm("altura"), "largura": cm("largura"), "profundidade": cm("profundidade", "comprimento"),
+                                 "diametro": cm("diâmetro", "diametro")}.items() if v}
+    base["medidas_peca_cm"] = medidas
     pickers = [p for p in info.get("variacoes") or [] if p.get("opcoes")]
     tam = next((p for p in pickers if re.search(r"(?i)tamanho|medida|dimens", p["nome"])), None)
     cor = next((p for p in pickers if re.search(r"(?i)\bcor\b|cores|acabamento", p["nome"])), None)
