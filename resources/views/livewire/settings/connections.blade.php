@@ -57,7 +57,7 @@ new class extends Component {
                 @endphp
                 <span class="s-badge {{ $connCount > 0 ? 's-badge-success' : '' }}">{{ $connCount }} / 3 ativas</span>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;padding:0 1.25rem 1.25rem">
+            <div class="s-conn-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;padding:0 1.25rem 1.25rem">
                 @foreach([
                     ['Mercado Livre', $stats['ml_connected'], 'rgba(255,233,0,.15)', '#FFD700'],
                     ['Shopee', $stats['shopee_connected'], 'rgba(238,77,45,.12)', '#EE4D2D'],

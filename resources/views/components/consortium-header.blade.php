@@ -41,6 +41,7 @@
                         <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 dark:text-slate-400">{{ $meta }}</div>
                     @endisset
                 </div>
+                <div class="ml-auto shrink-0 self-start"><x-header-bell /></div>
             </div>
 
             @if (trim($slot) !== '')

@@ -73,7 +73,7 @@ new class extends Component {
                             </span>
                         </div>
                     </div>
-                    <div style="text-align:right;flex-shrink:0">
+                    <div class="sh-dev-this-badge" style="text-align:right;flex-shrink:0">
                         <span class="s-badge" style="background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0">Este dispositivo</span>
                     </div>
                 </div>

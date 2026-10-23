@@ -67,6 +67,7 @@
                             <span class="inline-flex items-center gap-1"><i class="bi {{ $isDraw ? 'bi-shuffle' : 'bi-check2-all' }}"></i>{{ $isDraw ? 'Sorteio ' . mb_strtolower($c->draw_frequency_label) : 'Resgate por quitação' }}</span>
                         </div>
                     </div>
+                    <div class="ml-auto shrink-0 self-start"><x-header-bell /></div>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2 lg:justify-end">

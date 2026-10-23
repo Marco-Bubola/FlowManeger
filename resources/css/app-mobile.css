@@ -569,3 +569,13 @@ html body .add-products-page.add-products-page .product-card-modern .category-ic
 }
 html body .add-products-page.add-products-page .product-card-modern .category-icon { font-size: 1.45rem !important; }
 html body .add-products-page.add-products-page .product-card-modern .card-body { padding-top: 2rem !important; }
+
+/* Configurações no celular: resumo das integrações sem quebrar "Desconectado" no meio da palavra
+   e selo "Este dispositivo" fora de cima do nome do aparelho (o card já diz que é o atual). */
+@media (max-width: 640px) {
+    html body .s-conn-summary { gap: .5rem !important; padding: 0 .9rem 1rem !important; }
+    html body .s-conn-summary .settings-info-tile { padding: .6rem .3rem !important; min-width: 0; }
+    html body .s-conn-summary .settings-info-tile-label { font-size: .62rem !important; word-break: keep-all; overflow-wrap: normal; }
+    html body .s-conn-summary .settings-info-tile-val { font-size: .68rem !important; word-break: keep-all; overflow-wrap: normal; white-space: nowrap; }
+    html body .sh-dev-this-badge { display: none !important; }
+}
