@@ -56,6 +56,9 @@ PADRAO = {
     "gemini_chave": "",
     "gemini_modelo": "gemini-2.5-flash",
     "marca_dagua": "Móveis Stylo",
+    "preco_de_pct": "",
+    "folga_caixa": "4",
+    "completar_ao_importar": "sim",
 }
 
 

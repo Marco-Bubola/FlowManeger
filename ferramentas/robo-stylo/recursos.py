@@ -535,3 +535,228 @@ def gerar_etiquetas(itens, destino, mostrar_preco=True, loja="Móveis Stylo"):
     destino = Path(destino)
     paginas[0].save(destino, "PDF", resolution=dpi, save_all=True, append_images=paginas[1:])
     return destino, n
+
+
+# ------------------------------------------------------------ completar a ficha sozinho
+
+_PEQUENAS = {"de", "da", "do", "das", "dos", "para", "com", "e", "em", "a", "o", "p", "c", "kit"}
+
+CATEGORIA_POR_PALAVRA = [
+    (("vaso", "planta", "floreira", "xaxim", "orquídea", "orquidea"), "Suportes de vaso"),
+    (("mão francesa", "mao francesa", "mãos francesas"), "Mão francesa"),
+    (("prateleira", "nicho", "estante"), "Prateleiras"),
+    (("bicicleta", "bike"), "Bicicleta"),
+    (("mesa", "aparador", "escrivaninha", "bancada"), "Mesas"),
+    (("banqueta", "banco", "cadeira", "puff"), "Banquetas"),
+    (("organizador", "sapateira", "cabideiro", "arara", "porta "), "Organizadores"),
+    (("jardim", "horta", "treliça", "trelica"), "Jardim"),
+    (("espelho", "quadro", "luminária", "luminaria", "letreiro", "decor"), "Decoração"),
+]
+
+
+def _sem_acento(t):
+    return unicodedata.normalize("NFKD", str(t)).encode("ascii", "ignore").decode()
+
+
+def sigla(nome, n=4):
+    """Mão Francesa Colonial de Ferro -> MFCF."""
+    palavras = [p for p in re.findall(r"[A-Za-zÀ-ÿ]+", str(nome)) if p.lower() not in _PEQUENAS]
+    return _sem_acento("".join(p[0] for p in palavras[:n])).upper() or "PROD"
+
+
+def codigo_da_variacao(base, valor):
+    """MFC + '30 cm · Preto' -> MFC-30-PRE; '25 x 25 cm' -> 25X25."""
+    partes = [base]
+    for pedaco in str(valor or "").split("·"):
+        pedaco = pedaco.strip()
+        if not pedaco:
+            continue
+        nums = re.findall(r"\d+(?:[.,]\d+)?", pedaco)
+        if nums:
+            partes.append("X".join(x.replace(",", "").replace(".", "") for x in nums))
+        else:
+            letras = [w for w in re.findall(r"[A-Za-zÀ-ÿ]+", pedaco) if w.lower() not in _PEQUENAS]
+            if letras:
+                partes.append(_sem_acento(letras[0][:3] + "".join(w[0] for w in letras[1:2])).upper())
+    return "-".join(partes)
+
+
+def categoria_pelo_nome(nome):
+    t = str(nome).lower()
+    for palavras, cat in CATEGORIA_POR_PALAVRA:
+        if any(p in t for p in palavras):
+            return cat
+    return ""
+
+
+def _vs(d):
+    return [v for v in d.get("variacoes") or [] if isinstance(v, dict)]
+
+
+def codigos_das_fichas(pasta_produtos, exceto=None):
+    """Códigos já usados nas outras fichas (inclusive as cadastradas), para não repetir."""
+    usados = set()
+    for f in motor.listar_fichas(pasta_produtos, incluir_feitas=True):
+        if exceto and Path(f.pasta).resolve() == Path(exceto).resolve():
+            continue
+        for c in [f.dados.get("codigo")] + [v.get("codigo") for v in f.variacoes]:
+            if str(c or "").strip():
+                usados.add(str(c).strip().upper())
+    return usados
+
+
+def completar(d, cfg=None, campos=None, existentes=None):
+    """Preenche o que dá para deduzir sem inventar. Devolve a lista do que mudou (o dict muda no lugar).
+    existentes: códigos das outras fichas, para o código novo não repetir."""
+    cfg = cfg or {}
+    existentes = {str(c).upper() for c in existentes or ()}
+    campos = set(campos or ("codigos", "categoria", "tecnica", "caixa", "preco_de", "venda", "textos"))
+    feito = []
+    vs = _vs(d)
+    multi = len(vs) > 1 or any(str(v.get("valor") or "").strip() for v in vs)
+
+    if "categoria" in campos and not str(d.get("categoria") or "").strip():
+        cat = categoria_pelo_nome(d.get("nome"))
+        if cat:
+            d["categoria"] = cat
+            feito.append(f"Categoria: {cat}")
+
+    if "codigos" in campos and d.get("nome"):
+        base = str(d.get("codigo") or "").strip()
+        if not base:
+            raiz, k = sigla(d["nome"]), 2
+            base = raiz
+            while any(c == base or c.startswith(base + "-") for c in existentes):
+                base, k = f"{raiz}{k}", k + 1
+            d["codigo"] = base
+            feito.append(f"Código base: {base}")
+        usados = existentes | {str(v.get("codigo") or "").strip().upper() for v in vs if str(v.get("codigo") or "").strip()}
+        n = 0
+        for v in vs:
+            if str(v.get("codigo") or "").strip() or not multi:
+                continue
+            cod = codigo_da_variacao(base, v.get("valor"))
+            k, final = 2, cod
+            while final.upper() in usados:
+                final, k = f"{cod}-{k}", k + 1
+            v["codigo"] = final
+            usados.add(final.upper())
+            n += 1
+        if n:
+            feito.append(f"Código em {n} variação(ões) (ex.: {next(v['codigo'] for v in vs if v.get('codigo'))})")
+
+    if "tecnica" in campos:
+        tec = [i for i in d.get("ficha_tecnica") or [] if isinstance(i, dict)]
+        tem = {str(i.get("nome") or "").strip().lower() for i in tec}
+        novos = []
+        for nome, chave, fmt in (("Material", "material", str), ("Acabamento", "acabamento", str), ("Montagem", "montagem", str),
+                                 ("Carga máxima", "carga_maxima_kg", lambda x: f"{motor.numero(x):g} kg".replace(".", ",")),
+                                 ("Marca", "marca", str)):
+            val = d.get(chave)
+            if val not in (None, "") and nome.lower() not in tem:
+                novos.append({"nome": nome, "valor": fmt(val)})
+        if novos:
+            d["ficha_tecnica"] = tec + novos
+            feito.append("Ficha técnica: " + ", ".join(i["nome"] for i in novos))
+
+    if "caixa" in campos:
+        folga = motor.numero(cfg.get("folga_caixa") or 4) or 4
+        n = 0
+        for v in vs:
+            med = v.get("medidas_peca_cm") if isinstance(v.get("medidas_peca_cm"), dict) else {}
+            emb = v.get("embalagem") if isinstance(v.get("embalagem"), dict) else {}
+            diam = motor.numero(med.get("diametro"))
+            larg = motor.numero(med.get("largura")) or diam
+            prof = motor.numero(med.get("profundidade")) or diam
+            alt = motor.numero(med.get("altura"))
+            mudou = False
+            for chave, val in (("comprimento_cm", larg), ("largura_cm", prof), ("altura_cm", alt)):
+                if val > 0 and motor.numero(emb.get(chave)) <= 0:
+                    emb[chave] = round(val + folga, 1)
+                    mudou = True
+            if mudou:
+                v["embalagem"] = emb
+                n += 1
+        if n:
+            feito.append(f"Medidas da caixa pela peça (+{folga:g} cm) em {n} variação(ões). O peso você confere.")
+
+    soma = sum((motor.numero(i.get("quantidade")) or 1) * motor.numero(i.get("valor"))
+               for i in d.get("ficha_de_custo") or [] if isinstance(i, dict))
+    if "venda" in campos:
+        margem = motor.numero(cfg.get("margem_padrao") or 30)
+        frete = motor.numero(cfg.get("frete_estimado") or 0)
+        tipo = "premium" if str((d.get("mercado_livre") or {}).get("tipo_anuncio") or "").startswith("prem") else "classico"
+        n = 0
+        for v in vs:
+            custo = motor.numero(v.get("custo")) if v.get("custo") not in (None, "") else soma
+            if motor.numero(v.get("venda")) <= 0 and custo > 0:
+                p = preco_sugerido(custo, margem, tipo, frete)
+                if p:
+                    v["venda"] = p
+                    n += 1
+        if n:
+            feito.append(f"Preço de venda sugerido em {n} variação(ões) ({margem:g}% de lucro)")
+
+    if "preco_de" in campos:
+        pct = motor.numero(cfg.get("preco_de_pct") or 0)
+        if pct > 0:
+            n = 0
+            for v in vs:
+                if motor.numero(v.get("venda")) > 0 and v.get("preco_tabela") in (None, "", 0):
+                    v["preco_tabela"] = arredondar_90(motor.numero(v["venda"]) * (1 + pct / 100))
+                    n += 1
+            if n:
+                feito.append(f"Preço “de” (+{pct:g}%) em {n} variação(ões)")
+
+    if "textos" in campos and d.get("nome"):
+        ml = d.get("mercado_livre") if isinstance(d.get("mercado_livre"), dict) else {}
+        if not str(ml.get("titulo_anuncio") or "").strip():
+            ml["titulo_anuncio"] = titulo_modelo(d)
+            d["mercado_livre"] = ml
+            feito.append("Título do anúncio")
+        if not str(d.get("descricao") or "").strip():
+            d["descricao"] = descricao_modelo(d)
+            feito.append("Descrição")
+    return feito
+
+
+def problemas(d, n_fotos=None):
+    """O que ainda falta na ficha (para a lista de conferência)."""
+    falta = []
+    if not str(d.get("nome") or "").strip():
+        falta.append("Falta o nome.")
+    vs = _vs(d)
+    soma = sum((motor.numero(i.get("quantidade")) or 1) * motor.numero(i.get("valor"))
+               for i in d.get("ficha_de_custo") or [] if isinstance(i, dict))
+    for i, v in enumerate(vs, 1):
+        rot = str(v.get("valor") or "").strip() or (f"variação {i}" if len(vs) > 1 else "produto")
+        if motor.numero(v.get("venda")) <= 0:
+            falta.append(f"{rot}: sem preço de venda.")
+        if v.get("custo") in (None, "") and soma <= 0:
+            falta.append(f"{rot}: sem custo.")
+        emb = v.get("embalagem") if isinstance(v.get("embalagem"), dict) else {}
+        if motor.numero(emb.get("peso_kg")) <= 0:
+            falta.append(f"{rot}: sem peso da caixa (o frete precisa).")
+    if motor.sim(d.get("sob_encomenda")) and motor.numero(d.get("prazo_dias")) <= 0:
+        falta.append("Sob encomenda sem prazo em dias.")
+    if not str(d.get("categoria") or "").strip():
+        falta.append("Sem categoria.")
+    tit = str((d.get("mercado_livre") or {}).get("titulo_anuncio") or "")
+    if len(tit) > 60:
+        falta.append("Título do anúncio passa de 60 letras.")
+    if n_fotos == 0:
+        falta.append("Sem fotos.")
+    return falta
+
+
+def links_ml(texto):
+    """Todos os links (ou MLB-123) do Mercado Livre num texto colado, sem repetir."""
+    achados = re.findall(r"https?://[^\s<>\"']*mercadoli[bv]re\.com[^\s<>\"']*|\bMLB-?\d{6,}\b", str(texto), flags=re.I)
+    vistos, out = set(), []
+    for a in achados:
+        a = a.rstrip(".,;)")
+        k = _chave_link(a)
+        if k not in vistos:
+            vistos.add(k)
+            out.append(a)
+    return out

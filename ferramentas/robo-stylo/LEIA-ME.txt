@@ -53,6 +53,22 @@ MERCADO LIVRE
 - "Pesquisas rápidas": ideias prontas de peças em ferro e madeira; "Carregar
   mais" traz mais anúncios. O ◎ de cada anúncio põe ele em Concorrentes.
 
+IMPORTAR POR LINK
+- "🔗 Importar link do ML" (em Fichas): cole o link do anúncio, ou vários
+  (um por linha), e o robô cria uma ficha de cada.
+- Com o robô aberto, é só copiar (Ctrl+C) um link do Mercado Livre em qualquer
+  lugar (navegador, WhatsApp): aparece o aviso "Link copiado · Importar".
+- A ficha importada já vem com código, categoria, ficha técnica e medida da
+  caixa (desliga em Configurações › Automático).
+
+COMPLETAR SOZINHO
+- Editor › "✦ Completar tudo": preenche só o que está vazio: código (ex.:
+  MFC-30-PRE, sem repetir os de outras fichas), categoria, ficha técnica, caixa
+  pela medida da peça + folga, preço de venda pelo custo, preço "de" (se ligado
+  em Configurações), título e descrição. Depois mostra o que ainda falta.
+- Editor › "Conferir": lista o que falta (preço, custo, peso da caixa, prazo...).
+- Fichas › "✦ Completar": faz o mesmo nas fichas marcadas (ou nas do filtro).
+
 CUSTO E PREÇO (no editor)
 - Ficha de custo: materiais e "＋ Mão de obra" (horas × sua hora, que fica em
   Configurações). "Usar como custo de todas" passa o total para as variações.
@@ -73,7 +89,7 @@ CONCORRENTES
   um e avisa quem baixou ou subiu o preço, com o histórico.
 
 LOTE, KITS E ETIQUETAS
-- Fichas › "Atualizar em lote": aumenta ou diminui preço, custo, estoque ou
+- Fichas › "Lote": aumenta ou diminui preço, custo, estoque ou
   prazo das fichas marcadas (ou das que aparecem no filtro). Muda só as fichas;
   no site use Produtos › Edição em massa.
 - "Kits" (na ficha): cria fichas de Kit 2, Kit 4... com código -K2, preço com

@@ -379,6 +379,8 @@ class App(ctk.CTk):
         self.ir("fichas")
         self.recarregar()
         self.after(120, self._ler_fila)
+        self._clip = None
+        self.after(1500, self._olhar_area_transf)
         threading.Thread(target=self._trabalhador, daemon=True).start()
         self.protocol("WM_DELETE_WINDOW", self.fechar)
 
@@ -534,6 +536,65 @@ class App(ctk.CTk):
         self.ir("fichas")
         self.toast("Cópia criada")
 
+    def completar_fichas(self, fichas):
+        fichas = [f for f in fichas if f.status != "feita" and f.dados]
+        if not fichas or self.rodando:
+            return
+        if not messagebox.askyesno("Completar fichas", f"Completar {len(fichas)} ficha(s)?\n\nO robô preenche só o que está vazio: "
+                                   "código, categoria, ficha técnica, caixa pela medida da peça, preço sugerido pelo custo, "
+                                   "preço “de”, título e descrição. Nada que você já preencheu muda."):
+            return
+        n = 0
+        for f in fichas:
+            d = json.loads(json.dumps(f.dados))
+            if recursos.completar(d, dict(self.cfg["robo"]), existentes=recursos.codigos_das_fichas(self.pasta(), exceto=f.pasta)):
+                motor.salvar_ficha(f, d)
+                n += 1
+        self.recarregar()
+        self.toast(f"{n} ficha(s) completada(s)" if n else "Nada para completar", VERDE if n else ROXO)
+
+    def _olhar_area_transf(self):
+        """Avisa quando um link do Mercado Livre é copiado (Ctrl+C) em qualquer lugar."""
+        try:
+            t = self.clipboard_get()
+        except Exception:
+            t = ""
+        if t != self._clip:
+            self._clip = t
+            links = recursos.links_ml(t[:20000]) if t else []
+            if links and not self.rodando and self.pagina is not self.paginas.get("editor"):
+                self._aviso_link(links)
+        self.after(1500, self._olhar_area_transf)
+
+    def _aviso_link(self, links):
+        try:
+            self._banner.destroy()
+        except Exception:
+            pass
+        b = self._banner = ctk.CTkFrame(self, fg_color=PAINEL, corner_radius=14, border_width=2, border_color=AMARELO_ML)
+        ctk.CTkLabel(b, text="ML", width=36, height=36, corner_radius=10, fg_color=AMARELO_ML, text_color="#1e293b",
+                     font=F(12, "bold")).pack(side="left", padx=(10, 8), pady=10)
+        txt = "Link do Mercado Livre copiado" if len(links) == 1 else f"{len(links)} links do Mercado Livre copiados"
+        ctk.CTkLabel(b, text=txt, font=F(13, "bold"), text_color=TEXTO).pack(side="left", padx=(0, 12))
+        Botao(b, "Importar" if len(links) == 1 else "Importar todos", "primario", width=110, height=32,
+              command=lambda: (b.destroy(), self.importar_links(links))).pack(side="left", padx=4)
+        Botao(b, "✕", "fantasma", width=32, height=32, command=b.destroy).pack(side="left", padx=(2, 10))
+        b.place(relx=1.0, rely=1.0, x=-24, y=-118, anchor="se")
+        b.lift()
+        self.after(20000, lambda: b.winfo_exists() and b.destroy())
+
+    def importar_links(self, links):
+        if not links:
+            return
+        if self.rodando or self.ocupado_ml:
+            self.toast("Espere o robô terminar o que está fazendo", AMBAR)
+            return
+        self.ocupado_ml = True
+        self.parar_flag.clear()
+        self.status(f"Importando {len(links)} anúncio(s) do Mercado Livre…")
+        self.paginas["ml"].aviso(f"Importando {len(links)} anúncio(s)…", carregando=True)
+        self.tarefas.put(("ml_importar_lote", links))
+
     def excluir(self, ficha):
         if self.rodando:
             return
@@ -592,6 +653,8 @@ class App(ctk.CTk):
                     self._conferir_concorrentes(dado)
                 elif tipo == "ml_importar":
                     self._ml_importar(dado)
+                elif tipo == "ml_importar_lote":
+                    self._ml_importar_lote(dado)
                 elif tipo == "fechar_site":
                     self._fechar_site()
                     self.fila.put(("site", None, "fechado"))
@@ -692,6 +755,47 @@ class App(ctk.CTk):
             self._fechar_site()
         self.fila.put(("conc_fim", None, mudaram))
 
+    def _completar_importada(self, pasta):
+        if not motor.sim(self.cfg["robo"].get("completar_ao_importar", "sim")):
+            return
+        try:
+            f = motor.ler_ficha(pasta)
+            if f.dados:
+                d = json.loads(json.dumps(f.dados))
+                # o preço do anúncio é do concorrente: não sugere venda nem preço "de" em cima dele
+                if recursos.completar(d, dict(self.cfg["robo"]), campos=("codigos", "categoria", "tecnica", "caixa"),
+                                      existentes=recursos.codigos_das_fichas(self.pasta(), exceto=pasta)):
+                    motor.salvar_ficha(f, d)
+        except Exception:
+            with open(motor.BASE / "erros.log", "a", encoding="utf-8") as fl:
+                fl.write(traceback.format_exc() + "\n")
+
+    def _ml_importar_lote(self, links):
+        pastas, falhas = [], []
+        try:
+            ml = self._garantir_ml()
+            for i, link in enumerate(links, 1):
+                if self.parar_flag.is_set():
+                    break
+                self.fila.put(("ml_status", None, f"Importando {i} de {len(links)}: lendo o anúncio…"))
+                try:
+                    info = ml.extrair(link)
+                    pasta = motor.ficha_do_ml(info, self.pasta(), baixar=ml.baixar)
+                    self._completar_importada(pasta)
+                    pastas.append(pasta)
+                except motor.Parar:
+                    break
+                except Exception as e:
+                    if "closed" in str(e).lower() or "Target" in str(e):
+                        raise
+                    falhas.append((link, str(e).splitlines()[0] if str(e) else repr(e)))
+                    with open(motor.BASE / "erros.log", "a", encoding="utf-8") as fl:
+                        fl.write(traceback.format_exc() + "\n")
+        except Exception as e:
+            falhas.append(("", str(e).splitlines()[0] if str(e) else repr(e)))
+            self._fechar_site()
+        self.fila.put(("ml_lote_fim", None, (pastas, falhas)))
+
     def _ml_importar(self, link):
         try:
             ml = self._garantir_ml()
@@ -699,6 +803,7 @@ class App(ctk.CTk):
             info = ml.extrair(link)
             self.fila.put(("ml_status", None, f"Baixando {len(info.get('imagens') or [])} foto(s)…"))
             pasta = motor.ficha_do_ml(info, self.pasta(), baixar=ml.baixar)
+            self._completar_importada(pasta)
             self.fila.put(("ml_importado", None, pasta))
         except motor.Parar:
             self.fila.put(("ml_erro", None, "Parado."))
@@ -816,6 +921,22 @@ class App(ctk.CTk):
             ed = self.paginas.get("editor")
             if ed:
                 ed.textos_prontos(t)
+        elif ev == "ml_lote_fim":
+            pastas, falhas = t
+            self.ocupado_ml = False
+            self.trazer_para_frente()
+            self.paginas["ml"].aviso("")
+            if len(pastas) == 1 and not falhas:
+                self._evento("ml_importado", None, pastas[0])
+                return
+            self.recarregar(selecionar=pastas[0] if pastas else None)
+            self.ir("fichas")
+            msg = f"{len(pastas)} ficha(s) criada(s) do Mercado Livre" + (f", {len(falhas)} com falha" if falhas else "")
+            self.status(msg + ". Confira o custo, o estoque e o peso de cada uma.")
+            self.toast(msg, VERDE if not falhas else AMBAR)
+            if falhas:
+                messagebox.showwarning("Importar do Mercado Livre", "Não deu para importar:\n\n" +
+                                       "\n".join(f"• {cortar(l or 'navegador', 60)}: {m}" for l, m in falhas[:8]))
         elif ev == "ml_importado":
             self.ocupado_ml = False
             self.trazer_para_frente()
@@ -899,7 +1020,7 @@ class PaginaFichas(ctk.CTkFrame):
         self.lbl_cont = cab.sub
         Botao(cab.acoes, "＋  Nova ficha", "primario", width=130, command=lambda: app.editar(None)).pack(side="left", padx=4)
         Botao(cab.acoes, "Colar ficha da IA", "suave", width=140, command=lambda: Colar(app)).pack(side="left", padx=4)
-        Botao(cab.acoes, "Importar do Mercado Livre", "ml", width=200, command=lambda: app.ir("ml")).pack(side="left", padx=4)
+        Botao(cab.acoes, "🔗  Importar link do ML", "ml", width=190, command=lambda: ImportarLinks(app)).pack(side="left", padx=4)
         Botao(cab.acoes, "Pasta", "fantasma", width=70, command=lambda: abrir_no_sistema(app.pasta())).pack(side="left", padx=4)
         Botao(cab.acoes, "⟳", "fantasma", width=40, command=app.recarregar).pack(side="left", padx=(4, 0))
 
@@ -932,8 +1053,10 @@ class PaginaFichas(ctk.CTkFrame):
                       hover_color=SUAVE, font=F(12), command=lambda: self.marcar_todas(False)).pack(side="left")
         ctk.CTkButton(sel, text="Etiquetas", width=80, height=26, fg_color="transparent", text_color=ROXO_TXT,
                       hover_color=SUAVE, font=F(12, "bold"), command=lambda: Etiquetas(app, self.alvos())).pack(side="right")
-        ctk.CTkButton(sel, text="Atualizar em lote", width=120, height=26, fg_color="transparent", text_color=ROXO_TXT,
+        ctk.CTkButton(sel, text="Lote", width=50, height=26, fg_color="transparent", text_color=ROXO_TXT,
                       hover_color=SUAVE, font=F(12, "bold"), command=lambda: Lote(app, self.alvos())).pack(side="right")
+        ctk.CTkButton(sel, text="✦ Completar", width=90, height=26, fg_color="transparent", text_color=ROXO_TXT,
+                      hover_color=SUAVE, font=F(12, "bold"), command=lambda: app.completar_fichas(self.alvos())).pack(side="right")
         self.lista = ctk.CTkScrollableFrame(esq, fg_color="transparent")
         self.lista.grid(row=1, column=0, sticky="nsew", padx=6, pady=(4, 6))
         self.lista.grid_columnconfigure(0, weight=1)
@@ -1662,9 +1785,13 @@ class PaginaConfig(ctk.CTkFrame):
         self.app = app
         self.grid_columnconfigure(0, weight=1)
         Cabecalho(self, "Configurações", "Onde ficam as fichas, qual site usar e como o navegador trabalha.").grid(
-            row=0, column=0, sticky="ew", padx=24, pady=(20, 12))
-        card = ctk.CTkFrame(self, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA)
-        card.grid(row=1, column=0, sticky="new", padx=24)
+            row=0, column=0, columnspan=2, sticky="ew", padx=24, pady=(20, 12))
+        self.grid_rowconfigure(1, weight=1)
+        raiz = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        raiz.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=(0, 6), pady=(0, 10))
+        raiz.grid_columnconfigure((0, 1), weight=1, uniform="cfg")
+        card = ctk.CTkFrame(raiz, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA)
+        card.grid(row=1, column=0, sticky="new", padx=(18, 8))
         card.grid_columnconfigure(1, weight=1)
         self.campos = {}
         r = app.cfg["robo"]
@@ -1690,9 +1817,9 @@ class PaginaConfig(ctk.CTkFrame):
         self.visivel.grid(row=9, column=0, columnspan=2, sticky="w", padx=20, pady=(10, 0))
         (self.visivel.select if motor.sim(r.get("navegador_visivel")) else self.visivel.deselect)()
         self.grid_columnconfigure(1, weight=1)
-        card.grid(row=1, column=0, sticky="new", padx=(24, 8))
-        c2 = ctk.CTkFrame(self, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA)
-        c2.grid(row=1, column=1, sticky="new", padx=(8, 24))
+        card.grid(row=1, column=0, sticky="new", padx=(18, 8))
+        c2 = ctk.CTkFrame(raiz, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA)
+        c2.grid(row=1, column=1, sticky="new", padx=(8, 18))
         c2.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(c2, text="Preço, textos e fotos", font=F(15, "bold"), text_color=TEXTO, anchor="w").grid(
             row=0, column=0, columnspan=2, sticky="w", padx=20, pady=(16, 0))
@@ -1715,6 +1842,24 @@ class PaginaConfig(ctk.CTkFrame):
                "monta o título e a descrição com os dados da ficha.", show="•")
         campo2(11, "Modelo do Gemini", "gemini_modelo", "")
         ctk.CTkLabel(c2, text="").grid(row=13, column=0, pady=4)
+        c3 = ctk.CTkFrame(raiz, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA)
+        c3.grid(row=2, column=0, sticky="new", padx=(18, 8), pady=(16, 10))
+        c3.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(c3, text="Automático", font=F(15, "bold"), text_color=TEXTO, anchor="w").grid(
+            row=0, column=0, columnspan=2, sticky="w", padx=20, pady=(16, 0))
+        for row, rot, chave, tipo, ajuda in ((1, "Preço “de” automático (%)", "preco_de_pct", "inteiro",
+                                              "Ex.: 20 = o preço riscado fica 20% acima da venda. Vazio = não preenche."),
+                                             (3, "Folga da caixa (cm)", "folga_caixa", "decimal",
+                                              "Medida da caixa = medida da peça + essa folga.")):
+            ctk.CTkLabel(c3, text=rot, anchor="w", font=F(13, "bold"), text_color=TEXTO).grid(row=row, column=0, sticky="w", padx=20, pady=(12, 0))
+            e = Entrada(c3, tipo, width=90)
+            e.definir(r.get(chave, ""))
+            e.grid(row=row, column=1, sticky="w", padx=20, pady=(12, 0))
+            self.campos[chave] = e
+            ctk.CTkLabel(c3, text=ajuda, text_color=MUDO, anchor="w", font=F(11)).grid(row=row + 1, column=0, columnspan=2, sticky="w", padx=20)
+        self.auto_imp = ctk.CTkSwitch(c3, text="Completar a ficha sozinho ao importar do Mercado Livre", progress_color=ROXO, font=F(13), text_color=TEXTO)
+        self.auto_imp.grid(row=5, column=0, columnspan=2, sticky="w", padx=20, pady=(12, 18))
+        (self.auto_imp.select if motor.sim(r.get("completar_ao_importar", "sim")) else self.auto_imp.deselect)()
         bts = ctk.CTkFrame(card, fg_color="transparent")
         bts.grid(row=10, column=0, columnspan=2, sticky="e", padx=20, pady=20)
         Botao(bts, "Fechar o navegador do robô", "fantasma", width=200, command=lambda: app.tarefas.put(("fechar_site", None))).pack(side="left", padx=6)
@@ -1743,6 +1888,9 @@ class PaginaConfig(ctk.CTkFrame):
         r["marca_dagua"] = self.campos["marca_dagua"].get().strip()
         r["gemini_chave"] = self.campos["gemini_chave"].get().strip()
         r["gemini_modelo"] = self.campos["gemini_modelo"].get().strip() or "gemini-2.5-flash"
+        r["preco_de_pct"] = str(self.campos["preco_de_pct"].valor() or "")
+        r["folga_caixa"] = decimal_txt(self.campos["folga_caixa"].valor() or 4).replace(",", ".")
+        r["completar_ao_importar"] = "sim" if self.auto_imp.get() else "nao"
         motor.salvar_config(self.app.cfg)
         if self.app.site and not self.app.rodando:
             self.app.tarefas.put(("fechar_site", None))
@@ -1907,8 +2055,10 @@ class Editor(ctk.CTkFrame):
         self.lbl_sub.grid(row=1, column=1, sticky="w")
         self.lbl_erro = ctk.CTkLabel(cab, text="", font=F(12, "bold"), text_color=VERMELHO)
         self.lbl_erro.grid(row=0, column=2, rowspan=2, padx=10)
-        Botao(cab, "Cancelar", "fantasma", width=96, command=self.cancelar).grid(row=0, column=3, rowspan=2, padx=4)
-        Botao(cab, "Salvar ficha", "primario", width=140, height=40, font=F(14, "bold"), command=self.salvar).grid(row=0, column=4, rowspan=2, padx=(4, 0))
+        Botao(cab, "✦  Completar tudo", "suave", width=150, command=self.completar_tudo).grid(row=0, column=3, rowspan=2, padx=4)
+        Botao(cab, "Conferir", "fantasma", width=90, command=lambda: self.conferir()).grid(row=0, column=4, rowspan=2, padx=4)
+        Botao(cab, "Cancelar", "fantasma", width=96, command=self.cancelar).grid(row=0, column=5, rowspan=2, padx=4)
+        Botao(cab, "Salvar ficha", "primario", width=140, height=40, font=F(14, "bold"), command=self.salvar).grid(row=0, column=6, rowspan=2, padx=(4, 0))
 
         self.corpo = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.corpo.grid(row=1, column=0, sticky="nsew", padx=14, pady=(0, 10))
@@ -2249,6 +2399,40 @@ class Editor(ctk.CTkFrame):
             l.calc()
         self._conta()
         self.app.toast(f"Venda R$ {reais(valor)} em todas as variações")
+
+    # completar e conferir
+    def completar_tudo(self):
+        d = self.montar()
+        feito = recursos.completar(d, dict(self.app.cfg["robo"]),
+                                   existentes=recursos.codigos_das_fichas(self.app.pasta(), exceto=self.ficha.pasta if self.ficha else None))
+        self.codigo.definir(d.get("codigo"))
+        if d.get("categoria"):
+            self.categoria.set(d["categoria"])
+        for l, v in zip(self.linhas, d["variacoes"]):
+            emb = v.get("embalagem") or {}
+            l.codigo.definir(v.get("codigo"))
+            l.venda.definir(v.get("venda"))
+            l.de.definir(v.get("preco_tabela"))
+            l.cc.definir(emb.get("comprimento_cm"))
+            l.cl.definir(emb.get("largura_cm"))
+            l.ca.definir(emb.get("altura_cm"))
+            l.calc()
+        for fr, a, b in list(self.tec):
+            fr.destroy()
+        self.tec = []
+        for item in d.get("ficha_tecnica") or []:
+            self._linha_tec(item.get("nome"), item.get("valor"))
+        self.ml_titulo.definir((d.get("mercado_livre") or {}).get("titulo_anuncio"))
+        self._contar_titulo()
+        if not self.desc.get("1.0", "end").strip() and d.get("descricao"):
+            self.desc.insert("1.0", d["descricao"])
+            self._contar()
+        self.conferir(feito)
+
+    def conferir(self, feito=None):
+        d = self.montar()
+        n_fotos = len([f for f in self.fotos if not f.removida])
+        ConferirFicha(self.app, feito, recursos.problemas(d, n_fotos))
 
     # título e descrição
     def gerar_textos(self):
@@ -3054,6 +3238,75 @@ class FotosProntas(Dialogo):
         self.destroy()
         self.app.toast("Fotos prontas. Toque em Salvar ficha para guardar." if not falhas else f"{falhas} foto(s) não deu para tratar",
                        VERDE if not falhas else AMBAR)
+
+
+class ConferirFicha(Dialogo):
+    def __init__(self, app, feito, falta):
+        titulo = "Ficha completada" if feito is not None else "Conferir ficha"
+        super().__init__(app, titulo, "O robô preenche só o que estava vazio. Confira e toque em Salvar ficha.", larg=640, alt=560)
+        caixa = ctk.CTkScrollableFrame(self.corpo, fg_color="transparent")
+        caixa.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+        self.corpo.grid_rowconfigure(0, weight=1)
+        self.corpo.grid_columnconfigure(0, weight=1)
+
+        def linha(t, cor, fundo):
+            ctk.CTkLabel(caixa, text=t, anchor="w", justify="left", wraplength=540, fg_color=fundo, text_color=cor,
+                         corner_radius=10, padx=12, pady=6, font=F(12)).pack(fill="x", pady=2)
+        if feito is not None:
+            ctk.CTkLabel(caixa, text="Preenchido agora", font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(fill="x", pady=(2, 4))
+            for t in feito or ["Nada para completar: o que dava para deduzir já estava preenchido."]:
+                linha("✓  " + t, ("#047857", "#6ee7b7"), ("#ecfdf5", "#0f2a22"))
+        ctk.CTkLabel(caixa, text="Ainda falta (só você sabe)" if falta else "Tudo certo",
+                     font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(fill="x", pady=(12, 4))
+        for t in falta:
+            linha("⚠  " + t, ("#b45309", "#fcd34d"), ("#fffbeb", "#33270f"))
+        if not falta:
+            linha("✓  A ficha tem tudo o que o site e o Mercado Livre precisam.", ("#047857", "#6ee7b7"), ("#ecfdf5", "#0f2a22"))
+        self.botao_ok("Entendi", self.destroy)
+
+
+class ImportarLinks(Dialogo):
+    """Cola um ou vários links de anúncios do Mercado Livre e o robô cria uma ficha de cada."""
+
+    def __init__(self, app, texto=""):
+        super().__init__(app, "Importar link do Mercado Livre",
+                         "Cole o link do anúncio (pode colar vários, um por linha). O robô abre cada um e cria a ficha com fotos, "
+                         "medidas e características.", larg=680, alt=480)
+        if not texto:
+            try:
+                texto = app.clipboard_get()
+            except Exception:
+                texto = ""
+            texto = "\n".join(recursos.links_ml(texto[:20000]))
+        self.caixa = ctk.CTkTextbox(self.corpo, height=200, corner_radius=10, border_width=2, border_color=BORDA, fg_color=PAINEL,
+                                    font=F(12), wrap="none")
+        self.caixa.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=16, pady=(16, 6))
+        self.corpo.grid_rowconfigure(0, weight=1)
+        self.corpo.grid_columnconfigure(0, weight=1)
+        if texto:
+            self.caixa.insert("1.0", texto)
+        self.caixa.bind("<KeyRelease>", lambda e: self.contar())
+        self.caixa.bind("<<Paste>>", lambda e: self.after(50, self.contar), add="+")
+        self.info = ctk.CTkLabel(self.corpo, text="", font=F(12), text_color=MUDO, anchor="w")
+        self.info.grid(row=1, column=0, columnspan=2, sticky="w", padx=18, pady=(0, 14))
+        self.botao_ok("Importar", self.importar)
+        self.contar()
+        self.after(200, self.caixa.focus_set)
+
+    def links(self):
+        return recursos.links_ml(self.caixa.get("1.0", "end"))
+
+    def contar(self):
+        n = len(self.links())
+        self.info.configure(text=f"{n} anúncio(s) encontrado(s)." if n else "Nenhum link do Mercado Livre ainda. Cole com Ctrl+V.")
+        self.bt_ok.configure(text=f"Importar {n}" if n > 1 else "Importar", state="normal" if n else "disabled")
+
+    def importar(self):
+        links = self.links()
+        if not links:
+            return
+        self.destroy()
+        self.app.importar_links(links)
 
 
 # ------------------------------------------------------------------ página Concorrentes
