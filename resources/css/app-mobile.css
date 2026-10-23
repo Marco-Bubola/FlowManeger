@@ -534,3 +534,6 @@ html body:has(.notif-ph) .mobile-top-bell { display: none !important; }
     html body .client-resumo-page,
     html body .client-transferencias-page { max-width: none !important; }
 }
+
+/* Painéis (dash-grid): um nome de produto comprido numa lista não pode alargar a coluna e empurrar a tela para o lado. */
+.dash-grid > *, .dash-kpis > * { min-width: 0; }
