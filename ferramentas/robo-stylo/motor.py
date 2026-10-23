@@ -635,7 +635,7 @@ JS_BUSCA = r"""
     const vend = c.querySelector('.poly-component__seller, .ui-search-official-store-label');
     vistos.add(link);
     out.push({titulo: t, link, preco, imagem: src, vendedor: vend ? vend.innerText.trim() : ''});
-    if (out.length >= 48) break;
+    if (out.length >= 60) break;
   }
   return out;
 }
@@ -775,11 +775,14 @@ class MercadoLivre:
                 pass
             time.sleep(0.4)
 
-    def buscar(self, termo):
+    def buscar(self, termo, pagina=1):
+        """Uma página de resultados (cerca de 50 anúncios). pagina=2, 3... traz os seguintes."""
         pg = self._pagina()
         slug = re.sub(r"\s+", "-", str(termo).strip())
         from urllib.parse import quote
         url = ML_BUSCA + quote(slug, safe="-")
+        if pagina > 1:
+            url += f"_Desde_{(pagina - 1) * 48 + 1}_NoIndex_True"
         pg.goto(url, wait_until="domcontentloaded")
         if self._esperar_liberar():
             pg.goto(url, wait_until="domcontentloaded")
@@ -789,7 +792,7 @@ class MercadoLivre:
             pass
         self._rolar(3)
         itens = pg.evaluate(JS_BUSCA)
-        if not itens:
+        if not itens and pagina == 1:
             try:
                 html = pg.content()
             except Exception:

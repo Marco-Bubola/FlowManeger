@@ -581,6 +581,8 @@ class App(ctk.CTk):
                     self._trabalho(dado)
                 elif tipo == "ml_buscar":
                     self._ml_buscar(*dado)
+                elif tipo == "ml_mais":
+                    self._ml_buscar(*dado, mais=True)
                 elif tipo == "ml_importar":
                     self._ml_importar(dado)
                 elif tipo == "fechar_site":
@@ -614,22 +616,27 @@ class App(ctk.CTk):
                 fl.write(traceback.format_exc() + "\n")
             self._fechar_site()
 
-    def _ml_buscar(self, termo, busca_id):
+    def _ml_buscar(self, termo, busca_id, pagina=1, paginas=2, mais=False):
+        """Busca {paginas} páginas seguidas (cerca de 50 anúncios cada) e baixa as miniaturas."""
         try:
             ml = self._garantir_ml()
             if motor.eh_link_ml(termo):
                 self.fila.put(("ml_status", None, "Lendo o anúncio…"))
                 self._ml_importar(termo)
                 return
-            itens = ml.buscar(termo)
-            self.fila.put(("ml_resultados", None, (busca_id, itens)))
-            for i, it in enumerate(itens):
-                if not self.tarefas.empty():
+            for n in range(pagina, pagina + paginas):
+                itens = ml.buscar(termo, n)
+                acabou = len(itens) < 30
+                self.fila.put(("ml_resultados", None, (busca_id, itens, mais or n > pagina, n, acabou)))
+                for it in itens:
+                    if not self.tarefas.empty():
+                        return
+                    if it.get("imagem"):
+                        corpo = ml.baixar(it["imagem"], timeout=15000)
+                        if corpo:
+                            self.fila.put(("ml_thumb", None, (busca_id, it["link"], corpo)))
+                if acabou or not self.tarefas.empty():
                     break
-                if it.get("imagem"):
-                    corpo = ml.baixar(it["imagem"], timeout=15000)
-                    if corpo:
-                        self.fila.put(("ml_thumb", None, (busca_id, i, corpo)))
         except motor.Parar:
             self.fila.put(("ml_erro", None, "Parado."))
         except Exception as e:
@@ -733,7 +740,7 @@ class App(ctk.CTk):
             self.trazer_para_frente()
             self.chip_nav.mudar("Navegador aberto", VERDE)
             self.paginas["ml"].resultados(*t)
-            self.status(f"{len(t[1])} anúncio(s) encontrado(s).")
+            self.status(f"{len(self.paginas['ml'].itens)} anúncio(s) encontrado(s).")
         elif ev == "ml_thumb":
             self.paginas["ml"].thumb(*t)
         elif ev == "ml_erro":
@@ -1235,7 +1242,12 @@ class PaginaML(ctk.CTkFrame):
         self.termo.grid(row=0, column=0, sticky="ew", padx=(14, 8), pady=14)
         self.termo.bind("<Return>", lambda e: self.buscar())
         self.bt_buscar = Botao(caixa, "⌕  Buscar", "ml", width=130, height=46, font=F(15, "bold"), command=self.buscar)
-        self.bt_buscar.grid(row=0, column=1, padx=(0, 14), pady=14)
+        self.bt_buscar.grid(row=0, column=1, padx=(0, 8), pady=14)
+        Botao(caixa, "✦  Pesquisas rápidas", "suave", width=170, height=46, font=F(14, "bold"),
+              command=lambda: PesquisasRapidas(app, self)).grid(row=0, column=2, padx=(0, 14), pady=14)
+        self.pagina_ml = 1
+        self.fim_ml = False
+        self.termo_atual = ""
 
         filtros = ctk.CTkFrame(self, fg_color="transparent")
         filtros.grid(row=2, column=0, sticky="ew", padx=24, pady=(10, 4))
@@ -1294,7 +1306,22 @@ class PaginaML(ctk.CTkFrame):
         importar = motor.eh_link_ml(termo)
         self.aviso("Lendo o anúncio…" if importar else f"Buscando “{termo}” no Mercado Livre…", carregando=True)
         self.app.status("Abrindo o Mercado Livre no navegador do robô…")
+        self.pagina_ml, self.fim_ml, self.termo_atual = 2, False, termo
+        if not importar:
+            salvar_historico(termo)
         self.app.tarefas.put(("ml_buscar", (termo, self.busca_id)))
+
+    def buscar_termo(self, termo):
+        self.termo.definir(termo)
+        self.app.ir("ml")
+        self.buscar()
+
+    def carregar_mais(self):
+        if self.app.ocupado_ml or self.fim_ml or not self.termo_atual:
+            return
+        self.app.ocupado_ml = True
+        self.aviso("Trazendo mais anúncios…", carregando=True)
+        self.app.tarefas.put(("ml_mais", (self.termo_atual, self.busca_id, self.pagina_ml + 1, 2)))
 
     def importar(self, item):
         if self.app.ocupado_ml or self.app.rodando:
@@ -1304,20 +1331,29 @@ class PaginaML(ctk.CTkFrame):
         self.aviso(f"Lendo o anúncio “{item['titulo'][:60]}”…", carregando=True)
         self.app.tarefas.put(("ml_importar", item["link"]))
 
-    def resultados(self, busca_id, itens):
+    def resultados(self, busca_id, itens, juntar=False, pagina=1, acabou=False):
         if busca_id != self.busca_id:
             return
-        self.itens = [dict(it, _i=i, _thumb=None) for i, it in enumerate(itens)]
-        self.aviso("" if itens else "")
-        if not itens:
+        if not juntar:
+            self.itens = []
+        vistos = {it["link"] for it in self.itens}
+        novos = [dict(it, _thumb=None) for it in itens if it["link"] not in vistos]
+        self.itens += novos
+        self.pagina_ml = max(self.pagina_ml, pagina)
+        self.fim_ml = acabou
+        self.aviso("")
+        if not self.itens:
             self.aviso("Nada encontrado. Tente outras palavras ou cole o link do anúncio.", erro=True)
         self.desenhar()
 
-    def thumb(self, busca_id, i, corpo):
-        if busca_id != self.busca_id or i >= len(self.itens):
+    def thumb(self, busca_id, link, corpo):
+        if busca_id != self.busca_id:
             return
-        self.itens[i]["_thumb"] = corpo
-        c = next((c for c in self.cartoes if c.item is self.itens[i]), None)
+        item = next((it for it in self.itens if it["link"] == link), None)
+        if item is None:
+            return
+        item["_thumb"] = corpo
+        c = next((c for c in self.cartoes if c.item is item), None)
         if c:
             img = miniatura(corpo, 150, 14)
             if img:
@@ -1376,6 +1412,147 @@ class PaginaML(ctk.CTkFrame):
             l.item = None
             l.foto = None
             self.cartoes.append(l)
+        elif not self.fim_ml and self.termo_atual:
+            b = Botao(self.grade, f"Carregar mais anúncios  ·  {len(self.itens)} até agora", "suave", height=42, font=F(13, "bold"),
+                      command=self.carregar_mais)
+            b.grid(row=(len(itens) - 1) // cols + 1, column=0, columnspan=cols, sticky="ew", padx=6, pady=(10, 16))
+            b.item = None
+            b.foto = None
+            self.cartoes.append(b)
+
+
+# ------------------------------------------------------------------ pesquisas rápidas
+
+HISTORICO_ML = motor.BASE / "historico-ml.json"
+
+PESQUISAS = [
+    ("Seus produtos", "As peças dos prints que você mandou", [
+        "suporte vaso redondo com rodinhas", "suporte vaso rodinhas madeira", "jogo 10 argolas porta vaso",
+        "argola porta vaso parede ferro", "suporte bicicleta chão e parede", "rack bicicleta estacionamento chão",
+        "mão francesa colonial ferro", "mão francesa ferro prateleira", "mão francesa industrial", "kit mão francesa com parafusos"]),
+    ("Prateleiras e parede", "Ferro com tábua de madeira", [
+        "prateleira industrial ferro madeira", "nicho ferro madeira parede", "estante industrial ferro madeira",
+        "prateleira banheiro ferro madeira", "porta temperos ferro madeira", "cabideiro parede ferro madeira",
+        "porta chaves madeira ferro", "adega de parede ferro", "suporte tv industrial", "prateleira flutuante cantoneira"]),
+    ("Móveis", "Peças maiores que vendem bem no estilo industrial", [
+        "mesa lateral industrial", "mesa de centro ferro madeira", "banqueta industrial ferro", "aparador industrial ferro madeira",
+        "rack tv industrial", "sapateira industrial", "mesa dobrável de parede", "escrivaninha industrial",
+        "arara de roupas industrial", "carrinho bar ferro", "cabeceira ferro", "bancada industrial"]),
+    ("Jardim e plantas", "Para quem já compra suporte de vaso", [
+        "suporte plantas escada ferro", "floreira ferro", "cachepô ferro", "suporte vaso tripé ferro",
+        "suporte vaso parede ferro", "treliça ferro jardim", "mesa jardim ferro", "suporte xaxim ferro"]),
+    ("Bicicleta e garagem", "Ferro puro, fácil de produzir", [
+        "suporte bicicleta parede vertical", "suporte bicicleta teto", "suporte capacete parede",
+        "suporte botijão gás rodinhas", "porta lenha ferro", "suporte pneu parede", "organizador ferramentas parede"]),
+    ("Casa e decoração", "Peças pequenas, boas para kit", [
+        "suporte papel toalha ferro", "porta toalha banheiro ferro", "porta revista ferro", "porta vinho ferro",
+        "espelho moldura ferro", "luminária industrial ferro", "suporte rede parede", "suporte microondas parede",
+        "gancho parede ferro", "porta casaco de pé ferro"]),
+    ("Pet", "Ferro e madeira para cães e gatos", [
+        "comedouro elevado pet madeira", "cama pet ferro", "arranhador gato madeira", "porta guia coleira parede"]),
+]
+
+
+def ler_historico():
+    try:
+        return [t for t in json.loads(HISTORICO_ML.read_text(encoding="utf-8")) if isinstance(t, str)][:16]
+    except Exception:
+        return []
+
+
+def salvar_historico(termo):
+    termo = termo.strip()
+    if not termo:
+        return
+    lista = [termo] + [t for t in ler_historico() if t.lower() != termo.lower()]
+    try:
+        HISTORICO_ML.write_text(json.dumps(lista[:16], ensure_ascii=False), encoding="utf-8")
+    except OSError:
+        pass
+
+
+class PesquisasRapidas(ctk.CTkToplevel):
+    """Janela com buscas prontas: as peças da loja e ideias em ferro e madeira."""
+
+    def __init__(self, app, pagina):
+        super().__init__(app)
+        self.app, self.pagina = app, pagina
+        self.title("Pesquisas rápidas")
+        self.configure(fg_color=FUNDO)
+        larg, alt = 900, min(700, app.winfo_height() - 40)
+        self.geometry(f"{larg}x{alt}+{app.winfo_rootx() + 160}+{app.winfo_rooty() + 30}")
+        self.transient(app)
+        self.after(150, self.grab_set)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+        cab = ctk.CTkFrame(self, fg_color="transparent")
+        cab.grid(row=0, column=0, sticky="ew", padx=22, pady=(18, 6))
+        cab.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(cab, text="Pesquisas rápidas", font=F(22, "bold"), text_color=TEXTO, anchor="w").grid(row=0, column=0, sticky="w")
+        ctk.CTkLabel(cab, text="Toque numa ideia para buscar no Mercado Livre. Use os botões para juntar o material.",
+                     font=F(12), text_color=MUDO, anchor="w").grid(row=1, column=0, sticky="w")
+        Botao(cab, "Fechar", "fantasma", width=80, command=self.destroy).grid(row=0, column=1, rowspan=2)
+        barra = ctk.CTkFrame(self, fg_color="transparent")
+        barra.grid(row=1, column=0, sticky="ew", padx=22, pady=(4, 8))
+        barra.grid_columnconfigure(0, weight=1)
+        self.filtro = Entrada(barra, placeholder_text="⌕   Filtrar ideias (ex.: vaso, mesa, parede)", height=38, ao_mudar=self.desenhar)
+        self.filtro.grid(row=0, column=0, sticky="ew", padx=(0, 10))
+        self.extra = ctk.CTkSegmentedButton(barra, values=["Como está", "+ ferro", "+ madeira", "+ ferro e madeira"], height=36,
+                                            selected_color=ROXO, selected_hover_color=ROXO_H, font=F(12, "bold"),
+                                            unselected_color=PAINEL, unselected_hover_color=SUAVE, fg_color=PAINEL, text_color=TEXTO)
+        self.extra.set("Como está")
+        self.extra.grid(row=0, column=1)
+        self.corpo = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        self.corpo.grid(row=2, column=0, sticky="nsew", padx=14, pady=(0, 14))
+        self.corpo.grid_columnconfigure(0, weight=1)
+        self.desenhar()
+        self.after(200, self.filtro.focus_set)
+
+    def _termo(self, t):
+        extra = {"+ ferro": " ferro", "+ madeira": " madeira", "+ ferro e madeira": " ferro madeira"}.get(self.extra.get(), "")
+        palavras = t.lower().split()
+        return t + "".join(" " + e for e in extra.split() if e not in palavras)
+
+    def escolher(self, t):
+        termo = self._termo(t)
+        self.destroy()
+        self.pagina.buscar_termo(termo)
+
+    def desenhar(self):
+        for w in self.corpo.winfo_children():
+            w.destroy()
+        filtro = self.filtro.get().strip().lower()
+        grupos = []
+        hist = ler_historico()
+        if hist:
+            grupos.append(("Buscadas por você", "As últimas pesquisas", hist))
+        grupos += PESQUISAS
+        livre = self.filtro.get().strip()
+        r = 0
+        if livre:
+            b = Botao(self.corpo, f"⌕  Buscar “{self._termo(livre)}”", "ml", height=40, font=F(13, "bold"), anchor="w",
+                      command=lambda: self.escolher(livre))
+            b.grid(row=r, column=0, sticky="ew", padx=8, pady=(4, 8))
+            r += 1
+        for titulo, sub, termos in grupos:
+            termos = [t for t in termos if not filtro or all(p in t.lower() for p in filtro.split())]
+            if not termos:
+                continue
+            sec = ctk.CTkFrame(self.corpo, fg_color=PAINEL, corner_radius=16, border_width=1, border_color=BORDA)
+            sec.grid(row=r, column=0, sticky="ew", padx=8, pady=6)
+            r += 1
+            ctk.CTkLabel(sec, text=titulo, font=F(15, "bold"), text_color=TEXTO, anchor="w").pack(fill="x", padx=16, pady=(12, 0))
+            ctk.CTkLabel(sec, text=sub, font=F(12), text_color=MUDO, anchor="w").pack(fill="x", padx=16)
+            chips = ctk.CTkFrame(sec, fg_color="transparent")
+            chips.pack(fill="x", padx=12, pady=(8, 12))
+            cols = 3
+            for c in range(cols):
+                chips.grid_columnconfigure(c, weight=1, uniform="p")
+            for i, t in enumerate(termos):
+                Botao(chips, t, "suave", height=32, font=F(12, "bold"), anchor="w",
+                      command=lambda t=t: self.escolher(t)).grid(row=i // cols, column=i % cols, sticky="ew", padx=4, pady=3)
+        if r == 0:
+            ctk.CTkLabel(self.corpo, text="Nenhuma ideia com esse filtro.", text_color=MUDO, font=F(13)).grid(row=0, column=0, pady=40)
 
 
 # ------------------------------------------------------------------ página Configurações
