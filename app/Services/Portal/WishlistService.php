@@ -391,7 +391,7 @@ class WishlistService
             $lines[] = "Vi que você favoritou o {$name} no nosso catálogo. Assim que chegar eu te aviso!";
         }
         $lines[] = '';
-        $lines[] = 'Veja aqui: ' . route('portal.catalog', ['userId' => $product->user_id, 'produto' => $product->id]);
+        $lines[] = 'Veja aqui: ' . \App\Http\Controllers\ClientPortalController::productUrl($product);
 
         return implode("\n", $lines);
     }

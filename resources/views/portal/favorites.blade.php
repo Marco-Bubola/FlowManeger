@@ -125,7 +125,7 @@
                 @endphp
                 <article class="wl-card {{ $new->isNotEmpty() ? 'is-new' : '' }}" data-testid="fav-card" data-product="{{ $p->id }}" data-availability="{{ $av['key'] }}"
                          x-show="$store.favs.has({{ $p->id }})" x-transition.opacity>
-                    <a href="{{ $buyable ? route('portal.catalog', ['userId' => $storeId, 'produto' => $p->id]) : '#' }}" class="wl-img {{ $buyable ? '' : 'dim' }}" @if(! $buyable) onclick="return false" @endif>
+                    <a href="{{ \App\Http\Controllers\ClientPortalController::productUrl($p) }}" class="wl-img {{ $buyable ? '' : 'dim' }}">
                         @if($img)
                             <img src="{{ $img }}" alt="" loading="lazy" onerror="this.remove()">
                         @else

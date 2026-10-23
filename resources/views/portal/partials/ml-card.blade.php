@@ -1,9 +1,9 @@
-{{-- Card do catálogo público. Recebe $d com os dados montados em portal/catalog. --}}
+{{-- Card do catálogo público. Recebe $d de ClientPortalController::cardInfo; abre a página do produto. --}}
 @php
     $int = number_format(floor($d['price']), 0, ',', '.');
     $cents = str_pad((string) (round($d['price'] * 100) % 100), 2, '0', STR_PAD_LEFT);
 @endphp
-<div class="ml-card" role="button" tabindex="0" @click="open({{ $d['id'] }})" @keydown.enter="open({{ $d['id'] }})">
+<div class="ml-card">
     <div class="ml-card-img">
         @if($d['img'])
             <img src="{{ $d['img'] }}" alt="{{ $d['name'] }}" loading="lazy" onerror="this.outerHTML='<div class=&quot;ml-ph&quot;><i class=&quot;fas fa-image&quot;></i></div>'">
@@ -29,7 +29,8 @@
         @if($d['pct'])
             <span class="ml-deal">Oferta do dia</span>
         @endif
-        <p class="ml-title">{{ $d['name'] }}</p>
+        {{-- O link cobre o card todo (::after); coração e carrinho ficam por cima. --}}
+        <a class="ml-title ml-card-link" href="{{ $d['url'] }}">{{ $d['name'] }}</a>
         @if($d['old'])
             <span class="ml-old">R$ {{ number_format($d['old'], 2, ',', '.') }}</span>
         @endif

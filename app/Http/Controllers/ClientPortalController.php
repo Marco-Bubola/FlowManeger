@@ -562,6 +562,10 @@ class ClientPortalController extends Controller
         }
 
         $ownerId   = (int) $ownerId;
+        // Links antigos (?produto=ID, ex.: avisos do WhatsApp) vão para a página do produto.
+        if ($request->integer('produto') > 0) {
+            return redirect()->route('portal.product', ['userId' => $ownerId, 'product' => $request->integer('produto')]);
+        }
         // Lembra a loja para o cadastro e o login de quem chegou pelo link.
         cookie()->queue('portal_store', (string) $ownerId, 60 * 24 * 30);
         $search    = $request->query('search', '');
@@ -627,14 +631,7 @@ class ClientPortalController extends Controller
         }
 
         // Tudo que está à venda (com estoque): contagens e conferência do carrinho.
-        $inStock = Product::withoutGlobalScope('team_visibility')
-            ->where('user_id', $ownerId)
-            ->availableForSale()
-            ->whereIn('status', ['active', 'ativo'])
-            ->get(['id', 'category_id', 'stock_quantity', 'made_to_order']);
-        // teto: não expõe o estoque real; sob encomenda aceita até 10 por pedido
-        $stockMap = $inStock->mapWithKeys(fn ($p) => [$p->id => $p->made_to_order ? 10 : min((int) $p->stock_quantity, 10)]);
-        $unitsInStock = (int) $inStock->sum('stock_quantity');
+        $stockMap = self::stockMap($ownerId);
         // Contagem por categoria só do que aparece (uma variação por grupo).
         $countByCategory = Product::withoutGlobalScope('team_visibility')
             ->where('user_id', $ownerId)
@@ -649,17 +646,110 @@ class ClientPortalController extends Controller
 
         $store = \App\Models\User::select('id', 'name', 'phone', 'location')->find($ownerId);
 
-        // Link direto para um produto (?produto=ID): abre a ficha, se estiver à venda.
-        $focus = $request->integer('produto') > 0
-            ? Product::withoutGlobalScope('team_visibility')
-                ->where('user_id', $ownerId)
-                ->availableForSale()
-                ->whereIn('status', ['active', 'ativo'])
-                ->with(['category', 'activePromotion', 'images'])
-                ->find($request->integer('produto'))
-            : null;
+        return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers', 'sort', 'store', 'stockMap', 'countByCategory'));
+    }
 
-        return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers', 'sort', 'store', 'stockMap', 'unitsInStock', 'countByCategory', 'focus'));
+    /** Endereço da página do produto no portal (com o nome no fim, para o link ficar legível). */
+    public static function productUrl(Product $p): string
+    {
+        return route('portal.product', ['userId' => $p->user_id, 'product' => $p->id, 'slug' => Str::slug($p->name) ?: null]);
+    }
+
+    /** Quantas unidades o cliente pode pôr no carrinho de cada produto à venda (teto 10: não expõe o estoque real). */
+    private static function stockMap(int $ownerId): \Illuminate\Support\Collection
+    {
+        return Product::withoutGlobalScope('team_visibility')
+            ->where('user_id', $ownerId)
+            ->availableForSale()
+            ->whereIn('status', ['active', 'ativo'])
+            ->get(['id', 'stock_quantity', 'made_to_order'])
+            ->mapWithKeys(fn ($p) => [$p->id => $p->made_to_order ? 10 : min((int) $p->stock_quantity, 10)]);
+    }
+
+    /**
+     * Página própria do produto: fotos, preço, escolha da variação (tamanho, cor...),
+     * descrição, características e produtos relacionados. Produto sem estoque ainda abre,
+     * como "Esgotado", para o cliente salvar nos favoritos e ser avisado.
+     */
+    public function productPage(Request $request, int $userId, int $product, ?string $slug = null)
+    {
+        $base = fn () => Product::withoutGlobalScope('team_visibility')
+            ->where('user_id', $userId)
+            ->whereIn('status', ['active', 'ativo']);
+
+        $item = $base()->with(['category', 'activePromotion', 'images'])->find($product);
+        if (! $item) {
+            return redirect()->route('portal.catalog', ['userId' => $userId]);
+        }
+        cookie()->queue('portal_store', (string) $userId, 60 * 24 * 30);
+
+        // Família de variações: as opções que o cliente escolhe na página.
+        $family = collect([$item]);
+        if ($item->hasVariations()) {
+            $rootId = $item->parent_id ?? $item->id;
+            $family = $base()
+                ->where(fn ($q) => $q->where('id', $rootId)->orWhere('parent_id', $rootId))
+                ->with(['category', 'activePromotion', 'images'])
+                ->orderByDesc('is_variation_parent')->orderBy('variation_sort')->orderBy('id')
+                ->get();
+        }
+        $isBuyable = fn (Product $p) => $p->made_to_order || (int) $p->stock_quantity > 0;
+        $label = fn (Product $p) => trim((string) $p->variation_value) ?: 'Padrão';
+        // O principal sem nome de opção e sem estoque é só o "agrupador": não vira opção.
+        $family = $family->reject(fn ($p) => $p->is_variation_parent && trim((string) $p->variation_value) === '' && ! $isBuyable($p))->values();
+        // Variações que só diferem no custo ou no código (ex.: "R$ 64,00", da regra do upload) não viram opção.
+        $labels = $family->map($label);
+        $choosable = $family->count() > 1
+            && $labels->unique()->count() === $labels->count()
+            && $labels->every(fn ($l) => ! preg_match('/^(R\$\s*)?[\d.,]+$/u', $l));
+        if (! $choosable) {
+            $family = collect([$item]);
+        } elseif (! $family->contains('id', $item->id)) {
+            $item = $family->first($isBuyable) ?? $family->first();
+        }
+        // Abriu numa variação esgotada e há outra à venda: começa pela que dá para comprar.
+        if (! $isBuyable($item) && ($other = $family->first($isBuyable))) {
+            $item = $other;
+        }
+
+        $all = $family->mapWithKeys(fn ($p) => [$p->id => self::cardInfo($p) + ['buyable' => $isBuyable($p), 'opt' => $choosable ? $label($p) : null]]);
+        $minPrice = (float) $family->min('price_sale');
+
+        // Relacionados: da mesma categoria e de preço parecido; completa com outros da loja.
+        $shelf = fn () => $base()->availableForSale()->topOfFamily()
+            ->whereRaw('COALESCE(parent_id, id) != ?', [$item->parent_id ?? $item->id])
+            ->with(['category', 'activePromotion', 'images']);
+        $price = (float) $item->price_sale;
+        $related = $item->category_id
+            ? $shelf()->where('category_id', $item->category_id)
+                ->orderByRaw('ABS(price_sale - ?)', [$price])->orderByDesc('id')
+                ->limit(12)->get()
+            : collect();
+        if ($related->count() < 6) {
+            $more = $shelf()->whereNotIn('id', $related->pluck('id'))
+                ->orderByRaw('ABS(price_sale - ?)', [$price])->orderByDesc('id')
+                ->limit(12 - $related->count())->get();
+            $related = $related->concat($more);
+        }
+        foreach ($related as $r) {
+            $all[$r->id] = self::cardInfo($r);
+        }
+
+        $store = \App\Models\User::select('id', 'name', 'phone', 'location')->find($userId);
+        $stockMap = self::stockMap($userId);
+        $attribute = $choosable ? ($family->pluck('variation_attribute')->filter()->first() ?: 'Opção') : null;
+
+        return view('portal.product', [
+            'ownerId' => $userId,
+            'item' => $item,
+            'family' => $choosable ? $family : collect(),
+            'attribute' => $attribute,
+            'all' => $all,
+            'related' => $related,
+            'store' => $store,
+            'stockMap' => $stockMap,
+            'minPrice' => $minPrice,
+        ]);
     }
 
     /**
@@ -723,6 +813,7 @@ class ClientPortalController extends Controller
 
         return [
             'id'      => $p->id,
+            'url'     => self::productUrl($p),
             'name'    => $name,
             'price'   => $price,
             'old'     => $promo ? (float) $promo->original_price : null,

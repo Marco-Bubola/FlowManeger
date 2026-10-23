@@ -741,11 +741,11 @@ class PromotionService
         return route('portal.catalog', ['userId' => $userId]);
     }
 
-    /** Link que abre o catálogo já na ficha do produto (?produto=ID). Sem produto, é o catálogo. */
+    /** Link da página do produto no portal. Sem produto, é o catálogo. */
     public function productLink(int $userId, ?int $productId): string
     {
         return $productId
-            ? route('portal.catalog', ['userId' => $userId, 'produto' => $productId])
+            ? route('portal.product', ['userId' => $userId, 'product' => $productId])
             : $this->catalogLink($userId);
     }
 
