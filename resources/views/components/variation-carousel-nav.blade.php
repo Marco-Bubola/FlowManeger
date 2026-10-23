@@ -1,4 +1,4 @@
-{{-- Barra do carrossel de variações, logo abaixo do nome no card; usa o estado do x-variation-carousel em volta. --}}
+{{-- Barra do carrossel de variações, embaixo do card (fora dele); usa o estado do x-variation-carousel em volta. --}}
 <div class="vcn" @click.stop>
     <button type="button" class="vcn-arrow" @click.stop.prevent="go(-1)" aria-label="Variação anterior"><i class="bi bi-chevron-left"></i></button>
     <span class="vcn-mid" :title="labels[vi] + (note ? ' · ' + note : '')">

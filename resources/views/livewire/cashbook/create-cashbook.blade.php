@@ -337,7 +337,7 @@
                 </div>
 
                 <!-- Cofrinho -->
-                <div class="space-y-2">
+                <div class="space-y-2 md:col-span-2">
                     <label for="cofrinho_id" class="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
                         <i class="bi bi-piggy-bank text-amber-400"></i>
                         Cofrinho

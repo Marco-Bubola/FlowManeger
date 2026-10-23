@@ -1,7 +1,7 @@
 @props(['items', 'start' => 0, 'note' => null])
 {{--
     Um card só para o grupo de variações: as variações passam como carrossel
-    (setas e nome da variação numa barra logo abaixo do nome do produto, arrastar no celular). Cada página coloca os próprios cards no slot, e o card põe x-variation-carousel-nav abaixo do nome:
+    (setas e nome da variação numa barra logo abaixo do card, fora dele, arrastar no celular). Cada página coloca os próprios cards no slot:
         <div class="vc-slide" x-show="vi === {{ $k }}" @if($k !== $start) x-cloak @endif> ...card... </div>
 --}}
 @php
@@ -16,11 +16,10 @@
     .vc { position: relative; display: flex; flex-direction: column; min-width: 0; container-type: inline-size; }
     .vc > .vc-slide { flex: 1; display: flex; flex-direction: column; }
     .vc > .vc-slide > * { flex: 1; }
-    /* Barra das variações dentro do card, abaixo do nome (x-variation-carousel-nav): o card do
-       carrossel fica do mesmo tamanho dos outros da grade. */
-    .vc .vcn { box-sizing: border-box; position: relative; z-index: 3; display: flex; align-items: center; gap: .3rem; margin: .45rem auto 0; width: 100%; max-width: 15rem; padding: .2rem;
-        border-radius: 999px; background: rgba(139,92,246,.1); border: 1px solid rgba(139,92,246,.25); user-select: none; }
-    .dark .vcn { background: rgba(139,92,246,.18); border-color: rgba(167,139,250,.35); }
+    /* Barra das variações embaixo do card, fora dele (x-variation-carousel-nav), para não apertar o nome. */
+    .vc .vcn { box-sizing: border-box; position: relative; z-index: 3; display: flex; align-items: center; gap: .3rem; margin: .4rem auto 0; width: 100%; max-width: 16rem; padding: .2rem; flex: none;
+        border-radius: 999px; background: rgba(255,255,255,.85); border: 1px solid rgba(139,92,246,.25); box-shadow: 0 2px 8px rgba(124,58,237,.12); user-select: none; }
+    .dark .vcn { background: rgba(30,27,75,.75); box-shadow: none; border-color: rgba(167,139,250,.35); }
     .vc .vcn .vcn-arrow { width: 1.6rem; height: 1.6rem; padding: 0; margin: 0; flex-shrink: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center;
         font-size: .75rem; color: #fff; background: linear-gradient(135deg, #8b5cf6, #a855f7); box-shadow: 0 2px 6px rgba(124,58,237,.3); transition: transform .15s; }
     .vc .vcn .vcn-arrow:hover { transform: scale(1.08); }
@@ -47,4 +46,5 @@
      @touchend="if (sx !== null) { const dx = $event.changedTouches[0].clientX - sx; if (Math.abs(dx) > 45) go(dx < 0 ? 1 : -1); sx = null }"
      {{ $attributes }}>
     {{ $slot }}
+    <x-variation-carousel-nav />
 </div>
