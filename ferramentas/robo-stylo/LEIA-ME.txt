@@ -50,6 +50,37 @@ MERCADO LIVRE
 - Se o Mercado Livre pedir verificação ou login, resolva na janela do
   navegador; o robô espera e continua.
 
+- "Pesquisas rápidas": ideias prontas de peças em ferro e madeira; "Carregar
+  mais" traz mais anúncios. O ◎ de cada anúncio põe ele em Concorrentes.
+
+CUSTO E PREÇO (no editor)
+- Ficha de custo: materiais e "＋ Mão de obra" (horas × sua hora, que fica em
+  Configurações). "Usar como custo de todas" passa o total para as variações.
+- "Sugerir preço de venda": calcula o preço para sobrar a margem que você quer
+  depois da taxa do Mercado Livre (Clássico 14%, Premium 19%, custo fixo abaixo
+  de R$ 79) e do frete. Mostra quanto você recebe e quanto lucra.
+- "Ver preços no Mercado Livre": mais barato, preço do meio e mais caro dos
+  concorrentes, e quanto você lucraria vendendo pelo preço do meio.
+
+TÍTULO, DESCRIÇÃO E FOTOS (no editor)
+- "Escrever título e descrição": com a chave do Gemini (Configurações) a IA
+  escreve; sem chave, o robô monta um texto pelos dados da ficha.
+- Fotos › "Deixar prontas": quadradas 1200 × 1200, fundo claro vira branco,
+  realce e marca d'água. As originais vão para a subpasta _removidas.
+
+CONCORRENTES
+- Anúncios do Mercado Livre que você vigia. "Conferir preços agora" abre cada
+  um e avisa quem baixou ou subiu o preço, com o histórico.
+
+LOTE, KITS E ETIQUETAS
+- Fichas › "Atualizar em lote": aumenta ou diminui preço, custo, estoque ou
+  prazo das fichas marcadas (ou das que aparecem no filtro). Muda só as fichas;
+  no site use Produtos › Edição em massa.
+- "Kits" (na ficha): cria fichas de Kit 2, Kit 4... com código -K2, preço com
+  desconto, custo e peso multiplicados. Confira a caixa depois.
+- "Etiquetas": PDF A4 com 24 etiquetas (Pimaco A4356), com nome, medida,
+  código de barras e preço. Fica na pasta relatorios.
+
 CADASTRADAS
 - O que já subiu para o site, com o link de cada produto e "Nova a partir desta".
 

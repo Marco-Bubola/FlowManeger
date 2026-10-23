@@ -50,6 +50,12 @@ PADRAO = {
     "tamanho_maximo_foto_kb": "1500",
     "pausa_entre_produtos": "1",
     "tema": "claro",
+    "margem_padrao": "30",
+    "valor_hora": "",
+    "frete_estimado": "",
+    "gemini_chave": "",
+    "gemini_modelo": "gemini-2.5-flash",
+    "marca_dagua": "Móveis Stylo",
 }
 
 
@@ -855,6 +861,33 @@ class MercadoLivre:
         if not info.get("titulo"):
             raise RuntimeError("A página aberta não parece um anúncio do Mercado Livre.")
         return info
+
+    def preco_atual(self, link):
+        """Título e preço de hoje de um anúncio (para vigiar concorrentes). Preço None se o anúncio sumiu."""
+        pg = self._pagina()
+        pg.goto(link, wait_until="domcontentloaded")
+        if self._esperar_liberar():
+            pg.goto(link, wait_until="domcontentloaded")
+        try:
+            pg.wait_for_selector("h1", timeout=20000)
+        except Exception:
+            return None, None
+        r = pg.evaluate("""() => {
+          const h1 = document.querySelector('h1.ui-pdp-title') || document.querySelector('h1');
+          let preco = null;
+          const mp = document.querySelector('meta[itemprop="price"]');
+          if (mp && mp.content) preco = parseFloat(mp.content);
+          if (preco === null) {
+            for (const s of document.querySelectorAll('script[type="application/ld+json"]')) {
+              try { const j = JSON.parse(s.textContent); const o = Array.isArray(j) ? j[0] : j;
+                    const of = o && o.offers && (Array.isArray(o.offers) ? o.offers[0] : o.offers);
+                    if (of && of.price) { preco = parseFloat(of.price); break; } } catch (e) {}
+            }
+          }
+          const pausado = !!document.querySelector('.ui-pdp-message--warning, .ui-pdp-stock-information__title--out');
+          return {titulo: h1 ? h1.innerText.trim() : '', preco, pausado};
+        }""")
+        return r.get("titulo"), (None if r.get("pausado") and not r.get("preco") else r.get("preco"))
 
     def fechar(self):
         try:
