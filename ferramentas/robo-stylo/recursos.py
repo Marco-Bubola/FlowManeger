@@ -721,32 +721,8 @@ def completar(d, cfg=None, campos=None, existentes=None):
 
 
 def problemas(d, n_fotos=None):
-    """O que ainda falta na ficha (para a lista de conferência)."""
-    falta = []
-    if not str(d.get("nome") or "").strip():
-        falta.append("Falta o nome.")
-    vs = _vs(d)
-    soma = sum((motor.numero(i.get("quantidade")) or 1) * motor.numero(i.get("valor"))
-               for i in d.get("ficha_de_custo") or [] if isinstance(i, dict))
-    for i, v in enumerate(vs, 1):
-        rot = str(v.get("valor") or "").strip() or (f"variação {i}" if len(vs) > 1 else "produto")
-        if motor.numero(v.get("venda")) <= 0:
-            falta.append(f"{rot}: sem preço de venda.")
-        if v.get("custo") in (None, "") and soma <= 0:
-            falta.append(f"{rot}: sem custo.")
-        emb = v.get("embalagem") if isinstance(v.get("embalagem"), dict) else {}
-        if motor.numero(emb.get("peso_kg")) <= 0:
-            falta.append(f"{rot}: sem peso da caixa (o frete precisa).")
-    if motor.sim(d.get("sob_encomenda")) and motor.numero(d.get("prazo_dias")) <= 0:
-        falta.append("Sob encomenda sem prazo em dias.")
-    if not str(d.get("categoria") or "").strip():
-        falta.append("Sem categoria.")
-    tit = str((d.get("mercado_livre") or {}).get("titulo_anuncio") or "")
-    if len(tit) > 60:
-        falta.append("Título do anúncio passa de 60 letras.")
-    if n_fotos == 0:
-        falta.append("Sem fotos.")
-    return falta
+    """O que ainda falta na ficha (textos para a lista de conferência)."""
+    return [p["texto"] for p in pendencias(d, n_fotos)]
 
 
 def links_ml(texto):
@@ -759,4 +735,291 @@ def links_ml(texto):
         if k not in vistos:
             vistos.add(k)
             out.append(a)
+    return out
+
+
+# ------------------------------------------------------------ resolver os avisos da ficha
+
+CORES = ("preto", "preta", "branco", "branca", "ouro", "dourado", "dourada", "cobre", "bronze", "prata", "prateado", "cinza",
+         "grafite", "marrom", "natural", "rosa", "verde", "azul", "vermelho", "amarelo", "bege", "champagne", "envelhecido",
+         "rose", "fendi", "off", "nogueira", "carvalho", "freijo", "imbuia", "tabaco", "mel", "rustico", "madeira", "ferrugem")
+
+# chave -> (seção do editor, rótulo do botão que resolve sozinho ou None = só você sabe)
+AVISOS = {
+    "nome": ("produto", None), "categoria": ("produto", "Pelo nome"), "codigo": ("produto", "Gerar códigos"),
+    "venda": ("variacoes", "Sugerir pelo custo"), "custo": ("custo", "Estimar"), "peso": ("variacoes", "Estimar"),
+    "prazo": ("precos", "Usar prazo padrão"), "variacao_por": ("variacoes", "Definir"),
+    "titulo": ("ml", "Escrever"), "titulo_longo": ("ml", "Encurtar"), "descricao": ("produto", "Escrever"),
+    "fotos": ("fotos", None), "fotos_faltando": ("fotos", "Tirar da ficha"), "fotos_nao_citadas": ("fotos", "Ligar às variações"),
+}
+
+_PREFIXOS = [("Sem custo", "custo"), ("Sem peso", "peso"), ("Sem código", "codigo"), ("Sob encomenda", "prazo"),
+             ('Sem "variacao_por"', "variacao_por"), ("Fotos citadas", "fotos_faltando"), ("A ficha não cita", "fotos_nao_citadas"),
+             ("Sem fotos", "fotos")]
+
+
+def chave_do_aviso(texto):
+    """Aviso que o motor escreve (ler_ficha) -> chave de AVISOS."""
+    for pre, chave in _PREFIXOS:
+        if str(texto).startswith(pre):
+            return chave
+    return None
+
+
+def _soma_custo(d):
+    return sum((motor.numero(i.get("quantidade")) or 1) * motor.numero(i.get("valor"))
+               for i in d.get("ficha_de_custo") or [] if isinstance(i, dict))
+
+
+def _rot(v, i, n):
+    return str(v.get("valor") or "").strip() or (f"variação {i}" if n > 1 else "produto")
+
+
+def _emb(v):
+    return v.get("embalagem") if isinstance(v.get("embalagem"), dict) else {}
+
+
+def _volume(v):
+    """Tamanho da caixa para comparar pesos: (quantas medidas tem, produto delas)."""
+    e = _emb(v)
+    med = [motor.numero(e.get(k)) for k in ("comprimento_cm", "largura_cm", "altura_cm")]
+    med = [x for x in med if x > 0]
+    if not med:
+        m = v.get("medidas_peca_cm") if isinstance(v.get("medidas_peca_cm"), dict) else {}
+        med = [x for x in (motor.numero(m.get("largura")) or motor.numero(m.get("diametro")),
+                           motor.numero(m.get("profundidade")) or motor.numero(m.get("diametro")), motor.numero(m.get("altura"))) if x > 0]
+    return (len(med), math.prod(med)) if med else (0, 0.0)
+
+
+def pendencias(d, n_fotos=None, cfg=None):
+    """O que falta na ficha, com a seção do editor e o que o robô consegue resolver sozinho.
+    Cada item: {chave, texto, secao, acao (rótulo do botão ou None), variacao (índice ou None)}."""
+    cfg = cfg or {}
+    out = []
+
+    def add(chave, texto, var=None, acao="padrao"):
+        sec, rot = AVISOS[chave]
+        out.append({"chave": chave, "texto": texto, "secao": sec, "acao": rot if acao == "padrao" else acao, "variacao": var})
+
+    if not str(d.get("nome") or "").strip():
+        add("nome", "Falta o nome do produto.")
+    vs = _vs(d)
+    n = len(vs)
+    soma = _soma_custo(d)
+    com_custo = [v for v in vs if v.get("custo") not in (None, "") and motor.numero(v.get("venda")) > 0]
+    com_peso = [v for v in vs if motor.numero(_emb(v).get("peso_kg")) > 0]
+    for i, v in enumerate(vs, 1):
+        rot = _rot(v, i, n)
+        custo = motor.numero(v.get("custo")) if v.get("custo") not in (None, "") else soma
+        if motor.numero(v.get("venda")) <= 0:
+            add("venda", f"{rot}: sem preço de venda.", i - 1, "Sugerir pelo custo" if custo > 0 else None)
+        if v.get("custo") in (None, "") and soma <= 0:
+            add("custo", f"{rot}: sem custo.", i - 1, "Estimar" if com_custo and motor.numero(v.get("venda")) > 0 else None)
+        if motor.numero(_emb(v).get("peso_kg")) <= 0:
+            add("peso", f"{rot}: sem peso da caixa (o frete precisa).", i - 1, "Estimar" if com_peso else "Informar")
+    multi = n > 1 or any(str(v.get("valor") or "").strip() for v in vs)
+    if str(d.get("nome") or "").strip() and not str(d.get("codigo") or "").strip() and not any(str(v.get("codigo") or "").strip() for v in vs):
+        add("codigo", "Sem código (o site inventa um).")
+    elif multi and any(not str(v.get("codigo") or "").strip() for v in vs):
+        add("codigo", "Variação sem código.")
+    if motor.sim(d.get("sob_encomenda")) and motor.numero(d.get("prazo_dias")) <= 0:
+        add("prazo", "Sob encomenda sem prazo em dias.", acao=f"Usar {prazo_padrao(cfg)} dias")
+    if multi and not str(d.get("variacao_por") or "").strip():
+        add("variacao_por", "Não diz se varia por tamanho ou cor.", acao=f"Usar “{variacao_por_pelos_valores(d)}”")
+    if not str(d.get("categoria") or "").strip():
+        add("categoria", "Sem categoria.", acao="Pelo nome" if categoria_pelo_nome(d.get("nome")) else None)
+    ml = d.get("mercado_livre") if isinstance(d.get("mercado_livre"), dict) else {}
+    tit = str(ml.get("titulo_anuncio") or "").strip()
+    if d.get("nome") and not tit:
+        add("titulo", "Sem título do anúncio.")
+    elif len(tit) > 60:
+        add("titulo_longo", f"Título do anúncio com {len(tit)} letras (máx. 60).")
+    if d.get("nome") and not str(d.get("descricao") or "").strip():
+        add("descricao", "Sem descrição.")
+    if n_fotos == 0:
+        add("fotos", "Sem fotos.")
+    return out
+
+
+def prazo_padrao(cfg=None):
+    return int(motor.numero((cfg or {}).get("prazo_padrao") or 15) or 15)
+
+
+def variacao_por_pelos_valores(d):
+    tem_num = tem_cor = False
+    for v in _vs(d):
+        for pedaco in str(v.get("valor") or "").replace("/", "·").split("·"):
+            t = _sem_acento(pedaco).lower()
+            if re.search(r"\d", t):
+                tem_num = True
+            elif any(w in CORES for w in re.findall(r"[a-z]+", t)):
+                tem_cor = True
+    if tem_num and tem_cor:
+        return "Tamanho e cor"
+    return "Cor" if tem_cor and not tem_num else "Tamanho"
+
+
+def encurtar_titulo(t, limite=60):
+    t = re.sub(r"\s+", " ", str(t)).strip()
+    if len(t) <= limite:
+        return t
+    corte = t[:limite + 1].rsplit(" ", 1)[0]
+    while corte and corte.split(" ")[-1].lower() in _PEQUENAS | {"-", "·", "|"}:
+        corte = corte.rsplit(" ", 1)[0] if " " in corte else ""
+    return corte.rstrip(" -,·|") or t[:limite]
+
+
+def estimar_custos(d):
+    """Custo das variações sem custo pela proporção custo/venda das que têm. Devolve quantas mudou."""
+    vs = _vs(d)
+    base = [(motor.numero(v["custo"]), motor.numero(v.get("venda"))) for v in vs
+            if v.get("custo") not in (None, "") and motor.numero(v.get("venda")) > 0]
+    if not base:
+        return 0
+    r = sum(c for c, _ in base) / sum(p for _, p in base)
+    n = 0
+    for v in vs:
+        if v.get("custo") in (None, "") and motor.numero(v.get("venda")) > 0:
+            v["custo"] = round(motor.numero(v["venda"]) * r, 2)
+            n += 1
+    return n
+
+
+def estimar_pesos(d, peso=None):
+    """Peso das caixas sem peso: pelo tamanho da caixa comparado com as que têm peso.
+    Sem nenhuma com peso, usa `peso` (se veio). Devolve quantas mudou."""
+    vs = _vs(d)
+    base = [(motor.numero(_emb(v).get("peso_kg")), _volume(v)) for v in vs if motor.numero(_emb(v).get("peso_kg")) > 0]
+    n = 0
+    for v in vs:
+        e = _emb(v)
+        if motor.numero(e.get("peso_kg")) > 0:
+            continue
+        nd, vol = _volume(v)
+        par = [(p, x) for p, (k, x) in base if k == nd and x > 0]
+        if par and vol > 0:
+            novo = vol * sum(p for p, _ in par) / sum(x for _, x in par)
+        elif base:
+            novo = sum(p for p, _ in base) / len(base)
+        elif peso:
+            novo = motor.numero(peso)
+        else:
+            continue
+        e["peso_kg"] = max(0.1, round(novo, 1))
+        v["embalagem"] = e
+        n += 1
+    return n
+
+
+def _fotos_da_pasta(pasta):
+    return sorted((p for p in Path(pasta).iterdir() if p.is_file() and p.suffix.lower() in motor.FOTO_EXTS | motor.FOTO_CONVERTER),
+                  key=lambda p: p.name.lower())
+
+
+def _tokens(t):
+    return set(re.findall(r"[a-z]+|\d+", _sem_acento(str(t)).lower())) - _PEQUENAS - {"cm", "mm", "x", "jpg", "jpeg", "png", "webp"}
+
+
+def ligar_fotos(d, pasta):
+    """Liga cada foto da pasta à variação certa pelo nome do arquivo (preto.jpg -> variação Preto).
+    As que não batem com nenhuma valem para todas. Devolve (quantas próprias, quantas para todas)."""
+    vs = _vs(d)
+    fotos = _fotos_da_pasta(pasta)
+    if not vs or not fotos:
+        return 0, 0
+    toks = [_tokens(v.get("valor")) for v in vs]
+    proprias = {i: [] for i in range(len(vs))}
+    gerais = []
+    for p in fotos:
+        tp = _tokens(p.stem)
+        notas = [len(tp & t) for t in toks]
+        melhor = max(notas)
+        if len(vs) > 1 and melhor > 0 and notas.count(melhor) == 1:
+            proprias[notas.index(melhor)].append(p.name)
+        else:
+            gerais.append(p.name)
+    n_prop = sum(len(x) for x in proprias.values())
+    if n_prop:
+        for i, v in enumerate(vs):
+            v["fotos"] = proprias[i] + gerais
+    else:
+        for i, v in enumerate(vs):
+            v["fotos"] = gerais if i == 0 else []
+    return n_prop, len(gerais)
+
+
+def tirar_fotos_faltando(d, pasta):
+    nomes = {p.name.lower() for p in _fotos_da_pasta(pasta)} | {p.stem.lower() for p in _fotos_da_pasta(pasta)}
+    tirou = []
+    for v in _vs(d):
+        fica = []
+        for nome in v.get("fotos") or []:
+            n = str(nome).strip().replace("\\", "/").split("/")[-1]
+            if n.lower() in nomes or Path(n).stem.lower() in nomes:
+                fica.append(nome)
+            elif n not in tirou:
+                tirou.append(n)
+        v["fotos"] = fica
+    return tirou
+
+
+def resolver(d, chaves=None, cfg=None, existentes=None, pasta=None, peso=None):
+    """Resolve sozinho os avisos que dá (o dict muda no lugar). chaves=None tenta todos.
+    Devolve a lista do que fez; valores estimados vêm marcados para conferir."""
+    cfg = cfg or {}
+    chaves = set(chaves or AVISOS)
+    feito = []
+    if "categoria" in chaves:
+        feito += completar(d, cfg, ["categoria"])
+    if "codigo" in chaves:
+        feito += completar(d, cfg, ["codigos"], existentes)
+    if "venda" in chaves:
+        feito += completar(d, cfg, ["venda"])
+    if "custo" in chaves and _soma_custo(d) <= 0:
+        n = estimar_custos(d)
+        if n:
+            feito.append(f"Custo estimado em {n} variação(ões) pela proporção das outras (confira)")
+    if "peso" in chaves:
+        completar(d, cfg, ["caixa"])
+        n = estimar_pesos(d, peso)
+        if n:
+            feito.append(f"Peso da caixa em {n} variação(ões)" + (" (estimado pelo tamanho; confira)" if not peso else ""))
+    if "prazo" in chaves and motor.sim(d.get("sob_encomenda")) and motor.numero(d.get("prazo_dias")) <= 0:
+        d["prazo_dias"] = prazo_padrao(cfg)
+        feito.append(f"Prazo de {d['prazo_dias']} dias (sob encomenda)")
+    vs = _vs(d)
+    multi = len(vs) > 1 or any(str(v.get("valor") or "").strip() for v in vs)
+    if "variacao_por" in chaves and multi and not str(d.get("variacao_por") or "").strip():
+        d["variacao_por"] = variacao_por_pelos_valores(d)
+        feito.append(f"Varia por: {d['variacao_por']}")
+    ml = d.get("mercado_livre") if isinstance(d.get("mercado_livre"), dict) else {}
+    if "titulo_longo" in chaves and len(str(ml.get("titulo_anuncio") or "")) > 60:
+        ml["titulo_anuncio"] = encurtar_titulo(ml["titulo_anuncio"])
+        d["mercado_livre"] = ml
+        feito.append(f"Título encurtado para {len(ml['titulo_anuncio'])} letras")
+    if chaves & {"titulo", "descricao"}:
+        feito += completar(d, cfg, ["textos"])
+    if pasta is not None:
+        if "fotos_faltando" in chaves:
+            tirou = tirar_fotos_faltando(d, pasta)
+            if tirou:
+                feito.append("Tirei da ficha as fotos que não estão na pasta: " + ", ".join(tirou))
+        if "fotos_nao_citadas" in chaves and not any(v.get("fotos") for v in vs):
+            prop, ger = ligar_fotos(d, pasta)
+            if prop or ger:
+                feito.append(f"Fotos ligadas: {prop} na variação certa pelo nome do arquivo, {ger} para todas" if prop
+                             else f"{ger} foto(s) ligadas a todas as variações, em ordem de nome")
+    return feito
+
+
+def faltam_numeros(d, n_fotos=None):
+    """Variações que ainda precisam de custo ou peso que só o dono sabe: [(índice, rótulo, falta_custo, falta_peso)]."""
+    vs = _vs(d)
+    soma = _soma_custo(d)
+    out = []
+    for i, v in enumerate(vs, 1):
+        fc = v.get("custo") in (None, "") and soma <= 0
+        fp = motor.numero(_emb(v).get("peso_kg")) <= 0
+        if fc or fp:
+            out.append((i - 1, _rot(v, i, len(vs)), fc, fp))
     return out

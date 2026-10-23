@@ -74,8 +74,23 @@ COMPLETAR SOZINHO
   MFC-30-PRE, sem repetir os de outras fichas), categoria, ficha técnica, caixa
   pela medida da peça + folga, preço de venda pelo custo, preço "de" (se ligado
   em Configurações), título e descrição. Depois mostra o que ainda falta.
-- Editor › "Conferir": lista o que falta (preço, custo, peso da caixa, prazo...).
+- Editor: o painel da direita mostra a foto, quanto da ficha está pronto, o
+  lucro no Mercado Livre e o que falta. Cada aviso tem um botão: "✦ ..." o robô
+  resolve sozinho; "Preencher ›" leva até o campo. As abas de cima ficam
+  laranja com o número de avisos de cada parte. "● não salvo" aparece quando
+  você mudou algo.
 - Fichas › "✦ Completar": faz o mesmo nas fichas marcadas (ou nas do filtro).
+
+RESOLVER AVISOS
+- Na ficha aberta em Fichas, "✦ Resolver avisos" (ou o botão de cada aviso),
+  e no Início "N ficha(s) com avisos".
+- O robô resolve: código, categoria, prazo sob encomenda (prazo padrão em
+  Configurações), se varia por tamanho/cor, título longo, título e descrição,
+  fotos que não existem mais, fotos ligadas à variação pelo nome do arquivo
+  (preto.jpg vai para a variação Preto).
+- Custo e peso: estima pelas outras variações (peso pelo tamanho da caixa,
+  custo pela proporção do preço). Se nenhuma tiver, abre a janela "Custo e
+  peso que faltam" com todas as fichas numa tela só. Confira o que foi estimado.
 
 CUSTO E PREÇO (no editor)
 - Ficha de custo: materiais e "＋ Mão de obra" (horas × sua hora, que fica em

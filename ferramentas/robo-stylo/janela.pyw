@@ -572,18 +572,40 @@ class App(ctk.CTk):
         fichas = [f for f in fichas if f.status != "feita" and f.dados]
         if not fichas or self.rodando:
             return
-        if not messagebox.askyesno("Completar fichas", f"Completar {len(fichas)} ficha(s)?\n\nO robô preenche só o que está vazio: "
-                                   "código, categoria, ficha técnica, caixa pela medida da peça, preço sugerido pelo custo, "
-                                   "preço “de”, título e descrição. Nada que você já preencheu muda."):
+        if not messagebox.askyesno("Completar fichas", f"Completar {len(fichas)} ficha(s)?\n\nO robô preenche só o que está vazio "
+                                   "(código, categoria, ficha técnica, caixa, preço, prazo, título e descrição) e resolve os avisos que dá. "
+                                   "Nada que você já preencheu muda. No fim ele pergunta o custo e o peso que só você sabe."):
             return
-        n = 0
+        self.resolver_avisos(fichas, completar=True)
+
+    def resolver_avisos(self, fichas, chaves=None, completar=False):
+        """Resolve os avisos das fichas (salva cada uma) e no fim pergunta o custo e o peso que faltam."""
+        fichas = [f for f in fichas if f.status not in ("feita", "ja") and f.dados]
+        if not fichas or self.rodando:
+            return
+        cfg = dict(self.cfg["robo"])
+        n, faltam, linhas = 0, [], []
         for f in fichas:
             d = json.loads(json.dumps(f.dados))
-            if recursos.completar(d, dict(self.cfg["robo"]), existentes=recursos.codigos_das_fichas(self.pasta(), exceto=f.pasta)):
+            existentes = recursos.codigos_das_fichas(self.pasta(), exceto=f.pasta)
+            feito = recursos.completar(d, cfg, existentes=existentes) if completar else []
+            feito += recursos.resolver(d, chaves, cfg, existentes, pasta=f.pasta)
+            if feito:
                 motor.salvar_ficha(f, d)
                 n += 1
-        self.recarregar()
-        self.toast(f"{n} ficha(s) completada(s)" if n else "Nada para completar", VERDE if n else ROXO)
+                linhas.append(f"{f.nome}: " + "; ".join(feito))
+            for idx, rot, fc, fp in recursos.faltam_numeros(d):
+                fc = fc and (chaves is None or "custo" in chaves)
+                fp = fp and (chaves is None or "peso" in chaves)
+                if fc or fp:
+                    faltam.append((f.pasta, f.nome, idx, rot, fc, fp))
+        self.recarregar(selecionar=fichas[0].pasta if len(fichas) == 1 else None)
+        if linhas:
+            self.status(" | ".join(linhas)[:400])
+        if faltam:
+            Faltando(self, faltam, n)
+        else:
+            self.toast(f"✦ {n} ficha(s) arrumada(s)" if n else "Nada que o robô consiga resolver sozinho", VERDE if n else AMBAR)
 
     def _olhar_area_transf(self):
         """Avisa quando um link do Mercado Livre é copiado (Ctrl+C) em qualquer lugar."""
@@ -1192,10 +1214,13 @@ class PaginaInicio(ctk.CTkFrame):
             seta = "▼" if agora < antes else "▲"
             itens.append((seta, AMBAR, c.get("titulo") or c["link"], f"Concorrente mudou de R$ {reais(antes)} para R$ {reais(agora)}",
                           lambda: app.ir("concorrentes")))
-        for f in prontas:
-            sem_peso = [a for a in f.avisos if a.startswith("Sem peso") or a.startswith("Sem custo")]
-            if sem_peso:
-                itens.append(("⚠", AMBAR, f.nome, sem_peso[0], lambda f=f: self._ir_fichas(selecionar=f.pasta)))
+        com_aviso = [f for f in prontas if f.avisos]
+        if com_aviso:
+            n_av = sum(len(f.avisos) for f in com_aviso)
+            itens.insert(0, ("✦", ROXO, f"{len(com_aviso)} ficha(s) com {n_av} aviso(s)",
+                             "toque para o robô resolver o que der e perguntar o resto", lambda: app.resolver_avisos(com_aviso)))
+        for f in com_aviso[:5]:
+            itens.append(("⚠", AMBAR, f.nome, f.avisos[0], lambda f=f: self._ir_fichas(selecionar=f.pasta)))
         if not itens:
             ctk.CTkLabel(lista, text="✓  Tudo em dia. Nenhuma ficha com erro e nenhum concorrente mudou de preço.",
                          font=F(13), text_color=VERDE, anchor="w").pack(fill="x", padx=16, pady=16)
@@ -1285,8 +1310,9 @@ class PaginaFichas(ctk.CTkFrame):
                       hover_color=SUAVE, font=F(12, "bold"), command=lambda: Etiquetas(app, self.alvos())).pack(side="right")
         ctk.CTkButton(sel, text="Lote", width=50, height=26, fg_color="transparent", text_color=ROXO_TXT,
                       hover_color=SUAVE, font=F(12, "bold"), command=lambda: Lote(app, self.alvos())).pack(side="right")
-        ctk.CTkButton(sel, text="✦ Completar", width=90, height=26, fg_color="transparent", text_color=ROXO_TXT,
-                      hover_color=SUAVE, font=F(12, "bold"), command=lambda: app.completar_fichas(self.alvos())).pack(side="right")
+        dica(ctk.CTkButton(sel, text="✦ Completar", width=90, height=26, fg_color="transparent", text_color=ROXO_TXT,
+                           hover_color=SUAVE, font=F(12, "bold"), command=lambda: app.completar_fichas(self.alvos())),
+             "Preenche o que está vazio e resolve os avisos das fichas marcadas (ou da aberta)").pack(side="right")
         self.lista = ctk.CTkScrollableFrame(esq, fg_color="transparent")
         self.lista.grid(row=1, column=0, sticky="nsew", padx=6, pady=(4, 6))
         self.lista.grid_columnconfigure(0, weight=1)
@@ -1514,8 +1540,35 @@ class PaginaFichas(ctk.CTkFrame):
                              text_color=cor, corner_radius=10, height=32, padx=12, font=F(12)))
         for e in f.erros:
             faixa("✕  " + e, ("#fff1f2", "#3a1420"), ("#be123c", "#fda4af"))
-        for a in f.avisos:
-            faixa("⚠  " + a, ("#fffbeb", "#33270f"), ("#b45309", "#fcd34d"))
+        if f.avisos and f.status not in ("feita", "ja"):
+            acoes_pend = {}
+            for p in recursos.pendencias(f.dados, cfg=dict(app.cfg["robo"])):
+                acoes_pend.setdefault(p["chave"], p["acao"])
+            av = ctk.CTkFrame(self.det, fg_color=("#fffbeb", "#2a2110"), corner_radius=12)
+            av.grid_columnconfigure(0, weight=1)
+            topo_av = ctk.CTkFrame(av, fg_color="transparent")
+            topo_av.grid(row=0, column=0, columnspan=2, sticky="ew", padx=12, pady=(10, 4))
+            ctk.CTkLabel(topo_av, text=f"⚠  {len(f.avisos)} aviso(s)", font=F(13, "bold"), text_color=("#b45309", "#fcd34d")).pack(side="left")
+            dica(Botao(topo_av, "✦  Resolver avisos", "primario", width=150, height=28, font=F(12, "bold"), state=trava,
+                       command=lambda: app.resolver_avisos([f])), "O robô resolve o que dá e pergunta o resto (custo e peso)").pack(side="right")
+            for i, a in enumerate(f.avisos, 1):
+                chave = recursos.chave_do_aviso(a)
+                acao = acoes_pend.get(chave) or recursos.AVISOS.get(chave, (None, None))[1] if chave else None
+                if chave in ("custo", "peso") and not acoes_pend.get(chave):
+                    acao = None
+                if chave == "fotos":
+                    acao = None
+                ctk.CTkLabel(av, text="•  " + a, anchor="w", justify="left", wraplength=wrap - 190, text_color=("#92400e", "#fcd34d"),
+                             font=F(12)).grid(row=i, column=0, sticky="w", padx=(14, 6), pady=3)
+                if acao:
+                    rot = acao if acao != "Informar" else "Informar…"
+                    Botao(av, rot, "suave", height=26, width=40, font=F(11, "bold"), state=trava,
+                          command=lambda k=chave: app.resolver_avisos([f], {k})).grid(row=i, column=1, sticky="e", padx=(0, 10), pady=3)
+                elif chave == "fotos":
+                    Botao(av, "Editar", "fantasma", height=26, width=40, font=F(11), state=trava,
+                          command=lambda: app.editar(f)).grid(row=i, column=1, sticky="e", padx=(0, 10), pady=3)
+            ctk.CTkLabel(av, text="").grid(row=len(f.avisos) + 1, column=0, pady=1)
+            por(av, pady=(4, 6))
         if f.mensagem and f.status in ("falhou", "feita", "ja"):
             faixa(("✓  " if f.status == "feita" else "•  ") + f.mensagem, ROXO_CLARO, ROXO_TXT)
         for res in f.resultado:
@@ -2105,7 +2158,9 @@ class PaginaConfig(ctk.CTkFrame):
         for row, rot, chave, tipo, ajuda in ((1, "Preço “de” automático (%)", "preco_de_pct", "inteiro",
                                               "Ex.: 20 = o preço riscado fica 20% acima da venda. Vazio = não preenche."),
                                              (3, "Folga da caixa (cm)", "folga_caixa", "decimal",
-                                              "Medida da caixa = medida da peça + essa folga.")):
+                                              "Medida da caixa = medida da peça + essa folga."),
+                                             (5, "Prazo padrão sob encomenda (dias)", "prazo_padrao", "inteiro",
+                                              "Usado quando a ficha é sob encomenda e não diz o prazo.")):
             ctk.CTkLabel(c3, text=rot, anchor="w", font=F(13, "bold"), text_color=TEXTO).grid(row=row, column=0, sticky="w", padx=20, pady=(12, 0))
             e = Entrada(c3, tipo, width=90)
             e.definir(r.get(chave, ""))
@@ -2113,7 +2168,7 @@ class PaginaConfig(ctk.CTkFrame):
             self.campos[chave] = e
             ctk.CTkLabel(c3, text=ajuda, text_color=MUDO, anchor="w", font=F(11)).grid(row=row + 1, column=0, columnspan=2, sticky="w", padx=20)
         self.auto_imp = ctk.CTkSwitch(c3, text="Completar a ficha sozinho ao importar do Mercado Livre", progress_color=ROXO, font=F(13), text_color=TEXTO)
-        self.auto_imp.grid(row=5, column=0, columnspan=2, sticky="w", padx=20, pady=(12, 18))
+        self.auto_imp.grid(row=7, column=0, columnspan=2, sticky="w", padx=20, pady=(12, 18))
         (self.auto_imp.select if motor.sim(r.get("completar_ao_importar", "sim")) else self.auto_imp.deselect)()
         bts = ctk.CTkFrame(card, fg_color="transparent")
         bts.grid(row=10, column=0, columnspan=2, sticky="e", padx=20, pady=20)
@@ -2146,6 +2201,7 @@ class PaginaConfig(ctk.CTkFrame):
         r["preco_de_pct"] = str(self.campos["preco_de_pct"].valor() or "")
         r["folga_caixa"] = decimal_txt(self.campos["folga_caixa"].valor() or 4).replace(",", ".")
         r["completar_ao_importar"] = "sim" if self.auto_imp.get() else "nao"
+        r["prazo_padrao"] = str(self.campos["prazo_padrao"].valor() or 15)
         motor.salvar_config(self.app.cfg)
         if self.app.site and not self.app.rodando:
             self.app.tarefas.put(("fechar_site", None))
@@ -2186,7 +2242,7 @@ class Secao(ctk.CTkFrame):
 
 
 class LinhaVariacao(ctk.CTkFrame):
-    COLS = [("Variação", 150), ("Código", 110), ("Custo R$", 92), ("Venda R$", 92), ("Preço “de” R$", 100), ("Estoque", 74), ("Margem", 66)]
+    COLS = [("Variação", 140), ("Código", 104), ("Custo R$", 84), ("Venda R$", 84), ("Preço “de” R$", 88), ("Estoque", 62), ("Margem", 56)]
 
     def __init__(self, master, editor, v):
         super().__init__(master, fg_color=SUAVE, corner_radius=12)
@@ -2196,14 +2252,14 @@ class LinhaVariacao(ctk.CTkFrame):
         med = v.get("medidas_peca_cm") if isinstance(v.get("medidas_peca_cm"), dict) else {}
         l1 = ctk.CTkFrame(self, fg_color="transparent")
         l1.pack(fill="x", padx=8, pady=(8, 2))
-        self.valor = Entrada(l1, width=150, placeholder_text="ex.: 30 cm · Preto")
+        self.valor = Entrada(l1, width=140, placeholder_text="ex.: 30 cm · Preto")
         self.valor.bind("<FocusOut>", lambda e: editor.atualizar_usos(), add="+")
-        self.codigo = Entrada(l1, width=110, placeholder_text="automático")
-        self.custo = Entrada(l1, "dinheiro", width=92, ao_mudar=self.calc)
-        self.venda = Entrada(l1, "dinheiro", width=92, ao_mudar=self.calc)
-        self.de = Entrada(l1, "dinheiro", width=100)
-        self.estoque = Entrada(l1, "inteiro", width=74, placeholder_text="0")
-        self.margem = ctk.CTkLabel(l1, text="—", width=66, font=F(13, "bold"), text_color=MUDO)
+        self.codigo = Entrada(l1, width=104, placeholder_text="automático")
+        self.custo = Entrada(l1, "dinheiro", width=84, ao_mudar=self.calc)
+        self.venda = Entrada(l1, "dinheiro", width=84, ao_mudar=self.calc)
+        self.de = Entrada(l1, "dinheiro", width=88)
+        self.estoque = Entrada(l1, "inteiro", width=62, placeholder_text="0")
+        self.margem = ctk.CTkLabel(l1, text="—", width=56, font=F(13, "bold"), text_color=MUDO)
         for w in (self.valor, self.codigo, self.custo, self.venda, self.de, self.estoque, self.margem):
             w.pack(side="left", padx=3)
         Botao(l1, "✕", "perigo", width=34, height=32, command=lambda: editor.remover_variacao(self)).pack(side="left", padx=(6, 0))
@@ -2216,15 +2272,15 @@ class LinhaVariacao(ctk.CTkFrame):
             e.pack(side="left", padx=1)
             return e
         ctk.CTkLabel(l2, text="Caixa:", font=F(11, "bold"), text_color=MUDO).pack(side="left", padx=(4, 0))
-        self.peso = peq("peso kg", "decimal")
-        self.cc = peq("C", "decimal", 50, "cm")
-        self.cl = peq("L", "decimal", 50, "cm")
-        self.ca = peq("A", "decimal", 50, "cm")
-        ctk.CTkLabel(l2, text="Peça:", font=F(11, "bold"), text_color=MUDO).pack(side="left", padx=(14, 0))
-        self.pa = peq("alt.", "decimal", 50, "cm")
-        self.pl = peq("larg.", "decimal", 50, "cm")
-        self.pp = peq("prof.", "decimal", 50, "cm")
-        self.pd = peq("Ø", "decimal", 50, "cm")
+        self.peso = peq("peso kg", "decimal", 54)
+        self.cc = peq("C", "decimal", 46, "cm")
+        self.cl = peq("L", "decimal", 46, "cm")
+        self.ca = peq("A", "decimal", 46, "cm")
+        ctk.CTkLabel(l2, text="Peça:", font=F(11, "bold"), text_color=MUDO).pack(side="left", padx=(12, 0))
+        self.pa = peq("alt.", "decimal", 46, "cm")
+        self.pl = peq("larg.", "decimal", 46, "cm")
+        self.pp = peq("prof.", "decimal", 46, "cm")
+        self.pd = peq("Ø", "decimal", 46, "cm")
 
         self.valor.definir(v.get("valor"))
         self.codigo.definir(v.get("codigo"))
@@ -2288,6 +2344,9 @@ class FotoEd:
 
 class Editor(ctk.CTkFrame):
     VARIACAO_POR = ["Sem variação", "Tamanho", "Cor", "Tamanho e cor"]
+    CHAVE_SECAO = {"Produto": "produto", "Preço, estoque e prazo": "precos", "Custo e preço sugerido": "custo", "Variações": "variacoes",
+                   "Fotos": "fotos", "Ficha técnica": "tecnica", "Mercado Livre": "ml"}
+    CURTOS = {"Preço, estoque e prazo": "Preço", "Custo e preço sugerido": "Custo", "Ficha técnica": "Técnica", "Mercado Livre": "Anúncio"}
 
     def __init__(self, master, app, ficha=None):
         super().__init__(master, fg_color="transparent")
@@ -2303,24 +2362,31 @@ class Editor(ctk.CTkFrame):
         self.grid_rowconfigure(2, weight=1)
 
         cab = ctk.CTkFrame(self, fg_color="transparent")
-        cab.grid(row=0, column=0, sticky="ew", padx=24, pady=(18, 10))
+        cab.grid(row=0, column=0, columnspan=2, sticky="ew", padx=24, pady=(18, 10))
         cab.grid_columnconfigure(1, weight=1)
         Botao(cab, "◀  Voltar", "fantasma", width=96, command=self.cancelar).grid(row=0, column=0, rowspan=2, padx=(0, 14))
-        ctk.CTkLabel(cab, text="Nova ficha" if ficha is None else "Editar ficha", font=F(24, "bold"), text_color=TEXTO, anchor="w").grid(row=0, column=1, sticky="w")
+        tit = ctk.CTkFrame(cab, fg_color="transparent")
+        tit.grid(row=0, column=1, sticky="w")
+        ctk.CTkLabel(tit, text="Nova ficha" if ficha is None else "Editar ficha", font=F(24, "bold"), text_color=TEXTO, anchor="w").pack(side="left")
+        self.chip_salvo = ctk.CTkLabel(tit, text="", font=F(11, "bold"), corner_radius=10, height=24, padx=10)
+        self.chip_salvo.pack(side="left", padx=12)
         self.lbl_sub = ctk.CTkLabel(cab, text=ficha.pasta.name if ficha else "A pasta é criada quando você salvar.", font=F(12), text_color=MUDO, anchor="w")
         self.lbl_sub.grid(row=1, column=1, sticky="w")
         self.lbl_erro = ctk.CTkLabel(cab, text="", font=F(12, "bold"), text_color=VERMELHO)
         self.lbl_erro.grid(row=0, column=2, rowspan=2, padx=10)
         dica(Botao(cab, "✦  Completar tudo", "suave", width=150, command=self.completar_tudo),
-             "Preenche só o que está vazio: código, categoria, caixa, preço, título e descrição").grid(row=0, column=3, rowspan=2, padx=4)
-        dica(Botao(cab, "Conferir", "fantasma", width=90, command=lambda: self.conferir()),
-             "Mostra o que ainda falta na ficha").grid(row=0, column=4, rowspan=2, padx=4)
+             "Preenche o que está vazio e resolve os avisos que dá: código, categoria, caixa, peso, preço, prazo, título e descrição").grid(
+            row=0, column=3, rowspan=2, padx=4)
         dica(Botao(cab, "Salvar ficha", "primario", width=140, height=40, font=F(14, "bold"), command=self.salvar),
              "Ctrl+S").grid(row=0, column=6, rowspan=2, padx=(4, 0))
 
         self.corpo = ctk.CTkScrollableFrame(self, fg_color="transparent")
-        self.corpo.grid(row=2, column=0, sticky="nsew", padx=14, pady=(0, 10))
+        self.corpo.grid(row=2, column=0, sticky="nsew", padx=(14, 0), pady=(0, 10))
         self.corpo.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=0)
+        self.painel = ctk.CTkScrollableFrame(self, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA, width=262)
+        self.painel.grid(row=1, column=1, rowspan=2, sticky="nsew", padx=(6, 22), pady=(0, 16))
+        self.painel.grid_columnconfigure(0, weight=1)
         self._produto()
         self._precos()
         self._custo()
@@ -2330,14 +2396,19 @@ class Editor(ctk.CTkFrame):
         self._mercado_livre()
         nav = ctk.CTkFrame(self, fg_color="transparent")
         nav.grid(row=1, column=0, sticky="ew", padx=24, pady=(0, 8))
-        curtos = {"Preço, estoque e prazo": "Preço e estoque", "Custo e preço sugerido": "Custo e preço"}
         secoes = sorted((w for w in self.corpo.winfo_children() if isinstance(w, Secao)), key=lambda w: int(w.grid_info()["row"]))
+        self.secoes, self.chips = {}, {}
         for sec in secoes:
-            ctk.CTkButton(nav, text=curtos.get(sec.titulo, sec.titulo), height=28, width=40, corner_radius=14, fg_color=PAINEL,
-                          border_width=1, border_color=BORDA, hover_color=ROXO_CLARO, text_color=TEXTO, font=F(12, "bold"),
-                          command=lambda s=sec: self.ir_secao(s)).pack(side="left", padx=(0, 6))
+            chave = self.CHAVE_SECAO.get(sec.titulo, sec.titulo)
+            self.secoes[chave] = sec
+            b = ctk.CTkButton(nav, text=self.CURTOS.get(sec.titulo, sec.titulo), height=28, width=40, corner_radius=14, fg_color=PAINEL,
+                              border_width=1, border_color=BORDA, hover_color=ROXO_CLARO, text_color=TEXTO, font=F(12, "bold"),
+                              command=lambda s=sec: self.ir_secao(s))
+            b.pack(side="left", padx=(0, 6))
+            self.chips[chave] = b
         self._inicial = None
-        self.after(400, lambda: setattr(self, "_inicial", self._assinatura()))
+        self._ultima = None
+        self.after(400, self._comecar)
 
     # seções
     def _produto(self):
@@ -2669,38 +2740,268 @@ class Editor(ctk.CTkFrame):
         self.app.toast(f"Venda R$ {reais(valor)} em todas as variações")
 
     # completar e conferir
+    def _existentes(self):
+        return recursos.codigos_das_fichas(self.app.pasta(), exceto=self.ficha.pasta if self.ficha else None)
+
+    def _n_fotos(self):
+        return len([f for f in self.fotos if not f.removida])
+
     def completar_tudo(self):
         d = self.montar()
-        feito = recursos.completar(d, dict(self.app.cfg["robo"]),
-                                   existentes=recursos.codigos_das_fichas(self.app.pasta(), exceto=self.ficha.pasta if self.ficha else None))
-        self.codigo.definir(d.get("codigo"))
-        if d.get("categoria"):
-            self.categoria.set(d["categoria"])
-        for l, v in zip(self.linhas, d["variacoes"]):
-            emb = v.get("embalagem") or {}
-            l.codigo.definir(v.get("codigo"))
-            l.venda.definir(v.get("venda"))
-            l.de.definir(v.get("preco_tabela"))
-            l.cc.definir(emb.get("comprimento_cm"))
-            l.cl.definir(emb.get("largura_cm"))
-            l.ca.definir(emb.get("altura_cm"))
-            l.calc()
-        for fr, a, b in list(self.tec):
-            fr.destroy()
-        self.tec = []
-        for item in d.get("ficha_tecnica") or []:
-            self._linha_tec(item.get("nome"), item.get("valor"))
-        self.ml_titulo.definir((d.get("mercado_livre") or {}).get("titulo_anuncio"))
-        self._contar_titulo()
-        if not self.desc.get("1.0", "end").strip() and d.get("descricao"):
-            self.desc.insert("1.0", d["descricao"])
-            self._contar()
+        cfg = dict(self.app.cfg["robo"])
+        existentes = self._existentes()
+        feito = recursos.completar(d, cfg, existentes=existentes)
+        feito += recursos.resolver(d, cfg=cfg, existentes=existentes)
+        self._preencher(d)
         self.conferir(feito)
 
     def conferir(self, feito=None):
         d = self.montar()
-        n_fotos = len([f for f in self.fotos if not f.removida])
-        ConferirFicha(self.app, feito, recursos.problemas(d, n_fotos))
+        ConferirFicha(self.app, feito, recursos.problemas(d, self._n_fotos()))
+
+    def _preencher(self, d):
+        """Põe na tela o que o robô preencheu no dict (só muda os campos que mudaram)."""
+        def por(e, v):
+            if e.valor() != (v if v not in ("", None) else None):
+                e.definir(v)
+        por(self.codigo, d.get("codigo"))
+        if d.get("categoria") and self.categoria.get() != d["categoria"]:
+            self.categoria.set(d["categoria"])
+        if d.get("prazo_dias") and self.sob.get():
+            self.prazo.configure(state="normal")
+            por(self.prazo, d.get("prazo_dias"))
+        if d.get("variacao_por") and d["variacao_por"] in self.VARIACAO_POR and self.var_por.get() != d["variacao_por"]:
+            self.var_por.set(d["variacao_por"])
+        for l, v in zip(self.linhas, d["variacoes"]):
+            emb = v.get("embalagem") if isinstance(v.get("embalagem"), dict) else {}
+            for e, x in ((l.codigo, v.get("codigo")), (l.custo, v.get("custo")), (l.venda, v.get("venda")), (l.de, v.get("preco_tabela")),
+                         (l.peso, emb.get("peso_kg")), (l.cc, emb.get("comprimento_cm")), (l.cl, emb.get("largura_cm")),
+                         (l.ca, emb.get("altura_cm"))):
+                por(e, x)
+            l.calc()
+        tec = [(i.get("nome"), i.get("valor")) for i in d.get("ficha_tecnica") or [] if isinstance(i, dict)]
+        if tec != [(a.valor(), b.valor()) for _, a, b in self.tec if a.valor() and b.valor()]:
+            for fr, a, b in list(self.tec):
+                fr.destroy()
+            self.tec = []
+            for nome, valor in tec:
+                self._linha_tec(nome, valor)
+        tit = (d.get("mercado_livre") or {}).get("titulo_anuncio")
+        if tit and tit != self.ml_titulo.get().strip():
+            self.ml_titulo.definir(tit)
+            self._contar_titulo()
+        if not self.desc.get("1.0", "end").strip() and d.get("descricao"):
+            self.desc.insert("1.0", d["descricao"])
+            self._contar()
+
+    # painel ao lado: resumo, progresso e pendências com botão de resolver
+    def _comecar(self):
+        if not self.winfo_exists():
+            return
+        self._inicial = self._assinatura()
+        self._vigiar()
+
+    def _vigiar(self):
+        if not self.winfo_exists():
+            return
+        try:
+            sig = self._assinatura()
+            if sig != self._ultima:
+                self._ultima = sig
+                self._desenhar_painel()
+            mudou = self._inicial is not None and sig != self._inicial
+            self.chip_salvo.configure(text="● não salvo" if mudou else "✓ salvo" if self.ficha else "",
+                                      fg_color=("#fffbeb", "#33270f") if mudou else (("#ecfdf5", "#0f2a22") if self.ficha else "transparent"),
+                                      text_color=("#b45309", "#fcd34d") if mudou else ("#047857", "#6ee7b7"))
+        except Exception:
+            with open(motor.BASE / "erros.log", "a", encoding="utf-8") as fl:
+                fl.write(traceback.format_exc() + "\n")
+        self.after(900, self._vigiar)
+
+    def _progresso(self, d, pend):
+        vs = recursos._vs(d)
+        chaves = {p["chave"] for p in pend}
+        itens = [("Nome", "nome" not in chaves), ("Categoria", "categoria" not in chaves), ("Código", "codigo" not in chaves),
+                 ("Preço de venda", "venda" not in chaves), ("Custo", "custo" not in chaves), ("Peso da caixa", "peso" not in chaves),
+                 ("Fotos", "fotos" not in chaves), ("Descrição", "descricao" not in chaves),
+                 ("Título do anúncio", not chaves & {"titulo", "titulo_longo"}),
+                 ("Ficha técnica", bool(d.get("ficha_tecnica")))]
+        if motor.sim(d.get("sob_encomenda")):
+            itens.append(("Prazo", "prazo" not in chaves))
+        if len(vs) > 1:
+            itens.append(("Varia por", "variacao_por" not in chaves))
+        return itens
+
+    def _desenhar_painel(self):
+        d = json.loads(json.dumps(self.montar(), default=str))
+        cfg = dict(self.app.cfg["robo"])
+        pend = recursos.pendencias(d, self._n_fotos(), cfg)
+        for w in self.painel.winfo_children():
+            w.destroy()
+        r = 0
+
+        def por(w, **kw):
+            nonlocal r
+            w.grid(row=r, column=0, sticky=kw.pop("sticky", "ew"), padx=kw.pop("padx", 14), pady=kw.pop("pady", 3), **kw)
+            r += 1
+
+        vis = [f for f in self.fotos if not f.removida]
+        img = miniatura(vis[0].caminho, 96) if vis else None
+        topo = ctk.CTkFrame(self.painel, fg_color="transparent")
+        topo.grid_columnconfigure(1, weight=1)
+        if img:
+            self.app._refs.append(img)
+        cap = ctk.CTkLabel(topo, text="" if img else "sem\nfoto", image=img, width=72, height=72, fg_color=SUAVE if not img else "transparent",
+                           corner_radius=12, text_color=MUDO, font=F(10), cursor="hand2")
+        cap.grid(row=0, column=0, rowspan=2, padx=(0, 10))
+        cap.bind("<Button-1>", lambda e: self.ir_secao(self.secoes["fotos"]))
+        ctk.CTkLabel(topo, text=cortar(d.get("nome") or "Sem nome", 44), font=F(14, "bold"), text_color=TEXTO, anchor="w",
+                     justify="left", wraplength=150).grid(row=0, column=1, sticky="sw")
+        ctk.CTkLabel(topo, text="  ·  ".join(x for x in [d.get("codigo") or "", d.get("categoria") or ""] if x) or "sem código",
+                     font=F(11), text_color=MUDO, anchor="w", wraplength=150, justify="left").grid(row=1, column=1, sticky="nw")
+        por(topo, pady=(14, 6))
+
+        itens = self._progresso(d, pend)
+        ok = sum(1 for _, b in itens if b)
+        pct = ok / len(itens)
+        cor = VERDE if pct >= 0.99 else ROXO if pct >= 0.6 else AMBAR
+        linha = ctk.CTkFrame(self.painel, fg_color="transparent")
+        ctk.CTkLabel(linha, text="Ficha pronta" if pct >= 0.99 else f"Ficha {pct * 100:.0f}% pronta", font=F(12, "bold"),
+                     text_color=cor).pack(side="left")
+        ctk.CTkLabel(linha, text=f"{ok} de {len(itens)}", font=F(11), text_color=MUDO).pack(side="right")
+        por(linha, pady=(6, 0))
+        barra = ctk.CTkProgressBar(self.painel, height=8, corner_radius=4, progress_color=cor, fg_color=SUAVE)
+        barra.set(pct)
+        por(barra, pady=(2, 8))
+
+        vendas = [motor.numero(v.get("venda")) for v in recursos._vs(d) if motor.numero(v.get("venda")) > 0]
+        if vendas and self.linhas:
+            l = self.linhas[0]
+            margem, frete, tipo = self._parametros()
+            custo = self._custo_da(l)
+            k = ctk.CTkFrame(self.painel, fg_color=SUAVE, corner_radius=12)
+            k.grid_columnconfigure((0, 1), weight=1)
+            faixa = f"R$ {reais(min(vendas))}" + (f" a {reais(max(vendas))}" if max(vendas) > min(vendas) else "")
+            ctk.CTkLabel(k, text="VENDA", font=F(10, "bold"), text_color=MUDO, anchor="w").grid(row=0, column=0, sticky="w", padx=10, pady=(8, 0))
+            ctk.CTkLabel(k, text=faixa, font=F(13, "bold"), text_color=VERDE, anchor="w").grid(row=1, column=0, columnspan=2, sticky="w", padx=10)
+            if l.venda.valor() and custo:
+                c = recursos.conta_venda(l.venda.valor(), custo, tipo, frete)
+                cor_m = VERDE if c["margem"] >= 25 else AMBAR if c["margem"] >= 10 else VERMELHO
+                ctk.CTkLabel(k, text=f"No ML você lucra R$ {reais(c['lucro'])} ({c['margem']:.0f}%)", font=F(11, "bold"),
+                             text_color=cor_m, anchor="w", wraplength=220, justify="left").grid(row=2, column=0, columnspan=2, sticky="w", padx=10, pady=(0, 8))
+            else:
+                ctk.CTkLabel(k, text="Ponha o custo para ver o lucro", font=F(11), text_color=MUDO, anchor="w").grid(
+                    row=2, column=0, columnspan=2, sticky="w", padx=10, pady=(0, 8))
+            por(k, pady=(0, 8))
+
+        cab = ctk.CTkFrame(self.painel, fg_color="transparent")
+        n_pend = len({(p["chave"]) for p in pend})
+        ctk.CTkLabel(cab, text="Falta resolver" if pend else "Tudo certo", font=F(14, "bold"), text_color=TEXTO).pack(side="left")
+        if pend:
+            ctk.CTkLabel(cab, text=str(n_pend), width=24, height=22, corner_radius=11, fg_color=AMBAR, text_color="white",
+                         font=F(11, "bold")).pack(side="left", padx=6)
+        por(cab, pady=(6, 2))
+        autos = [p for p in pend if p["acao"] and p["acao"] != "Informar"]
+        if autos:
+            por(dica(Botao(self.painel, "✦  Resolver o que der", "primario", height=34, font=F(12, "bold"),
+                           command=lambda: self.resolver({p["chave"] for p in autos})),
+                     "O robô resolve o que dá para deduzir. O que for estimado fica marcado para você conferir."), pady=(2, 6))
+        if not pend:
+            ctk.CTkLabel(self.painel, text="✓  A ficha tem tudo o que o site e o Mercado Livre precisam. É só salvar.",
+                         font=F(12), text_color=VERDE, anchor="w", justify="left", wraplength=220).grid(row=r, column=0, sticky="ew", padx=14, pady=4)
+            r += 1
+        # o mesmo aviso em várias variações vira um cartão só
+        juntos = []
+        for p in pend:
+            ig = next((q for q in juntos if q["chave"] == p["chave"] and p["variacao"] is not None), None)
+            if ig:
+                ig["vars"].append(p["texto"].split(":")[0])
+            else:
+                q = dict(p)
+                q["vars"] = [p["texto"].split(":")[0]] if p["variacao"] is not None else []
+                juntos.append(q)
+        for q in juntos:
+            if len(q["vars"]) > 1:
+                base = {"venda": "Sem preço de venda", "custo": "Sem custo", "peso": "Sem peso da caixa (o frete precisa)"}.get(q["chave"], q["texto"])
+                q["texto"] = f"{base} em {len(q['vars'])} variações: " + cortar(", ".join(q["vars"]), 70)
+        pend = juntos
+        for p in pend[:14]:
+            c = ctk.CTkFrame(self.painel, fg_color=("#fffbeb", "#2a2110"), corner_radius=10)
+            c.grid_columnconfigure(0, weight=1)
+            ctk.CTkLabel(c, text=p["texto"], font=F(11), text_color=("#92400e", "#fcd34d"), anchor="w", justify="left",
+                         wraplength=220).grid(row=0, column=0, columnspan=2, sticky="w", padx=10, pady=(7, 2))
+            bts = ctk.CTkFrame(c, fg_color="transparent")
+            bts.grid(row=1, column=0, sticky="w", padx=6, pady=(0, 6))
+            if p["acao"] and p["acao"] != "Informar":
+                Botao(bts, "✦ " + p["acao"], "suave", height=24, width=40, font=F(11, "bold"),
+                      command=lambda k=p["chave"]: self.resolver({k})).pack(side="left", padx=(0, 4))
+            if p["chave"] == "fotos":
+                Botao(bts, "＋ Adicionar fotos", "suave", height=24, width=40, font=F(11, "bold"),
+                      command=self.escolher_fotos).pack(side="left", padx=(0, 4))
+            ir = "Preencher" if p["acao"] in (None, "Informar") and p["chave"] != "fotos" else "Ver"
+            Botao(bts, ir + " ›", "fantasma", height=24, width=40, font=F(11),
+                  command=lambda q=p: self.ir_pendencia(q)).pack(side="left")
+            por(c, pady=2)
+        if len(pend) > 14:
+            ctk.CTkLabel(self.painel, text=f"e mais {len(pend) - 14}…", font=F(11), text_color=MUDO).grid(row=r, column=0, sticky="w", padx=16)
+            r += 1
+        feitos = [t for t, b in itens if b]
+        if feitos:
+            ctk.CTkLabel(self.painel, text="✓ " + "  ✓ ".join(feitos), font=F(10), text_color=MUDO, anchor="w", justify="left",
+                         wraplength=226).grid(row=r, column=0, sticky="ew", padx=14, pady=(10, 14))
+
+        # bolinha de status em cada aba de seção
+        por_secao = {}
+        for p in pend:
+            por_secao[p["secao"]] = por_secao.get(p["secao"], 0) + 1
+        for chave, b in self.chips.items():
+            sec = self.secoes[chave]
+            nome = self.CURTOS.get(sec.titulo, sec.titulo)
+            n = por_secao.get(chave, 0)
+            b.configure(text=f"{nome}  ·  {n}" if n else nome, border_color=AMBAR if n else BORDA,
+                        text_color=("#b45309", "#fcd34d") if n else TEXTO)
+
+    def resolver(self, chaves):
+        d = self.montar()
+        cfg = dict(self.app.cfg["robo"])
+        feito = recursos.resolver(d, chaves, cfg, self._existentes())
+        self._preencher(d)
+        self._ultima = None
+        if feito:
+            self.app.toast("✦ " + feito[0] + (f"  (+{len(feito) - 1})" if len(feito) > 1 else ""))
+            self.app.status(" · ".join(feito))
+        else:
+            self.app.toast("Nada que o robô consiga deduzir sozinho aqui", AMBAR)
+
+    def _campo_da(self, p):
+        i = p.get("variacao")
+        l = self.linhas[i] if i is not None and i < len(self.linhas) else (self.linhas[0] if self.linhas else None)
+        return {"nome": self.nome, "categoria": self.categoria, "codigo": self.codigo, "venda": l and l.venda,
+                "custo": (l and l.custo) if self.custos else None, "peso": l and l.peso, "prazo": self.prazo,
+                "titulo": self.ml_titulo, "titulo_longo": self.ml_titulo, "descricao": self.desc}.get(p["chave"])
+
+    def ir_pendencia(self, p):
+        w = self._campo_da(p)
+        if w is None and p["chave"] == "custo" and self.linhas:
+            i = p.get("variacao") or 0
+            w = self.linhas[min(i, len(self.linhas) - 1)].custo
+        if w is None:
+            self.ir_secao(self.secoes.get(p["secao"]) or self.secoes["produto"])
+            return
+        self._ir_widget(w)
+        try:
+            w.focus_set()
+            antes = w.cget("border_color")
+            w.configure(border_color=AMBAR)
+            self.after(1800, lambda: w.winfo_exists() and w.configure(border_color=antes))
+        except Exception:
+            pass
+
+    def _ir_widget(self, w):
+        self.update_idletasks()
+        alto = max(self.corpo.winfo_height(), 1)
+        y = w.winfo_rooty() - self.corpo.winfo_rooty()
+        self.corpo._parent_canvas.yview_moveto(max(y - 140, 0) / alto)
 
     # título e descrição
     def gerar_textos(self):
@@ -3139,6 +3440,11 @@ class Editor(ctk.CTkFrame):
         self.update_idletasks()
         alto = max(self.corpo.winfo_height(), 1)
         self.corpo._parent_canvas.yview_moveto(max(sec.winfo_y() - 8, 0) / alto)
+        try:
+            sec.configure(border_color=ROXO)
+            self.after(1200, lambda: sec.winfo_exists() and sec.configure(border_color=BORDA))
+        except Exception:
+            pass
 
     def _assinatura(self):
         try:
@@ -3553,6 +3859,73 @@ class ConferirFicha(Dialogo):
         if not falta:
             linha("✓  A ficha tem tudo o que o site e o Mercado Livre precisam.", ("#047857", "#6ee7b7"), ("#ecfdf5", "#0f2a22"))
         self.botao_ok("Entendi", self.destroy)
+
+
+class Faltando(Dialogo):
+    """Custo e peso que só o Marco sabe, de todas as fichas de uma vez."""
+
+    def __init__(self, app, itens, arrumadas=0):
+        txt = (f"O robô arrumou {arrumadas} ficha(s). " if arrumadas else "") + \
+              "Falta o que só você sabe. Preencha o que tiver (pode deixar em branco) e toque em Salvar."
+        super().__init__(app, "Custo e peso que faltam", txt, larg=720, alt=560)
+        self.itens = itens[:80]
+        caixa = ctk.CTkScrollableFrame(self.corpo, fg_color="transparent")
+        caixa.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=12, pady=(10, 4))
+        self.corpo.grid_rowconfigure(0, weight=1)
+        self.corpo.grid_columnconfigure(0, weight=1)
+        caixa.grid_columnconfigure(0, weight=1)
+        for c, (t, w) in enumerate((("PRODUTO", 0), ("CUSTO R$", 96), ("PESO CAIXA KG", 110))):
+            ctk.CTkLabel(caixa, text=t, font=F(10, "bold"), text_color=MUDO, anchor="w", width=w).grid(row=0, column=c, sticky="w", padx=6)
+        self.campos = []
+        ultimo = None
+        for i, (pasta, nome, idx, rot, fc, fp) in enumerate(self.itens, 1):
+            tit = cortar(nome, 46) if pasta != ultimo else ""
+            ultimo = pasta
+            ctk.CTkLabel(caixa, text=(tit + "\n" if tit else "") + "   " + rot, font=F(12), text_color=TEXTO, anchor="w",
+                         justify="left").grid(row=i, column=0, sticky="w", padx=6, pady=3)
+            ec = Entrada(caixa, "dinheiro", width=96, height=30) if fc else None
+            ep = Entrada(caixa, "decimal", width=110, height=30) if fp else None
+            for c, e in ((1, ec), (2, ep)):
+                if e:
+                    e.grid(row=i, column=c, padx=6, pady=3, sticky="w")
+                else:
+                    ctk.CTkLabel(caixa, text="✓", text_color=VERDE, width=40).grid(row=i, column=c, padx=6)
+            self.campos.append((pasta, idx, ec, ep))
+        if len(itens) > 80:
+            ctk.CTkLabel(caixa, text=f"e mais {len(itens) - 80}: rode de novo depois de salvar.", font=F(11), text_color=MUDO).grid(
+                row=len(self.itens) + 1, column=0, sticky="w", padx=6, pady=6)
+        dica_t = ctk.CTkLabel(self.corpo, text="Dica: ponha o peso de uma variação e rode “Resolver avisos” de novo: o robô estima o das "
+                                                "outras pelo tamanho da caixa.", font=F(11), text_color=MUDO, anchor="w", justify="left",
+                              wraplength=660)
+        dica_t.grid(row=1, column=0, columnspan=2, sticky="w", padx=18, pady=(0, 10))
+        self.botao_ok("Salvar", self.salvar)
+
+    def salvar(self):
+        por_pasta = {}
+        for pasta, idx, ec, ep in self.campos:
+            c = ec.valor() if ec else None
+            p = ep.valor() if ep else None
+            if c is not None or p:
+                por_pasta.setdefault(pasta, []).append((idx, c, p))
+        n = 0
+        for pasta, mudas in por_pasta.items():
+            f = motor.ler_ficha(pasta)
+            d = json.loads(json.dumps(f.dados))
+            vs = recursos._vs(d)
+            for idx, c, p in mudas:
+                if idx >= len(vs):
+                    continue
+                if c is not None:
+                    vs[idx]["custo"] = c
+                if p:
+                    emb = vs[idx].get("embalagem") if isinstance(vs[idx].get("embalagem"), dict) else {}
+                    emb["peso_kg"] = p
+                    vs[idx]["embalagem"] = emb
+                n += 1
+            motor.salvar_ficha(f, d)
+        self.destroy()
+        self.app.recarregar()
+        self.app.toast(f"{n} variação(ões) atualizada(s)" if n else "Nada preenchido", VERDE if n else ROXO)
 
 
 class ImportarLinks(Dialogo):

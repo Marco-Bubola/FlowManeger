@@ -58,6 +58,7 @@ PADRAO = {
     "marca_dagua": "Móveis Stylo",
     "preco_de_pct": "",
     "folga_caixa": "4",
+    "prazo_padrao": "15",
     "completar_ao_importar": "sim",
 }
 
