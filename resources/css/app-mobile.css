@@ -539,3 +539,11 @@ html body:has(.notif-ph) .mobile-top-bell { display: none !important; }
 .dash-grid > *, .dash-kpis > * { min-width: 0; }
 /* iPad: card que sobraria sozinho na última linha ocupa as duas colunas. */
 @media (min-width: 768px) and (max-width: 1279px) { html body .dash-grid > .dash-ipad-full { grid-column: 1 / -1 !important; } }
+
+/* Novo/Editar cliente no iPad: avatares numa faixa em cima e o formulário com a largura toda embaixo (lado a lado os campos de CPF, CEP e número ficavam cortados). */
+@media (min-width: 768px) and (max-width: 1279px) {
+    html body .client-form-page .cf-layout { flex-direction: column !important; gap: 1rem !important; }
+    html body .client-form-page .cf-avatar-col,
+    html body .client-form-page .cf-form-col { width: 100% !important; min-width: 0 !important; max-width: none !important; flex: none !important; }
+    html body .client-form-page .cf-avatar-col .grid { grid-template-columns: repeat(10, minmax(0, 1fr)) !important; gap: 0.6rem !important; }
+}
