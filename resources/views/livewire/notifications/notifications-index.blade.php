@@ -55,7 +55,7 @@
 
     {{-- Categorias --}}
     <div class="space-y-3">
-        <div class="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+        <div class="-mx-3 overflow-x-auto px-3 sm:mx-0 sm:px-0">
             <div class="flex min-w-max items-center gap-2 pb-1 sm:min-w-0 sm:flex-wrap">
                 <button type="button" wire:click="setCategory('')"
                     class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition {{ $category === '' ? 'border-indigo-500 bg-indigo-50 text-indigo-700 dark:border-indigo-400 dark:bg-indigo-500/15 dark:text-indigo-200' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300' }}">

@@ -273,7 +273,7 @@
 
         <template x-if="mais">
         {{-- Atividades recentes --}}
-        <x-dash.card title="Atividades recentes" sub="Últimas movimentações" icon="bi-activity" tone="sky" span="dash-col-4">
+        <x-dash.card title="Atividades recentes" sub="Últimas movimentações" icon="bi-activity" tone="sky" span="dash-col-4 dash-ipad-full">
             @if(!empty($atividades))
                 <div class="dash-list dash-scroll max-h-[240px] overflow-y-auto pr-1">
                     @foreach(array_slice($atividades, 0, 8) as $a)

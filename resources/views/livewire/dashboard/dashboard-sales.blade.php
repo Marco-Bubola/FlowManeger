@@ -67,7 +67,7 @@
         </x-dash.card>
 
         {{-- Indicadores --}}
-        <x-dash.card title="Indicadores" sub="Performance comercial" icon="bi-speedometer2" tone="teal" span="dash-col-6">
+        <x-dash.card title="Indicadores" sub="Performance comercial" icon="bi-speedometer2" tone="teal" span="dash-col-6 dash-ipad-full">
             <div class="dash-list">
                 <x-dash.list-item title="CLV médio" sub="Valor por cliente" icon="bi-gem" tone="purple" :value="$fmt($clvMedio ?? 0)" />
                 <x-dash.list-item title="Crescimento anual" sub="vs ano anterior" icon="bi-graph-up-arrow" tone="emerald" :value="number_format($crescimentoAnual ?? 0, 1, ',', '.') . '%'" :trend="($crescimentoAnual ?? 0) >= 0 ? 'up' : 'down'" />

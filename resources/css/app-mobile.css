@@ -537,3 +537,5 @@ html body:has(.notif-ph) .mobile-top-bell { display: none !important; }
 
 /* Painéis (dash-grid): um nome de produto comprido numa lista não pode alargar a coluna e empurrar a tela para o lado. */
 .dash-grid > *, .dash-kpis > * { min-width: 0; }
+/* iPad: card que sobraria sozinho na última linha ocupa as duas colunas. */
+@media (min-width: 768px) and (max-width: 1279px) { html body .dash-grid > .dash-ipad-full { grid-column: 1 / -1 !important; } }

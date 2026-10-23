@@ -83,7 +83,7 @@
         </x-dash.card>
 
         {{-- Cartões: fatura aberta e fechamento --}}
-        <x-dash.card title="Cartões" sub="Fatura aberta e fechamento" icon="bi-credit-card-2-front" tone="sky" span="dash-col-6">
+        <x-dash.card title="Cartões" sub="Fatura aberta e fechamento" icon="bi-credit-card-2-front" tone="sky" span="dash-col-6 dash-ipad-full">
             @if($cartoes->isNotEmpty())
                 <div class="dash-list dash-scroll max-h-[280px] overflow-y-auto pr-1">
                     @foreach($cartoes as $c)

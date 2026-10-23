@@ -88,7 +88,7 @@
         </x-dash.card>
 
         {{-- Reservas / Cofrinhos --}}
-        <x-dash.card title="Cofrinhos" sub="Mais perto da meta" icon="bi-piggy-bank" tone="purple" span="dash-col-6">
+        <x-dash.card title="Cofrinhos" sub="Mais perto da meta" icon="bi-piggy-bank" tone="purple" span="dash-col-6 dash-ipad-full">
             @if(!empty($cofrinhosTopMeta))
                 <div class="dash-list">
                     @foreach(array_slice($cofrinhosTopMeta, 0, 5) as $c)
