@@ -371,13 +371,15 @@ class App(ctk.CTk):
         self.area.grid_rowconfigure(0, weight=1)
         self._rodape()
 
+        self.paginas["inicio"] = PaginaInicio(self.area, self)
         self.paginas["fichas"] = PaginaFichas(self.area, self)
         self.paginas["ml"] = PaginaML(self.area, self)
         self.paginas["feitas"] = PaginaFeitas(self.area, self)
         self.paginas["config"] = PaginaConfig(self.area, self)
         self.paginas["concorrentes"] = PaginaConcorrentes(self.area, self)
-        self.ir("fichas")
         self.recarregar()
+        self.ir("inicio")
+        self._atalhos()
         self.after(120, self._ler_fila)
         self._clip = None
         self.after(1500, self._olhar_area_transf)
@@ -391,7 +393,7 @@ class App(ctk.CTk):
         lat.grid(row=0, column=0, rowspan=2, sticky="nsw")
         lat.grid_propagate(False)
         lat.grid_columnconfigure(0, weight=1)
-        lat.grid_rowconfigure(7, weight=1)
+        lat.grid_rowconfigure(8, weight=1)
         logo = ctk.CTkFrame(lat, fg_color="transparent")
         logo.grid(row=0, column=0, sticky="ew", padx=18, pady=(22, 26))
         ctk.CTkLabel(logo, text="MS", width=44, height=44, corner_radius=13, fg_color=ROXO, text_color="white",
@@ -401,7 +403,7 @@ class App(ctk.CTk):
         ctk.CTkLabel(txt, text="Móveis Stylo", text_color="white", font=F(15, "bold"), anchor="w").pack(anchor="w")
         ctk.CTkLabel(txt, text="Robô de cadastro", text_color="#a79fc4", font=F(12), anchor="w").pack(anchor="w")
         self.nav = {}
-        itens = [("fichas", "☰   Fichas"), ("ml", "⌕   Mercado Livre"), ("concorrentes", "◎   Concorrentes"),
+        itens = [("inicio", "⌂   Início"), ("fichas", "☰   Fichas"), ("ml", "⌕   Mercado Livre"), ("concorrentes", "◎   Concorrentes"),
                  ("feitas", "✓   Cadastradas"), ("config", "⚙   Configurações")]
         for i, (chave, texto) in enumerate(itens, 1):
             b = ctk.CTkButton(lat, text=texto, anchor="w", height=42, corner_radius=11, fg_color="transparent",
@@ -410,16 +412,16 @@ class App(ctk.CTk):
             b.grid(row=i, column=0, sticky="ew", padx=12, pady=3)
             self.nav[chave] = b
         Botao(lat, "Copiar questionário p/ IA", "fantasma", text_color="#d6d0ea", border_color="#3b2a63",
-              hover_color="#2d1b52", command=self.questionario).grid(row=8, column=0, sticky="ew", padx=14, pady=(0, 8))
+              hover_color="#2d1b52", command=self.questionario).grid(row=9, column=0, sticky="ew", padx=14, pady=(0, 8))
         self.tema = ctk.CTkSwitch(lat, text="Modo escuro", text_color="#d6d0ea", progress_color=ROXO, font=F(13),
                                   command=self.trocar_tema)
-        self.tema.grid(row=9, column=0, sticky="w", padx=18, pady=(4, 10))
+        self.tema.grid(row=10, column=0, sticky="w", padx=18, pady=(4, 10))
         if ctk.get_appearance_mode() == "Dark":
             self.tema.select()
         self.chip_nav = Chip(lat, "Navegador fechado", "#3b2a63")
-        self.chip_nav.grid(row=10, column=0, sticky="w", padx=16, pady=(0, 6))
+        self.chip_nav.grid(row=11, column=0, sticky="w", padx=16, pady=(0, 6))
         self.lbl_site = ctk.CTkLabel(lat, text="", text_color="#8b84a8", font=F(11), anchor="w", justify="left", wraplength=190)
-        self.lbl_site.grid(row=11, column=0, sticky="ew", padx=18, pady=(0, 18))
+        self.lbl_site.grid(row=12, column=0, sticky="ew", padx=18, pady=(0, 18))
 
     def _rodape(self):
         rod = ctk.CTkFrame(self, corner_radius=0, fg_color=PAINEL, border_width=0, height=46)
@@ -443,6 +445,34 @@ class App(ctk.CTk):
         self.pagina.grid(row=0, column=0, sticky="nsew")
         if hasattr(self.pagina, "ao_mostrar"):
             self.pagina.ao_mostrar()
+
+    def _atalhos(self):
+        def no_editor():
+            ed = self.paginas.get("editor")
+            return ed if ed is not None and self.pagina is ed else None
+
+        def tecla(seq, acao):
+            self.bind_all(seq, lambda e: (acao(), "break")[1])
+        tecla("<Control-n>", lambda: self.rodando or self.editar(None))
+        tecla("<Control-l>", lambda: ImportarLinks(self))
+        tecla("<F5>", lambda: no_editor() or (self.recarregar(), self.toast("Lista atualizada", ROXO)))
+
+        def buscar():
+            if no_editor():
+                return
+            if self.pagina is self.paginas["ml"]:
+                self.paginas["ml"].termo.focus_set()
+            else:
+                self.ir("fichas")
+                self.paginas["fichas"].busca.focus_set()
+        tecla("<Control-f>", buscar)
+        tecla("<Control-s>", lambda: no_editor() and no_editor().salvar())
+
+        def esc():
+            ed = no_editor()
+            if ed and not any(isinstance(w, ctk.CTkToplevel) and w.winfo_viewable() for w in self.winfo_children()):
+                ed.cancelar()
+        self.bind_all("<Escape>", lambda e: esc())
 
     def trocar_tema(self):
         escuro = bool(self.tema.get())
@@ -496,6 +526,8 @@ class App(ctk.CTk):
         self.nav["fichas"].configure(text="☰   Fichas" + (f"   ·   {n}" if n else ""))
         if self.pagina is self.paginas["feitas"]:
             self.paginas["feitas"].carregar()
+        if self.pagina is self.paginas.get("inicio"):
+            self.paginas["inicio"].desenhar()
 
     def selecionar(self, cartao):
         self.paginas["fichas"].selecionar(cartao)
@@ -989,6 +1021,202 @@ class App(ctk.CTk):
             pass
 
 
+# ------------------------------------------------------------------ dicas (tooltip)
+
+class Dica:
+    """Balãozinho com explicação quando o mouse para em cima de um botão."""
+
+    def __init__(self, w, texto):
+        self.w, self.texto, self.janela, self.job = w, texto, None, None
+        try:
+            w.bind("<Enter>", self._entrar, add="+")
+            w.bind("<Leave>", self._sair, add="+")
+            w.bind("<Button-1>", self._sair, add="+")
+        except Exception:
+            pass
+
+    def _entrar(self, e=None):
+        self._cancelar()
+        self.job = self.w.after(450, self._mostrar)
+
+    def _cancelar(self):
+        if self.job:
+            try:
+                self.w.after_cancel(self.job)
+            except Exception:
+                pass
+            self.job = None
+
+    def _mostrar(self):
+        self.job = None
+        try:
+            x, y = self.w.winfo_pointerx() + 14, self.w.winfo_pointery() + 18
+            j = self.janela = ctk.CTkToplevel(self.w)
+            j.wm_overrideredirect(True)
+            j.attributes("-topmost", True)
+            j.configure(fg_color="#1d1a2b")
+            ctk.CTkLabel(j, text=self.texto, text_color="white", fg_color="#1d1a2b", font=F(12), padx=10, pady=5,
+                         wraplength=320, justify="left").pack()
+            j.geometry(f"+{x}+{y}")
+        except Exception:
+            self.janela = None
+
+    def _sair(self, e=None):
+        self._cancelar()
+        if self.janela:
+            try:
+                self.janela.destroy()
+            except Exception:
+                pass
+            self.janela = None
+
+
+def dica(w, texto):
+    Dica(w, texto)
+    return w
+
+
+# ------------------------------------------------------------------ página Início
+
+class PaginaInicio(ctk.CTkFrame):
+    def __init__(self, master, app):
+        super().__init__(master, fg_color="transparent")
+        self.app = app
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        from datetime import datetime
+        dias = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
+        hoje = datetime.now()
+        hora = hoje.hour
+        saud = "Bom dia" if hora < 12 else "Boa tarde" if hora < 18 else "Boa noite"
+        self.cab = Cabecalho(self, f"{saud}, Marco!", f"Hoje é {dias[hoje.weekday()]}, {hoje:%d/%m}. O que vamos fazer?")
+        self.cab.grid(row=0, column=0, sticky="ew", padx=24, pady=(20, 8))
+        self.corpo = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        self.corpo.grid(row=1, column=0, sticky="nsew", padx=14, pady=(0, 10))
+        self.corpo.grid_columnconfigure(0, weight=1)
+
+    def ao_mostrar(self):
+        self.desenhar()
+
+    def _ir_fichas(self, filtro="Todas", marcar=False, selecionar=None):
+        app = self.app
+        pf = app.paginas["fichas"]
+        app.ir("fichas")
+        if selecionar is not None:
+            app.recarregar(selecionar=selecionar)
+        pf.filtro.set(filtro)
+        pf.filtrar()
+        if marcar:
+            pf.marcar_todas(True)
+
+    def _conferir(self):
+        self.app.ir("concorrentes")
+        self.app.paginas["concorrentes"].conferir()
+
+    def desenhar(self):
+        app = self.app
+        for w in self.corpo.winfo_children():
+            w.destroy()
+        fichas = motor.listar_fichas(app.pasta())
+        feitos = app.pasta() / "feitos"
+        n_feitas = sum(1 for p in feitos.iterdir() if p.is_dir()) if feitos.is_dir() else 0
+        prontas = [f for f in fichas if f.pronta and f.status not in ("feita", "ja")]
+        erro = [f for f in fichas if f.status == "erro"]
+        conc = recursos.ler_concorrentes()
+        mudaram = []
+        for c in conc:
+            h = [x["preco"] for x in c.get("historico") or []]
+            if len(h) > 1 and abs(h[-1] - h[-2]) >= 0.01:
+                mudaram.append((c, h[-2], h[-1]))
+
+        # números
+        kpis = ctk.CTkFrame(self.corpo, fg_color="transparent")
+        kpis.grid(row=0, column=0, sticky="ew", padx=(10, 18), pady=(4, 12))
+        dados = [("Na fila", len(fichas), TEXTO, lambda: self._ir_fichas()),
+                 ("Prontas", len(prontas), VERDE, lambda: self._ir_fichas("Prontas")),
+                 ("Com erro", len(erro), VERMELHO if erro else TEXTO, lambda: self._ir_fichas("Com erro")),
+                 ("Cadastradas", n_feitas, ROXO_TXT, lambda: app.ir("feitas")),
+                 ("Concorrentes", len(conc), TEXTO, lambda: app.ir("concorrentes"))]
+        for i, (rot, n, cor, acao) in enumerate(dados):
+            kpis.grid_columnconfigure(i, weight=1, uniform="k")
+            k = ctk.CTkFrame(kpis, fg_color=PAINEL, corner_radius=16, border_width=1, border_color=BORDA, cursor="hand2")
+            k.grid(row=0, column=i, sticky="ew", padx=5)
+            a = ctk.CTkLabel(k, text=rot.upper(), font=F(11, "bold"), text_color=MUDO, anchor="w")
+            a.pack(anchor="w", padx=16, pady=(12, 0))
+            b = ctk.CTkLabel(k, text=str(n), font=F(28, "bold"), text_color=cor, anchor="w")
+            b.pack(anchor="w", padx=16, pady=(0, 10))
+            for w in (k, a, b):
+                w.bind("<Button-1>", lambda e, f=acao: f())
+
+        # ações
+        ctk.CTkLabel(self.corpo, text="Atalhos", font=F(16, "bold"), text_color=TEXTO, anchor="w").grid(
+            row=1, column=0, sticky="w", padx=16, pady=(6, 4))
+        grade = ctk.CTkFrame(self.corpo, fg_color="transparent")
+        grade.grid(row=2, column=0, sticky="ew", padx=(10, 18))
+        acoes = [("＋", "Nova ficha", "Preencher do zero (Ctrl+N)", ROXO, lambda: app.editar(None)),
+                 ("⤓", "Importar link do ML", "Cole o link de um anúncio (Ctrl+L)", "#ca8a04", lambda: ImportarLinks(app)),
+                 ("⌕", "Buscar no Mercado Livre", "Ideias e preços dos concorrentes", "#ca8a04", lambda: app.ir("ml")),
+                 ("✎", "Colar ficha da IA", "Resposta do questionário", ROXO, lambda: Colar(app)),
+                 ("◎", "Conferir concorrentes", f"{len(conc)} anúncio(s) vigiado(s)", AMBAR, self._conferir),
+                 ("⇧", "Cadastrar prontas", f"{len(prontas)} pronta(s) para subir ao site", VERDE,
+                  lambda: self._ir_fichas("Prontas", marcar=True))]
+        for i, (ico, tit, sub, cor, acao) in enumerate(acoes):
+            grade.grid_columnconfigure(i % 3, weight=1, uniform="a")
+            c = ctk.CTkFrame(grade, fg_color=PAINEL, corner_radius=16, border_width=1, border_color=BORDA, cursor="hand2")
+            c.grid(row=i // 3, column=i % 3, sticky="ew", padx=5, pady=5)
+            ic = ctk.CTkLabel(c, text=ico, width=44, height=44, corner_radius=12, fg_color=cor, text_color="white", font=F(20, "bold"))
+            ic.pack(side="left", padx=(14, 12), pady=14)
+            tx = ctk.CTkFrame(c, fg_color="transparent")
+            tx.pack(side="left", fill="x", expand=True)
+            t1 = ctk.CTkLabel(tx, text=tit, font=F(14, "bold"), text_color=TEXTO, anchor="w")
+            t1.pack(anchor="w")
+            t2 = ctk.CTkLabel(tx, text=sub, font=F(12), text_color=MUDO, anchor="w")
+            t2.pack(anchor="w")
+
+            def hover(dentro, c=c):
+                c.configure(border_color=ROXO if dentro else BORDA)
+            for w in (c, ic, tx, t1, t2):
+                w.bind("<Button-1>", lambda e, f=acao: f())
+                w.bind("<Enter>", lambda e, h=hover: h(True))
+                w.bind("<Leave>", lambda e, h=hover: h(False))
+
+        # atenção
+        ctk.CTkLabel(self.corpo, text="Precisa de atenção", font=F(16, "bold"), text_color=TEXTO, anchor="w").grid(
+            row=3, column=0, sticky="w", padx=16, pady=(16, 4))
+        lista = ctk.CTkFrame(self.corpo, fg_color=PAINEL, corner_radius=16, border_width=1, border_color=BORDA)
+        lista.grid(row=4, column=0, sticky="ew", padx=15, pady=(0, 16))
+        itens = []
+        for f in erro:
+            itens.append(("✕", VERMELHO, f.nome, f.erros[0] if f.erros else "Com erro", lambda f=f: self._ir_fichas(selecionar=f.pasta)))
+        for c, antes, agora in mudaram:
+            seta = "▼" if agora < antes else "▲"
+            itens.append((seta, AMBAR, c.get("titulo") or c["link"], f"Concorrente mudou de R$ {reais(antes)} para R$ {reais(agora)}",
+                          lambda: app.ir("concorrentes")))
+        for f in prontas:
+            sem_peso = [a for a in f.avisos if a.startswith("Sem peso") or a.startswith("Sem custo")]
+            if sem_peso:
+                itens.append(("⚠", AMBAR, f.nome, sem_peso[0], lambda f=f: self._ir_fichas(selecionar=f.pasta)))
+        if not itens:
+            ctk.CTkLabel(lista, text="✓  Tudo em dia. Nenhuma ficha com erro e nenhum concorrente mudou de preço.",
+                         font=F(13), text_color=VERDE, anchor="w").pack(fill="x", padx=16, pady=16)
+        for ico, cor, tit, sub, acao in itens[:10]:
+            l = ctk.CTkFrame(lista, fg_color="transparent", cursor="hand2")
+            l.pack(fill="x", padx=8, pady=2)
+            a = ctk.CTkLabel(l, text=ico, width=30, height=30, corner_radius=9, fg_color=cor, text_color="white", font=F(13, "bold"))
+            a.pack(side="left", padx=(8, 10), pady=6)
+            b = ctk.CTkLabel(l, text=cortar(tit, 60), font=F(13, "bold"), text_color=TEXTO, anchor="w")
+            b.pack(side="left")
+            c2 = ctk.CTkLabel(l, text="  ·  " + cortar(sub, 70), font=F(12), text_color=MUDO, anchor="w")
+            c2.pack(side="left")
+            for w in (l, a, b, c2):
+                w.bind("<Button-1>", lambda e, f=acao: f())
+        if len(itens) > 10:
+            ctk.CTkLabel(lista, text=f"e mais {len(itens) - 10}…", font=F(12), text_color=MUDO).pack(anchor="w", padx=18, pady=(0, 10))
+        ctk.CTkLabel(self.corpo, text="Atalhos do teclado:  Ctrl+N nova ficha  ·  Ctrl+L importar link  ·  Ctrl+F buscar  ·  "
+                                      "F5 atualizar  ·  no editor: Ctrl+S salvar, Esc voltar",
+                     font=F(11), text_color=MUDO, anchor="w").grid(row=5, column=0, sticky="w", padx=16, pady=(0, 10))
+
+
 # ------------------------------------------------------------------ página Fichas
 
 class Cabecalho(ctk.CTkFrame):
@@ -1018,11 +1246,13 @@ class PaginaFichas(ctk.CTkFrame):
         cab = Cabecalho(self, "Fichas", "")
         cab.grid(row=0, column=0, columnspan=2, sticky="ew", padx=24, pady=(20, 10))
         self.lbl_cont = cab.sub
-        Botao(cab.acoes, "＋  Nova ficha", "primario", width=130, command=lambda: app.editar(None)).pack(side="left", padx=4)
+        dica(Botao(cab.acoes, "＋  Nova ficha", "primario", width=130, command=lambda: app.editar(None)), "Ficha em branco (Ctrl+N)").pack(side="left", padx=4)
         Botao(cab.acoes, "Colar ficha da IA", "suave", width=140, command=lambda: Colar(app)).pack(side="left", padx=4)
-        Botao(cab.acoes, "🔗  Importar link do ML", "ml", width=190, command=lambda: ImportarLinks(app)).pack(side="left", padx=4)
-        Botao(cab.acoes, "Pasta", "fantasma", width=70, command=lambda: abrir_no_sistema(app.pasta())).pack(side="left", padx=4)
-        Botao(cab.acoes, "⟳", "fantasma", width=40, command=app.recarregar).pack(side="left", padx=(4, 0))
+        dica(Botao(cab.acoes, "🔗  Importar link do ML", "ml", width=190, command=lambda: ImportarLinks(app)),
+             "Cole o link de um ou mais anúncios do Mercado Livre (Ctrl+L)").pack(side="left", padx=4)
+        dica(Botao(cab.acoes, "Pasta", "fantasma", width=70, command=lambda: abrir_no_sistema(app.pasta())),
+             "Abrir a pasta das fichas no Windows").pack(side="left", padx=4)
+        dica(Botao(cab.acoes, "⟳", "fantasma", width=40, command=app.recarregar), "Atualizar a lista (F5)").pack(side="left", padx=(4, 0))
 
         barra = ctk.CTkFrame(self, fg_color="transparent")
         barra.grid(row=1, column=0, columnspan=2, sticky="ew", padx=24, pady=(0, 10))
@@ -1480,11 +1710,35 @@ class PaginaML(ctk.CTkFrame):
 
         self.grade = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self.grade.grid(row=4, column=0, sticky="nsew", padx=18, pady=(4, 12))
-        self.dica = ctk.CTkLabel(self.grade, text="Os resultados aparecem aqui.\n\nNa primeira busca o navegador do robô abre o Mercado Livre.\n"
-                                                   "Se o Mercado Livre pedir para confirmar que você não é um robô ou para entrar,\n"
-                                                   "resolva na janela do navegador e o robô continua sozinho.",
-                                 text_color=MUDO, font=F(13), justify="center")
-        self.dica.grid(row=0, column=0, columnspan=4, pady=60, padx=40)
+        self.dica = ctk.CTkFrame(self.grade, fg_color="transparent")
+        self.dica.grid(row=0, column=0, columnspan=4, sticky="ew", pady=30, padx=20)
+        self._vazio()
+
+    def ao_mostrar(self):
+        if not self.itens:
+            self._vazio()
+
+    def _vazio(self):
+        for w in self.dica.winfo_children():
+            w.destroy()
+        ctk.CTkLabel(self.dica, text="Comece por uma busca", font=F(18, "bold"), text_color=TEXTO).pack(pady=(10, 2))
+        ctk.CTkLabel(self.dica, text="Na primeira busca o navegador do robô abre o Mercado Livre. Se ele pedir para confirmar que você "
+                                     "não é um robô, resolva lá e o robô continua sozinho.",
+                     font=F(12), text_color=MUDO, wraplength=620, justify="center").pack(pady=(0, 14))
+        grupos = []
+        hist = ler_historico()[:8]
+        if hist:
+            grupos.append(("Buscadas por você", hist))
+        grupos.append(("Sugestões", PESQUISAS[0][2][:8]))
+        for titulo, termos in grupos:
+            ctk.CTkLabel(self.dica, text=titulo.upper(), font=F(11, "bold"), text_color=MUDO).pack(pady=(10, 4))
+            linha = ctk.CTkFrame(self.dica, fg_color="transparent")
+            linha.pack()
+            for i, t in enumerate(termos):
+                Botao(linha, t, "suave", height=30, font=F(12, "bold"), command=lambda t=t: self.buscar_termo(t)).grid(
+                    row=i // 4, column=i % 4, padx=4, pady=3, sticky="ew")
+        Botao(self.dica, "✦  Ver todas as pesquisas rápidas", "fantasma", height=34,
+              command=lambda: PesquisasRapidas(self.app, self)).pack(pady=(16, 0))
 
     def aviso(self, texto, erro=False, carregando=False):
         if not texto:
@@ -1622,9 +1876,10 @@ class PaginaML(ctk.CTkFrame):
                 ctk.CTkLabel(card, text=it["vendedor"][:34], font=F(11), text_color=MUDO, anchor="w").pack(fill="x", padx=12)
             bts = ctk.CTkFrame(card, fg_color="transparent")
             bts.pack(fill="x", padx=10, pady=(8, 12))
-            Botao(bts, "Ver", "fantasma", width=44, height=30, font=F(12), command=lambda u=it["link"]: webbrowser.open(u)).pack(side="left")
-            Botao(bts, "◎", "fantasma", width=34, height=30, font=F(13),
-                  command=lambda x=it: self.vigiar(x)).pack(side="left", padx=(4, 0))
+            dica(Botao(bts, "Ver", "fantasma", width=44, height=30, font=F(12), command=lambda u=it["link"]: webbrowser.open(u)),
+                 "Abrir o anúncio no navegador").pack(side="left")
+            dica(Botao(bts, "◎", "fantasma", width=34, height=30, font=F(13), command=lambda x=it: self.vigiar(x)),
+                 "Vigiar o preço deste anúncio (vai para Concorrentes)").pack(side="left", padx=(4, 0))
             Botao(bts, "Importar ficha", "primario", height=30, font=F(12, "bold"),
                   command=lambda x=it: self.importar(x)).pack(side="left", padx=(6, 0), fill="x", expand=True)
             self.cartoes.append(card)
@@ -1903,6 +2158,7 @@ class PaginaConfig(ctk.CTkFrame):
 class Secao(ctk.CTkFrame):
     def __init__(self, master, titulo, sub=""):
         super().__init__(master, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA)
+        self.titulo = titulo
         self.grid_columnconfigure((1, 3), weight=1)
         cab = ctk.CTkFrame(self, fg_color="transparent")
         cab.grid(row=0, column=0, columnspan=4, sticky="ew", padx=20, pady=(16, 6))
@@ -2044,7 +2300,7 @@ class Editor(ctk.CTkFrame):
         self.fotos = []
         self.tmp = Path(tempfile.mkdtemp(prefix="robo-stylo-ed-"))
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)
 
         cab = ctk.CTkFrame(self, fg_color="transparent")
         cab.grid(row=0, column=0, sticky="ew", padx=24, pady=(18, 10))
@@ -2055,13 +2311,15 @@ class Editor(ctk.CTkFrame):
         self.lbl_sub.grid(row=1, column=1, sticky="w")
         self.lbl_erro = ctk.CTkLabel(cab, text="", font=F(12, "bold"), text_color=VERMELHO)
         self.lbl_erro.grid(row=0, column=2, rowspan=2, padx=10)
-        Botao(cab, "✦  Completar tudo", "suave", width=150, command=self.completar_tudo).grid(row=0, column=3, rowspan=2, padx=4)
-        Botao(cab, "Conferir", "fantasma", width=90, command=lambda: self.conferir()).grid(row=0, column=4, rowspan=2, padx=4)
-        Botao(cab, "Cancelar", "fantasma", width=96, command=self.cancelar).grid(row=0, column=5, rowspan=2, padx=4)
-        Botao(cab, "Salvar ficha", "primario", width=140, height=40, font=F(14, "bold"), command=self.salvar).grid(row=0, column=6, rowspan=2, padx=(4, 0))
+        dica(Botao(cab, "✦  Completar tudo", "suave", width=150, command=self.completar_tudo),
+             "Preenche só o que está vazio: código, categoria, caixa, preço, título e descrição").grid(row=0, column=3, rowspan=2, padx=4)
+        dica(Botao(cab, "Conferir", "fantasma", width=90, command=lambda: self.conferir()),
+             "Mostra o que ainda falta na ficha").grid(row=0, column=4, rowspan=2, padx=4)
+        dica(Botao(cab, "Salvar ficha", "primario", width=140, height=40, font=F(14, "bold"), command=self.salvar),
+             "Ctrl+S").grid(row=0, column=6, rowspan=2, padx=(4, 0))
 
         self.corpo = ctk.CTkScrollableFrame(self, fg_color="transparent")
-        self.corpo.grid(row=1, column=0, sticky="nsew", padx=14, pady=(0, 10))
+        self.corpo.grid(row=2, column=0, sticky="nsew", padx=14, pady=(0, 10))
         self.corpo.grid_columnconfigure(0, weight=1)
         self._produto()
         self._precos()
@@ -2070,6 +2328,16 @@ class Editor(ctk.CTkFrame):
         self._fotos()
         self._tecnica()
         self._mercado_livre()
+        nav = ctk.CTkFrame(self, fg_color="transparent")
+        nav.grid(row=1, column=0, sticky="ew", padx=24, pady=(0, 8))
+        curtos = {"Preço, estoque e prazo": "Preço e estoque", "Custo e preço sugerido": "Custo e preço"}
+        secoes = sorted((w for w in self.corpo.winfo_children() if isinstance(w, Secao)), key=lambda w: int(w.grid_info()["row"]))
+        for sec in secoes:
+            ctk.CTkButton(nav, text=curtos.get(sec.titulo, sec.titulo), height=28, width=40, corner_radius=14, fg_color=PAINEL,
+                          border_width=1, border_color=BORDA, hover_color=ROXO_CLARO, text_color=TEXTO, font=F(12, "bold"),
+                          command=lambda s=sec: self.ir_secao(s)).pack(side="left", padx=(0, 6))
+        self._inicial = None
+        self.after(400, lambda: setattr(self, "_inicial", self._assinatura()))
 
     # seções
     def _produto(self):
@@ -2679,9 +2947,9 @@ class Editor(ctk.CTkFrame):
             bts = ctk.CTkFrame(cel, fg_color="transparent")
             bts.pack(pady=(2, 8))
             pb = dict(width=32, height=26, font=F(12))
-            Botao(bts, "◀", "fantasma", command=lambda f=f: self._mover(f, -1), **pb).pack(side="left", padx=1)
-            Botao(bts, "★", "fantasma", command=lambda f=f: self._mover(f, -999), **pb).pack(side="left", padx=1)
-            Botao(bts, "▶", "fantasma", command=lambda f=f: self._mover(f, 1), **pb).pack(side="left", padx=1)
+            dica(Botao(bts, "◀", "fantasma", command=lambda f=f: self._mover(f, -1), **pb), "Mover para a esquerda").pack(side="left", padx=1)
+            dica(Botao(bts, "★", "fantasma", command=lambda f=f: self._mover(f, -999), **pb), "Usar como capa").pack(side="left", padx=1)
+            dica(Botao(bts, "▶", "fantasma", command=lambda f=f: self._mover(f, 1), **pb), "Mover para a direita").pack(side="left", padx=1)
             Botao(bts, "✕", "perigo", command=lambda f=f: self._remover_foto(f), **pb).pack(side="left", padx=(6, 1))
 
     def _mudar_uso(self, f, txt):
@@ -2867,9 +3135,31 @@ class Editor(ctk.CTkFrame):
         self.app.toast("Ficha salva")
         self.app.fechar_editor(pasta)
 
+    def ir_secao(self, sec):
+        self.update_idletasks()
+        alto = max(self.corpo.winfo_height(), 1)
+        self.corpo._parent_canvas.yview_moveto(max(sec.winfo_y() - 8, 0) / alto)
+
+    def _assinatura(self):
+        try:
+            d = json.loads(json.dumps(self.montar(), default=str))
+            fotos = [(str(f.caminho), f.removida, f.uso if isinstance(f.uso, str) else self.linhas.index(f.uso)
+                      if f.uso in self.linhas else -1) for f in self.fotos]
+            return json.dumps([d, fotos], sort_keys=True, default=str)
+        except Exception:
+            return None
+
     def cancelar(self):
-        if messagebox.askyesno("Sair sem salvar", "Sair do editor sem salvar as mudanças?"):
-            self.app.fechar_editor(self.ficha.pasta if self.ficha else None)
+        pasta = self.ficha.pasta if self.ficha else None
+        if self._inicial is not None and self._assinatura() == self._inicial:
+            self.app.fechar_editor(pasta)
+            return
+        r = messagebox.askyesnocancel("Salvar as mudanças?", "Você mudou a ficha. Quer salvar antes de sair?\n\n"
+                                      "Sim = salvar  ·  Não = sair sem salvar  ·  Cancelar = continuar editando")
+        if r is True:
+            self.salvar()
+        elif r is False:
+            self.app.fechar_editor(pasta)
 
     def destroy(self):
         import shutil
@@ -3398,8 +3688,8 @@ class PaginaConcorrentes(ctk.CTkFrame):
             Chip(dir_, "pausado ou sumiu", "#64748b").pack(anchor="e", pady=(2, 0))
         bts = ctk.CTkFrame(l, fg_color="transparent")
         bts.grid(row=0, column=3, rowspan=2, padx=(4, 12))
-        Botao(bts, "↗", "suave", width=36, height=30, command=lambda: webbrowser.open(c["link"])).pack(side="left", padx=2)
-        Botao(bts, "✕", "perigo", width=36, height=30, command=lambda: self.remover(c)).pack(side="left", padx=2)
+        dica(Botao(bts, "↗", "suave", width=36, height=30, command=lambda: webbrowser.open(c["link"])), "Abrir o anúncio").pack(side="left", padx=2)
+        dica(Botao(bts, "✕", "perigo", width=36, height=30, command=lambda: self.remover(c)), "Parar de vigiar").pack(side="left", padx=2)
         return l
 
     def adicionar(self):

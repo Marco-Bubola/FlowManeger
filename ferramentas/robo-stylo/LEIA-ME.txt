@@ -53,6 +53,14 @@ MERCADO LIVRE
 - "Pesquisas rápidas": ideias prontas de peças em ferro e madeira; "Carregar
   mais" traz mais anúncios. O ◎ de cada anúncio põe ele em Concorrentes.
 
+INÍCIO
+- Resumo (na fila, prontas, com erro, cadastradas, concorrentes), atalhos e a
+  lista do que precisa de atenção. Clique em qualquer item para ir até ele.
+- Teclado: Ctrl+N nova ficha, Ctrl+L importar link, Ctrl+F buscar, F5
+  atualizar; no editor Ctrl+S salva e Esc volta.
+- No editor, os botões no topo (Produto, Preço, Custo, Fotos...) levam direto
+  à seção. Ao voltar, o robô só pergunta se você mudou alguma coisa.
+
 IMPORTAR POR LINK
 - "🔗 Importar link do ML" (em Fichas): cole o link do anúncio, ou vários
   (um por linha), e o robô cria uma ficha de cada.
