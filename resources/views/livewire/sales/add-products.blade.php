@@ -355,23 +355,6 @@
             html body .add-products-page .product-card-modern .badge-price-sale { font-size: 0.7em !important; }
         }
 
-        /* Ícone da categoria igual ao de Nova venda: círculo claro centrado na borda da foto, sem cobrir o nome */
-        html body .add-products-page .product-card-modern .category-icon-wrapper {
-            width: 3.1rem !important; height: 3.1rem !important; bottom: -1.55rem !important;
-            border-width: 3px !important; transform: translateX(-50%) !important;
-            background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%) !important;
-            border-color: rgba(129, 140, 248, 0.22) !important;
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.12) !important;
-        }
-        html body .add-products-page .product-card-modern .category-icon { font-size: 1.45rem !important; color: #6366f1 !important; filter: none !important; }
-        html.dark body .add-products-page .product-card-modern .category-icon-wrapper { background: #1e293b !important; border-color: rgba(129, 140, 248, 0.35) !important; }
-        html.dark body .add-products-page .product-card-modern .category-icon { color: #a5b4fc !important; }
-        html body .add-products-page.add-products-page .product-card-modern .card-body { padding-top: 2rem !important; }
-        /* Nome do produto legível (antes quase transparente sobre o fundo lilás) */
-        html body .add-products-page.add-products-page .product-card-modern .product-title {
-            background: none !important; -webkit-text-fill-color: currentColor !important; color: #0f172a !important;
-        }
-        html.dark body .add-products-page.add-products-page .product-card-modern .product-title { color: #f1f5f9 !important; }
 
         /* ===== COMPACTAÇÃO BASE DOS CARDS (remove o vazio de min-height:420px) ===== */
         .add-products-page .product-card-modern {

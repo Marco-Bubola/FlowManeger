@@ -41,6 +41,7 @@
                         <h1 class="text-xl sm:text-2xl font-bold truncate bg-gradient-to-r from-slate-800 via-rose-700 to-orange-600 dark:from-rose-300 dark:via-pink-300 dark:to-orange-300 bg-clip-text text-transparent">Vendas em promoção</h1>
                         <p class="app-ph-sub mt-0.5 text-sm text-slate-600 dark:text-slate-400">Quanto você vendeu com preço promocional, quanto deu de desconto e quanto lucrou</p>
                     </div>
+                    <div class="ml-auto shrink-0"><x-header-bell /></div>
                 </div>
             </div>
 

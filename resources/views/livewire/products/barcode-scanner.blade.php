@@ -530,15 +530,14 @@
             $chm = $modeHeaderMap[$activeMode] ?? $modeHeaderMap['consulta'];
             @endphp
             <div class="relative" @keydown.escape.window="modeOpen = false" @click.outside="modeOpen = false">
-                <button @click="modeOpen = !modeOpen" type="button"
+                <button @click="modeOpen = !modeOpen" type="button" title="Modo de leitura: {{ $chm['label'] }}" aria-label="Modo de leitura: {{ $chm['label'] }}"
                         class="inline-flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm border border-slate-200 dark:border-slate-600 text-sm font-semibold hover:bg-white dark:hover:bg-slate-600 transition-all shadow-sm"
                         :class="modeOpen ? 'ring-2 ring-indigo-400/50 border-indigo-300 dark:border-indigo-600' : ''">
                     <div class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-{{ $chm['color'] }}-500 to-{{ $chm['color'] }}-600">
                         <i class="{{ $chm['icon'] }} text-white text-[10px]"></i>
                     </div>
                     <span class="hidden md:inline text-slate-700 dark:text-slate-200">{{ $chm['label'] }}</span>
-                    <span class="inline md:hidden text-[10px] font-black uppercase tracking-wide text-{{ $chm['color'] }}-600 dark:text-{{ $chm['color'] }}-400">Modo</span>
-                    <i class="fas fa-chevron-down text-slate-400 text-[11px] transition-transform duration-200" :class="modeOpen ? 'rotate-180' : ''"></i>
+                    <span class="hidden md:inline-flex"><i class="fas fa-chevron-down text-slate-400 text-[11px] transition-transform duration-200" :class="modeOpen ? 'rotate-180' : ''"></i></span>
                 </button>
                 {{-- Painel dropdown --}}
                 <div x-show="modeOpen"
@@ -610,10 +609,10 @@
 
 
             {{-- ═══ WORKSPACE: Scanner (esq. 1/4) + Painel (dir. 3/4 sticky) ═══ --}}
-            <div class="grid grid-cols-1 md:grid-cols-12 lg:grid-cols-12 gap-4 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
 
                 {{-- ─────────── SCANNER + HISTÓRICO (esq. ≈ 1/3) ─────────── --}}
-                <div class="md:col-span-4 lg:col-span-4 space-y-4 lg:sticky lg:top-4">
+                <div class="lg:col-span-4 space-y-4 lg:sticky lg:top-4">
 
                     {{-- ═══ SCANNER ═══ --}}
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-xl overflow-hidden">
@@ -835,7 +834,7 @@
                 </div>{{-- end scanner + history col --}}
 
                 {{-- ─────────── RESULTADOS / VINCULAR (dir. ≈ 2/3) ─────────── --}}
-                <div class="md:col-span-8 lg:col-span-8 space-y-4">
+                <div class="lg:col-span-8 space-y-4">
 
                     @if($activeMode === 'vincular')
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border-2 border-cyan-400/50 dark:border-cyan-600/50 shadow-xl shadow-cyan-500/8 overflow-hidden">

@@ -40,6 +40,7 @@
                         <i class="bi bi-check-circle-fill"></i>{{ $selectedCount }} {{ $selectedCount === 1 ? 'produto' : 'produtos' }}
                     </span>
                 @endif
+                <x-header-bell />
             </div>
         </div>
     </div>

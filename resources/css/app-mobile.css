@@ -547,3 +547,25 @@ html body:has(.notif-ph) .mobile-top-bell { display: none !important; }
     html body .client-form-page .cf-form-col { width: 100% !important; min-width: 0 !important; max-width: none !important; flex: none !important; }
     html body .client-form-page .cf-avatar-col .grid { grid-template-columns: repeat(10, minmax(0, 1fr)) !important; gap: 0.6rem !important; }
 }
+
+/* Cards de produto (lista, kit, promoção, edição em massa, venda): nome em cor sólida e legível
+   (o degradê rosa ficava quase invisível sobre o fundo lilás) e ícone da categoria centrado na
+   borda da foto num círculo claro, como em Nova venda (antes, no celular, ia para o lado e cobria o nome). */
+html body .product-card-modern .product-title {
+    background: none !important; -webkit-text-fill-color: currentColor !important; color: #1e1b4b !important;
+}
+html.dark body .product-card-modern .product-title { color: #f1f5f9 !important; }
+html body .product-card-modern .category-icon-wrapper {
+    transform: translateX(-50%) !important;
+    background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%) !important;
+    border-color: rgba(129, 140, 248, 0.22) !important;
+}
+html body .product-card-modern .category-icon { color: #6366f1 !important; filter: none !important; }
+html.dark body .product-card-modern .category-icon-wrapper { background: #1e293b !important; border-color: rgba(129, 140, 248, 0.35) !important; }
+html.dark body .product-card-modern .category-icon { color: #a5b4fc !important; }
+/* Adicionar produtos à venda e Nova promoção (mesmos cards): ícone menor e espaço para ele acima do nome. */
+html body .add-products-page.add-products-page .product-card-modern .category-icon-wrapper {
+    width: 3.1rem !important; height: 3.1rem !important; bottom: -1.55rem !important; border-width: 3px !important;
+}
+html body .add-products-page.add-products-page .product-card-modern .category-icon { font-size: 1.45rem !important; }
+html body .add-products-page.add-products-page .product-card-modern .card-body { padding-top: 2rem !important; }
