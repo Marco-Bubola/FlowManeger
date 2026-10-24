@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class PortalCollection extends Model
 {
     protected $fillable = [
-        'user_id', 'name', 'slug', 'description', 'image', 'color', 'sort', 'active', 'show_on_home', 'rule', 'rule_data', 'design',
+        'user_id', 'name', 'slug', 'description', 'image', 'color', 'sort', 'active', 'show_on_home', 'rule', 'rule_data', 'design', 'category_id',
     ];
 
     protected $casts = [

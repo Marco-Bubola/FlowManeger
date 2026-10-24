@@ -457,6 +457,87 @@ class StorefrontService
             ->filter()->unique()->take($n)->values()->all();
     }
 
+    /** Capas das coleções de categoria: um modelo diferente para cada uma, na ordem. */
+    public const CATEGORY_COVERS = ['destaque', 'vitrine', 'artesanal', 'top', 'fragrancia', 'chegaram', 'ambiente', 'make', 'novidade', 'pele', 'pronta', 'kit', 'ofertas3', 'encomenda'];
+
+    /** Produtos à venda (principal da família) por categoria. */
+    public static function categoryCounts(int $ownerId): Collection
+    {
+        return Product::withoutGlobalScope('team_visibility')
+            ->where('products.user_id', $ownerId)->availableForSale()->whereIn('status', ['active', 'ativo'])->topOfFamily()
+            ->whereNotNull('category_id')
+            ->selectRaw('category_id, count(*) as n')->groupBy('category_id')
+            ->pluck('n', 'category_id')->map(fn ($v) => (int) $v);
+    }
+
+    /** Categorias com produto à venda que ainda não têm a coleção delas. */
+    public static function categoriesWithoutCollection(int $ownerId): Collection
+    {
+        if (! Schema::hasColumn('portal_collections', 'category_id')) {
+            return collect();
+        }
+        $counts = self::categoryCounts($ownerId);
+        $have = PortalCollection::where('user_id', $ownerId)->whereNotNull('category_id')->pluck('category_id')->map(fn ($v) => (int) $v)->all();
+
+        return \App\Models\Category::where('user_id', $ownerId)->whereIn('id_category', $counts->keys())->whereNotIn('id_category', $have)
+            ->orderBy('name')->get(['id_category', 'name'])
+            ->map(fn ($c) => ['id' => (int) $c->id_category, 'name' => trim((string) $c->name), 'count' => (int) ($counts[$c->id_category] ?? 0)])
+            ->filter(fn ($c) => $c['name'] !== '')->values();
+    }
+
+    /**
+     * Cria uma coleção automática (regra "categoria") para cada categoria que ainda não tem,
+     * cada uma com capa de um modelo diferente. As 4 maiores vão para a página inicial.
+     */
+    public static function createCategoryCollections(int $ownerId, ?string $kind = null): int
+    {
+        $cats = self::categoriesWithoutCollection($ownerId);
+        if ($cats->isEmpty()) {
+            return 0;
+        }
+        $kind ??= \App\Services\Promotions\StoreKind::for($ownerId);
+        $avail = self::templates($kind);
+        $covers = array_values(array_filter(self::CATEGORY_COVERS, fn ($k) => $avail->has($k))) ?: ['destaque'];
+        $used = PortalCollection::where('user_id', $ownerId)->whereNotNull('category_id')->count();
+        $onHome = PortalCollection::where('user_id', $ownerId)->where('show_on_home', true)->count();
+        $big = $cats->sortByDesc('count')->take(max(0, 4 - $onHome))->pluck('id')->all();
+        $sort = (int) PortalCollection::where('user_id', $ownerId)->max('sort');
+        foreach ($cats as $i => $cat) {
+            $tpl = $covers[($used + $i) % count($covers)];
+            $t = self::template($tpl, $kind);
+            $c = PortalCollection::create([
+                'user_id'      => $ownerId,
+                'name'         => mb_substr($cat['name'], 0, 80),
+                'slug'         => self::freeSlug($ownerId, $cat['name']),
+                'description'  => 'Toda a linha de ' . mb_strtolower($cat['name']) . ' em um só lugar',
+                'color'        => array_keys(self::COLORS)[($used + $i) % count(self::COLORS)],
+                'active'       => true,
+                'show_on_home' => in_array($cat['id'], $big, true),
+                'sort'         => ++$sort,
+                'rule'         => 'categoria',
+                'rule_data'    => ['cats' => [$cat['id']], 'limit' => 12],
+                'category_id'  => $cat['id'],
+                'design'       => ['tpl' => $tpl, 'badge' => 'COLEÇÃO', 'c1' => $t['c1'], 'c2' => $t['c2'], 'acc' => $t['acc'], 'ink' => $t['ink'],
+                    'lay' => ($used + $i) % 2 ? 'dir' : 'esq', 'anim' => 'fotos'],
+            ]);
+            $c->syncProducts([]);
+        }
+
+        return $cats->count();
+    }
+
+    public static function freeSlug(int $ownerId, string $name, ?int $ignore = null): string
+    {
+        $base = \Illuminate\Support\Str::slug($name) ?: 'colecao';
+        $slug = $base;
+        $n = 2;
+        while (PortalCollection::where('user_id', $ownerId)->where('slug', $slug)->when($ignore, fn ($q) => $q->where('id', '!=', $ignore))->exists()) {
+            $slug = $base . '-' . $n++;
+        }
+
+        return $slug;
+    }
+
     /** Coleções ligadas, com os produtos à venda (as vazias ficam de fora). */
     public static function collections(int $ownerId, bool $homeOnly = true): Collection
     {

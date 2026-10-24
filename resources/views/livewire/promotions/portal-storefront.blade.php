@@ -202,6 +202,14 @@
                     <a href="{{ route('promotions.storefront.collection.create', ['ideia' => $i]) }}" class="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-violet-400"><i class="bi {{ $front::COLLECTION_RULES[$irule][1] }} text-violet-500"></i>{{ $iname }}</a>
                 @endforeach
             </div>
+            @if($missingCats->isNotEmpty())
+                <div class="{{ $card }} p-3 sm:p-4 flex items-center gap-3 flex-wrap border-violet-200 dark:border-violet-500/30" data-testid="missing-cats">
+                    <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-violet-50 dark:bg-violet-500/15 text-violet-600 text-lg"><i class="bi bi-tags"></i></div>
+                    <p class="flex-1 min-w-[200px] text-sm text-slate-600 dark:text-slate-300"><b class="text-slate-900 dark:text-white">{{ $missingCats->count() === 1 ? '1 categoria ainda sem coleção' : $missingCats->count() . ' categorias ainda sem coleção' }}</b>
+                        <span class="block text-xs text-slate-500 dark:text-slate-400 truncate">{{ $missingCats->pluck('name')->take(6)->join(', ') }}{{ $missingCats->count() > 6 ? '…' : '' }}. Cada uma vira uma coleção automática com capa própria.</span></p>
+                    <button type="button" wire:click="createCategoryCollections" wire:loading.attr="disabled" class="{{ $primary }}" data-testid="create-cat-collections"><i class="bi bi-magic"></i>Criar as coleções</button>
+                </div>
+            @endif
             @if($collections->isEmpty())
                 <x-empty-state icon="bi-collection" tone="violet" title="Nenhuma coleção ainda"
                                text="Escolha os produtos ou use uma regra (categoria, em promoção, mais vendidos, faixa de preço) e a coleção se atualiza sozinha." />

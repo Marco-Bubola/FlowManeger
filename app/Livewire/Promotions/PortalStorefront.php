@@ -56,6 +56,21 @@ class PortalStorefront extends Component
         $this->notice_text = (string) $s->notice_text;
         $this->notice_link = (string) $s->notice_link;
         $this->notice_active = (bool) $s->notice_active;
+        // Uma coleção pronta para cada categoria, criada uma vez; as categorias novas pelo botão.
+        if (\Illuminate\Support\Facades\Schema::hasColumn('portal_settings', 'home') && empty(($s->home ?? [])['cats_done'])) {
+            $made = StorefrontService::createCategoryCollections(Auth::id(), $this->kind);
+            $s->home = array_merge($s->home ?? [], ['cats_done' => true]);
+            $s->save();
+            if ($made) {
+                session()->flash('success', $made === 1 ? 'Criamos 1 coleção para a sua categoria.' : 'Criamos ' . $made . ' coleções, uma para cada categoria.');
+            }
+        }
+    }
+
+    public function createCategoryCollections(): void
+    {
+        $made = StorefrontService::createCategoryCollections(Auth::id(), $this->kind);
+        $this->dispatch('notify', type: 'success', message: $made === 1 ? '1 coleção criada.' : $made . ' coleções criadas.');
     }
 
     public function setKind(string $kind): void
@@ -317,6 +332,7 @@ class PortalStorefront extends Component
             'banners'       => $banners,
             'collections'   => $collections,
             'counts'        => $counts,
+            'missingCats'   => $this->tab === 'colecoes' ? StorefrontService::categoriesWithoutCollection($uid) : collect(),
             'featured'      => $this->productsById($this->featuredIds),
             'results'       => $results,
             'picked'        => $picked,
