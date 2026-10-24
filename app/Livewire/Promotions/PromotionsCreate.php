@@ -25,6 +25,8 @@ class PromotionsCreate extends Component
 {
     use HasNotifications, SchedulesPromotion;
 
+    /** Mensagem do WhatsApp das promoções (vazia = a das configurações). */
+    public string $message = '';
     public string $search = '';
     public string $category = '';
     public string $show = 'todos'; // todos | sem_promo | com_tabela
@@ -193,6 +195,7 @@ class PromotionsCreate extends Component
                         'promo_price'    => $this->num($item['promo']),
                         'starts_at'      => $startsAt,
                         'ends_at'        => $this->endsAt ?: null,
+                        'message'        => trim($this->message) ?: null,
                     ]);
                     $promo->status === Promotion::AGENDADA ? $scheduled++ : $created++;
                 }

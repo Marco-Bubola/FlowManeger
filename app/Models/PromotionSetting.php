@@ -78,7 +78,7 @@ class PromotionSetting extends Model
         'user_id', 'min_margin_percent', 'suggest_min_discount', 'default_days',
         'message_template', 'footer', 'footer_catalog_link',
         'default_discount', 'price_ending', 'auto_end_out_of_stock', 'greet_client',
-        'collection_due_template', 'collection_overdue_template',
+        'collection_due_template', 'collection_overdue_template', 'store_kind',
     ];
 
     protected $casts = [

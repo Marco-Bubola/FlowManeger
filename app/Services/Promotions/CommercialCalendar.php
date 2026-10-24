@@ -30,15 +30,53 @@ class CommercialCalendar
         'natal'       => ['Natal', '🎄'],
     ];
 
+    /** Datas que não combinam com o tipo de loja (ficam de fora da lista). */
+    public const HIDDEN = [
+        'moveis' => ['volta_aulas', 'carnaval', 'mulher', 'pascoa', 'junina', 'criancas'],
+    ];
+
+    /** Chamada da mensagem de WhatsApp de cada data: [beleza e outras, móveis]. */
+    public const HEADLINES = [
+        'ano_novo'    => ['OFERTAS DE ANO NOVO', 'CASA NOVA PARA O ANO NOVO'],
+        'volta_aulas' => ['VOLTA ÀS AULAS', 'VOLTA ÀS AULAS'],
+        'carnaval'    => ['PROMO DE CARNAVAL', 'PROMO DE CARNAVAL'],
+        'mulher'      => ['ESPECIAL DIA DA MULHER', 'ESPECIAL DIA DA MULHER'],
+        'consumidor'  => ['SEMANA DO CONSUMIDOR', 'SEMANA DO CONSUMIDOR'],
+        'pascoa'      => ['PÁSCOA CHEIA DE MIMOS', 'PÁSCOA EM FAMÍLIA'],
+        'maes'        => ['PRESENTE PARA O DIA DAS MÃES', 'DIA DAS MÃES: UMA CASA MAIS BONITA PARA ELA'],
+        'namorados'   => ['PRESENTE DE DIA DOS NAMORADOS', 'DIA DOS NAMORADOS: O CANTINHO DE VOCÊS'],
+        'junina'      => ['ARRAIÁ DE OFERTAS', 'ARRAIÁ DE OFERTAS'],
+        'pais'        => ['PRESENTE PARA O DIA DOS PAIS', 'DIA DOS PAIS: O CANTO DELE EM CASA'],
+        'cliente'     => ['DIA DO CLIENTE', 'DIA DO CLIENTE'],
+        'criancas'    => ['DIA DAS CRIANÇAS', 'DIA DAS CRIANÇAS'],
+        'black'       => ['BLACK FRIDAY', 'BLACK FRIDAY DOS MÓVEIS'],
+        'natal'       => ['PRESENTE DE NATAL', 'NATAL EM CASA'],
+    ];
+
+    /** Mensagem de WhatsApp da promoção para a data, no jeito do tipo de loja. */
+    public static function message(string $key, string $kind): ?string
+    {
+        if (! isset(self::DATES[$key])) {
+            return null;
+        }
+        $emoji = self::DATES[$key][1];
+        $headline = self::HEADLINES[$key][$kind === 'moveis' ? 1 : 0];
+        $closing = $kind === 'moveis'
+            ? 'Me chama para ver medidas, cores e prazo de entrega! 🪑'
+            : 'Me chama para garantir o seu! 💜';
+
+        return "{$emoji} *{$headline}* {$emoji}\n*{nome}*\nDe ~{de}~ por *{por}* ({desconto} OFF)\n{validade}\n{$closing}";
+    }
+
     /**
      * Todas as datas na ordem em que começam, a partir de hoje.
      * Cada uma: key, name, emoji, day (o dia da data), start, end (período da promoção), now (já está no período).
      */
-    public static function upcoming(?Carbon $today = null): array
+    public static function upcoming(?Carbon $today = null, ?string $kind = null): array
     {
         $today = ($today ?? now(Promotion::tz()))->copy()->startOfDay();
         $out = [];
-        foreach (array_keys(self::DATES) as $key) {
+        foreach (array_diff(array_keys(self::DATES), self::HIDDEN[$kind] ?? []) as $key) {
             $out[] = self::next($key, $today);
         }
         usort($out, fn ($a, $b) => $a['start'] <=> $b['start']);

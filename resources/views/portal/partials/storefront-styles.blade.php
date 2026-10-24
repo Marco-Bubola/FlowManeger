@@ -192,4 +192,37 @@
     .sf-sb .sf-d.pics-3 .sf-d-pic:nth-child(n+2) { display: none; }
     .sf-sb .sf-d-cta { white-space: normal; }
     @container (min-width: 200px) { .sf-sb .sf-d-pic { width: 170px; } .sf-sb .sf-d-title { font-size: 28px; } }
+    /* Fotos de cada espaço empilhadas; com animação passam em ciclo (3,2 s cada). */
+    .sf-d-in { position: relative; display: block; width: 100%; height: 100%; }
+    .sf-d-in img { position: absolute; inset: 0; }
+    .sf-d-in img:not(:first-child) { opacity: 0; }
+    .sf-d-in.cyc-2 img { opacity: 1; animation: sf-c2 6.4s ease-in-out infinite; animation-delay: calc(var(--sf-j) * -3.2s + var(--sf-o, 0s)); }
+    .sf-d-in.cyc-3 img { opacity: 1; animation: sf-c3 9.6s ease-in-out infinite; animation-delay: calc(var(--sf-j) * -3.2s + var(--sf-o, 0s)); }
+    .sf-d.anim-deslizar .sf-d-in.cyc-2 img { animation-name: sf-s2; }
+    .sf-d.anim-deslizar .sf-d-in.cyc-3 img { animation-name: sf-s3; }
+    .sf-d.anim-zoom .sf-d-in, .sf-d.anim-vivo .sf-d-in { animation: sf-kb 7s ease-in-out infinite alternate; }
+    .sf-d.anim-entrada .sf-d-txt > *, .sf-d.anim-vivo .sf-d-txt > * { animation: sf-up .7s cubic-bezier(.2,.8,.2,1) both; }
+    .sf-d.anim-entrada .sf-d-txt > :nth-child(2), .sf-d.anim-vivo .sf-d-txt > :nth-child(2) { animation-delay: .12s; }
+    .sf-d.anim-entrada .sf-d-txt > :nth-child(3), .sf-d.anim-vivo .sf-d-txt > :nth-child(3) { animation-delay: .24s; }
+    .sf-d.anim-entrada .sf-d-txt > :nth-child(4), .sf-d.anim-vivo .sf-d-txt > :nth-child(4) { animation-delay: .36s; }
+    .sf-d.anim-entrada .sf-d-pics, .sf-d.anim-vivo .sf-d-pics { animation: sf-in .8s .2s cubic-bezier(.2,.8,.2,1) both; }
+    .sf-d.anim-vivo .sf-d-badge { animation: sf-up .7s both, sf-pulse 2.4s 1s ease-in-out infinite; }
+    .sf-d.anim-vivo .sf-d-cta { position: relative; overflow: hidden; }
+    .sf-d.anim-vivo .sf-d-cta::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.55) 50%, transparent 70%); translate: -120% 0; animation: sf-shine 3.2s 1.2s ease-in-out infinite; }
+    .sf-d.anim-vivo .sf-d-deco i, .sf-d.anim-entrada .sf-d-deco i { animation: sf-float 5s ease-in-out infinite; }
+    .sf-d.anim-vivo .sf-d-deco i:nth-child(2n), .sf-d.anim-entrada .sf-d-deco i:nth-child(2n) { animation-duration: 6.5s; animation-delay: -2s; }
+    @keyframes sf-c2 { 0%, 42% { opacity: 1; } 50%, 92% { opacity: 0; } 100% { opacity: 1; } }
+    @keyframes sf-c3 { 0%, 28% { opacity: 1; } 33.4%, 95% { opacity: 0; } 100% { opacity: 1; } }
+    @keyframes sf-s2 { 0%, 42% { opacity: 1; translate: 0 0; } 50% { opacity: 0; translate: -40% 0; } 51%, 91% { opacity: 0; translate: 40% 0; } 100% { opacity: 1; translate: 0 0; } }
+    @keyframes sf-s3 { 0%, 28% { opacity: 1; translate: 0 0; } 33.4% { opacity: 0; translate: -40% 0; } 34%, 94% { opacity: 0; translate: 40% 0; } 100% { opacity: 1; translate: 0 0; } }
+    @keyframes sf-kb { from { scale: 1; } to { scale: 1.09; } }
+    @keyframes sf-up { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+    @keyframes sf-in { from { opacity: 0; translate: 24px 0; scale: .92; } to { opacity: 1; translate: 0 0; scale: 1; } }
+    @keyframes sf-pulse { 0%, 100% { scale: 1; } 50% { scale: 1.07; } }
+    @keyframes sf-shine { 0% { translate: -120% 0; } 45%, 100% { translate: 120% 0; } }
+    @keyframes sf-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -9px; } }
+    @media (prefers-reduced-motion: reduce) {
+        .sf-d *, .sf-d *::after { animation: none !important; }
+        .sf-d-in img:not(:first-child) { opacity: 0 !important; }
+    }
 </style>

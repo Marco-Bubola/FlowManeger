@@ -1,11 +1,19 @@
 {{-- Banner de modelo pronto, desenhado em HTML (nítido em qualquer tela).
-     $tpl, $c1, $c2, $acc, $ink, $badge, $title, $subtitle, $button, $photos (urls), $lay = esq|dir|centro --}}
+     $tpl, $c1, $c2, $acc, $ink, $badge, $title, $subtitle, $button, $photos (urls), $lay = esq|dir|centro,
+     $anim = none|fotos|deslizar|zoom|entrada|vivo (as que trocam as fotos passam até 3 fotos por espaço, em ciclo) --}}
 @php
     $tpl = $tpl ?: 'oferta';
     $t = \App\Services\Portal\StorefrontService::TEMPLATES[$tpl] ?? \App\Services\Portal\StorefrontService::TEMPLATES['oferta'];
     $lay = in_array($lay ?? 'esq', ['esq', 'dir', 'centro'], true) ? ($lay ?? 'esq') : 'esq';
     $photos = $lay === 'centro' ? [] : array_values(array_filter($photos ?? []));
+    $anim = array_key_exists($anim ?? 'none', \App\Services\Portal\StorefrontService::ANIMATIONS) ? ($anim ?? 'none') : 'none';
+    $rotates = \App\Services\Portal\StorefrontService::ANIMATIONS[$anim][2];
     $n = min(count($photos), $t['pics']);
+    // Fotos de cada espaço: com animação, o espaço i mostra as fotos i, i+n, i+2n em ciclo.
+    $slots = [];
+    for ($i = 0; $i < $n; $i++) {
+        $slots[$i] = $rotates ? array_values(array_filter([$photos[$i] ?? null, $photos[$i + $n] ?? null, $photos[$i + 2 * $n] ?? null])) : [$photos[$i]];
+    }
     $hex = fn ($v, $d) => preg_match('/^#[0-9a-fA-F]{6}$/', (string) $v) ? $v : $d;
     $svg = [
         'bolt'    => '<svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
@@ -24,10 +32,16 @@
         'percent' => '<svg viewBox="0 0 24 24"><path d="M19 3.6 20.4 5 5 20.4 3.6 19zM7 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm10 10a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"/></svg>',
         'gift'    => '<svg viewBox="0 0 24 24"><path d="M3 8h18v4H3zM4 12h7v9H4zm9 0h7v9h-7zM11 8h2v13h-2zM12 8S9 2 6.5 4 9 8 12 8zm0 0s3-6 5.5-4S15 8 12 8z"/></svg>',
         'trophy'  => '<svg viewBox="0 0 24 24"><path d="M6 2h12v3h4v3a5 5 0 0 1-5 5 6 6 0 0 1-4 3v3h4v3H7v-3h4v-3a6 6 0 0 1-4-3 5 5 0 0 1-5-5V5h4zm0 5H4v1a3 3 0 0 0 2 2.8zm12 0v3.8A3 3 0 0 0 20 8V7z"/></svg>',
+        'ruler'   => '<svg viewBox="0 0 24 24"><path d="M2 16 16 2l6 6L8 22zm4.2-.6 1.4 1.4 1.4-1.4-1.4-1.4zm2.8-2.8 2.1 2.1 1.4-1.4-2.1-2.1zm2.8-2.8 1.4 1.4 1.4-1.4-1.4-1.4zm2.8-2.8 2.1 2.1 1.4-1.4-2.1-2.1z"/></svg>',
+        'chair'   => '<svg viewBox="0 0 24 24"><path d="M6 2h12v9H6zM4 11h16v4H4zM5 15h2v7H5zm12 0h2v7h-2z"/></svg>',
+        'lamp'    => '<svg viewBox="0 0 24 24"><path d="M7 2h10l3 9H4zM11 11h2v8h-2zM7 19h10v3H7z"/></svg>',
+        'drop'    => '<svg viewBox="0 0 24 24"><path d="M12 2s7 7.6 7 12.5A7 7 0 0 1 5 14.5C5 9.6 12 2 12 2z"/></svg>',
+        'wrench'  => '<svg viewBox="0 0 24 24"><path d="M21 6.5 17.5 10 14 6.5 17.5 3A6 6 0 0 0 10 10.6L2.6 18a2 2 0 0 0 0 2.8l.6.6a2 2 0 0 0 2.8 0l7.4-7.4A6 6 0 0 0 21 6.5z"/></svg>',
+        'card'    => '<svg viewBox="0 0 24 24"><path d="M2 5h20v14H2zm0 3v3h20V8zm3 7v2h6v-2z"/></svg>',
     ];
     $deco = $t['deco'] ?? null;
 @endphp
-<span class="sf-d sf-d-{{ $t['look'] }} lay-{{ $lay }} ink-{{ $ink === 'dark' ? 'dark' : 'light' }} pics-{{ $n }}"
+<span class="sf-d sf-d-{{ $t['look'] }} lay-{{ $lay }} ink-{{ $ink === 'dark' ? 'dark' : 'light' }} pics-{{ $n }} anim-{{ $anim }}"
       style="--c1: {{ $hex($c1, '#3483fa') }}; --c2: {{ $hex($c2, '#2968c8') }}; --acc: {{ $hex($acc, '#ffffff') }}">
     @if($deco && isset($svg[$deco]))
         <span class="sf-d-deco" aria-hidden="true">@for($i = 0; $i < 5; $i++)<i>{!! $svg[$deco] !!}</i>@endfor</span>
@@ -40,8 +54,8 @@
     </span>
     @if($n)
         <span class="sf-d-pics">
-            @foreach(array_slice($photos, 0, $n) as $src)
-                <span class="sf-d-pic"><img src="{{ $src }}" alt="" loading="lazy" decoding="async"></span>
+            @foreach($slots as $i => $imgs)
+                <span class="sf-d-pic"><span class="sf-d-in cyc-{{ count($imgs) }}" style="--sf-o: {{ $i * -1.2 }}s">@foreach($imgs as $j => $src)<img src="{{ $src }}" alt="" loading="lazy" decoding="async" style="--sf-j: {{ $j }}">@endforeach</span></span>
             @endforeach
         </span>
     @endif

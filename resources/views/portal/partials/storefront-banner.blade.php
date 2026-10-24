@@ -14,7 +14,7 @@
     @if(! $hasText && $img) aria-label="{{ $b->title ?: 'Banner' }}" @endif>
     @if($design)
         @include('portal.partials.storefront-design', ['tpl' => $b->design['tpl'], 'c1' => $b->design['c1'] ?? null, 'c2' => $b->design['c2'] ?? null, 'acc' => $b->design['acc'] ?? null, 'ink' => $b->design['ink'] ?? 'light',
-            'badge' => $b->design['badge'] ?? null, 'lay' => $b->design['lay'] ?? 'esq', 'title' => $b->title, 'subtitle' => $b->subtitle, 'button' => $b->button_text, 'photos' => $b->designPhotos()])
+            'badge' => $b->design['badge'] ?? null, 'lay' => $b->design['lay'] ?? 'esq', 'anim' => $b->design['anim'] ?? 'none', 'title' => $b->title, 'subtitle' => $b->subtitle, 'button' => $b->button_text, 'photos' => $b->designPhotos()])
     @elseif($img)
         <picture>
             @if($mob)<source media="(max-width: 767px)" srcset="{{ $mob }}">@endif

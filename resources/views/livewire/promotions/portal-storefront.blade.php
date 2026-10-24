@@ -70,28 +70,35 @@
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Toque em um modelo para criar o banner. Você muda textos, cores, fotos e arrumação, e usa no topo, na faixa ou na lateral. Os de data já entram e saem do ar sozinhos.</p>
                     </div>
                 </div>
+                <div class="mt-3 flex items-center gap-2 flex-wrap" data-testid="store-kind">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Minha loja é de</span>
+                    @foreach(\App\Services\Promotions\StoreKind::KINDS as $k => [$n, $ico, $ex])
+                        <button type="button" wire:click="setKind('{{ $k }}')" title="{{ $ex }}" data-testid="kind-{{ $k }}"
+                                class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition {{ $kind === $k ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300' }}"><i class="bi {{ $ico }}"></i>{{ $n }}</button>
+                    @endforeach
+                </div>
                 <div class="mt-3 flex gap-1 overflow-x-auto [scrollbar-width:none]">
                     @foreach($front::TEMPLATE_GROUPS as $g => [$gn, $gi])
                         <button type="button" wire:click="$set('galleryGroup', '{{ $g }}')" data-testid="rowgroup-{{ $g }}"
                                 class="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition {{ $galleryGroup === $g ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }}">
-                            <i class="bi {{ $gi }}"></i>{{ $gn }} <span class="opacity-70">{{ collect($front::TEMPLATES)->where('group', $g)->count() }}</span>
+                            <i class="bi {{ $gi }}"></i>{{ $gn }} <span class="opacity-70">{{ $front::templates($kind)->where('group', $g)->count() }}</span>
                         </button>
                     @endforeach
                 </div>
                 <div class="-mx-4 sm:-mx-5 px-4 sm:px-5 scroll-px-4 sm:scroll-px-5 mt-3 flex gap-3 overflow-x-auto pb-2 snap-x [scrollbar-width:thin] items-start">
-                    @foreach($front::templatesIn($galleryGroup) as $key => $t)
+                    @foreach($front::templatesIn($galleryGroup, $kind) as $key => $t)
                         @php
                             $tp = array_slice($t['src'] !== 'manual' ? ($auto[$t['src']] ?? []) : $samples, 0, $t['pics']);
                             $td = $t['date'] ? \App\Services\Promotions\CommercialCalendar::next($t['date']) : null;
                         @endphp
-                        <button type="button" wire:click="newBanner('hero', '{{ $key }}')" wire:key="tplrow-{{ $key }}" data-testid="tplrow-{{ $key }}"
+                        <a href="{{ route('promotions.storefront.banner.create', ['modelo' => $key]) }}" wire:key="tplrow-{{ $key }}" data-testid="tplrow-{{ $key }}"
                                 class="group snap-start shrink-0 rounded-2xl p-1.5 text-left ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-2 hover:ring-violet-400 transition">
                             @include('livewire.promotions.partials.storefront-mini', ['kind' => 'hero', 'scale' => 0.36, 'tpl' => $key, 'c1' => $t['c1'], 'c2' => $t['c2'], 'acc' => $t['acc'], 'ink' => $t['ink'],
                                 'badge' => $t['badge'], 'title' => $t['title'], 'subtitle' => $t['subtitle'], 'button' => $t['button'], 'photos' => $tp])
                             <span class="flex items-center justify-between gap-2 px-1 pt-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">{{ $t['name'] }}<span class="text-violet-600 dark:text-violet-300 opacity-0 group-hover:opacity-100 transition"><i class="bi bi-plus-lg"></i> Usar</span></span>
                             @if($td)<small class="block px-1 text-[11px] text-slate-500">{{ $td['emoji'] }} {{ $td['now'] ? 'Agora, até ' . $td['end']->format('d/m') : \App\Services\Promotions\CommercialCalendar::label($td) }}</small>
                             @elseif($t['src'] !== 'manual')<small class="block px-1 text-[11px] text-emerald-600 dark:text-emerald-400"><i class="bi bi-arrow-repeat"></i> {{ $front::PHOTO_SOURCES[$t['src']][0] }}, atualiza sozinho</small>@endif
-                        </button>
+                        </a>
                     @endforeach
                 </div>
             </section>
@@ -103,7 +110,7 @@
                         <div class="min-w-0 flex-1 self-center">
                             <h2 class="font-bold text-slate-900 dark:text-white">{{ $title }} <span class="text-sm font-normal text-slate-400">({{ $list->count() }})</span></h2>
                         </div>
-                        <button type="button" wire:click="newBanner('{{ $place }}')" class="{{ $phBtn }}" data-testid="banner-new-{{ $place }}"><i class="bi bi-plus-lg text-violet-500"></i>Adicionar</button>
+                        <a href="{{ route('promotions.storefront.banner.create', ['lugar' => $place]) }}" class="{{ $phBtn }}" data-testid="banner-new-{{ $place }}"><i class="bi bi-plus-lg text-violet-500"></i>Adicionar</a>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 sm:pl-[52px]">{{ $help }}</p>
 
@@ -118,7 +125,7 @@
                                 <article wire:key="bn-{{ $b->id }}" class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex {{ $place === 'side' ? 'flex-row' : 'flex-col' }} {{ $b->active ? '' : 'opacity-70' }}">
                                     @if($b->isDesign())
                                         @php $dz = $b->design + ['c1' => null, 'c2' => null, 'acc' => null, 'ink' => 'light', 'badge' => null, 'lay' => 'esq'];
-                                            $dArgs = ['tpl' => $dz['tpl'], 'c1' => $dz['c1'], 'c2' => $dz['c2'], 'acc' => $dz['acc'], 'ink' => $dz['ink'], 'badge' => $dz['badge'], 'lay' => $dz['lay'] ?? 'esq', 'title' => $b->title, 'subtitle' => $b->subtitle, 'button' => $b->button_text, 'photos' => $b->designPhotos()]; @endphp
+                                            $dArgs = ['tpl' => $dz['tpl'], 'c1' => $dz['c1'], 'c2' => $dz['c2'], 'acc' => $dz['acc'], 'ink' => $dz['ink'], 'badge' => $dz['badge'], 'lay' => $dz['lay'] ?? 'esq', 'anim' => $dz['anim'] ?? 'none', 'title' => $b->title, 'subtitle' => $b->subtitle, 'button' => $b->button_text, 'photos' => $b->designPhotos()]; @endphp
                                         @if($place === 'side')
                                             <div class="shrink-0 bg-slate-50 dark:bg-slate-800/50 p-1.5">@include('livewire.promotions.partials.storefront-mini', $dArgs + ['kind' => 'side', 'scale' => 0.4])</div>
                                         @else
@@ -146,7 +153,7 @@
                                             <button type="button" wire:click="moveBanner({{ $b->id }}, -1)" class="{{ $iconBtn }}" title="Mover para antes" @disabled($loop->first)><i class="bi {{ $place === 'side' ? 'bi-arrow-up' : 'bi-arrow-left' }}"></i></button>
                                             <button type="button" wire:click="moveBanner({{ $b->id }}, 1)" class="{{ $iconBtn }}" title="Mover para depois" @disabled($loop->last)><i class="bi {{ $place === 'side' ? 'bi-arrow-down' : 'bi-arrow-right' }}"></i></button>
                                             <button type="button" wire:click="toggleBanner({{ $b->id }})" class="{{ $iconBtn }}" title="{{ $b->active ? 'Desligar' : 'Ligar' }}"><i class="bi {{ $b->active ? 'bi-toggle-on text-emerald-500' : 'bi-toggle-off' }} text-lg"></i></button>
-                                            <button type="button" wire:click="editBanner({{ $b->id }})" class="{{ $iconBtn }} ml-auto" title="Editar" data-testid="banner-edit"><i class="bi bi-pencil text-indigo-500"></i></button>
+                                            <a href="{{ route('promotions.storefront.banner.edit', $b->id) }}" class="{{ $iconBtn }} ml-auto" title="Editar" data-testid="banner-edit"><i class="bi bi-pencil text-indigo-500"></i></a>
                                             <button type="button" x-data @click="fmConfirm({ title: 'Excluir este banner?', message: 'Ele sai do catálogo na hora.', confirmText: 'Excluir' }).then(ok => ok && $wire.deleteBanner({{ $b->id }}))" class="{{ $iconBtn }}" title="Excluir"><i class="bi bi-trash3 text-rose-500"></i></button>
                                         </div>
                                     </div>
@@ -260,11 +267,6 @@
         </section>
     @endif
 
-    {{-- ===================== Janela: banner ===================== --}}
-    @if($showBanner)
-        @include('livewire.promotions.partials.banner-form')
-    @endif
-
     {{-- ===================== Janela: coleção ===================== --}}
     @if($showCollection)
         @php $cPreview = $c_image ? $c_image->temporaryUrl() : ($c_image_old ? asset('storage/' . $c_image_old) : null); @endphp
@@ -344,43 +346,5 @@
         </div>
     @endif
 
-    {{-- ===================== Janela: escolher produtos ===================== --}}
-    @if($pickFor !== '')
-        <div class="fixed inset-0 z-[95] flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-sm p-0 sm:p-4" wire:keydown.escape="closePicker">
-            <div class="absolute inset-0" wire:click="closePicker"></div>
-            <div class="relative w-full sm:max-w-2xl h-[88vh] sm:h-auto sm:max-h-[86vh] flex flex-col rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl" data-testid="product-picker">
-                <div class="p-4 sm:p-5 pb-3 space-y-3 border-b border-slate-100 dark:border-slate-800">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ $pickFor === 'banner' ? 'Escolher o produto' : 'Escolher produtos' }}</h2>
-                        <button type="button" wire:click="closePicker" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
-                    </div>
-                    <div class="relative">
-                        <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="search" wire:model.live.debounce.300ms="pickSearch" placeholder="Buscar por nome ou código" class="{{ $input }} pl-9" autofocus data-testid="picker-search">
-                    </div>
-                </div>
-                <ul class="flex-1 overflow-y-auto overscroll-contain p-2 sm:p-3 grid gap-1">
-                    @forelse($results as $p)
-                        @php $on = in_array($p->id, $picked, true); @endphp
-                        <li wire:key="pk-{{ $p->id }}">
-                            <button type="button" wire:click="pick({{ $p->id }})" class="w-full flex items-center gap-3 rounded-xl p-2 text-left transition {{ $on ? 'bg-violet-50 dark:bg-violet-500/15 ring-1 ring-violet-300 dark:ring-violet-500/40' : 'hover:bg-slate-50 dark:hover:bg-slate-800' }}" data-testid="picker-item">
-                                <img src="{{ $p->image_url }}" alt="" class="w-12 h-12 rounded-lg object-cover bg-slate-100 shrink-0" loading="lazy">
-                                <span class="min-w-0 flex-1">
-                                    <span class="block text-sm font-semibold text-slate-800 dark:text-slate-100 line-clamp-2">{{ $p->name }}</span>
-                                    <span class="block text-xs text-slate-500">{{ $p->product_code }} · {{ $money($p->price_sale) }}</span>
-                                </span>
-                                <span class="shrink-0 w-7 h-7 rounded-full flex items-center justify-center {{ $on ? 'bg-violet-500 text-white' : 'border border-slate-300 dark:border-slate-600 text-transparent' }}"><i class="bi bi-check-lg"></i></span>
-                            </button>
-                        </li>
-                    @empty
-                        <li class="p-6 text-center text-sm text-slate-500">Nenhum produto encontrado.</li>
-                    @endforelse
-                </ul>
-                <div class="p-3 sm:p-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-                    @if($pickFor !== 'banner')<span class="text-sm text-slate-500">{{ count($picked) }} {{ count($picked) == 1 ? 'escolhido' : 'escolhidos' }}</span>@endif
-                    <button type="button" wire:click="closePicker" class="ml-auto {{ $primary }}" data-testid="picker-done">Pronto</button>
-                </div>
-            </div>
-        </div>
-    @endif
+    @include('livewire.promotions.partials.storefront-picker')
 </div>

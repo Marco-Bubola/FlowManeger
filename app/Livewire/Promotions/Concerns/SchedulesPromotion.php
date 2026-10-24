@@ -17,6 +17,7 @@ trait SchedulesPromotion
     public string $startTime = '08:00';
     public string $endsAt = '';       // Y-m-d (São Paulo), vale até 23:59 do dia
     public string $season = '';       // data comemorativa escolhida (CommercialCalendar)
+    public string $seasonMessage = ''; // mensagem que a data escreveu (troca junto se ninguém mexeu)
 
     /** Atalhos: chave => rótulo. */
     public function schedulePresets(): array
@@ -31,7 +32,7 @@ trait SchedulesPromotion
     /** Datas comemorativas (Natal, Black Friday...) na ordem em que começam. */
     public function seasonPresets(): array
     {
-        return \App\Services\Promotions\CommercialCalendar::upcoming();
+        return \App\Services\Promotions\CommercialCalendar::upcoming(null, \App\Services\Promotions\StoreKind::for(\Illuminate\Support\Facades\Auth::id()));
     }
 
     public function applyPreset(string $key): void
@@ -40,6 +41,14 @@ trait SchedulesPromotion
         $this->season = '';
         if (str_starts_with($key, 'data:') && ($d = \App\Services\Promotions\CommercialCalendar::next(substr($key, 5)))) {
             $this->season = $d['key'];
+            // A mensagem do WhatsApp já vem com a cara da data e da loja (dá para editar).
+            if (property_exists($this, 'message')) {
+                $msg = (string) \App\Services\Promotions\CommercialCalendar::message($d['key'], \App\Services\Promotions\StoreKind::for(\Illuminate\Support\Facades\Auth::id()));
+                if (trim($this->message) === '' || $this->message === $this->seasonMessage) {
+                    $this->message = $msg;
+                }
+                $this->seasonMessage = $msg;
+            }
             $start = $d['start']->copy()->setTime(8, 0);
             $end = $d['end'];
         } else {

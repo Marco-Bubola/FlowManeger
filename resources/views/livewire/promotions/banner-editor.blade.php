@@ -1,36 +1,45 @@
-{{-- Janela do banner: modelo pronto (tudo editável) ou imagem própria, com prévia de computador e celular. --}}
+{{-- Página do banner: modelo pronto (tudo editável, com animação) ou imagem própria, com a prévia ao lado. --}}
 @php
+    $front = \App\Services\Portal\StorefrontService::class;
+    $money = fn ($v) => 'R$ ' . number_format((float) $v, 2, ',', '.');
+    $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70';
+    $iconBtn = 'inline-flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200/70 dark:border-slate-700/70 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-default';
+    $primary = 'inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 shadow-md shadow-violet-500/25 transition whitespace-nowrap';
+    $label = 'block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1';
+    $input = 'w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2.5 text-sm text-slate-900 dark:text-white focus:border-violet-400 focus:ring-2 focus:ring-violet-100 dark:focus:ring-violet-900/30 focus:outline-none';
+    $card = 'rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900 shadow-sm';
     $preview = $b_image ? $b_image->temporaryUrl() : ($b_image_old ? asset('storage/' . $b_image_old) : null);
     $previewM = $b_image_mobile ? $b_image_mobile->temporaryUrl() : ($b_mobile_old ? asset('storage/' . $b_mobile_old) : null);
     $modelo = $b_mode === 'modelo';
-    $tplData = $front::TEMPLATES[$b_tpl] ?? $front::TEMPLATES['oferta'];
-    $photoMax = $tplData['pics'];
     $miniKind = 'hero';
     $miniScale = 0.28;
     $tplDate = $tplData['date'] ? \App\Services\Promotions\CommercialCalendar::next($tplData['date']) : null;
-    $designArgs = ['tpl' => $b_tpl, 'lay' => $b_lay, 'c1' => $b_c1, 'c2' => $b_c2, 'acc' => $b_acc, 'ink' => $b_ink, 'badge' => trim($b_badge), 'title' => trim($b_title),
+    $designArgs = ['tpl' => $b_tpl, 'lay' => $b_lay, 'anim' => $b_anim, 'c1' => $b_c1, 'c2' => $b_c2, 'acc' => $b_acc, 'ink' => $b_ink, 'badge' => trim($b_badge), 'title' => trim($b_title),
         'subtitle' => trim($b_subtitle), 'button' => trim($b_button), 'photos' => array_values(array_filter($bPhotoUrls))];
     $kindCls = $b_placement === 'side' ? 'sf-sb' : 'sf-' . $b_placement;
     $ratio = ['hero' => 'aspect-[3/1]', 'strip' => 'aspect-[6/1]', 'side' => 'aspect-[4/15]'][$b_placement] ?? 'aspect-[3/1]';
     $ratioM = ['hero' => 'aspect-[16/9]', 'strip' => 'aspect-[3/1]'][$b_placement] ?? 'aspect-[3/1]';
     $step = 'flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white';
     $num = 'shrink-0 w-6 h-6 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-xs font-black flex items-center justify-center';
+    $kinds = \App\Services\Promotions\StoreKind::KINDS;
 @endphp
-<div class="fixed inset-0 z-[90] flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-sm p-0 sm:p-4" wire:keydown.escape="closeBanner">
-    <div class="absolute inset-0" wire:click="closeBanner"></div>
-    <form wire:submit="saveBanner" x-data="{ dev: 'pc' }"
-          class="relative w-full sm:max-w-3xl max-h-[94vh] sm:max-h-[92vh] flex flex-col rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl" data-testid="banner-form">
-        <div class="flex items-center justify-between gap-3 px-5 sm:px-6 pt-4 pb-3 border-b border-slate-100 dark:border-slate-800">
-            <div class="min-w-0">
-                <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ $bannerId ? 'Editar banner' : 'Novo banner' }}</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ $modelo ? 'Escolha um modelo e mude o que quiser: textos, cores e fotos.' : 'Envie a sua arte pronta.' }}</p>
-            </div>
-            <button type="button" wire:click="closeBanner" class="shrink-0 w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
-        </div>
 
-        <div class="flex-1 overflow-y-auto overscroll-contain">
-            {{-- Prévia (fica presa no alto enquanto edita, no computador e no iPad) --}}
-            <div class="sm:sticky sm:top-0 z-10 bg-slate-50 dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 px-5 sm:px-6 py-3 space-y-2">
+<div class="w-full px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-28 lg:pb-10 space-y-4" style="--ml-radius: 14px; --ml-blue: #3483fa">
+    @include('portal.partials.storefront-styles')
+    <x-page-header :title="$bannerId ? 'Editar banner' : 'Novo banner'" icon="bi-images" section="produtos" back-route="promotions.storefront"
+                   :subtitle="$modelo ? 'Escolha um modelo e mude o que quiser: textos, cores, fotos e animação.' : 'Envie a sua arte pronta.'">
+        <x-slot:actions>
+            <div class="hidden lg:flex items-center gap-2">
+                <button type="button" wire:click="cancel" class="{{ $phBtn }}">Cancelar</button>
+                <button type="button" wire:click="saveBanner" class="{{ $primary }}" data-testid="banner-save-top" wire:loading.attr="disabled" wire:target="saveBanner,b_image,b_image_mobile,b_photo"><i class="bi bi-check2"></i>Salvar banner</button>
+            </div>
+        </x-slot:actions>
+    </x-page-header>
+
+    <form wire:submit="saveBanner" x-data="{ dev: 'pc' }" data-testid="banner-form"
+          class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(380px,40%)] 2xl:grid-cols-[minmax(0,1fr)_minmax(520px,44%)] items-start">
+        {{-- Prévia: presa no alto (no celular fica em cima, no computador ao lado) --}}
+        <aside class="lg:order-2 sticky top-0 lg:top-4 z-20 -mx-3 sm:mx-0 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur sm:rounded-2xl border-b sm:border border-slate-200/80 dark:border-slate-800 px-3 sm:px-4 py-3 space-y-2" data-testid="banner-preview-box">
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-semibold text-slate-600 dark:text-slate-300 mr-auto"><i class="bi bi-eye"></i> Como fica no catálogo</span>
                     @if($b_placement !== 'side')
@@ -41,7 +50,7 @@
                     @endif
                 </div>
                 <div class="flex justify-center" data-testid="banner-preview">
-                    <div class="w-full transition-all" :class="dev === 'cel' ? 'max-w-[340px]' : ''" style="{{ $b_placement === 'side' ? 'max-width: 160px' : '' }}">
+                    <div class="w-full max-lg:max-w-[560px] transition-all" :class="dev === 'cel' ? 'max-w-[340px]' : ''" style="{{ $b_placement === 'side' ? 'max-width: 160px' : '' }}">
                         @if($modelo)
                             @if($b_placement === 'side')
                                 <div class="flex justify-center">@include('livewire.promotions.partials.storefront-mini', $designArgs + ['kind' => 'side', 'scale' => 0.6])</div>
@@ -71,9 +80,24 @@
                     </div>
                 </div>
                 @if($b_placement === 'side')<p class="text-[11px] text-center text-slate-500">Prévia menor. No catálogo a lateral tem 160 px de largura e aparece em monitores largos.</p>@endif
-            </div>
+            @if($modelo)
+                <p class="hidden lg:flex items-center gap-1.5 text-[11px] text-slate-500"><i class="bi bi-magic text-violet-500"></i>{{ $tplData['name'] }} · {{ $front::ANIMATIONS[$b_anim][0] }}</p>
+            @endif
+        </aside>
 
-            <div class="px-5 sm:px-6 py-4 space-y-5">
+        <div class="lg:order-1 min-w-0 space-y-4">
+            <section class="{{ $card }} p-4 sm:p-5 flex items-center gap-3 flex-wrap" data-testid="store-kind">
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 mr-1"><i class="bi bi-shop text-violet-500"></i> Modelos para</span>
+                <div class="flex flex-wrap gap-1.5">
+                    @foreach($kinds as $k => [$n, $ico, $ex])
+                        <button type="button" wire:click="setKind('{{ $k }}')" title="{{ $ex }}" data-testid="kind-{{ $k }}"
+                                class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition {{ $kind === $k ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }}"><i class="bi {{ $ico }}"></i>{{ $n }}</button>
+                    @endforeach
+                </div>
+                <span class="text-[11px] text-slate-400 basis-full sm:basis-auto">{{ $kinds[$kind][2] }}. Muda os modelos, textos e datas sugeridas.</span>
+            </section>
+
+            <div class="{{ $card }} p-4 sm:p-5 space-y-6">
                 {{-- 1. Onde aparece --}}
                 <div class="space-y-2">
                     <p class="{{ $step }}"><span class="{{ $num }}">1</span>Onde aparece</p>
@@ -106,13 +130,13 @@
                             @foreach($front::TEMPLATE_GROUPS as $g => [$gn, $gi])
                                 <button type="button" wire:click="$set('galleryGroup', '{{ $g }}')" data-testid="tplgroup-{{ $g }}"
                                         class="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition {{ $galleryGroup === $g ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }}">
-                                    <i class="bi {{ $gi }}"></i>{{ $gn }} <span class="opacity-70">{{ collect($front::TEMPLATES)->where('group', $g)->count() }}</span>
+                                    <i class="bi {{ $gi }}"></i>{{ $gn }} <span class="opacity-70">{{ $templates->where('group', $g)->count() }}</span>
                                 </button>
                             @endforeach
                         </div>
-                        <div class="-mx-5 sm:-mx-6 px-5 sm:px-6 scroll-px-5 sm:scroll-px-6 flex gap-3 overflow-x-auto pb-2 snap-x [scrollbar-width:thin] items-start" data-testid="tpl-gallery"
+                        <div class="-mx-4 sm:-mx-5 px-4 sm:px-5 scroll-px-4 sm:scroll-px-5 flex gap-3 overflow-x-auto lg:flex-wrap lg:overflow-visible lg:max-h-[420px] lg:overflow-y-auto pb-2 snap-x [scrollbar-width:thin] items-start" data-testid="tpl-gallery"
                              x-data x-init="$nextTick(() => { const on = $el.querySelector('.ring-violet-500'); if (on) $el.scrollLeft = on.offsetLeft - $el.offsetLeft - 20 })">
-                            @foreach($front::templatesIn($galleryGroup) as $key => $t)
+                            @foreach($front::templatesIn($galleryGroup, $kind) as $key => $t)
                                 @php
                                     $tp = array_slice($t['src'] !== 'manual' ? ($auto[$t['src']] ?? []) : $samples, 0, $t['pics']);
                                     $td = $t['date'] ? \App\Services\Promotions\CommercialCalendar::next($t['date']) : null;
@@ -202,7 +226,7 @@
 
                     {{-- 6. Fotos --}}
                     <div class="space-y-3 {{ $b_lay === 'centro' ? 'opacity-60' : '' }}">
-                        <p class="{{ $step }}"><span class="{{ $num }}">6</span>{{ $photoMax > 1 ? 'Fotos (até 3)' : 'Foto' }} @if($b_lay === 'centro')<span class="text-xs font-normal text-slate-500">(o layout "só texto" não mostra foto)</span>@endif</p>
+                        <p class="{{ $step }}"><span class="{{ $num }}">6</span>{{ $photoMax > 1 ? 'Fotos (até ' . $photoMax . ')' : 'Foto' }} @if($b_lay === 'centro')<span class="text-xs font-normal text-slate-500">(o layout "só texto" não mostra foto)</span>@endif</p>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5" data-testid="photo-sources">
                             @foreach($front::PHOTO_SOURCES as $k => [$n, $ico])
                                 <button type="button" wire:click="setSource('{{ $k }}')" data-testid="src-{{ $k }}"
@@ -251,6 +275,24 @@
                             @error('b_photo')<p class="text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
                             <p class="text-[11px] text-slate-400">Fotos de produto acompanham a foto atual do produto. Fotos com fundo branco ou sem fundo ficam melhores.</p>
                         @endif
+                    </div>
+                    {{-- 7. Animação --}}
+                    <div class="space-y-2">
+                        <p class="{{ $step }}"><span class="{{ $num }}">7</span>Animação</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5" data-testid="anims">
+                            @foreach($front::ANIMATIONS as $k => [$n, $ico, $rot])
+                                <button type="button" wire:click="setAnim('{{ $k }}')" data-testid="anim-{{ $k }}"
+                                        class="inline-flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2.5 text-xs font-semibold transition {{ $b_anim === $k ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300' }}"><i class="bi {{ $ico }}"></i>{{ $n }}</button>
+                            @endforeach
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ [
+                            'none' => 'O banner fica parado.',
+                            'fotos' => 'As fotos vão se trocando sozinhas, mostrando mais produtos no mesmo espaço.',
+                            'deslizar' => 'As fotos passam deslizando de um lado para o outro.',
+                            'zoom' => 'As fotos se trocam e chegam mais perto devagar.',
+                            'entrada' => 'Selo, título e botão entram um depois do outro quando a página abre.',
+                            'vivo' => 'Textos entrando, fotos trocando com zoom, selo pulsando e brilho no botão.',
+                        ][$b_anim] }} @if($front::ANIMATIONS[$b_anim][2] && $b_lay !== 'centro') Usa até {{ $photoMax }} fotos. @endif Quem pediu menos movimento no celular vê o banner parado.</p>
                     </div>
                 @else
                     {{-- 3. Imagem própria --}}
@@ -317,7 +359,7 @@
 
                 {{-- Link, período e ligado --}}
                 <div class="space-y-3">
-                    <p class="{{ $step }}"><span class="{{ $num }}">{{ $modelo ? 7 : 4 }}</span>Ao tocar e quando aparece</p>
+                    <p class="{{ $step }}"><span class="{{ $num }}">{{ $modelo ? 8 : 4 }}</span>Ao tocar e quando aparece</p>
                     <div class="grid gap-3 sm:grid-cols-2">
                         <div class="sm:col-span-2">
                             <label class="{{ $label }}" for="bn-link">Ao tocar, leva para</label>
@@ -380,9 +422,16 @@
             </div>
         </div>
 
-        <div class="flex gap-2 px-5 sm:px-6 py-3 border-t border-slate-100 dark:border-slate-800 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-            <button type="button" wire:click="closeBanner" class="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">Cancelar</button>
+        {{-- Barra de salvar (celular e iPad) --}}
+        <div class="lg:hidden fixed inset-x-0 bottom-0 z-[60] flex gap-2 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800">
+            <button type="button" wire:click="cancel" class="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">Cancelar</button>
             <button type="submit" class="flex-1 {{ $primary }}" data-testid="banner-save" wire:loading.attr="disabled" wire:target="saveBanner,b_image,b_image_mobile,b_photo"><span wire:loading.remove wire:target="saveBanner">Salvar banner</span><span wire:loading wire:target="saveBanner">Salvando…</span></button>
         </div>
+        <div class="hidden lg:flex lg:order-3 lg:col-start-1 justify-end gap-2">
+            <button type="button" wire:click="cancel" class="rounded-xl px-4 py-2.5 text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">Cancelar</button>
+            <button type="submit" class="{{ $primary }}" data-testid="banner-save-bottom" wire:loading.attr="disabled" wire:target="saveBanner,b_image,b_image_mobile,b_photo"><span wire:loading.remove wire:target="saveBanner">Salvar banner</span><span wire:loading wire:target="saveBanner">Salvando…</span></button>
+        </div>
     </form>
+
+    @include('livewire.promotions.partials.storefront-picker')
 </div>

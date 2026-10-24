@@ -87,7 +87,78 @@ class StorefrontService
             'badge' => 'BLACK FRIDAY', 'title' => 'Os menores preços do ano', 'subtitle' => 'Descontos de verdade em toda a loja', 'button' => 'Ver ofertas', 'c1' => '#111111', 'c2' => '#27272a', 'acc' => '#facc15', 'ink' => 'light'],
         'natal' => ['name' => 'Natal', 'group' => 'datas', 'look' => 'serif', 'deco' => 'snow', 'pics' => 1, 'src' => 'manual', 'date' => 'natal', 'link' => 'none',
             'badge' => 'FELIZ NATAL', 'title' => 'Presentes de Natal', 'subtitle' => 'Embrulhamos para presente sem custo', 'button' => 'Ver presentes', 'c1' => '#b91c1c', 'c2' => '#7f1d1d', 'acc' => '#fde68a', 'ink' => 'light'],
+        // Só para lojas de móveis (kinds).
+        'pronta' => ['name' => 'Pronta entrega', 'group' => 'produtos', 'kinds' => ['moveis'], 'look' => 'clean', 'deco' => 'truck', 'pics' => 3, 'src' => 'novos', 'date' => null, 'link' => 'none',
+            'badge' => 'PRONTA ENTREGA', 'title' => 'Leve hoje para casa', 'subtitle' => 'Peças prontas, sem esperar a produção', 'button' => 'Ver peças', 'c1' => '#fafaf9', 'c2' => '#e7e5e4', 'acc' => '#78350f', 'ink' => 'dark'],
+        'encomenda' => ['name' => 'Feito sob medida', 'group' => 'produtos', 'kinds' => ['moveis'], 'look' => 'bigicon', 'deco' => 'ruler', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
+            'badge' => 'SOB MEDIDA', 'title' => 'Do tamanho do seu espaço', 'subtitle' => 'Escolha medidas, madeira e cor do ferro', 'button' => 'Fazer orçamento', 'c1' => '#78350f', 'c2' => '#451a03', 'acc' => '#fde68a', 'ink' => 'light'],
+        'ambiente' => ['name' => 'Monte o ambiente', 'group' => 'produtos', 'kinds' => ['moveis'], 'look' => 'clean', 'deco' => 'lamp', 'pics' => 3, 'src' => 'manual', 'date' => null, 'link' => 'none',
+            'badge' => 'AMBIENTES', 'title' => 'Sala, varanda e cozinha completas', 'subtitle' => 'Peças que combinam entre si', 'button' => 'Ver ambientes', 'c1' => '#f5f5f4', 'c2' => '#d6d3d1', 'acc' => '#44403c', 'ink' => 'dark'],
+        'artesanal' => ['name' => 'Ferro e madeira', 'group' => 'produtos', 'kinds' => ['moveis'], 'look' => 'serif', 'deco' => 'chair', 'pics' => 1, 'src' => 'vendidos', 'date' => null, 'link' => 'bestsellers',
+            'badge' => 'FEITO À MÃO', 'title' => 'Ferro e madeira de verdade', 'subtitle' => 'Móveis artesanais que duram anos', 'button' => 'Conhecer', 'c1' => '#292524', 'c2' => '#0c0a09', 'acc' => '#d6a243', 'ink' => 'light'],
+        'parcela' => ['name' => 'Parcelamento', 'group' => 'ofertas', 'kinds' => ['moveis'], 'look' => 'ticket', 'deco' => 'card', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
+            'badge' => 'EM ATÉ 10X', 'title' => 'Parcele sem juros', 'subtitle' => 'No cartão, em todos os móveis', 'button' => 'Ver móveis', 'c1' => '#1e3a8a', 'c2' => '#172554', 'acc' => '#fef08a', 'ink' => 'light'],
+        'montagem' => ['name' => 'Entrega e montagem', 'group' => 'ofertas', 'kinds' => ['moveis'], 'look' => 'bigicon', 'deco' => 'wrench', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
+            'badge' => 'MONTAGEM GRÁTIS', 'title' => 'Entregamos e montamos', 'subtitle' => 'Na sua cidade, sem custo extra', 'button' => 'Saiba mais', 'c1' => '#a16207', 'c2' => '#713f12', 'acc' => '#fef3c7', 'ink' => 'light'],
+        // Só para lojas de beleza.
+        'fragrancia' => ['name' => 'Perfumes', 'group' => 'produtos', 'kinds' => ['beleza'], 'look' => 'serif', 'deco' => 'drop', 'pics' => 1, 'src' => 'vendidos', 'date' => null, 'link' => 'bestsellers',
+            'badge' => 'PERFUMARIA', 'title' => 'Encontre o seu perfume', 'subtitle' => 'Fragrâncias que marcam presença', 'button' => 'Ver perfumes', 'c1' => '#1c1917', 'c2' => '#57534e', 'acc' => '#fcd34d', 'ink' => 'light'],
+        'pele' => ['name' => 'Cuidados com a pele', 'group' => 'produtos', 'kinds' => ['beleza'], 'look' => 'round', 'deco' => 'drop', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
+            'badge' => 'SKINCARE', 'title' => 'Pele bonita todo dia', 'subtitle' => 'Hidratantes, séruns e protetores', 'button' => 'Ver cuidados', 'c1' => '#ecfdf5', 'c2' => '#a7f3d0', 'acc' => '#047857', 'ink' => 'dark'],
+        'make' => ['name' => 'Maquiagem', 'group' => 'produtos', 'kinds' => ['beleza'], 'look' => 'tilt', 'deco' => 'heart', 'pics' => 3, 'src' => 'manual', 'date' => null, 'link' => 'none',
+            'badge' => 'MAKE', 'title' => 'Make para todos os momentos', 'subtitle' => 'Batons, bases e sombras', 'button' => 'Ver maquiagem', 'c1' => '#fb7185', 'c2' => '#be123c', 'acc' => '#fff1f2', 'ink' => 'light'],
+        'kitperfume' => ['name' => 'Kit perfume + hidratante', 'group' => 'ofertas', 'kinds' => ['beleza'], 'look' => 'ticket', 'deco' => 'gift', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
+            'badge' => 'KIT ESPECIAL', 'title' => 'Perfume + hidratante com desconto', 'subtitle' => 'Combinação perfeita para presentear', 'button' => 'Montar kit', 'c1' => '#7c3aed', 'c2' => '#4c1d95', 'acc' => '#fde68a', 'ink' => 'light'],
+        'brinde' => ['name' => 'Ganhe um brinde', 'group' => 'ofertas', 'kinds' => ['beleza'], 'look' => 'round', 'deco' => 'gift', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
+            'badge' => 'BRINDE', 'title' => 'Compre e ganhe um mimo', 'subtitle' => 'Em compras acima de R$ 100', 'button' => 'Comprar', 'c1' => '#fdf2f8', 'c2' => '#fbcfe8', 'acc' => '#9d174d', 'ink' => 'dark'],
     ];
+
+    /** Modelos que não combinam com o tipo de loja. */
+    public const HIDDEN_TEMPLATES = [
+        'moveis' => ['volta_aulas', 'carnaval', 'mulher', 'pascoa', 'junina', 'criancas', 'leve3', 'kit'],
+    ];
+
+    /** Textos e cores dos modelos ajustados ao tipo de loja (o resto vem do modelo). */
+    public const KIND_TEXTS = [
+        'moveis' => [
+            'oferta'     => ['subtitle' => 'Móveis com preço de fábrica, só hoje'],
+            'ofertas3'   => ['title' => 'Móveis com preço especial', 'subtitle' => 'As peças em promoção agora'],
+            'liquida'    => ['badge' => 'SALDÃO', 'title' => 'Saldão de mostruário', 'subtitle' => 'Peças de exposição com desconto'],
+            'frete'      => ['title' => 'Entrega grátis na cidade', 'subtitle' => 'Para móveis acima de R$ 500'],
+            'cupom'      => ['badge' => 'MOVEIS10', 'title' => 'Ganhe 10% no primeiro móvel'],
+            'novidade'   => ['title' => 'Novos modelos na loja', 'subtitle' => 'Mesas, aparadores e estantes', 'button' => 'Ver modelos', 'c1' => '#fafaf9', 'c2' => '#e7e5e4', 'acc' => '#78350f'],
+            'chegaram'   => ['badge' => 'NOVOS MODELOS', 'title' => 'Acabaram de sair da oficina', 'subtitle' => 'As últimas peças que fizemos', 'acc' => '#78350f'],
+            'vitrine'    => ['title' => 'Os móveis mais pedidos', 'subtitle' => 'As peças que mais saíram', 'acc' => '#78350f'],
+            'top'        => ['title' => 'A peça que todo mundo quer', 'subtitle' => 'O móvel mais vendido da loja', 'button' => 'Quero a minha'],
+            'destaque'   => ['title' => 'Peça em destaque', 'subtitle' => 'Ferro e madeira, feita para durar', 'c1' => '#44403c', 'c2' => '#1c1917', 'acc' => '#d6a243'],
+            'ano_novo'   => ['title' => 'Ano novo, casa nova', 'subtitle' => 'Renove os ambientes com desconto'],
+            'consumidor' => ['subtitle' => 'Móveis com desconto por tempo limitado'],
+            'maes'       => ['badge' => 'DIA DAS MÃES', 'title' => 'Uma casa mais bonita para ela', 'subtitle' => 'Aparadores, mesas e cantinhos do café', 'button' => 'Ver presentes', 'c1' => '#e8c39e', 'c2' => '#a0522d', 'acc' => '#fff7ed'],
+            'namorados'  => ['title' => 'O cantinho de vocês', 'subtitle' => 'Mesas para dois e bancos de varanda', 'c1' => '#9f1239', 'c2' => '#4c0519'],
+            'pais'       => ['title' => 'O canto dele em casa', 'subtitle' => 'Bares, nichos e churrasqueiras', 'c1' => '#44403c', 'c2' => '#1c1917', 'acc' => '#d6a243'],
+            'cliente'    => ['title' => 'Obrigado por confiar no nosso trabalho', 'subtitle' => 'Condições especiais em toda a loja'],
+            'black'      => ['title' => 'Black Friday dos móveis', 'subtitle' => 'Os menores preços do ano em ferro e madeira'],
+            'natal'      => ['title' => 'Natal em casa', 'subtitle' => 'Mesa posta e casa pronta para a família', 'button' => 'Ver móveis', 'c1' => '#14532d', 'c2' => '#052e16'],
+        ],
+    ];
+
+    /** Um modelo com os textos do tipo de loja. */
+    public static function template(string $key, ?string $kind = null): ?array
+    {
+        $t = self::TEMPLATES[$key] ?? null;
+
+        return $t ? array_merge($t, self::KIND_TEXTS[$kind][$key] ?? []) : null;
+    }
+
+    /** Todos os modelos que servem para o tipo de loja. */
+    public static function templates(?string $kind = null): Collection
+    {
+        $hidden = self::HIDDEN_TEMPLATES[$kind] ?? [];
+
+        return collect(self::TEMPLATES)
+            ->filter(fn ($t, $k) => ! in_array($k, $hidden, true) && (empty($t['kinds']) || in_array($kind, $t['kinds'], true)))
+            ->map(fn ($t, $k) => self::template($k, $kind));
+    }
 
     /** Grupos da galeria de modelos. */
     public const TEMPLATE_GROUPS = [
@@ -97,9 +168,9 @@ class StorefrontService
     ];
 
     /** Modelos de um grupo; os de data na ordem em que as datas chegam. */
-    public static function templatesIn(string $group): Collection
+    public static function templatesIn(string $group, ?string $kind = null): Collection
     {
-        $list = collect(self::TEMPLATES)->where('group', $group);
+        $list = self::templates($kind)->where('group', $group);
         if ($group === 'datas') {
             $list = $list->sortBy(fn ($t) => \App\Services\Promotions\CommercialCalendar::next($t['date'])['start']->timestamp);
         }
@@ -114,6 +185,24 @@ class StorefrontService
         'vendidos' => ['Mais vendidos', 'bi-trophy'],
         'ofertas'  => ['Em oferta', 'bi-percent'],
     ];
+
+    /** Animações do banner: as que trocam as fotos usam até 3 fotos por espaço. */
+    public const ANIMATIONS = [
+        'none'     => ['Parado', 'bi-pause-circle', false],
+        'fotos'    => ['Troca as fotos', 'bi-arrow-repeat', true],
+        'deslizar' => ['Fotos deslizando', 'bi-arrow-left-right', true],
+        'zoom'     => ['Zoom nas fotos', 'bi-zoom-in', true],
+        'entrada'  => ['Textos entrando', 'bi-type', false],
+        'vivo'     => ['Tudo animado', 'bi-stars', true],
+    ];
+
+    /** Quantas fotos o banner usa: as do modelo, ou 3 por espaço quando a animação troca as fotos. */
+    public static function photoCap(?string $tpl, ?string $anim): int
+    {
+        $pics = self::TEMPLATES[$tpl ?? '']['pics'] ?? 1;
+
+        return (self::ANIMATIONS[$anim ?? 'none'][2] ?? false) ? $pics * 3 : $pics;
+    }
 
     /** Layouts do modelo. */
     public const LAYOUTS = [

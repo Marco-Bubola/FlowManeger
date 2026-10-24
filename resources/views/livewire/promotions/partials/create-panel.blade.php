@@ -105,6 +105,13 @@
         {{-- Validade e salvar --}}
         <div class="px-4 py-3 border-t border-slate-200/70 dark:border-slate-700/60 bg-slate-50/70 dark:bg-slate-800/50 space-y-2.5">
             @include('livewire.promotions.partials.schedule-fields', ['schedKey' => ($mobile ?? false) ? 'm' : 'd'])
+            @if($season !== '' || trim($message) !== '')
+                <div data-testid="season-message">
+                    <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1" for="pm-{{ ($mobile ?? false) ? 'm' : 'd' }}"><i class="bi bi-whatsapp text-emerald-500"></i> Mensagem para os clientes <span class="font-normal text-slate-400">(vazia = a das configurações)</span></label>
+                    <textarea id="pm-{{ ($mobile ?? false) ? 'm' : 'd' }}" wire:model.blur="message" rows="5" maxlength="2000" class="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-rose-400 focus:outline-none"></textarea>
+                    <p class="text-[10px] text-slate-400">{nome}, {de}, {por}, {desconto} e {validade} viram os dados de cada produto.</p>
+                </div>
+            @endif
             @error('dates') <p class="text-[11px] font-semibold text-red-600">{{ $message }}</p> @enderror
             <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save"
                     class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-rose-500 via-pink-500 to-orange-500 hover:from-rose-600 hover:via-pink-600 hover:to-orange-600 shadow-lg shadow-rose-500/30 transition disabled:opacity-60">

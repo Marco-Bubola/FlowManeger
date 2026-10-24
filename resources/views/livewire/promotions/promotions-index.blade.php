@@ -110,7 +110,7 @@
 
     {{-- Próximas datas comemorativas: atalho para a promoção e o banner prontos --}}
     @if($tab === 'ativas' && ! count($selected))
-        @php $nextDates = array_slice(\App\Services\Promotions\CommercialCalendar::upcoming(), 0, 3); @endphp
+        @php $nextDates = array_slice(\App\Services\Promotions\CommercialCalendar::upcoming(null, \App\Services\Promotions\StoreKind::for(auth()->id())), 0, 3); @endphp
         <section class="mb-4 rounded-3xl bg-white/80 dark:bg-slate-800/70 backdrop-blur-xl border border-white/40 dark:border-slate-700/60 shadow-sm p-3 sm:p-4" data-testid="next-dates">
             <div class="flex items-center gap-2 mb-2.5">
                 <i class="bi bi-calendar-heart text-rose-500"></i>
@@ -126,7 +126,7 @@
                             <small class="block text-xs {{ $d['now'] ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-slate-500' }}">{{ $d['now'] ? 'Já começou, até ' . $d['end']->format('d/m') : \App\Services\Promotions\CommercialCalendar::label($d) }}</small>
                         </span>
                         <a href="{{ route('promotions.create', ['data' => $d['key']]) }}" class="shrink-0 inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-rose-500 to-orange-500" title="Criar promoção para {{ $d['name'] }}"><i class="bi bi-percent"></i><span class="hidden min-[400px]:inline">Promoção</span></a>
-                        <a href="{{ route('promotions.storefront', ['modelo' => $d['key']]) }}" class="shrink-0 inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-500/15" title="Criar banner de {{ $d['name'] }}"><i class="bi bi-image"></i><span class="hidden min-[400px]:inline">Banner</span></a>
+                        <a href="{{ route('promotions.storefront.banner.create', ['modelo' => $d['key']]) }}" class="shrink-0 inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-500/15" title="Criar banner de {{ $d['name'] }}"><i class="bi bi-image"></i><span class="hidden min-[400px]:inline">Banner</span></a>
                     </div>
                 @endforeach
             </div>
