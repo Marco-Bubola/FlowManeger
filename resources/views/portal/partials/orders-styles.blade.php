@@ -137,6 +137,7 @@
     .pa-stat-l { font-size: 12px; color: var(--ml-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .pa-stat-v { font-size: 20px; font-weight: 800; color: #222; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .pa-stat-v.green { color: var(--ml-green); }
+    @media (max-width: 480px) { .pa-stat { padding: 12px 10px; } .pa-stat-v { font-size: clamp(15px, 4.4vw, 20px); white-space: normal; overflow-wrap: anywhere; line-height: 1.2; } }
     .pa-stat-v.amber { color: #c2610c; }
     .pa-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--ml-line); }
     .pa-sec-head h2 { margin: 0; font-size: 15px; font-weight: 800; color: #222; }
