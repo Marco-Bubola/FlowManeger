@@ -2,7 +2,7 @@
     $owner = $ownerId;
     $catalogUrl = fn (array $q = []) => route('portal.catalog', array_merge(
         ['userId' => $owner],
-        array_filter(['search' => $search, 'category' => $category, 'ordem' => $sort, 'ofertas' => $onlyOffers ? 1 : null], fn ($v) => $v !== '' && $v !== null),
+        array_filter(['search' => $search, 'category' => $category, 'ordem' => $sort, 'ofertas' => $onlyOffers ? 1 : null, 'colecao' => $collection?->slug], fn ($v) => $v !== '' && $v !== null),
         $q
     ));
     $cartUrl = Auth::guard('portal')->check() ? route('portal.quotes.create') : route('portal.login', ['redirect' => 'cart']);
@@ -13,18 +13,52 @@
     $all = collect();
     foreach ($offers as $o) { $all[$o->id] = $info($o); }
     foreach ($products as $p) { $all[$p->id] = $info($p); }
-    $showOffers = $offers->isNotEmpty() && ! $search && ! $category && ! $onlyOffers && $products->currentPage() === 1;
+    foreach ($featured as $p) { $all[$p->id] ??= $info($p); }
+    foreach ($collections as $c) { foreach ($c->items as $p) { $all[$p->id] ??= $info($p); } }
+    $showOffers = $offers->isNotEmpty() && $isHome;
+
+    // Vitrine (Promoções › Vitrine do catálogo)
+    $front = \App\Services\Portal\StorefrontService::class;
+    $heroBanners = $isHome ? ($banners['hero'] ?? collect()) : collect();
+    $strips = $isHome ? ($banners['strip'] ?? collect())->values() : collect();
+    $sides = ($banners['side'] ?? collect())->values();
+    $notice = $settings && $settings->notice_active && trim((string) $settings->notice_text) !== '' ? $settings : null;
 @endphp
 
 <x-portal-catalog-layout title="Catálogo" :store="$store" :owner-id="$owner" :search="$search">
 
 @push('styles')
 @include('portal.partials.catalog-styles')
+@include('portal.partials.storefront-styles')
 @endpush
 
 <div class="ml-wrap" x-data="mlCatalog(@js($all), @js($cartUrl), @js($stockMap))" @keydown.escape.window="closeCart()" @open-cart.window="openCart()">
 
-    @if($showOffers)
+    @if($notice)
+        @php $nHref = preg_match('~^https?://~i', (string) $notice->notice_link) ? $notice->notice_link : null; @endphp
+        <{{ $nHref ? 'a' : 'p' }} @if($nHref) href="{{ $nHref }}" @endif class="sf-notice" data-testid="store-notice">
+            <i class="fas fa-bullhorn"></i><span>{{ $notice->notice_text }}</span>
+        </{{ $nHref ? 'a' : 'p' }}>
+    @endif
+
+    @if($heroBanners->isNotEmpty())
+        <section class="sf-hero-wrap" x-data="sfHero({{ $heroBanners->count() }})" aria-roledescription="carrossel" aria-label="Destaques da loja" data-testid="hero-carousel">
+            <div class="sf-hero-track" x-ref="track">
+                @foreach($heroBanners as $b)
+                    @include('portal.partials.storefront-banner', ['b' => $b, 'kind' => 'hero', 'eager' => $loop->first])
+                @endforeach
+            </div>
+            @if($heroBanners->count() > 1)
+                <button type="button" class="sf-arrow l" @click="go(i - 1)" aria-label="Banner anterior"><i class="fas fa-chevron-left"></i></button>
+                <button type="button" class="sf-arrow r" @click="go(i + 1)" aria-label="Próximo banner"><i class="fas fa-chevron-right"></i></button>
+                <div class="sf-dots">
+                    @foreach($heroBanners as $b)
+                        <button type="button" :class="i === {{ $loop->index }} && 'on'" @click="go({{ $loop->index }})" aria-label="Banner {{ $loop->iteration }}"></button>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+    @elseif($showOffers)
         <section class="ml-hero">
             <small><i class="fas fa-bolt"></i> Ofertas da semana</small>
             <h1>Até {{ $offers->max(fn ($o) => $o->livePromotion()->discount_percent) }}% OFF em produtos selecionados</h1>
@@ -58,6 +92,32 @@
         </nav>
     @endif
 
+    @if($collection)
+        <section class="sf-col-page" data-testid="collection-head">
+            <div class="sf-col-head {{ $collection->image ? 'has-img' : 'no-img' }}" style="--sf-bg: {{ $front::gradient($collection->color) }}">
+                @if($collection->image)<img src="{{ $collection->imageUrl() }}" alt="">@endif
+                <div class="sf-col-txt">
+                    <small>Coleção</small>
+                    <b>{{ $collection->name }}</b>
+                    @if($collection->description)<span>{{ $collection->description }}</span>@endif
+                </div>
+            </div>
+        </section>
+    @endif
+
+    @if($featured->isNotEmpty())
+        <section class="ml-box ml-offers" data-testid="featured">
+            <div class="ml-sec-head">
+                <h2><i class="fas fa-star sf-star"></i> {{ $settings->featured_title ?: 'Destaques da loja' }}</h2>
+            </div>
+            <div class="ml-rail">
+                @foreach($featured as $p)
+                    @include('portal.partials.ml-card', ['d' => $all[$p->id]])
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     @if($showOffers)
         <section class="ml-box ml-offers">
             <div class="ml-sec-head">
@@ -72,7 +132,37 @@
         </section>
     @endif
 
-    @if($products->currentPage() === 1 && ! $search && ! $category && ! $onlyOffers)
+    {{-- Faixas e coleções: uma faixa depois das ofertas e outra depois de cada coleção --}}
+    @if($strips->isNotEmpty())
+        @include('portal.partials.storefront-banner', ['b' => $strips[0], 'kind' => 'strip'])
+    @endif
+    @foreach($collections as $c)
+        @php $cHref = route('portal.catalog', ['userId' => $owner, 'colecao' => $c->slug]); @endphp
+        <section class="ml-box sf-col" data-testid="collection-{{ $c->slug }}">
+            <a href="{{ $cHref }}" class="sf-col-head {{ $c->image ? 'has-img' : 'no-img' }}" style="--sf-bg: {{ $front::gradient($c->color) }}">
+                @if($c->image)<img src="{{ $c->imageUrl() }}" alt="" loading="lazy">@endif
+                <span class="sf-col-txt">
+                    <small>Coleção</small>
+                    <b>{{ $c->name }}</b>
+                    @if($c->description)<span>{{ $c->description }}</span>@endif
+                </span>
+                <span class="sf-col-go">Ver tudo</span>
+            </a>
+            <div class="ml-rail">
+                @foreach($c->items as $p)
+                    @include('portal.partials.ml-card', ['d' => $all[$p->id]])
+                @endforeach
+            </div>
+        </section>
+        @if(isset($strips[$loop->iteration]))
+            @include('portal.partials.storefront-banner', ['b' => $strips[$loop->iteration], 'kind' => 'strip'])
+        @endif
+    @endforeach
+    @foreach($strips->slice($collections->count() + 1) as $b)
+        @include('portal.partials.storefront-banner', ['b' => $b, 'kind' => 'strip'])
+    @endforeach
+
+    @if($isHome)
         @include('portal.partials.recently-viewed')
     @endif
 
@@ -106,6 +196,7 @@
             @if($search)<input type="hidden" name="search" value="{{ $search }}">@endif
             @if($category)<input type="hidden" name="category" value="{{ $category }}">@endif
             @if($onlyOffers)<input type="hidden" name="ofertas" value="1">@endif
+            @if($collection)<input type="hidden" name="colecao" value="{{ $collection->slug }}">@endif
             <i class="fas fa-arrow-down-wide-short"></i>
             <select name="ordem" onchange="this.form.submit()" aria-label="Ordenar">
                 <option value="" @selected(! $sort)>Mais relevantes</option>
@@ -116,6 +207,11 @@
             </select>
             <i class="fas fa-chevron-down" style="font-size:10px"></i>
         </form>
+        @if($collection)
+            <a href="{{ $catalogUrl(['colecao' => null, 'page' => null]) }}" class="ml-chip on" data-testid="chip-collection">
+                {{ $collection->name }} <i class="fas fa-xmark"></i>
+            </a>
+        @endif
         @if($category)
             <a href="{{ $catalogUrl(['category' => null, 'page' => null]) }}" class="ml-chip on">
                 {{ $categories->firstWhere('id_category', $category)?->name ?? 'Categoria' }} <i class="fas fa-xmark"></i>
@@ -146,10 +242,24 @@
     @endif
 
     @include('portal.partials.catalog-cart')
+
+    {{-- Banners laterais: só aparecem quando a tela é larga o bastante para sobrar espaço --}}
+    @if($sides->isNotEmpty())
+        @foreach(['right' => $sides->filter(fn ($b, $k) => $k % 2 === 0), 'left' => $sides->filter(fn ($b, $k) => $k % 2 === 1)] as $sideName => $list)
+            @if($list->isNotEmpty())
+                <aside class="sf-side {{ $sideName }}" aria-label="Banners">
+                    @foreach($list as $b)
+                        @include('portal.partials.storefront-banner', ['b' => $b, 'kind' => 'side'])
+                    @endforeach
+                </aside>
+            @endif
+        @endforeach
+    @endif
 </div>
 
 @push('scripts')
 @include('portal.partials.catalog-script')
+@include('portal.partials.storefront-script')
 @endpush
 
 </x-portal-catalog-layout>

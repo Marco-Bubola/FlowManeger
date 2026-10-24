@@ -278,6 +278,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/promotions/create', PromotionsCreate::class)->name('promotions.create');
     Route::get('/promotions/report', \App\Livewire\Promotions\PromotionsReport::class)->name('promotions.report');
     Route::get('/promotions/cupons', \App\Livewire\Promotions\PortalCoupons::class)->name('promotions.coupons');
+    Route::get('/promotions/vitrine', \App\Livewire\Promotions\PortalStorefront::class)->name('promotions.storefront');
 
     // Manter rotas que ainda usam controller para funcionalidades específicas
     // Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');

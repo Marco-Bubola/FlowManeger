@@ -571,6 +571,8 @@ class ClientPortalController extends Controller
         $search    = $request->query('search', '');
         $category  = $request->query('category', '');
         $onlyOffers = $request->boolean('ofertas');
+        // Coleção da vitrine (?colecao=slug): só os produtos escolhidos pela loja.
+        $collection = \App\Services\Portal\StorefrontService::collectionBySlug($ownerId, (string) $request->query('colecao', ''));
 
         $query = Product::withoutGlobalScope('team_visibility')
             ->where('user_id', $ownerId)
@@ -602,6 +604,11 @@ class ClientPortalController extends Controller
             $query->where('category_id', $category);
         }
 
+        $collectionRoots = $collection ? $collection->productIds() : [];
+        if ($collection) {
+            $collectionRoots ? $query->whereIn(\DB::raw('COALESCE(parent_id, id)'), $collectionRoots) : $query->whereRaw('1 = 0');
+        }
+
         $sort = in_array($request->query('ordem'), ['menor', 'maior', 'novos', 'nome'], true)
             ? $request->query('ordem')
             : '';
@@ -611,7 +618,10 @@ class ClientPortalController extends Controller
             'maior' => $query->orderByDesc('price_sale'),
             'novos' => $query->orderByDesc('id'),
             'nome'  => $query->orderBy('name'),
-            default => $query->orderByDesc('updated_at'),
+            default => $collectionRoots
+                // Coleção: na ordem que a loja montou.
+                ? $query->orderByRaw('CASE COALESCE(parent_id, id) ' . implode(' ', array_map(fn ($i) => 'WHEN ' . (int) $collectionRoots[$i] . ' THEN ' . $i, array_keys($collectionRoots))) . ' ELSE ' . count($collectionRoots) . ' END')
+                : $query->orderByDesc('updated_at'),
         };
         $query->orderByDesc('id'); // desempate: a rolagem infinita não repete nem pula produto
 
@@ -646,7 +656,16 @@ class ClientPortalController extends Controller
 
         $store = \App\Models\User::select('id', 'name', 'phone', 'location')->find($ownerId);
 
-        return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers', 'sort', 'store', 'stockMap', 'countByCategory'));
+        // Vitrine: banners, destaques e coleções (montados em Promoções › Vitrine do catálogo).
+        $front = \App\Services\Portal\StorefrontService::class;
+        $banners = $front::banners($ownerId);
+        $settings = $front::settings($ownerId);
+        $isHome = $products->currentPage() === 1 && ! $search && ! $category && ! $onlyOffers && ! $collection;
+        $featured = $isHome && $settings ? $front::productsFor($ownerId, $settings->featured_ids ?? [], 15) : collect();
+        $collections = $isHome ? $front::collections($ownerId) : collect();
+
+        return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers', 'sort', 'store', 'stockMap', 'countByCategory',
+            'collection', 'banners', 'settings', 'isHome', 'featured', 'collections'));
     }
 
     /**
