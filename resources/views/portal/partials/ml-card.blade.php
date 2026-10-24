@@ -3,10 +3,10 @@
     $int = number_format(floor($d['price']), 0, ',', '.');
     $cents = str_pad((string) (round($d['price'] * 100) % 100), 2, '0', STR_PAD_LEFT);
 @endphp
-<div class="ml-card">
-    <div class="ml-card-img">
+<div class="ml-card" data-hover-card>
+    <div class="ml-card-img" @if(count($d['imgs']) > 1) data-hover-photos='@json(array_values(array_slice($d['imgs'], 0, 8)))' @endif>
         @if($d['img'])
-            <img src="{{ $d['img'] }}" alt="{{ $d['name'] }}" loading="lazy" onerror="this.outerHTML='<div class=&quot;ml-ph&quot;><i class=&quot;fas fa-image&quot;></i></div>'">
+            <img src="{{ $d['img'] }}" alt="{{ $d['name'] }}" data-hp-img loading="lazy" onerror="this.outerHTML='<div class=&quot;ml-ph&quot;><i class=&quot;fas fa-image&quot;></i></div>'">
         @else
             <div class="ml-ph"><i class="fas fa-image"></i></div>
         @endif
@@ -15,6 +15,7 @@
         @endif
         @if(count($d['imgs']) > 1)
             <span class="ml-imgs"><i class="fas fa-images"></i> {{ count($d['imgs']) }}</span>
+            <span class="hp-dots" data-hp-dots aria-hidden="true">@for($k = 0; $k < min(count($d['imgs']), 5); $k++)<i class="{{ $k === 0 ? 'on' : '' }}"></i>@endfor</span>
         @endif
         <button type="button" class="ml-fav" :class="{ on: $store.favs.has({{ $d['id'] }}) }" @click.stop="fav({{ $d['id'] }})"
                 :aria-pressed="$store.favs.has({{ $d['id'] }})" aria-label="Favoritar" data-fav="{{ $d['id'] }}">

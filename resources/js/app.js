@@ -12,3 +12,6 @@ import './mobile-save-bar.js';
 
 // Rolagem infinita nas listas (x-infinite-feed)
 import './infinite-feed.js';
+
+// Fotos do card trocando ao deixar o mouse em cima (lista de produtos)
+import './hover-photos.js';

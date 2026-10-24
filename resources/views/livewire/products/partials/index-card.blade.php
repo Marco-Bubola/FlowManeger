@@ -31,9 +31,15 @@
     </div>
 
     <!-- Área da imagem com badges -->
-    <div class="product-img-area">
-        <img src="{{ asset('storage/products/' . $product->image) }}" class="product-img"
+    @php $cardImgs = array_values(array_slice($product->all_images, 0, 8)); @endphp
+    <div class="product-img-area" @if(count($cardImgs) > 1) data-hover-photos='@json($cardImgs)' @endif>
+        <img src="{{ asset('storage/products/' . $product->image) }}" class="product-img" data-hp-img
             alt="{{ $product->name }}">
+        @if(count($cardImgs) > 1)
+            {{-- Tem mais fotos: aviso no canto e bolinhas; com o mouse em cima elas vão passando --}}
+            <span style="position:absolute; left:8px; bottom:10px; z-index:3" class="inline-flex items-center gap-1 rounded-full bg-slate-900/60 px-2 py-0.5 text-[10px] font-bold text-white pointer-events-none" title="{{ count($product->all_images) }} fotos" data-testid="card-photo-count"><i class="bi bi-images"></i>{{ count($product->all_images) }}</span>
+            <span class="hp-dots" style="bottom:52px" data-hp-dots aria-hidden="true">@for($k = 0; $k < min(count($cardImgs), 5); $k++)<i class="{{ $k === 0 ? 'on' : '' }}"></i>@endfor</span>
+        @endif
 
         {{-- Cada card mostra só o próprio estoque (o principal não soma as variações) --}}
         @if ($product->made_to_order && $product->stock_quantity == 0)

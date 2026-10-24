@@ -272,6 +272,7 @@ document.addEventListener('alpine:init', () => {
     {{ $storeName }} · Catálogo online · {{ date('Y') }}
 </footer>
 
+@vite('resources/js/hover-photos.js')
 <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
 @stack('scripts')
 </body>

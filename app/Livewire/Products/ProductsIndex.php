@@ -614,7 +614,7 @@ class ProductsIndex extends Component
     public function getProductsProperty()
     {
         // Rolagem infinita: uma "página" só, que cresce de $perPage em $perPage
-        $products = $this->productsQuery()->with('activePromotion')->paginate($this->chunk() * max(1, $this->pages), ['*'], 'page', 1);
+        $products = $this->productsQuery()->with(['activePromotion', 'images'])->paginate($this->chunk() * max(1, $this->pages), ['*'], 'page', 1);
 
         return $this->finishPaginator($products);
     }
