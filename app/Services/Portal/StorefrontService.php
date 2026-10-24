@@ -344,6 +344,89 @@ class StorefrontService
         return $memo[$key] = $list->values();
     }
 
+    /** Como a coleção escolhe os produtos: manual ou uma regra que se atualiza sozinha. */
+    public const COLLECTION_RULES = [
+        'manual'    => ['Eu escolho', 'bi-hand-index', 'Você escolhe os produtos, na ordem que quiser.'],
+        'categoria' => ['Por categoria', 'bi-tags', 'Todos os produtos das categorias escolhidas.'],
+        'ofertas'   => ['Em promoção', 'bi-percent', 'Os produtos com promoção ativa agora.'],
+        'novos'     => ['Mais novos', 'bi-stars', 'Os últimos produtos cadastrados.'],
+        'vendidos'  => ['Mais vendidos', 'bi-trophy', 'Os que mais venderam nos últimos 90 dias.'],
+        'preco'     => ['Faixa de preço', 'bi-cash-coin', 'Produtos entre o menor e o maior preço que você colocar.'],
+        'busca'     => ['Por palavra', 'bi-search', 'Produtos com a palavra no nome (ex.: perfume, mesa).'],
+        'pronta'    => ['Pronta entrega', 'bi-truck', 'Só o que tem em estoque agora.'],
+        'encomenda' => ['Sob encomenda', 'bi-rulers', 'Só os produtos feitos sob encomenda.'],
+    ];
+
+    /** Ideias de coleção para começar, por tipo de loja: [nome, frase, regra, dados, modelo da capa]. */
+    public const COLLECTION_IDEAS = [
+        'beleza' => [
+            ['Perfumes', 'Fragrâncias para todos os estilos', 'busca', ['term' => 'perfume'], 'fragrancia'],
+            ['Kits para presente', 'Presentes prontos e lindos', 'busca', ['term' => 'kit'], 'kit'],
+            ['Mais vendidos', 'Os queridinhos das clientes', 'vendidos', [], 'vitrine'],
+            ['Novidades', 'Acabaram de chegar', 'novos', [], 'chegaram'],
+            ['Em promoção', 'Preços especiais por pouco tempo', 'ofertas', [], 'ofertas3'],
+            ['Até R$ 50', 'Mimos que cabem no bolso', 'preco', ['max' => 50], 'cupom'],
+        ],
+        'moveis' => [
+            ['Mesas', 'Mesas de jantar, de centro e bistrô', 'busca', ['term' => 'mesa'], 'artesanal'],
+            ['Aparadores e buffets', 'Para a sala e o hall de entrada', 'busca', ['term' => 'aparador'], 'ambiente'],
+            ['Pronta entrega', 'Leve hoje, sem esperar', 'pronta', [], 'pronta'],
+            ['Sob medida', 'Feitos no tamanho do seu espaço', 'encomenda', [], 'encomenda'],
+            ['Mais vendidos', 'As peças mais pedidas', 'vendidos', [], 'vitrine'],
+            ['Novos modelos', 'Acabaram de sair da oficina', 'novos', [], 'chegaram'],
+        ],
+        'geral' => [
+            ['Mais vendidos', 'Os que mais saíram', 'vendidos', [], 'vitrine'],
+            ['Novidades', 'Acabaram de chegar', 'novos', [], 'chegaram'],
+            ['Em promoção', 'Preços especiais por pouco tempo', 'ofertas', [], 'ofertas3'],
+            ['Pronta entrega', 'Leve hoje', 'pronta', [], 'pronta'],
+        ],
+    ];
+
+    /** Principais das famílias que entram numa coleção automática, já na ordem da regra. */
+    public static function ruleRoots(int $ownerId, string $rule, array $data = [], int $limit = 60): array
+    {
+        if ($rule === 'manual' || ! isset(self::COLLECTION_RULES[$rule])) {
+            return [];
+        }
+        $q = Product::withoutGlobalScope('team_visibility')
+            ->where('products.user_id', $ownerId)
+            ->availableForSale()
+            ->whereIn('status', ['active', 'ativo'])
+            ->topOfFamily();
+        $since = now()->subDays(90);
+        match ($rule) {
+            'categoria' => $q->whereIn('category_id', array_map('intval', (array) ($data['cats'] ?? [])) ?: [0])->orderBy('name'),
+            'ofertas'   => $q->whereHas('promotions', fn ($p) => $p->where('status', \App\Models\Promotion::ATIVA))->orderByDesc('updated_at'),
+            'novos'     => $q->orderByDesc('id'),
+            'vendidos'  => $q->withSum(['saleItems as sold_qty' => fn ($w) => $w->where('created_at', '>=', $since)], 'quantity')
+                ->whereHas('saleItems', fn ($w) => $w->where('created_at', '>=', $since))->orderByDesc('sold_qty'),
+            'preco'     => $q->when(($data['min'] ?? '') !== '' && $data['min'] !== null, fn ($w) => $w->where('price_sale', '>=', (float) $data['min']))
+                ->when(($data['max'] ?? '') !== '' && $data['max'] !== null, fn ($w) => $w->where('price_sale', '<=', (float) $data['max']))->orderBy('price_sale'),
+            'busca'     => $q->where(function ($w) use ($data) {
+                $words = preg_split('/\s+/', trim((string) ($data['term'] ?? ''))) ?: [];
+                $words = array_filter($words, fn ($x) => mb_strlen($x) >= 2) ?: ['§'];
+                foreach ($words as $word) {
+                    $w->where('name', 'like', '%' . $word . '%');
+                }
+            })->orderBy('name'),
+            'pronta'    => $q->where('stock_quantity', '>', 0)->orderByDesc('id'),
+            'encomenda' => $q->where('made_to_order', true)->orderBy('name'),
+        };
+
+        return $q->limit($limit * 2)->get(['products.id', 'products.parent_id'])
+            ->map(fn ($p) => (int) ($p->parent_id ?: $p->id))->unique()->take($limit)->values()->all();
+    }
+
+    /** Fotos da capa da coleção: dos próprios produtos dela. */
+    public static function collectionPhotos(PortalCollection $c, int $ownerId, int $n): array
+    {
+        $items = $c->relationLoaded('items') ? $c->items : self::productsFor($ownerId, $c->rootIds($n * 2), $n * 2);
+
+        return $items->map(fn ($p) => $p->image && $p->image !== 'product-placeholder.png' ? $p->image_url : null)
+            ->filter()->unique()->take($n)->values()->all();
+    }
+
     /** Coleções ligadas, com os produtos à venda (as vazias ficam de fora). */
     public static function collections(int $ownerId, bool $homeOnly = true): Collection
     {
@@ -355,7 +438,7 @@ class StorefrontService
             ->when($homeOnly, fn ($q) => $q->where('show_on_home', true))
             ->orderBy('sort')->orderBy('id')->get()
             ->map(function (PortalCollection $c) use ($ownerId) {
-                $c->setRelation('items', self::productsFor($ownerId, $c->productIds(), 15));
+                $c->setRelation('items', self::productsFor($ownerId, $c->rootIds(30), (int) (($c->rule_data['limit'] ?? null) ?: 15)));
 
                 return $c;
             })

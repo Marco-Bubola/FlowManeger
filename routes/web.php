@@ -282,6 +282,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/promotions/vitrine', \App\Livewire\Promotions\PortalStorefront::class)->name('promotions.storefront');
     Route::get('/promotions/vitrine/banner/novo', \App\Livewire\Promotions\BannerEditor::class)->name('promotions.storefront.banner.create');
     Route::get('/promotions/vitrine/banner/{banner}/editar', \App\Livewire\Promotions\BannerEditor::class)->whereNumber('banner')->name('promotions.storefront.banner.edit');
+    Route::get('/promotions/vitrine/colecao/nova', \App\Livewire\Promotions\CollectionEditor::class)->name('promotions.storefront.collection.create');
+    Route::get('/promotions/vitrine/colecao/{collection}/editar', \App\Livewire\Promotions\CollectionEditor::class)->whereNumber('collection')->name('promotions.storefront.collection.edit');
 
     // Manter rotas que ainda usam controller para funcionalidades específicas
     // Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');

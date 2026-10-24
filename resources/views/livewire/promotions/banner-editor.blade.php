@@ -39,7 +39,7 @@
     <form wire:submit="saveBanner" x-data="{ dev: 'pc' }" data-testid="banner-form"
           class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(380px,40%)] 2xl:grid-cols-[minmax(0,1fr)_minmax(520px,44%)] items-start">
         {{-- Prévia: presa no alto (no celular fica em cima, no computador ao lado) --}}
-        <aside class="lg:order-2 sticky top-0 lg:top-4 z-20 -mx-3 sm:mx-0 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur sm:rounded-2xl border-b sm:border border-slate-200/80 dark:border-slate-800 px-3 sm:px-4 py-3 space-y-2" data-testid="banner-preview-box">
+        <aside class="lg:order-2 min-w-0 sticky top-0 lg:top-4 z-20 -mx-3 sm:mx-0 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur sm:rounded-2xl border-b sm:border border-slate-200/80 dark:border-slate-800 px-3 sm:px-4 py-3 space-y-2" data-testid="banner-preview-box">
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-semibold text-slate-600 dark:text-slate-300 mr-auto"><i class="bi bi-eye"></i> Como fica no catálogo</span>
                     @if($b_placement !== 'side')

@@ -94,14 +94,7 @@
 
     @if($collection)
         <section class="sf-col-page" data-testid="collection-head">
-            <div class="sf-col-head {{ $collection->image ? 'has-img' : 'no-img' }}" style="--sf-bg: {{ $front::gradient($collection->color) }}">
-                @if($collection->image)<img src="{{ $collection->imageUrl() }}" alt="">@endif
-                <div class="sf-col-txt">
-                    <small>Coleção</small>
-                    <b>{{ $collection->name }}</b>
-                    @if($collection->description)<span>{{ $collection->description }}</span>@endif
-                </div>
-            </div>
+            @include('portal.partials.collection-head', ['c' => $collection, 'href' => null])
         </section>
     @endif
 
@@ -139,15 +132,7 @@
     @foreach($collections as $c)
         @php $cHref = route('portal.catalog', ['userId' => $owner, 'colecao' => $c->slug]); @endphp
         <section class="ml-box sf-col" data-testid="collection-{{ $c->slug }}">
-            <a href="{{ $cHref }}" class="sf-col-head {{ $c->image ? 'has-img' : 'no-img' }}" style="--sf-bg: {{ $front::gradient($c->color) }}">
-                @if($c->image)<img src="{{ $c->imageUrl() }}" alt="" loading="lazy">@endif
-                <span class="sf-col-txt">
-                    <small>Coleção</small>
-                    <b>{{ $c->name }}</b>
-                    @if($c->description)<span>{{ $c->description }}</span>@endif
-                </span>
-                <span class="sf-col-go">Ver tudo</span>
-            </a>
+            @include('portal.partials.collection-head', ['c' => $c, 'href' => $cHref])
             <div class="ml-rail">
                 @foreach($c->items as $p)
                     @include('portal.partials.ml-card', ['d' => $all[$p->id]])

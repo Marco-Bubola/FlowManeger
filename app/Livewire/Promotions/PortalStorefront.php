@@ -32,18 +32,6 @@ class PortalStorefront extends Component
     public string $featured_title = '';
     public array $featuredIds = [];
 
-    // Coleção
-    public bool $showCollection = false;
-    public ?int $colId = null;
-    public string $c_name = '';
-    public string $c_description = '';
-    public string $c_color = 'violet';
-    public bool $c_active = true;
-    public bool $c_home = true;
-    public $c_image = null;
-    public ?string $c_image_old = null;
-    public array $c_products = [];
-
     // Aviso no topo
     public string $notice_text = '';
     public string $notice_link = '';
@@ -143,87 +131,6 @@ class PortalStorefront extends Component
 
     /* ---------- Coleções ---------- */
 
-    public function newCollection(): void
-    {
-        $this->resetCollection();
-        $this->showCollection = true;
-    }
-
-    public function editCollection(int $id): void
-    {
-        $c = $this->collection($id);
-        if (! $c) {
-            return;
-        }
-        $this->resetCollection();
-        $this->colId = $c->id;
-        $this->c_name = $c->name;
-        $this->c_description = (string) $c->description;
-        $this->c_color = $c->color;
-        $this->c_active = (bool) $c->active;
-        $this->c_home = (bool) $c->show_on_home;
-        $this->c_image_old = $c->image;
-        $this->c_products = $c->productIds();
-        $this->showCollection = true;
-    }
-
-    public function removeCollectionImage(): void
-    {
-        $this->c_image = null;
-        $this->c_image_old = null;
-    }
-
-    public function moveCollectionProduct(int $index, int $dir): void
-    {
-        $this->c_products = $this->moved($this->c_products, $index, $dir);
-    }
-
-    public function removeCollectionProduct(int $id): void
-    {
-        $this->c_products = array_values(array_filter($this->c_products, fn ($v) => (int) $v !== $id));
-    }
-
-    public function saveCollection(): void
-    {
-        $this->validate([
-            'c_name'        => ['required', 'string', 'max:80'],
-            'c_description' => ['nullable', 'string', 'max:200'],
-            'c_color'       => ['required', 'in:' . implode(',', array_keys(StorefrontService::COLORS))],
-            'c_image'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'c_products'    => ['array', 'min:1'],
-        ], [
-            'c_products.min' => 'Escolha pelo menos um produto.',
-            'c_image.max' => 'A imagem pode ter até 5 MB.',
-        ], ['c_name' => 'nome', 'c_image' => 'imagem']);
-
-        $old = $this->colId ? $this->collection($this->colId) : null;
-        $image = $this->c_image ? $this->c_image->store('portal-banners', 'public') : $this->c_image_old;
-        $row = [
-            'name'         => trim($this->c_name),
-            'slug'         => $this->uniqueSlug(trim($this->c_name), $old?->id),
-            'description'  => trim($this->c_description) ?: null,
-            'color'        => $this->c_color,
-            'image'        => $image,
-            'active'       => $this->c_active,
-            'show_on_home' => $this->c_home,
-        ];
-        if ($old) {
-            $this->dropFiles([$old->image], [$image]);
-            // Banners que levam a esta coleção acompanham o novo nome.
-            if ($old->slug !== $row['slug']) {
-                PortalBanner::where('user_id', Auth::id())->where('link_type', 'collection')->where('link_value', $old->slug)->update(['link_value' => $row['slug']]);
-            }
-            $old->update($row);
-            $c = $old;
-        } else {
-            $row['sort'] = (int) PortalCollection::where('user_id', Auth::id())->max('sort') + 1;
-            $c = PortalCollection::create($row + ['user_id' => Auth::id()]);
-        }
-        $c->syncProducts($this->c_products);
-        $this->showCollection = false;
-        $this->dispatch('notify', type: 'success', message: 'Coleção ' . $c->name . ' salva.');
-    }
-
     public function toggleCollection(int $id, string $field = 'active'): void
     {
         if (($c = $this->collection($id)) && in_array($field, ['active', 'show_on_home'], true)) {
@@ -269,7 +176,7 @@ class PortalStorefront extends Component
 
     public function openPicker(string $for): void
     {
-        $this->pickFor = in_array($for, ['featured', 'collection'], true) ? $for : '';
+        $this->pickFor = $for === 'featured' ? $for : '';
         $this->pickSearch = '';
     }
 
@@ -284,7 +191,7 @@ class PortalStorefront extends Component
         if (! $root) {
             return;
         }
-        $prop = $this->pickFor === 'collection' ? 'c_products' : 'featuredIds';
+        $prop = 'featuredIds';
         $list = array_map('intval', $this->{$prop});
         $this->{$prop} = in_array($root, $list, true)
             ? array_values(array_filter($list, fn ($v) => $v !== $root))
@@ -333,18 +240,6 @@ class PortalStorefront extends Component
         return $ids;
     }
 
-    private function uniqueSlug(string $name, ?int $ignore): string
-    {
-        $base = Str::slug($name) ?: 'colecao';
-        $slug = $base;
-        $n = 2;
-        while (PortalCollection::where('user_id', Auth::id())->where('slug', $slug)->when($ignore, fn ($q) => $q->where('id', '!=', $ignore))->exists()) {
-            $slug = $base . '-' . $n++;
-        }
-
-        return $slug;
-    }
-
     /** Apaga do disco as imagens antigas que não estão mais em uso. */
     private function dropFiles(array $old, array $keep = []): void
     {
@@ -353,19 +248,6 @@ class PortalStorefront extends Component
                 Storage::disk('public')->delete($path);
             }
         }
-    }
-
-    private function resetCollection(): void
-    {
-        $this->resetErrorBag();
-        $this->colId = null;
-        $this->c_name = $this->c_description = '';
-        $this->c_color = 'violet';
-        $this->c_active = $this->c_home = true;
-        $this->c_image = null;
-        $this->c_image_old = null;
-        $this->c_products = [];
-        $this->pickFor = '';
     }
 
     /** Produtos (principal da família) para mostrar nas listas escolhidas. */
@@ -399,9 +281,10 @@ class PortalStorefront extends Component
         $uid = Auth::id();
         $banners = PortalBanner::where('user_id', $uid)->orderBy('sort')->orderBy('id')->get()->groupBy('placement');
         $collections = PortalCollection::where('user_id', $uid)->orderBy('sort')->orderBy('id')->get();
-        $counts = \Illuminate\Support\Facades\DB::table('portal_collection_product')
-            ->whereIn('portal_collection_id', $collections->pluck('id'))
-            ->selectRaw('portal_collection_id, COUNT(*) as n')->groupBy('portal_collection_id')->pluck('n', 'portal_collection_id');
+        // Quantos produtos à venda cada coleção mostra agora (as automáticas pela regra).
+        $counts = $this->tab === 'colecoes'
+            ? $collections->mapWithKeys(fn ($c) => [$c->id => StorefrontService::productsFor($uid, $c->rootIds(60), 60)->count()])
+            : collect();
 
         $results = collect();
         if ($this->pickFor !== '') {
@@ -415,7 +298,6 @@ class PortalStorefront extends Component
                 ->limit(30)->get();
         }
         $picked = match ($this->pickFor) {
-            'collection' => array_map('intval', $this->c_products),
             'featured'   => array_map('intval', $this->featuredIds),
             default      => [],
         };
@@ -436,7 +318,6 @@ class PortalStorefront extends Component
             'collections'   => $collections,
             'counts'        => $counts,
             'featured'      => $this->productsById($this->featuredIds),
-            'colProducts'   => $this->showCollection ? $this->productsById($this->c_products) : collect(),
             'results'       => $results,
             'picked'        => $picked,
             'catalogUrl'    => route('portal.catalog', ['userId' => $uid]),

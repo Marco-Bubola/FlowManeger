@@ -13,14 +13,36 @@ use Illuminate\Support\Facades\DB;
 class PortalCollection extends Model
 {
     protected $fillable = [
-        'user_id', 'name', 'slug', 'description', 'image', 'color', 'sort', 'active', 'show_on_home',
+        'user_id', 'name', 'slug', 'description', 'image', 'color', 'sort', 'active', 'show_on_home', 'rule', 'rule_data', 'design',
     ];
 
     protected $casts = [
         'sort'         => 'integer',
         'active'       => 'boolean',
         'show_on_home' => 'boolean',
+        'rule_data'    => 'array',
+        'design'       => 'array',
     ];
+
+    /** Coleção que se atualiza sozinha (regra), não escolhida à mão. */
+    public function isAuto(): bool
+    {
+        return ($this->rule ?? 'manual') !== 'manual';
+    }
+
+    /** Capa montada com um modelo de banner. */
+    public function hasDesign(): bool
+    {
+        return ! $this->image && ! empty($this->design['tpl']);
+    }
+
+    /** Produtos da coleção (principal da família): os escolhidos ou os da regra, na ordem. */
+    public function rootIds(int $limit = 200): array
+    {
+        return $this->isAuto()
+            ? \App\Services\Portal\StorefrontService::ruleRoots((int) $this->user_id, $this->rule, $this->rule_data ?? [], $limit)
+            : array_slice($this->productIds(), 0, $limit);
+    }
 
     /** Ids (principal da família) na ordem escolhida. */
     public function productIds(): array

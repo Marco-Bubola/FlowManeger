@@ -604,7 +604,7 @@ class ClientPortalController extends Controller
             $query->where('category_id', $category);
         }
 
-        $collectionRoots = $collection ? $collection->productIds() : [];
+        $collectionRoots = $collection ? $collection->rootIds() : [];
         if ($collection) {
             $collectionRoots ? $query->whereIn(\DB::raw('COALESCE(parent_id, id)'), $collectionRoots) : $query->whereRaw('1 = 0');
         }

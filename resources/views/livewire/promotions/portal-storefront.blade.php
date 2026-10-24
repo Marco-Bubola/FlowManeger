@@ -194,24 +194,26 @@
         <div class="space-y-3">
             <div class="flex items-center gap-3 flex-wrap">
                 <p class="text-sm text-slate-500 dark:text-slate-400 flex-1 min-w-[220px]">Grupos de produtos com banner próprio, como "Dia das Mães" ou "Kits para presente". Cada coleção vira uma fileira na página inicial e tem a sua página.</p>
-                <button type="button" wire:click="newCollection" class="{{ $primary }}" data-testid="collection-new"><i class="bi bi-plus-lg"></i>Nova coleção</button>
+                <a href="{{ route('promotions.storefront.collection.create') }}" class="{{ $primary }}" data-testid="collection-new"><i class="bi bi-plus-lg"></i>Nova coleção</a>
+            </div>
+            <div class="flex items-center gap-2 overflow-x-auto [scrollbar-width:none]" data-testid="collection-idea-row">
+                <span class="shrink-0 text-xs font-semibold text-slate-500 dark:text-slate-400"><i class="bi bi-lightbulb text-amber-500"></i> Ideias:</span>
+                @foreach($front::COLLECTION_IDEAS[$kind] ?? [] as $i => [$iname, $idesc, $irule])
+                    <a href="{{ route('promotions.storefront.collection.create', ['ideia' => $i]) }}" class="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-violet-400"><i class="bi {{ $front::COLLECTION_RULES[$irule][1] }} text-violet-500"></i>{{ $iname }}</a>
+                @endforeach
             </div>
             @if($collections->isEmpty())
                 <x-empty-state icon="bi-collection" tone="violet" title="Nenhuma coleção ainda"
-                               text="Monte uma coleção escolhendo os produtos, dê um nome e, se quiser, uma imagem de capa." />
+                               text="Escolha os produtos ou use uma regra (categoria, em promoção, mais vendidos, faixa de preço) e a coleção se atualiza sozinha." />
             @else
                 <div class="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" data-testid="collection-list">
                     @foreach($collections as $c)
                         <article wire:key="col-{{ $c->id }}" class="{{ $card }} overflow-hidden flex flex-col {{ $c->active ? '' : 'opacity-70' }}">
-                            <div class="relative aspect-[4/1] min-h-[84px] overflow-hidden text-white" style="background: {{ $front::gradient($c->color) }}">
-                                @if($c->image)<img src="{{ $c->imageUrl() }}" alt="" class="absolute inset-0 w-full h-full object-cover"><div class="absolute inset-0 bg-gradient-to-r from-black/55 to-transparent"></div>@endif
-                                <div class="relative h-full flex flex-col justify-center px-4">
-                                    <b class="text-base leading-tight line-clamp-1">{{ $c->name }}</b>
-                                    @if($c->description)<span class="text-xs opacity-90 line-clamp-1">{{ $c->description }}</span>@endif
-                                </div>
-                            </div>
+                            @include('portal.partials.collection-head', ['c' => $c, 'href' => null, 'owner' => auth()->id()])
                             <div class="p-3 flex flex-col gap-2 flex-1">
-                                <p class="text-xs text-slate-500 dark:text-slate-400"><i class="bi bi-box-seam"></i> {{ (int) ($counts[$c->id] ?? 0) }} {{ ($counts[$c->id] ?? 0) == 1 ? 'produto' : 'produtos' }}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 flex-wrap">@php $rn = $front::COLLECTION_RULES[$c->rule ?? 'manual'] ?? $front::COLLECTION_RULES['manual']; @endphp
+                                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $c->isAuto() ? $tones['emerald'] : $tones['slate'] }}"><i class="bi {{ $c->isAuto() ? 'bi-arrow-repeat' : $rn[1] }}"></i>{{ $c->isAuto() ? $rn[0] . ', automática' : 'Escolhidos à mão' }}</span>
+                                    <span><i class="bi bi-box-seam"></i> {{ (int) ($counts[$c->id] ?? 0) }} à venda</span></p>
                                 <div class="flex flex-wrap gap-1.5">
                                     <button type="button" wire:click="toggleCollection({{ $c->id }}, 'active')" class="rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $c->active ? $tones['emerald'] : $tones['slate'] }}"><i class="bi {{ $c->active ? 'bi-check2-circle' : 'bi-pause-circle' }}"></i> {{ $c->active ? 'Ligada' : 'Desligada' }}</button>
                                     <button type="button" wire:click="toggleCollection({{ $c->id }}, 'show_on_home')" class="rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $c->show_on_home ? $tones['sky'] : $tones['slate'] }}"><i class="bi {{ $c->show_on_home ? 'bi-house-check' : 'bi-house-slash' }}"></i> {{ $c->show_on_home ? 'Na página inicial' : 'Fora da página inicial' }}</button>
@@ -220,7 +222,7 @@
                                     <button type="button" wire:click="moveCollection({{ $c->id }}, -1)" class="{{ $iconBtn }}" title="Mover para cima" @disabled($loop->first)><i class="bi bi-arrow-up"></i></button>
                                     <button type="button" wire:click="moveCollection({{ $c->id }}, 1)" class="{{ $iconBtn }}" title="Mover para baixo" @disabled($loop->last)><i class="bi bi-arrow-down"></i></button>
                                     <a href="{{ route('portal.catalog', ['userId' => auth()->id(), 'colecao' => $c->slug]) }}" target="_blank" rel="noopener" class="{{ $iconBtn }}" title="Ver no catálogo"><i class="bi bi-box-arrow-up-right"></i></a>
-                                    <button type="button" wire:click="editCollection({{ $c->id }})" class="{{ $phBtn }} !py-1.5 ml-auto" data-testid="collection-edit"><i class="bi bi-pencil text-indigo-500"></i>Editar</button>
+                                    <a href="{{ route('promotions.storefront.collection.edit', $c->id) }}" class="{{ $phBtn }} !py-1.5 ml-auto" data-testid="collection-edit"><i class="bi bi-pencil text-indigo-500"></i>Editar</a>
                                     <button type="button" x-data @click="fmConfirm({ title: 'Excluir a coleção {{ addslashes($c->name) }}?', message: 'Os produtos continuam no catálogo; só o grupo some.', confirmText: 'Excluir' }).then(ok => ok && $wire.deleteCollection({{ $c->id }}))" class="{{ $iconBtn }}" title="Excluir"><i class="bi bi-trash3 text-rose-500"></i></button>
                                 </div>
                             </div>
@@ -265,85 +267,6 @@
                 <button type="button" wire:click="saveNotice" class="{{ $primary }}" data-testid="notice-save"><i class="bi bi-check2"></i>Salvar aviso</button>
             </div>
         </section>
-    @endif
-
-    {{-- ===================== Janela: coleção ===================== --}}
-    @if($showCollection)
-        @php $cPreview = $c_image ? $c_image->temporaryUrl() : ($c_image_old ? asset('storage/' . $c_image_old) : null); @endphp
-        <div class="fixed inset-0 z-[90] flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-sm p-0 sm:p-4" wire:keydown.escape="$set('showCollection', false)">
-            <div class="absolute inset-0" wire:click="$set('showCollection', false)"></div>
-            <form wire:submit="saveCollection" class="relative w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl p-5 sm:p-6 space-y-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))]" data-testid="collection-form">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ $colId ? 'Editar coleção' : 'Nova coleção' }}</h2>
-                    <button type="button" wire:click="$set('showCollection', false)" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
-                </div>
-
-                <div class="relative aspect-[4/1] min-h-[84px] rounded-xl overflow-hidden text-white" style="background: {{ $front::gradient($c_color) }}">
-                    @if($cPreview)<img src="{{ $cPreview }}" alt="" class="absolute inset-0 w-full h-full object-cover"><div class="absolute inset-0 bg-gradient-to-r from-black/55 to-transparent"></div>@endif
-                    <div class="relative h-full flex flex-col justify-center px-4">
-                        <small class="text-[10px] font-bold uppercase tracking-widest opacity-80">Coleção</small>
-                        <b class="text-lg sm:text-xl font-black leading-tight line-clamp-1">{{ $c_name ?: 'Nome da coleção' }}</b>
-                        @if($c_description)<span class="text-xs opacity-90 line-clamp-1">{{ $c_description }}</span>@endif
-                    </div>
-                </div>
-
-                <div class="grid gap-3 sm:grid-cols-2">
-                    <div>
-                        <label class="{{ $label }}" for="col-name">Nome</label>
-                        <input id="col-name" type="text" wire:model.live.debounce.400ms="c_name" maxlength="80" placeholder="Ex.: Dia das Mães" class="{{ $input }}" data-testid="collection-name">
-                        @error('c_name')<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
-                    </div>
-                    <div>
-                        <span class="{{ $label }}">Imagem de capa <span class="font-normal text-slate-400">(1200 × 300 px, opcional)</span></span>
-                        <div class="flex items-center gap-2">
-                            <label class="{{ $phBtn }} cursor-pointer flex-1 justify-center"><i class="bi bi-upload text-violet-500"></i><span wire:loading.remove wire:target="c_image">{{ $cPreview ? 'Trocar imagem' : 'Escolher imagem' }}</span><span wire:loading wire:target="c_image">Enviando…</span>
-                                <input type="file" wire:model="c_image" accept="image/jpeg,image/png,image/webp" class="sr-only"></label>
-                            @if($cPreview)<button type="button" wire:click="removeCollectionImage" class="{{ $iconBtn }}" title="Tirar a imagem"><i class="bi bi-x-lg text-rose-500"></i></button>@endif
-                        </div>
-                        @error('c_image')<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="{{ $label }}" for="col-desc">Frase curta <span class="font-normal text-slate-400">(opcional)</span></label>
-                        <input id="col-desc" type="text" wire:model.live.debounce.400ms="c_description" maxlength="200" placeholder="Ex.: Presentes que ela vai amar" class="{{ $input }}">
-                    </div>
-                </div>
-                @if(! $cPreview)
-                    <div>
-                        <span class="{{ $label }}">Cor do fundo</span>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach($front::COLORS as $k => [$n, $g])
-                                <button type="button" wire:click="$set('c_color', '{{ $k }}')" title="{{ $n }}" aria-label="{{ $n }}" class="w-9 h-9 rounded-full ring-offset-2 dark:ring-offset-slate-900 {{ $c_color === $k ? 'ring-2 ring-violet-500' : '' }}" style="background: {{ $g }}"></button>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-
-                <div>
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Produtos da coleção ({{ count($c_products) }})</span>
-                        <button type="button" wire:click="openPicker('collection')" class="{{ $phBtn }} !py-1.5" data-testid="collection-pick"><i class="bi bi-plus-lg text-violet-500"></i>Escolher produtos</button>
-                    </div>
-                    @include('livewire.promotions.partials.storefront-picked', ['items' => $colProducts, 'move' => 'moveCollectionProduct', 'remove' => 'removeCollectionProduct', 'cols' => 'grid-cols-1', 'empty' => 'Nenhum produto ainda. Toque em Escolher produtos.'])
-                    @error('c_products')<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
-                </div>
-
-                <div class="grid gap-2 sm:grid-cols-2">
-                    <label class="flex items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3 cursor-pointer">
-                        <input type="checkbox" wire:model="c_active" class="mt-0.5 rounded text-violet-500 focus:ring-violet-400">
-                        <span class="text-sm text-slate-700 dark:text-slate-200"><b>Ligada</b><small class="block text-xs text-slate-500">Desligada, a coleção some do catálogo.</small></span>
-                    </label>
-                    <label class="flex items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3 cursor-pointer">
-                        <input type="checkbox" wire:model="c_home" class="mt-0.5 rounded text-violet-500 focus:ring-violet-400">
-                        <span class="text-sm text-slate-700 dark:text-slate-200"><b>Na página inicial</b><small class="block text-xs text-slate-500">Fora dela, só abre por banner ou link.</small></span>
-                    </label>
-                </div>
-
-                <div class="flex gap-2 pt-1">
-                    <button type="button" wire:click="$set('showCollection', false)" class="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">Cancelar</button>
-                    <button type="submit" class="flex-1 {{ $primary }}" data-testid="collection-save" wire:loading.attr="disabled" wire:target="saveCollection,c_image"><span wire:loading.remove wire:target="saveCollection">Salvar coleção</span><span wire:loading wire:target="saveCollection">Salvando…</span></button>
-                </div>
-            </form>
-        </div>
     @endif
 
     @include('livewire.promotions.partials.storefront-picker')

@@ -72,6 +72,8 @@
 
     /* Coleções */
     .sf-col { margin-top: 12px; overflow: hidden; }
+    .sf-col-ban { display: block; border-radius: 0; text-decoration: none; }
+    .sf-col-page .sf-col-ban { border-radius: var(--ml-radius, 14px); overflow: hidden; }
     .sf-col-head { display: flex; position: relative; min-height: 96px; background: var(--sf-bg); color: #fff; text-decoration: none; isolation: isolate; }
     .sf-col-head.has-img { aspect-ratio: 4 / 1; min-height: 0; }
     @media (max-width: 767px) { .sf-col-head.has-img { aspect-ratio: 5 / 2; } }
