@@ -3,8 +3,12 @@
     $preview = $b_image ? $b_image->temporaryUrl() : ($b_image_old ? asset('storage/' . $b_image_old) : null);
     $previewM = $b_image_mobile ? $b_image_mobile->temporaryUrl() : ($b_mobile_old ? asset('storage/' . $b_mobile_old) : null);
     $modelo = $b_mode === 'modelo';
-    $photoMax = $b_tpl === 'vitrine' ? 3 : 1;
-    $designArgs = ['tpl' => $b_tpl, 'c1' => $b_c1, 'c2' => $b_c2, 'acc' => $b_acc, 'ink' => $b_ink, 'badge' => trim($b_badge), 'title' => trim($b_title),
+    $tplData = $front::TEMPLATES[$b_tpl] ?? $front::TEMPLATES['oferta'];
+    $photoMax = $tplData['pics'];
+    $miniKind = 'hero';
+    $miniScale = 0.28;
+    $tplDate = $tplData['date'] ? \App\Services\Promotions\CommercialCalendar::next($tplData['date']) : null;
+    $designArgs = ['tpl' => $b_tpl, 'lay' => $b_lay, 'c1' => $b_c1, 'c2' => $b_c2, 'acc' => $b_acc, 'ink' => $b_ink, 'badge' => trim($b_badge), 'title' => trim($b_title),
         'subtitle' => trim($b_subtitle), 'button' => trim($b_button), 'photos' => array_values(array_filter($bPhotoUrls))];
     $kindCls = $b_placement === 'side' ? 'sf-sb' : 'sf-' . $b_placement;
     $ratio = ['hero' => 'aspect-[3/1]', 'strip' => 'aspect-[6/1]', 'side' => 'aspect-[4/15]'][$b_placement] ?? 'aspect-[3/1]';
@@ -98,17 +102,44 @@
                     {{-- 3. Galeria de modelos --}}
                     <div class="space-y-2">
                         <p class="{{ $step }}"><span class="{{ $num }}">3</span>Escolha o modelo</p>
-                        <div class="-mx-5 sm:-mx-6 px-5 sm:px-6 scroll-px-5 sm:scroll-px-6 flex gap-3 overflow-x-auto pb-2 snap-x [scrollbar-width:thin]" data-testid="tpl-gallery">
-                            @foreach($front::TEMPLATES as $key => $t)
-                                @php $tp = array_slice($samples ?: $bPhotoUrls, 0, $key === 'vitrine' ? 3 : 1); @endphp
+                        <div class="flex gap-1 overflow-x-auto [scrollbar-width:none]" role="tablist">
+                            @foreach($front::TEMPLATE_GROUPS as $g => [$gn, $gi])
+                                <button type="button" wire:click="$set('galleryGroup', '{{ $g }}')" data-testid="tplgroup-{{ $g }}"
+                                        class="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition {{ $galleryGroup === $g ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }}">
+                                    <i class="bi {{ $gi }}"></i>{{ $gn }} <span class="opacity-70">{{ collect($front::TEMPLATES)->where('group', $g)->count() }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                        <div class="-mx-5 sm:-mx-6 px-5 sm:px-6 scroll-px-5 sm:scroll-px-6 flex gap-3 overflow-x-auto pb-2 snap-x [scrollbar-width:thin] items-start" data-testid="tpl-gallery"
+                             x-data x-init="$nextTick(() => { const on = $el.querySelector('.ring-violet-500'); if (on) $el.scrollLeft = on.offsetLeft - $el.offsetLeft - 20 })">
+                            @foreach($front::templatesIn($galleryGroup) as $key => $t)
+                                @php
+                                    $tp = array_slice($t['src'] !== 'manual' ? ($auto[$t['src']] ?? []) : $samples, 0, $t['pics']);
+                                    $td = $t['date'] ? \App\Services\Promotions\CommercialCalendar::next($t['date']) : null;
+                                @endphp
                                 <button type="button" wire:click="applyTemplate('{{ $key }}')" wire:key="tpl-{{ $key }}" data-testid="tpl-{{ $key }}"
                                         class="snap-start shrink-0 rounded-2xl p-1.5 text-left transition {{ $b_tpl === $key ? 'bg-violet-50 dark:bg-violet-500/15 ring-2 ring-violet-500' : 'hover:bg-slate-50 dark:hover:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700' }}">
-                                    @include('livewire.promotions.partials.storefront-mini', ['kind' => 'hero', 'scale' => 0.28, 'tpl' => $key, 'c1' => $t['c1'], 'c2' => $t['c2'], 'acc' => $t['acc'], 'ink' => $t['ink'],
+                                    @include('livewire.promotions.partials.storefront-mini', ['kind' => $miniKind, 'scale' => $miniScale, 'tpl' => $key, 'c1' => $t['c1'], 'c2' => $t['c2'], 'acc' => $t['acc'], 'ink' => $t['ink'],
                                         'badge' => $t['badge'], 'title' => $t['title'], 'subtitle' => $t['subtitle'], 'button' => $t['button'], 'photos' => $tp])
-                                    <span class="flex items-center gap-1 px-1 pt-1.5 text-xs font-semibold {{ $b_tpl === $key ? 'text-violet-700 dark:text-violet-300' : 'text-slate-600 dark:text-slate-300' }}">
-                                        @if($b_tpl === $key)<i class="bi bi-check-circle-fill"></i>@endif{{ $t['name'] }}
+                                    <span class="block px-1 pt-1.5 max-w-[180px]">
+                                        <span class="flex items-center gap-1 text-xs font-semibold {{ $b_tpl === $key ? 'text-violet-700 dark:text-violet-300' : 'text-slate-700 dark:text-slate-200' }}">@if($b_tpl === $key)<i class="bi bi-check-circle-fill"></i>@endif<span class="truncate">{{ $t['name'] }}</span></span>
+                                        @if($td)<small class="block text-[10px] text-slate-500">{{ $td['emoji'] }} {{ \App\Services\Promotions\CommercialCalendar::label($td) }}</small>
+                                        @elseif($t['src'] !== 'manual')<small class="block text-[10px] text-emerald-600 dark:text-emerald-400"><i class="bi bi-arrow-repeat"></i> {{ $front::PHOTO_SOURCES[$t['src']][0] }}</small>@endif
                                     </span>
                                 </button>
+                            @endforeach
+                        </div>
+                        @if($tplDate)
+                            <p class="text-xs rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 px-3 py-2" data-testid="tpl-date-note">{{ $tplDate['emoji'] }} Período de {{ $tplDate['name'] }}: {{ $tplDate['start']->format('d/m') }} a {{ $tplDate['end']->format('d/m/Y') }}. O banner entra e sai sozinho nessas datas (dá para mudar no fim da janela).</p>
+                        @endif
+                    </div>
+
+                    {{-- Layout --}}
+                    <div class="space-y-2">
+                        <span class="{{ $label }}">Arrumação</span>
+                        <div class="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+                            @foreach($front::LAYOUTS as $k => [$n, $ico])
+                                <button type="button" wire:click="setLayout('{{ $k }}')" data-testid="lay-{{ $k }}" class="rounded-lg py-2 px-1 text-xs sm:text-sm font-semibold {{ $b_lay === $k ? 'bg-white dark:bg-slate-700 shadow text-violet-600 dark:text-violet-300' : 'text-slate-500' }}"><i class="bi {{ $ico }}"></i> {{ $n }}</button>
                             @endforeach
                         </div>
                     </div>
@@ -170,35 +201,56 @@
                     </div>
 
                     {{-- 6. Fotos --}}
-                    <div class="space-y-3">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <p class="{{ $step }} mr-auto"><span class="{{ $num }}">6</span>{{ $photoMax > 1 ? 'Fotos (até 3)' : 'Foto' }}</p>
-                            <button type="button" wire:click="openPicker('photos')" class="{{ $phBtn }} !py-1.5" data-testid="photo-product"><i class="bi bi-box-seam text-violet-500"></i>Foto de um produto</button>
-                            <label class="{{ $phBtn }} !py-1.5 cursor-pointer"><i class="bi bi-upload text-violet-500"></i><span wire:loading.remove wire:target="b_photo">Enviar foto</span><span wire:loading wire:target="b_photo">Enviando…</span>
-                                <input type="file" wire:model="b_photo" accept="image/jpeg,image/png,image/webp" class="sr-only" data-testid="photo-upload"></label>
+                    <div class="space-y-3 {{ $b_lay === 'centro' ? 'opacity-60' : '' }}">
+                        <p class="{{ $step }}"><span class="{{ $num }}">6</span>{{ $photoMax > 1 ? 'Fotos (até 3)' : 'Foto' }} @if($b_lay === 'centro')<span class="text-xs font-normal text-slate-500">(o layout "só texto" não mostra foto)</span>@endif</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5" data-testid="photo-sources">
+                            @foreach($front::PHOTO_SOURCES as $k => [$n, $ico])
+                                <button type="button" wire:click="setSource('{{ $k }}')" data-testid="src-{{ $k }}"
+                                        class="inline-flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-xs font-semibold transition {{ $b_src === $k ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300' }}"><i class="bi {{ $ico }}"></i>{{ $n }}</button>
+                            @endforeach
                         </div>
-                        @if($b_photos)
-                            <div class="flex flex-wrap gap-3">
-                                @foreach($b_photos as $i => $ph)
-                                    <div wire:key="ph-{{ $i }}-{{ $ph['p'] ?? $ph['f'] }}" class="relative w-24">
-                                        <div class="w-24 h-24 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white p-1.5 overflow-hidden">
-                                            @if($bPhotoUrls[$i] ?? null)<img src="{{ $bPhotoUrls[$i] }}" alt="" class="w-full h-full object-contain">@else<span class="w-full h-full flex items-center justify-center text-slate-300"><i class="bi bi-image text-2xl"></i></span>@endif
-                                        </div>
-                                        <button type="button" wire:click="removePhoto({{ $i }})" class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white dark:bg-slate-800 shadow border border-slate-200 dark:border-slate-700 text-rose-500" title="Tirar a foto"><i class="bi bi-x-lg text-xs"></i></button>
-                                        @if(count($b_photos) > 1)
-                                            <div class="flex justify-center gap-1 mt-1">
-                                                <button type="button" wire:click="movePhoto({{ $i }}, -1)" class="{{ $iconBtn }} !w-7 !h-7" @disabled($loop->first) title="Para a esquerda"><i class="bi bi-arrow-left text-xs"></i></button>
-                                                <button type="button" wire:click="movePhoto({{ $i }}, 1)" class="{{ $iconBtn }} !w-7 !h-7" @disabled($loop->last) title="Para a direita"><i class="bi bi-arrow-right text-xs"></i></button>
-                                            </div>
-                                        @endif
-                                    </div>
-                                @endforeach
+                        @if($b_src !== 'manual')
+                            <div class="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 p-3 space-y-2">
+                                <p class="text-xs text-emerald-800 dark:text-emerald-200"><i class="bi bi-arrow-repeat"></i> <b>Atualiza sozinho.</b>
+                                    {{ ['novos' => 'Mostra os últimos produtos que você cadastrou.', 'vendidos' => 'Mostra os que mais venderam nos últimos 90 dias.', 'ofertas' => 'Mostra os produtos que estão em promoção agora.'][$b_src] }}
+                                    Produto esgotado sai e entra o próximo.</p>
+                                <div class="flex gap-2">
+                                    @forelse(array_slice($bPhotoUrls, 0, $photoMax) as $u)
+                                        <span class="w-16 h-16 rounded-xl bg-white border border-emerald-100 p-1"><img src="{{ $u }}" alt="" class="w-full h-full object-contain"></span>
+                                    @empty
+                                        <span class="text-xs text-slate-500">Nenhum produto com foto ainda.</span>
+                                    @endforelse
+                                </div>
                             </div>
                         @else
-                            <p class="text-xs text-slate-500 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 p-3 text-center">Sem foto, o banner fica só com o texto.</p>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <button type="button" wire:click="openPicker('photos')" class="{{ $phBtn }} !py-1.5" data-testid="photo-product"><i class="bi bi-box-seam text-violet-500"></i>Foto de um produto</button>
+                                <label class="{{ $phBtn }} !py-1.5 cursor-pointer"><i class="bi bi-upload text-violet-500"></i><span wire:loading.remove wire:target="b_photo">Enviar foto</span><span wire:loading wire:target="b_photo">Enviando…</span>
+                                    <input type="file" wire:model="b_photo" accept="image/jpeg,image/png,image/webp" class="sr-only" data-testid="photo-upload"></label>
+                            </div>
+                            @if($b_photos)
+                                <div class="flex flex-wrap gap-3">
+                                    @foreach($b_photos as $i => $ph)
+                                        <div wire:key="ph-{{ $i }}-{{ $ph['p'] ?? $ph['f'] }}" class="relative w-24">
+                                            <div class="w-24 h-24 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white p-1.5 overflow-hidden">
+                                                @if($bPhotoUrls[$i] ?? null)<img src="{{ $bPhotoUrls[$i] }}" alt="" class="w-full h-full object-contain">@else<span class="w-full h-full flex items-center justify-center text-slate-300"><i class="bi bi-image text-2xl"></i></span>@endif
+                                            </div>
+                                            <button type="button" wire:click="removePhoto({{ $i }})" class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-white dark:bg-slate-800 shadow border border-slate-200 dark:border-slate-700 text-rose-500" title="Tirar a foto"><i class="bi bi-x-lg text-xs"></i></button>
+                                            @if(count($b_photos) > 1)
+                                                <div class="flex justify-center gap-1 mt-1">
+                                                    <button type="button" wire:click="movePhoto({{ $i }}, -1)" class="{{ $iconBtn }} !w-7 !h-7" @disabled($loop->first) title="Para a esquerda"><i class="bi bi-arrow-left text-xs"></i></button>
+                                                    <button type="button" wire:click="movePhoto({{ $i }}, 1)" class="{{ $iconBtn }} !w-7 !h-7" @disabled($loop->last) title="Para a direita"><i class="bi bi-arrow-right text-xs"></i></button>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <p class="text-xs text-slate-500 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 p-3 text-center">Sem foto, o banner fica só com o texto.</p>
+                            @endif
+                            @error('b_photo')<p class="text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
+                            <p class="text-[11px] text-slate-400">Fotos de produto acompanham a foto atual do produto. Fotos com fundo branco ou sem fundo ficam melhores.</p>
                         @endif
-                        @error('b_photo')<p class="text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
-                        <p class="text-[11px] text-slate-400">Fotos de produto acompanham a foto atual do produto. Fotos com fundo branco ou sem fundo ficam melhores.</p>
                     </div>
                 @else
                     {{-- 3. Imagem própria --}}

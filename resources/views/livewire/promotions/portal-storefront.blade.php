@@ -67,16 +67,30 @@
                     <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-lg"><i class="bi bi-magic"></i></div>
                     <div class="min-w-0 flex-1">
                         <h2 class="font-bold text-slate-900 dark:text-white">Modelos prontos</h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Toque em um modelo para criar o banner do topo. Você muda textos, cores e fotos, e pode usar em faixa ou lateral também.</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Toque em um modelo para criar o banner. Você muda textos, cores, fotos e arrumação, e usa no topo, na faixa ou na lateral. Os de data já entram e saem do ar sozinhos.</p>
                     </div>
                 </div>
-                <div class="-mx-4 sm:-mx-5 px-4 sm:px-5 scroll-px-4 sm:scroll-px-5 mt-3 flex gap-3 overflow-x-auto pb-2 snap-x [scrollbar-width:thin]">
-                    @foreach($front::TEMPLATES as $key => $t)
+                <div class="mt-3 flex gap-1 overflow-x-auto [scrollbar-width:none]">
+                    @foreach($front::TEMPLATE_GROUPS as $g => [$gn, $gi])
+                        <button type="button" wire:click="$set('galleryGroup', '{{ $g }}')" data-testid="rowgroup-{{ $g }}"
+                                class="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition {{ $galleryGroup === $g ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }}">
+                            <i class="bi {{ $gi }}"></i>{{ $gn }} <span class="opacity-70">{{ collect($front::TEMPLATES)->where('group', $g)->count() }}</span>
+                        </button>
+                    @endforeach
+                </div>
+                <div class="-mx-4 sm:-mx-5 px-4 sm:px-5 scroll-px-4 sm:scroll-px-5 mt-3 flex gap-3 overflow-x-auto pb-2 snap-x [scrollbar-width:thin] items-start">
+                    @foreach($front::templatesIn($galleryGroup) as $key => $t)
+                        @php
+                            $tp = array_slice($t['src'] !== 'manual' ? ($auto[$t['src']] ?? []) : $samples, 0, $t['pics']);
+                            $td = $t['date'] ? \App\Services\Promotions\CommercialCalendar::next($t['date']) : null;
+                        @endphp
                         <button type="button" wire:click="newBanner('hero', '{{ $key }}')" wire:key="tplrow-{{ $key }}" data-testid="tplrow-{{ $key }}"
                                 class="group snap-start shrink-0 rounded-2xl p-1.5 text-left ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-2 hover:ring-violet-400 transition">
                             @include('livewire.promotions.partials.storefront-mini', ['kind' => 'hero', 'scale' => 0.36, 'tpl' => $key, 'c1' => $t['c1'], 'c2' => $t['c2'], 'acc' => $t['acc'], 'ink' => $t['ink'],
-                                'badge' => $t['badge'], 'title' => $t['title'], 'subtitle' => $t['subtitle'], 'button' => $t['button'], 'photos' => array_slice($samples, 0, $key === 'vitrine' ? 3 : 1)])
+                                'badge' => $t['badge'], 'title' => $t['title'], 'subtitle' => $t['subtitle'], 'button' => $t['button'], 'photos' => $tp])
                             <span class="flex items-center justify-between gap-2 px-1 pt-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">{{ $t['name'] }}<span class="text-violet-600 dark:text-violet-300 opacity-0 group-hover:opacity-100 transition"><i class="bi bi-plus-lg"></i> Usar</span></span>
+                            @if($td)<small class="block px-1 text-[11px] text-slate-500">{{ $td['emoji'] }} {{ $td['now'] ? 'Agora, até ' . $td['end']->format('d/m') : \App\Services\Promotions\CommercialCalendar::label($td) }}</small>
+                            @elseif($t['src'] !== 'manual')<small class="block px-1 text-[11px] text-emerald-600 dark:text-emerald-400"><i class="bi bi-arrow-repeat"></i> {{ $front::PHOTO_SOURCES[$t['src']][0] }}, atualiza sozinho</small>@endif
                         </button>
                     @endforeach
                 </div>
@@ -103,8 +117,8 @@
                                 @php [$st, $tone] = $bState($b); @endphp
                                 <article wire:key="bn-{{ $b->id }}" class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex {{ $place === 'side' ? 'flex-row' : 'flex-col' }} {{ $b->active ? '' : 'opacity-70' }}">
                                     @if($b->isDesign())
-                                        @php $dz = $b->design + ['c1' => null, 'c2' => null, 'acc' => null, 'ink' => 'light', 'badge' => null];
-                                            $dArgs = ['tpl' => $dz['tpl'], 'c1' => $dz['c1'], 'c2' => $dz['c2'], 'acc' => $dz['acc'], 'ink' => $dz['ink'], 'badge' => $dz['badge'], 'title' => $b->title, 'subtitle' => $b->subtitle, 'button' => $b->button_text, 'photos' => $b->designPhotos()]; @endphp
+                                        @php $dz = $b->design + ['c1' => null, 'c2' => null, 'acc' => null, 'ink' => 'light', 'badge' => null, 'lay' => 'esq'];
+                                            $dArgs = ['tpl' => $dz['tpl'], 'c1' => $dz['c1'], 'c2' => $dz['c2'], 'acc' => $dz['acc'], 'ink' => $dz['ink'], 'badge' => $dz['badge'], 'lay' => $dz['lay'] ?? 'esq', 'title' => $b->title, 'subtitle' => $b->subtitle, 'button' => $b->button_text, 'photos' => $b->designPhotos()]; @endphp
                                         @if($place === 'side')
                                             <div class="shrink-0 bg-slate-50 dark:bg-slate-800/50 p-1.5">@include('livewire.promotions.partials.storefront-mini', $dArgs + ['kind' => 'side', 'scale' => 0.4])</div>
                                         @else

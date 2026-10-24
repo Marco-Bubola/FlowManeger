@@ -54,7 +54,21 @@ class PortalBanner extends Model
     /** Fotos do modelo: de produtos (sempre a foto atual) ou enviadas. */
     public function designPhotos(): array
     {
+        $src = $this->design['src'] ?? 'manual';
+        if ($src !== 'manual') {
+            $n = \App\Services\Portal\StorefrontService::TEMPLATES[$this->design['tpl'] ?? '']['pics'] ?? 1;
+
+            return self::autoPhotoUrls((int) $this->user_id, $src, $n);
+        }
+
         return self::photoUrls((int) $this->user_id, $this->design['photos'] ?? []);
+    }
+
+    /** Fotos automáticas (novos, mais vendidos, em oferta): sempre as de agora. */
+    public static function autoPhotoUrls(int $userId, string $src, int $n): array
+    {
+        return \App\Services\Portal\StorefrontService::autoProducts($userId, $src, $n)
+            ->map(fn ($p) => $p->image_url)->filter()->values()->all();
     }
 
     /** Endereço de cada foto do modelo ({p: produto} ou {f: arquivo enviado}). */

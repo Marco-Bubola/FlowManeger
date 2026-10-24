@@ -609,7 +609,7 @@ class ClientPortalController extends Controller
             $collectionRoots ? $query->whereIn(\DB::raw('COALESCE(parent_id, id)'), $collectionRoots) : $query->whereRaw('1 = 0');
         }
 
-        $sort = in_array($request->query('ordem'), ['menor', 'maior', 'novos', 'nome'], true)
+        $sort = in_array($request->query('ordem'), ['menor', 'maior', 'novos', 'nome', 'vendidos'], true)
             ? $request->query('ordem')
             : '';
 
@@ -618,6 +618,8 @@ class ClientPortalController extends Controller
             'maior' => $query->orderByDesc('price_sale'),
             'novos' => $query->orderByDesc('id'),
             'nome'  => $query->orderBy('name'),
+            // Mais vendidos nos últimos 90 dias (a família inteira conta).
+            'vendidos' => $query->orderByRaw('(SELECT COALESCE(SUM(si.quantity), 0) FROM sale_items si JOIN products sp ON sp.id = si.product_id WHERE COALESCE(sp.parent_id, sp.id) = COALESCE(products.parent_id, products.id) AND si.created_at >= ?) DESC', [now()->subDays(90)]),
             default => $collectionRoots
                 // Coleção: na ordem que a loja montou.
                 ? $query->orderByRaw('CASE COALESCE(parent_id, id) ' . implode(' ', array_map(fn ($i) => 'WHEN ' . (int) $collectionRoots[$i] . ' THEN ' . $i, array_keys($collectionRoots))) . ' ELSE ' . count($collectionRoots) . ' END')

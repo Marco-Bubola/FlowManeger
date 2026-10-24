@@ -41,6 +41,11 @@ class PromotionsCreate extends Component
         $days = $this->settings->default_days;
         $this->endsAt = $days ? now(Promotion::tz())->addDays($days)->format('Y-m-d') : '';
 
+        // Vindo de "Próximas datas": já abre com o período da data.
+        if ($data = (string) request()->query('data')) {
+            $this->applyPreset('data:' . $data);
+        }
+
         if ($productId = (int) request()->query('produto')) {
             $this->toggleProduct($productId);
         }

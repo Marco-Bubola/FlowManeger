@@ -49,6 +49,10 @@ class PortalStorefront extends Component
     public string $b_c2 = '#e11d48';
     public string $b_acc = '#fff7ed';
     public string $b_ink = 'light';
+    public string $b_lay = 'esq';
+    public string $b_src = 'manual';
+    /** Grupo aberto na galeria de modelos. */
+    public string $galleryGroup = 'datas';
     public array $b_photos = [];
     public $b_photo = null;
     /** Fotos enviadas nesta janela e ainda não salvas (apagadas se cancelar). */
@@ -83,6 +87,12 @@ class PortalStorefront extends Component
 
     public function mount(): void
     {
+        // Vindo de "Próximas datas" nas promoções: já abre o banner do modelo.
+        if (($m = (string) request()->query('modelo')) && isset(StorefrontService::TEMPLATES[$m])) {
+            $this->tab = 'banners';
+            $this->featuredIds = array_values(array_map('intval', PortalSetting::for(Auth::id())->featured_ids ?? []));
+            $this->newBanner('hero', $m);
+        }
         $s = PortalSetting::for(Auth::id());
         $this->featured_title = (string) $s->featured_title;
         $this->featuredIds = array_values(array_map('intval', $s->featured_ids ?? []));
@@ -120,16 +130,32 @@ class PortalStorefront extends Component
                 $this->{$prop} = $t[$f];
             }
         }
+        $prevSrc = $prev['src'] ?? 'manual';
         $this->b_tpl = $key;
+        $this->galleryGroup = $t['group'];
+        if ($this->b_src === $prevSrc || $this->b_src === 'manual') {
+            $this->b_src = $t['src'];
+        }
+        // Data comemorativa: o banner já fica no ar no período dela.
+        if ($t['date'] && ($d = \App\Services\Promotions\CommercialCalendar::next($t['date']))
+            && (! $this->bannerId || ($this->b_starts === '' && $this->b_ends === ''))) {
+            $today = now(\App\Models\Promotion::tz())->startOfDay();
+            $this->b_starts = $d['start']->gt($today) ? $d['start']->format('Y-m-d') : '';
+            $this->b_ends = $d['end']->format('Y-m-d');
+        }
         $this->b_c1 = $t['c1'];
         $this->b_c2 = $t['c2'];
         $this->b_acc = $t['acc'];
         $this->b_ink = $t['ink'];
-        if ($this->b_link_type === 'none' && $t['link'] === 'offers') {
-            $this->b_link_type = 'offers';
+        $autoLinks = ['offers', 'news', 'bestsellers'];
+        if (in_array($t['link'], $autoLinks, true) && ($this->b_link_type === 'none' || in_array($this->b_link_type, $autoLinks, true))) {
+            $this->b_link_type = $t['link'];
+        } elseif ($t['link'] === 'none' && in_array($this->b_link_type, $autoLinks, true) && ! $this->bannerId) {
+            $this->b_link_type = 'none';
         }
         $max = $this->photoMax();
-        if (count($this->b_photos) < $max) {
+        $this->b_photos = array_slice($this->b_photos, 0, $max);
+        if ($this->b_src === 'manual' && count($this->b_photos) < $max) {
             $have = collect($this->b_photos)->pluck('p')->filter()->all();
             foreach ($this->samplePhotos($max + count($have)) as $ref) {
                 if (count($this->b_photos) >= $max) {
@@ -140,6 +166,23 @@ class PortalStorefront extends Component
                 }
             }
         }
+    }
+
+    public function setSource(string $src): void
+    {
+        $this->b_src = array_key_exists($src, StorefrontService::PHOTO_SOURCES) ? $src : 'manual';
+        $links = ['novos' => 'news', 'vendidos' => 'bestsellers', 'ofertas' => 'offers'];
+        if (isset($links[$this->b_src]) && in_array($this->b_link_type, ['none', 'offers', 'news', 'bestsellers'], true)) {
+            $this->b_link_type = $links[$this->b_src];
+        }
+        if ($this->b_src === 'manual' && ! $this->b_photos) {
+            $this->b_photos = $this->samplePhotos($this->photoMax());
+        }
+    }
+
+    public function setLayout(string $lay): void
+    {
+        $this->b_lay = array_key_exists($lay, StorefrontService::LAYOUTS) ? $lay : 'esq';
     }
 
     public function setPalette(int $i): void
@@ -206,7 +249,7 @@ class PortalStorefront extends Component
     /** Quantas fotos o modelo mostra (vitrine mostra 3; os outros, 1). */
     private function photoMax(): int
     {
-        return $this->b_tpl === 'vitrine' ? 3 : 1;
+        return StorefrontService::TEMPLATES[$this->b_tpl]['pics'] ?? 1;
     }
 
     private function addPhoto(array $ref): void
@@ -273,6 +316,9 @@ class PortalStorefront extends Component
             $this->b_acc = $d['acc'] ?? $t['acc'];
             $this->b_ink = ($d['ink'] ?? 'light') === 'dark' ? 'dark' : 'light';
             $this->b_photos = array_values(array_filter($d['photos'] ?? [], fn ($ph) => ! empty($ph['p']) || ! empty($ph['f'])));
+            $this->b_lay = array_key_exists($d['lay'] ?? '', StorefrontService::LAYOUTS) ? $d['lay'] : 'esq';
+            $this->b_src = array_key_exists($d['src'] ?? '', StorefrontService::PHOTO_SOURCES) ? $d['src'] : 'manual';
+            $this->galleryGroup = StorefrontService::TEMPLATES[$this->b_tpl]['group'];
         } else {
             $this->b_mode = 'imagem';
         }
@@ -317,6 +363,8 @@ class PortalStorefront extends Component
             'b_c2'           => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'b_acc'          => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'b_ink'          => ['required', 'in:light,dark'],
+            'b_lay'          => ['required', 'in:' . implode(',', array_keys(StorefrontService::LAYOUTS))],
+            'b_src'          => ['required', 'in:' . implode(',', array_keys(StorefrontService::PHOTO_SOURCES))],
         ], [
             'b_c1.regex' => 'Escolha a cor.', 'b_c2.regex' => 'Escolha a cor.', 'b_acc.regex' => 'Escolha a cor.',
             'b_link_value.required' => 'Escolha para onde o banner leva.',
@@ -346,8 +394,9 @@ class PortalStorefront extends Component
             $design = [
                 'tpl' => $this->b_tpl, 'badge' => trim($this->b_badge) ?: null,
                 'c1' => strtolower($this->b_c1), 'c2' => strtolower($this->b_c2), 'acc' => strtolower($this->b_acc), 'ink' => $this->b_ink,
+                'lay' => $this->b_lay, 'src' => $this->b_src,
                 'photos' => array_values(array_map(fn ($ph) => ! empty($ph['f']) ? ['f' => (string) $ph['f']] : ['p' => (int) $ph['p']],
-                    array_slice($this->b_photos, 0, $this->photoMax()))),
+                    $this->b_src === 'manual' ? array_slice($this->b_photos, 0, $this->photoMax()) : [])),
             ];
         } else {
             $image = $this->b_image ? $this->b_image->store('portal-banners', 'public') : $this->b_image_old;
@@ -689,6 +738,8 @@ class PortalStorefront extends Component
         [$this->b_c1, $this->b_c2, $this->b_acc, $this->b_ink] = ['#ff7733', '#e11d48', '#fff7ed', 'light'];
         $this->b_photos = [];
         $this->b_photo = null;
+        $this->b_lay = 'esq';
+        $this->b_src = 'manual';
     }
 
     private function resetCollection(): void
@@ -763,10 +814,24 @@ class PortalStorefront extends Component
 
         // Fotos de exemplo para a galeria de modelos e fotos da prévia do banner aberto.
         $samples = $this->tab === 'banners' ? PortalBanner::photoUrls($uid, $this->samplePhotos(3)) : [];
+        $auto = [];
+        if ($this->tab === 'banners') {
+            foreach (['novos', 'vendidos', 'ofertas'] as $src) {
+                $auto[$src] = PortalBanner::autoPhotoUrls($uid, $src, 3);
+            }
+        }
+        $bPhotoUrls = [];
+        if ($this->showBanner) {
+            $bPhotoUrls = $this->b_src === 'manual'
+                ? PortalBanner::photoUrls($uid, $this->b_photos, true)
+                : ($auto[$this->b_src] ?? PortalBanner::autoPhotoUrls($uid, $this->b_src, 3));
+            $bPhotoUrls = $this->b_src === 'manual' ? $bPhotoUrls : array_slice($bPhotoUrls, 0, $this->photoMax());
+        }
 
         return view('livewire.promotions.portal-storefront', [
             'samples'       => $samples,
-            'bPhotoUrls'    => $this->showBanner ? PortalBanner::photoUrls($uid, $this->b_photos, true) : [],
+            'bPhotoUrls'    => $bPhotoUrls,
+            'auto'          => $auto,
             'banners'       => $banners,
             'collections'   => $collections,
             'counts'        => $counts,

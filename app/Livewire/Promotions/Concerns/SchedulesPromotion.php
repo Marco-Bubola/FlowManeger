@@ -16,6 +16,7 @@ trait SchedulesPromotion
     public string $startDate = '';    // Y-m-d (São Paulo)
     public string $startTime = '08:00';
     public string $endsAt = '';       // Y-m-d (São Paulo), vale até 23:59 do dia
+    public string $season = '';       // data comemorativa escolhida (CommercialCalendar)
 
     /** Atalhos: chave => rótulo. */
     public function schedulePresets(): array
@@ -27,16 +28,29 @@ trait SchedulesPromotion
         ];
     }
 
+    /** Datas comemorativas (Natal, Black Friday...) na ordem em que começam. */
+    public function seasonPresets(): array
+    {
+        return \App\Services\Promotions\CommercialCalendar::upcoming();
+    }
+
     public function applyPreset(string $key): void
     {
         $now = now(Promotion::tz());
-        [$start, $end] = match ($key) {
-            // Sexta 08h até domingo; já no fim de semana, começa agora (ou às 08h da sexta).
-            'weekend'  => $this->weekendRange($now),
-            'tomorrow' => [$now->copy()->addDay()->setTime(8, 0), $now->copy()->addDay()],
-            'nextweek' => [$now->copy()->next(Carbon::MONDAY)->setTime(8, 0), $now->copy()->next(Carbon::MONDAY)->addDays(6)],
-            default    => [false, null],
-        };
+        $this->season = '';
+        if (str_starts_with($key, 'data:') && ($d = \App\Services\Promotions\CommercialCalendar::next(substr($key, 5)))) {
+            $this->season = $d['key'];
+            $start = $d['start']->copy()->setTime(8, 0);
+            $end = $d['end'];
+        } else {
+            [$start, $end] = match ($key) {
+                // Sexta 08h até domingo; já no fim de semana, começa agora (ou às 08h da sexta).
+                'weekend'  => $this->weekendRange($now),
+                'tomorrow' => [$now->copy()->addDay()->setTime(8, 0), $now->copy()->addDay()],
+                'nextweek' => [$now->copy()->next(Carbon::MONDAY)->setTime(8, 0), $now->copy()->next(Carbon::MONDAY)->addDays(6)],
+                default    => [false, null],
+            };
+        }
         if ($start === false) {
             return;
         }

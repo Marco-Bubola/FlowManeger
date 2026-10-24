@@ -203,6 +203,7 @@
                 <option value="menor" @selected($sort === 'menor')>Menor preço</option>
                 <option value="maior" @selected($sort === 'maior')>Maior preço</option>
                 <option value="novos" @selected($sort === 'novos')>Novidades</option>
+                <option value="vendidos" @selected($sort === 'vendidos')>Mais vendidos</option>
                 <option value="nome" @selected($sort === 'nome')>Nome A-Z</option>
             </select>
             <i class="fas fa-chevron-down" style="font-size:10px"></i>
