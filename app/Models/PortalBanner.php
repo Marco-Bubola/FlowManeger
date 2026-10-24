@@ -56,7 +56,7 @@ class PortalBanner extends Model
     {
         $src = $this->design['src'] ?? 'manual';
         if ($src !== 'manual') {
-            $n = \App\Services\Portal\StorefrontService::photoCap($this->design['tpl'] ?? null, $this->design['anim'] ?? null);
+            $n = \App\Services\Portal\StorefrontService::photoCap($this->design['tpl'] ?? null, $this->design['anim'] ?? null, $this->design['fmt'] ?? null);
 
             return self::autoPhotoUrls((int) $this->user_id, $src, $n);
         }
@@ -74,7 +74,7 @@ class PortalBanner extends Model
     /** Endereço de cada foto do modelo ({p: produto} ou {f: arquivo enviado}). */
     public static function photoUrls(int $userId, array $photos, bool $keepEmpty = false): array
     {
-        $list = collect($photos)->take(9);
+        $list = collect($photos)->take(12);
         $ids = $list->pluck('p')->filter()->all();
         $products = $ids ? Product::withoutGlobalScope('team_visibility')->where('user_id', $userId)->whereIn('id', $ids)->get()->keyBy('id') : collect();
 

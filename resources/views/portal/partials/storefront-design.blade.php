@@ -1,6 +1,7 @@
 {{-- Banner de modelo pronto, desenhado em HTML (nítido em qualquer tela).
      $tpl, $c1, $c2, $acc, $ink, $badge, $title, $subtitle, $button, $photos (urls), $lay = esq|dir|centro,
-     $anim = none|fotos|deslizar|zoom|entrada|vivo (as que trocam as fotos passam até 3 fotos por espaço, em ciclo) --}}
+     $anim = none|fotos|deslizar|zoom|entrada|vivo (as que trocam as fotos passam até 3 fotos por espaço, em ciclo),
+     $fmt = formato (StorefrontService::FORMATS), $ends = fim do banner (contagem regressiva) --}}
 @php
     $tpl = $tpl ?: 'oferta';
     $t = \App\Services\Portal\StorefrontService::TEMPLATES[$tpl] ?? \App\Services\Portal\StorefrontService::TEMPLATES['oferta'];
@@ -8,7 +9,20 @@
     $photos = $lay === 'centro' ? [] : array_values(array_filter($photos ?? []));
     $anim = array_key_exists($anim ?? 'none', \App\Services\Portal\StorefrontService::ANIMATIONS) ? ($anim ?? 'none') : 'none';
     $rotates = \App\Services\Portal\StorefrontService::ANIMATIONS[$anim][2];
-    $n = min(count($photos), $t['pics']);
+    $fmt = \App\Services\Portal\StorefrontService::format($fmt ?? null);
+    $n = min(count($photos), \App\Services\Portal\StorefrontService::picsFor($tpl, $fmt));
+    // Contagem regressiva: até o fim do dia em que o banner sai do ar.
+    $count = null;
+    if ($fmt === 'contagem' && ! empty($ends)) {
+        try {
+            $end = \Carbon\Carbon::parse($ends, \App\Models\Promotion::tz())->endOfDay();
+            $left = max(0, now(\App\Models\Promotion::tz())->diffInMinutes($end, false));
+            $count = [intdiv($left, 1440), intdiv($left % 1440, 60), $left % 60];
+        } catch (\Throwable $e) {
+            $count = null;
+        }
+    }
+    $ghost = $fmt === 'revista' ? mb_strtoupper(\Illuminate\Support\Str::of((string) $title)->explode(' ')->sortByDesc(fn ($w) => mb_strlen($w))->first() ?? '') : '';
     // Fotos de cada espaço: com animação, o espaço i mostra as fotos i, i+n, i+2n em ciclo.
     $slots = [];
     for ($i = 0; $i < $n; $i++) {
@@ -41,15 +55,23 @@
     ];
     $deco = $t['deco'] ?? null;
 @endphp
-<span class="sf-d sf-d-{{ $t['look'] }} lay-{{ $lay }} ink-{{ $ink === 'dark' ? 'dark' : 'light' }} pics-{{ $n }} anim-{{ $anim }}"
+<span class="sf-d sf-d-{{ $t['look'] }} lay-{{ $lay }} ink-{{ $ink === 'dark' ? 'dark' : 'light' }} pics-{{ $n }} anim-{{ $anim }} fmt-{{ $fmt }}"
       style="--c1: {{ $hex($c1, '#3483fa') }}; --c2: {{ $hex($c2, '#2968c8') }}; --acc: {{ $hex($acc, '#ffffff') }}">
     @if($deco && isset($svg[$deco]))
         <span class="sf-d-deco" aria-hidden="true">@for($i = 0; $i < 5; $i++)<i>{!! $svg[$deco] !!}</i>@endfor</span>
     @endif
+    @if($ghost !== '')<span class="sf-d-ghost" aria-hidden="true">{{ $ghost }}</span>@endif
     <span class="sf-d-txt">
         @if($badge)<em class="sf-d-badge">{{ $badge }}</em>@endif
         @if($title)<b class="sf-d-title">{{ $title }}</b>@endif
         @if($subtitle)<span class="sf-d-sub">{{ $subtitle }}</span>@endif
+        @if($count)
+            <span class="sf-d-count" aria-label="Termina em {{ $count[0] }} dias e {{ $count[1] }} horas">
+                @foreach([[$count[0], $count[0] === 1 ? 'dia' : 'dias'], [$count[1], 'horas'], [$count[2], 'min']] as [$v, $u])<span><b>{{ str_pad((string) $v, 2, '0', STR_PAD_LEFT) }}</b><small>{{ $u }}</small></span>@endforeach
+            </span>
+        @elseif($fmt === 'contagem')
+            <span class="sf-d-count is-empty"><span><b>--</b><small>dias</small></span><span><b>--</b><small>horas</small></span><span><b>--</b><small>min</small></span></span>
+        @endif
         @if($button)<span class="sf-d-cta">{{ $button }} <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11h11.2l-4.6-4.6L13 5l7 7-7 7-1.4-1.4 4.6-4.6H5z"/></svg></span>@endif
     </span>
     @if($n)

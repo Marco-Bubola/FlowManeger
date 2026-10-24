@@ -14,7 +14,7 @@
     $miniKind = 'hero';
     $miniScale = 0.28;
     $tplDate = $tplData['date'] ? \App\Services\Promotions\CommercialCalendar::next($tplData['date']) : null;
-    $designArgs = ['tpl' => $b_tpl, 'lay' => $b_lay, 'anim' => $b_anim, 'c1' => $b_c1, 'c2' => $b_c2, 'acc' => $b_acc, 'ink' => $b_ink, 'badge' => trim($b_badge), 'title' => trim($b_title),
+    $designArgs = ['tpl' => $b_tpl, 'lay' => $b_lay, 'anim' => $b_anim, 'fmt' => $b_fmt, 'ends' => $b_ends ?: ($tplData['date'] ? \App\Services\Promotions\CommercialCalendar::next($tplData['date'])['end'] : null), 'c1' => $b_c1, 'c2' => $b_c2, 'acc' => $b_acc, 'ink' => $b_ink, 'badge' => trim($b_badge), 'title' => trim($b_title),
         'subtitle' => trim($b_subtitle), 'button' => trim($b_button), 'photos' => array_values(array_filter($bPhotoUrls))];
     $kindCls = $b_placement === 'side' ? 'sf-sb' : 'sf-' . $b_placement;
     $ratio = ['hero' => 'aspect-[3/1]', 'strip' => 'aspect-[6/1]', 'side' => 'aspect-[4/15]'][$b_placement] ?? 'aspect-[3/1]';
@@ -138,12 +138,12 @@
                              x-data x-init="$nextTick(() => { const on = $el.querySelector('.ring-violet-500'); if (on) $el.scrollLeft = on.offsetLeft - $el.offsetLeft - 20 })">
                             @foreach($front::templatesIn($galleryGroup, $kind) as $key => $t)
                                 @php
-                                    $tp = array_slice($t['src'] !== 'manual' ? ($auto[$t['src']] ?? []) : $samples, 0, $t['pics']);
+                                    $tp = array_slice($t['src'] !== 'manual' ? ($auto[$t['src']] ?? []) : $samples, 0, $front::picsFor($key, $t['fmt'] ?? null));
                                     $td = $t['date'] ? \App\Services\Promotions\CommercialCalendar::next($t['date']) : null;
                                 @endphp
                                 <button type="button" wire:click="applyTemplate('{{ $key }}')" wire:key="tpl-{{ $key }}" data-testid="tpl-{{ $key }}"
                                         class="snap-start shrink-0 rounded-2xl p-1.5 text-left transition {{ $b_tpl === $key ? 'bg-violet-50 dark:bg-violet-500/15 ring-2 ring-violet-500' : 'hover:bg-slate-50 dark:hover:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700' }}">
-                                    @include('livewire.promotions.partials.storefront-mini', ['kind' => $miniKind, 'scale' => $miniScale, 'tpl' => $key, 'c1' => $t['c1'], 'c2' => $t['c2'], 'acc' => $t['acc'], 'ink' => $t['ink'],
+                                    @include('livewire.promotions.partials.storefront-mini', ['kind' => $miniKind, 'scale' => $miniScale, 'tpl' => $key, 'fmt' => $t['fmt'] ?? null, 'c1' => $t['c1'], 'c2' => $t['c2'], 'acc' => $t['acc'], 'ink' => $t['ink'],
                                         'badge' => $t['badge'], 'title' => $t['title'], 'subtitle' => $t['subtitle'], 'button' => $t['button'], 'photos' => $tp])
                                     <span class="block px-1 pt-1.5 max-w-[180px]">
                                         <span class="flex items-center gap-1 text-xs font-semibold {{ $b_tpl === $key ? 'text-violet-700 dark:text-violet-300' : 'text-slate-700 dark:text-slate-200' }}">@if($b_tpl === $key)<i class="bi bi-check-circle-fill"></i>@endif<span class="truncate">{{ $t['name'] }}</span></span>
@@ -166,6 +166,19 @@
                                 <button type="button" wire:click="setLayout('{{ $k }}')" data-testid="lay-{{ $k }}" class="rounded-lg py-2 px-1 text-xs sm:text-sm font-semibold {{ $b_lay === $k ? 'bg-white dark:bg-slate-700 shadow text-violet-600 dark:text-violet-300' : 'text-slate-500' }}"><i class="bi {{ $ico }}"></i> {{ $n }}</button>
                             @endforeach
                         </div>
+                    </div>
+
+                    {{-- Formato --}}
+                    <div class="space-y-2">
+                        <span class="{{ $label }}">Formato <span class="font-normal text-slate-400">(muda o desenho do banner; completo no Topo)</span></span>
+                        <div class="grid grid-cols-2 min-[480px]:grid-cols-3 xl:grid-cols-5 gap-1.5" data-testid="formats">
+                            @foreach($front::FORMATS as $k => [$n, $ico, $fp])
+                                <button type="button" wire:click="setFormat('{{ $k }}')" data-testid="fmt-{{ $k }}"
+                                        class="inline-flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-xs font-semibold transition {{ $b_fmt === $k ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300' }}"><i class="bi {{ $ico }}"></i>{{ $n }}</button>
+                            @endforeach
+                        </div>
+                        @if($b_fmt === 'contagem')<p class="text-[11px] text-slate-500">A contagem vai até o dia em "Termina em" (passo 8). {{ $b_ends ? '' : 'Coloque a data de fim para os números aparecerem.' }}</p>@endif
+                        @if($b_fmt === 'preco')<p class="text-[11px] text-slate-500">O selo vira o preço grande. Ex.: "R$ 49,90" ou "ATÉ 50% OFF".</p>@endif
                     </div>
 
                     {{-- 4. Textos --}}

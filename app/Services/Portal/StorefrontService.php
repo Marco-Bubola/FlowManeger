@@ -37,25 +37,25 @@ class StorefrontService
     public const TEMPLATES = [
         'oferta' => ['name' => 'Oferta relâmpago', 'group' => 'ofertas', 'look' => 'base', 'deco' => 'bolt', 'pics' => 1, 'src' => 'ofertas', 'date' => null, 'link' => 'offers',
             'badge' => 'ATÉ 40% OFF', 'title' => 'Oferta relâmpago', 'subtitle' => 'Só hoje, enquanto durar o estoque', 'button' => 'Aproveitar', 'c1' => '#ff7733', 'c2' => '#e11d48', 'acc' => '#fff7ed', 'ink' => 'light'],
-        'ofertas3' => ['name' => 'Ofertas da semana', 'group' => 'ofertas', 'look' => 'clean', 'deco' => 'tag', 'pics' => 3, 'src' => 'ofertas', 'date' => null, 'link' => 'offers',
+        'ofertas3' => ['name' => 'Ofertas da semana', 'group' => 'ofertas', 'fmt' => 'leque', 'look' => 'clean', 'deco' => 'tag', 'pics' => 3, 'src' => 'ofertas', 'date' => null, 'link' => 'offers',
             'badge' => 'OFERTAS DA SEMANA', 'title' => 'Preços que você não vai ver de novo', 'subtitle' => 'Os produtos em promoção agora', 'button' => 'Ver ofertas', 'c1' => '#fff1f2', 'c2' => '#ffe4e6', 'acc' => '#e11d48', 'ink' => 'dark'],
-        'liquida' => ['name' => 'Queima de estoque', 'group' => 'ofertas', 'look' => 'stripe', 'deco' => 'percent', 'pics' => 1, 'src' => 'ofertas', 'date' => null, 'link' => 'offers',
+        'liquida' => ['name' => 'Queima de estoque', 'group' => 'ofertas', 'fmt' => 'preco', 'look' => 'stripe', 'deco' => 'percent', 'pics' => 1, 'src' => 'ofertas', 'date' => null, 'link' => 'offers',
             'badge' => 'QUEIMA DE ESTOQUE', 'title' => 'Liquidação total', 'subtitle' => 'Últimas unidades com preço baixo', 'button' => 'Ver ofertas', 'c1' => '#dc2626', 'c2' => '#7f1d1d', 'acc' => '#fde047', 'ink' => 'light'],
         'leve3' => ['name' => 'Leve 3 pague 2', 'group' => 'ofertas', 'look' => 'ticket', 'deco' => 'gift', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
             'badge' => 'LEVE 3 PAGUE 2', 'title' => 'Monte o seu kit e economize', 'subtitle' => 'Válido nos produtos participantes', 'button' => 'Montar kit', 'c1' => '#059669', 'c2' => '#065f46', 'acc' => '#fef9c3', 'ink' => 'light'],
         'frete' => ['name' => 'Frete grátis', 'group' => 'ofertas', 'look' => 'bigicon', 'deco' => 'truck', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
             'badge' => 'FRETE GRÁTIS', 'title' => 'Entrega grátis no seu bairro', 'subtitle' => 'Em pedidos acima de R$ 150', 'button' => 'Comprar agora', 'c1' => '#10b981', 'c2' => '#047857', 'acc' => '#ecfdf5', 'ink' => 'light'],
-        'cupom' => ['name' => 'Cupom de desconto', 'group' => 'ofertas', 'look' => 'ticket', 'deco' => 'tag', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
+        'cupom' => ['name' => 'Cupom de desconto', 'group' => 'ofertas', 'fmt' => 'preco', 'look' => 'ticket', 'deco' => 'tag', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
             'badge' => 'BEMVINDA10', 'title' => 'Ganhe 10% na primeira compra', 'subtitle' => 'Digite o cupom no carrinho', 'button' => 'Usar cupom', 'c1' => '#6366f1', 'c2' => '#7c3aed', 'acc' => '#ffffff', 'ink' => 'light'],
-        'novidade' => ['name' => 'Lançamento', 'group' => 'produtos', 'look' => 'round', 'deco' => 'star', 'pics' => 1, 'src' => 'novos', 'date' => null, 'link' => 'news',
+        'novidade' => ['name' => 'Lançamento', 'group' => 'produtos', 'fmt' => 'diagonal', 'look' => 'round', 'deco' => 'star', 'pics' => 1, 'src' => 'novos', 'date' => null, 'link' => 'news',
             'badge' => 'NOVIDADE', 'title' => 'Chegou a nova coleção', 'subtitle' => 'Conheça os lançamentos da semana', 'button' => 'Ver novidades', 'c1' => '#f5f3ff', 'c2' => '#ddd6fe', 'acc' => '#7c3aed', 'ink' => 'dark'],
-        'chegaram' => ['name' => 'Acabaram de chegar', 'group' => 'produtos', 'look' => 'clean', 'deco' => 'spark', 'pics' => 3, 'src' => 'novos', 'date' => null, 'link' => 'news',
+        'chegaram' => ['name' => 'Acabaram de chegar', 'group' => 'produtos', 'fmt' => 'polaroid', 'look' => 'clean', 'deco' => 'spark', 'pics' => 3, 'src' => 'novos', 'date' => null, 'link' => 'news',
             'badge' => 'ACABOU DE CHEGAR', 'title' => 'Novidades fresquinhas', 'subtitle' => 'Os últimos produtos que entraram na loja', 'button' => 'Ver novidades', 'c1' => '#ffffff', 'c2' => '#f5f3ff', 'acc' => '#7c3aed', 'ink' => 'dark'],
-        'vitrine' => ['name' => 'Mais vendidos', 'group' => 'produtos', 'look' => 'clean', 'deco' => null, 'pics' => 3, 'src' => 'vendidos', 'date' => null, 'link' => 'bestsellers',
+        'vitrine' => ['name' => 'Mais vendidos', 'group' => 'produtos', 'fmt' => 'mosaico', 'look' => 'clean', 'deco' => null, 'pics' => 3, 'src' => 'vendidos', 'date' => null, 'link' => 'bestsellers',
             'badge' => 'MAIS VENDIDOS', 'title' => 'Os queridinhos da semana', 'subtitle' => 'Os produtos que mais saíram', 'button' => 'Ver todos', 'c1' => '#ffffff', 'c2' => '#f1f5f9', 'acc' => '#3483fa', 'ink' => 'dark'],
-        'top' => ['name' => 'Campeão de vendas', 'group' => 'produtos', 'look' => 'round', 'deco' => 'trophy', 'pics' => 1, 'src' => 'vendidos', 'date' => null, 'link' => 'bestsellers',
+        'top' => ['name' => 'Campeão de vendas', 'group' => 'produtos', 'fmt' => 'holofote', 'look' => 'round', 'deco' => 'trophy', 'pics' => 1, 'src' => 'vendidos', 'date' => null, 'link' => 'bestsellers',
             'badge' => 'O MAIS VENDIDO', 'title' => 'Todo mundo está levando', 'subtitle' => 'O campeão de vendas da loja', 'button' => 'Quero o meu', 'c1' => '#fff7ed', 'c2' => '#fed7aa', 'acc' => '#c2410c', 'ink' => 'dark'],
-        'destaque' => ['name' => 'Produto em destaque', 'group' => 'produtos', 'look' => 'tilt', 'deco' => 'star', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'product',
+        'destaque' => ['name' => 'Produto em destaque', 'group' => 'produtos', 'fmt' => 'meio', 'look' => 'tilt', 'deco' => 'star', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'product',
             'badge' => 'DESTAQUE', 'title' => 'Escolhido especialmente para você', 'subtitle' => 'Um produto que a loja recomenda', 'button' => 'Ver produto', 'c1' => '#0f766e', 'c2' => '#134e4a', 'acc' => '#ccfbf1', 'ink' => 'light'],
         'kit' => ['name' => 'Kits para presente', 'group' => 'produtos', 'look' => 'tilt', 'deco' => 'gift', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
             'badge' => 'KITS PRESENTE', 'title' => 'Presentes prontos e lindos', 'subtitle' => 'Embalados com carinho', 'button' => 'Ver kits', 'c1' => '#fdf4ff', 'c2' => '#f5d0fe', 'acc' => '#a21caf', 'ink' => 'dark'],
@@ -71,9 +71,9 @@ class StorefrontService
             'badge' => 'DIA DO CONSUMIDOR', 'title' => 'Semana do Consumidor', 'subtitle' => 'Descontos especiais por tempo limitado', 'button' => 'Ver ofertas', 'c1' => '#0ea5e9', 'c2' => '#2563eb', 'acc' => '#fef08a', 'ink' => 'light'],
         'pascoa' => ['name' => 'Páscoa', 'group' => 'datas', 'look' => 'round', 'deco' => 'egg', 'pics' => 1, 'src' => 'manual', 'date' => 'pascoa', 'link' => 'none',
             'badge' => 'PÁSCOA', 'title' => 'Páscoa cheia de mimos', 'subtitle' => 'Presentes doces para toda a família', 'button' => 'Ver presentes', 'c1' => '#fef3c7', 'c2' => '#fcd34d', 'acc' => '#7c2d12', 'ink' => 'dark'],
-        'maes' => ['name' => 'Dia das Mães', 'group' => 'datas', 'look' => 'tilt', 'deco' => 'heart', 'pics' => 1, 'src' => 'manual', 'date' => 'maes', 'link' => 'none',
+        'maes' => ['name' => 'Dia das Mães', 'group' => 'datas', 'fmt' => 'diagonal', 'look' => 'tilt', 'deco' => 'heart', 'pics' => 1, 'src' => 'manual', 'date' => 'maes', 'link' => 'none',
             'badge' => 'PRESENTES', 'title' => 'Dia das Mães', 'subtitle' => 'Kits lindos a partir de R$ 59,90', 'button' => 'Escolher presente', 'c1' => '#f9a8d4', 'c2' => '#db2777', 'acc' => '#ffffff', 'ink' => 'light'],
-        'namorados' => ['name' => 'Dia dos Namorados', 'group' => 'datas', 'look' => 'tilt', 'deco' => 'heart', 'pics' => 1, 'src' => 'manual', 'date' => 'namorados', 'link' => 'none',
+        'namorados' => ['name' => 'Dia dos Namorados', 'group' => 'datas', 'fmt' => 'revista', 'look' => 'tilt', 'deco' => 'heart', 'pics' => 1, 'src' => 'manual', 'date' => 'namorados', 'link' => 'none',
             'badge' => 'DIA DOS NAMORADOS', 'title' => 'Presente para quem você ama', 'subtitle' => 'Kits a dois com desconto', 'button' => 'Ver presentes', 'c1' => '#f43f5e', 'c2' => '#9f1239', 'acc' => '#fff1f2', 'ink' => 'light'],
         'junina' => ['name' => 'Festa Junina', 'group' => 'datas', 'look' => 'base', 'deco' => 'flag', 'pics' => 1, 'src' => 'manual', 'date' => 'junina', 'link' => 'offers',
             'badge' => 'ARRAIÁ', 'title' => 'Arraiá de ofertas', 'subtitle' => 'Promoções quentinhas o mês todo', 'button' => 'Aproveitar', 'c1' => '#f97316', 'c2' => '#b45309', 'acc' => '#fef3c7', 'ink' => 'light'],
@@ -83,29 +83,29 @@ class StorefrontService
             'badge' => 'DIA DO CLIENTE', 'title' => 'Obrigada por estar com a gente', 'subtitle' => 'Ofertas de agradecimento', 'button' => 'Ver ofertas', 'c1' => '#ecfeff', 'c2' => '#a5f3fc', 'acc' => '#0e7490', 'ink' => 'dark'],
         'criancas' => ['name' => 'Dia das Crianças', 'group' => 'datas', 'look' => 'tilt', 'deco' => 'balloon', 'pics' => 1, 'src' => 'manual', 'date' => 'criancas', 'link' => 'none',
             'badge' => 'DIA DAS CRIANÇAS', 'title' => 'Diversão com desconto', 'subtitle' => 'Presentes para a criançada', 'button' => 'Ver presentes', 'c1' => '#22d3ee', 'c2' => '#6366f1', 'acc' => '#fde047', 'ink' => 'light'],
-        'black' => ['name' => 'Black Friday', 'group' => 'datas', 'look' => 'stripe', 'deco' => 'star', 'pics' => 1, 'src' => 'ofertas', 'date' => 'black', 'link' => 'offers',
+        'black' => ['name' => 'Black Friday', 'group' => 'datas', 'fmt' => 'contagem', 'look' => 'stripe', 'deco' => 'star', 'pics' => 1, 'src' => 'ofertas', 'date' => 'black', 'link' => 'offers',
             'badge' => 'BLACK FRIDAY', 'title' => 'Os menores preços do ano', 'subtitle' => 'Descontos de verdade em toda a loja', 'button' => 'Ver ofertas', 'c1' => '#111111', 'c2' => '#27272a', 'acc' => '#facc15', 'ink' => 'light'],
-        'natal' => ['name' => 'Natal', 'group' => 'datas', 'look' => 'serif', 'deco' => 'snow', 'pics' => 1, 'src' => 'manual', 'date' => 'natal', 'link' => 'none',
+        'natal' => ['name' => 'Natal', 'group' => 'datas', 'fmt' => 'holofote', 'look' => 'serif', 'deco' => 'snow', 'pics' => 1, 'src' => 'manual', 'date' => 'natal', 'link' => 'none',
             'badge' => 'FELIZ NATAL', 'title' => 'Presentes de Natal', 'subtitle' => 'Embrulhamos para presente sem custo', 'button' => 'Ver presentes', 'c1' => '#b91c1c', 'c2' => '#7f1d1d', 'acc' => '#fde68a', 'ink' => 'light'],
         // Só para lojas de móveis (kinds).
-        'pronta' => ['name' => 'Pronta entrega', 'group' => 'produtos', 'kinds' => ['moveis'], 'look' => 'clean', 'deco' => 'truck', 'pics' => 3, 'src' => 'novos', 'date' => null, 'link' => 'none',
+        'pronta' => ['name' => 'Pronta entrega', 'group' => 'produtos', 'kinds' => ['moveis'], 'fmt' => 'polaroid', 'look' => 'clean', 'deco' => 'truck', 'pics' => 3, 'src' => 'novos', 'date' => null, 'link' => 'none',
             'badge' => 'PRONTA ENTREGA', 'title' => 'Leve hoje para casa', 'subtitle' => 'Peças prontas, sem esperar a produção', 'button' => 'Ver peças', 'c1' => '#fafaf9', 'c2' => '#e7e5e4', 'acc' => '#78350f', 'ink' => 'dark'],
-        'encomenda' => ['name' => 'Feito sob medida', 'group' => 'produtos', 'kinds' => ['moveis'], 'look' => 'bigicon', 'deco' => 'ruler', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
+        'encomenda' => ['name' => 'Feito sob medida', 'group' => 'produtos', 'kinds' => ['moveis'], 'fmt' => 'meio', 'look' => 'bigicon', 'deco' => 'ruler', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
             'badge' => 'SOB MEDIDA', 'title' => 'Do tamanho do seu espaço', 'subtitle' => 'Escolha medidas, madeira e cor do ferro', 'button' => 'Fazer orçamento', 'c1' => '#78350f', 'c2' => '#451a03', 'acc' => '#fde68a', 'ink' => 'light'],
-        'ambiente' => ['name' => 'Monte o ambiente', 'group' => 'produtos', 'kinds' => ['moveis'], 'look' => 'clean', 'deco' => 'lamp', 'pics' => 3, 'src' => 'manual', 'date' => null, 'link' => 'none',
+        'ambiente' => ['name' => 'Monte o ambiente', 'group' => 'produtos', 'kinds' => ['moveis'], 'fmt' => 'mosaico', 'look' => 'clean', 'deco' => 'lamp', 'pics' => 3, 'src' => 'manual', 'date' => null, 'link' => 'none',
             'badge' => 'AMBIENTES', 'title' => 'Sala, varanda e cozinha completas', 'subtitle' => 'Peças que combinam entre si', 'button' => 'Ver ambientes', 'c1' => '#f5f5f4', 'c2' => '#d6d3d1', 'acc' => '#44403c', 'ink' => 'dark'],
-        'artesanal' => ['name' => 'Ferro e madeira', 'group' => 'produtos', 'kinds' => ['moveis'], 'look' => 'serif', 'deco' => 'chair', 'pics' => 1, 'src' => 'vendidos', 'date' => null, 'link' => 'bestsellers',
+        'artesanal' => ['name' => 'Ferro e madeira', 'group' => 'produtos', 'kinds' => ['moveis'], 'fmt' => 'revista', 'look' => 'serif', 'deco' => 'chair', 'pics' => 1, 'src' => 'vendidos', 'date' => null, 'link' => 'bestsellers',
             'badge' => 'FEITO À MÃO', 'title' => 'Ferro e madeira de verdade', 'subtitle' => 'Móveis artesanais que duram anos', 'button' => 'Conhecer', 'c1' => '#292524', 'c2' => '#0c0a09', 'acc' => '#d6a243', 'ink' => 'light'],
-        'parcela' => ['name' => 'Parcelamento', 'group' => 'ofertas', 'kinds' => ['moveis'], 'look' => 'ticket', 'deco' => 'card', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
+        'parcela' => ['name' => 'Parcelamento', 'group' => 'ofertas', 'kinds' => ['moveis'], 'fmt' => 'preco', 'look' => 'ticket', 'deco' => 'card', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
             'badge' => 'EM ATÉ 10X', 'title' => 'Parcele sem juros', 'subtitle' => 'No cartão, em todos os móveis', 'button' => 'Ver móveis', 'c1' => '#1e3a8a', 'c2' => '#172554', 'acc' => '#fef08a', 'ink' => 'light'],
         'montagem' => ['name' => 'Entrega e montagem', 'group' => 'ofertas', 'kinds' => ['moveis'], 'look' => 'bigicon', 'deco' => 'wrench', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
             'badge' => 'MONTAGEM GRÁTIS', 'title' => 'Entregamos e montamos', 'subtitle' => 'Na sua cidade, sem custo extra', 'button' => 'Saiba mais', 'c1' => '#a16207', 'c2' => '#713f12', 'acc' => '#fef3c7', 'ink' => 'light'],
         // Só para lojas de beleza.
-        'fragrancia' => ['name' => 'Perfumes', 'group' => 'produtos', 'kinds' => ['beleza'], 'look' => 'serif', 'deco' => 'drop', 'pics' => 1, 'src' => 'vendidos', 'date' => null, 'link' => 'bestsellers',
+        'fragrancia' => ['name' => 'Perfumes', 'group' => 'produtos', 'kinds' => ['beleza'], 'fmt' => 'holofote', 'look' => 'serif', 'deco' => 'drop', 'pics' => 1, 'src' => 'vendidos', 'date' => null, 'link' => 'bestsellers',
             'badge' => 'PERFUMARIA', 'title' => 'Encontre o seu perfume', 'subtitle' => 'Fragrâncias que marcam presença', 'button' => 'Ver perfumes', 'c1' => '#1c1917', 'c2' => '#57534e', 'acc' => '#fcd34d', 'ink' => 'light'],
         'pele' => ['name' => 'Cuidados com a pele', 'group' => 'produtos', 'kinds' => ['beleza'], 'look' => 'round', 'deco' => 'drop', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
             'badge' => 'SKINCARE', 'title' => 'Pele bonita todo dia', 'subtitle' => 'Hidratantes, séruns e protetores', 'button' => 'Ver cuidados', 'c1' => '#ecfdf5', 'c2' => '#a7f3d0', 'acc' => '#047857', 'ink' => 'dark'],
-        'make' => ['name' => 'Maquiagem', 'group' => 'produtos', 'kinds' => ['beleza'], 'look' => 'tilt', 'deco' => 'heart', 'pics' => 3, 'src' => 'manual', 'date' => null, 'link' => 'none',
+        'make' => ['name' => 'Maquiagem', 'group' => 'produtos', 'kinds' => ['beleza'], 'fmt' => 'leque', 'look' => 'tilt', 'deco' => 'heart', 'pics' => 3, 'src' => 'manual', 'date' => null, 'link' => 'none',
             'badge' => 'MAKE', 'title' => 'Make para todos os momentos', 'subtitle' => 'Batons, bases e sombras', 'button' => 'Ver maquiagem', 'c1' => '#fb7185', 'c2' => '#be123c', 'acc' => '#fff1f2', 'ink' => 'light'],
         'kitperfume' => ['name' => 'Kit perfume + hidratante', 'group' => 'ofertas', 'kinds' => ['beleza'], 'look' => 'ticket', 'deco' => 'gift', 'pics' => 1, 'src' => 'manual', 'date' => null, 'link' => 'none',
             'badge' => 'KIT ESPECIAL', 'title' => 'Perfume + hidratante com desconto', 'subtitle' => 'Combinação perfeita para presentear', 'button' => 'Montar kit', 'c1' => '#7c3aed', 'c2' => '#4c1d95', 'acc' => '#fde68a', 'ink' => 'light'],
@@ -196,10 +196,40 @@ class StorefrontService
         'vivo'     => ['Tudo animado', 'bi-stars', true],
     ];
 
-    /** Quantas fotos o banner usa: as do modelo, ou 3 por espaço quando a animação troca as fotos. */
-    public static function photoCap(?string $tpl, ?string $anim): int
+    /**
+     * Formatos do banner: mudam o desenho de verdade (onde fica a foto, quantas, o tamanho do texto),
+     * não só as cores. pics = quantas fotos o formato usa (null = as do modelo).
+     * Completos no Topo; na faixa e na lateral os formatos pesados ficam mais simples.
+     */
+    public const FORMATS = [
+        'padrao'   => ['Clássico', 'bi-layout-text-sidebar-reverse', null],
+        'meio'     => ['Meio a meio', 'bi-layout-split', 1],
+        'diagonal' => ['Diagonal', 'bi-slash-square', 1],
+        'holofote' => ['Holofote', 'bi-brightness-high', 1],
+        'revista'  => ['Revista', 'bi-type-bold', 1],
+        'preco'    => ['Preço grande', 'bi-tag', 1],
+        'contagem' => ['Contagem', 'bi-stopwatch', 1],
+        'mosaico'  => ['Mosaico', 'bi-grid-1x2', 4],
+        'leque'    => ['Leque', 'bi-files', 3],
+        'polaroid' => ['Polaroides', 'bi-images', 3],
+    ];
+
+    /** Formato válido ('padrao' quando não tem). */
+    public static function format(?string $fmt): string
     {
-        $pics = self::TEMPLATES[$tpl ?? '']['pics'] ?? 1;
+        return array_key_exists((string) $fmt, self::FORMATS) ? $fmt : 'padrao';
+    }
+
+    /** Quantas fotos aparecem ao mesmo tempo: as do formato, ou as do modelo. */
+    public static function picsFor(?string $tpl, ?string $fmt = null): int
+    {
+        return self::FORMATS[self::format($fmt)][2] ?? (self::TEMPLATES[$tpl ?? '']['pics'] ?? 1);
+    }
+
+    /** Quantas fotos o banner usa: as que aparecem, ou 3 por espaço quando a animação troca as fotos. */
+    public static function photoCap(?string $tpl, ?string $anim, ?string $fmt = null): int
+    {
+        $pics = self::picsFor($tpl, $fmt);
 
         return (self::ANIMATIONS[$anim ?? 'none'][2] ?? false) ? $pics * 3 : $pics;
     }

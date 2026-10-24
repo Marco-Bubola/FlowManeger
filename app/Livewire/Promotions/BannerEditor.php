@@ -50,6 +50,7 @@ class BannerEditor extends Component
     public string $b_lay = 'esq';
     public string $b_src = 'manual';
     public string $b_anim = 'fotos';
+    public string $b_fmt = 'padrao';
     /** Grupo aberto na galeria de modelos. */
     public string $galleryGroup = 'datas';
     public array $b_photos = [];
@@ -106,6 +107,7 @@ class BannerEditor extends Component
             $this->b_lay = array_key_exists($d['lay'] ?? '', StorefrontService::LAYOUTS) ? $d['lay'] : 'esq';
             $this->b_src = array_key_exists($d['src'] ?? '', StorefrontService::PHOTO_SOURCES) ? $d['src'] : 'manual';
             $this->b_anim = array_key_exists($d['anim'] ?? '', StorefrontService::ANIMATIONS) ? $d['anim'] : 'none';
+            $this->b_fmt = StorefrontService::format($d['fmt'] ?? null);
             $this->galleryGroup = $t['group'];
         } else {
             $this->b_mode = 'imagem';
@@ -138,6 +140,7 @@ class BannerEditor extends Component
         }
         $prevSrc = $prev['src'] ?? 'manual';
         $this->b_tpl = $key;
+        $this->b_fmt = StorefrontService::format($t['fmt'] ?? null);
         $this->galleryGroup = $t['group'];
         if ($this->b_src === $prevSrc || $this->b_src === 'manual') {
             $this->b_src = $t['src'];
@@ -217,6 +220,12 @@ class BannerEditor extends Component
         $this->fillPhotos();
     }
 
+    public function setFormat(string $fmt): void
+    {
+        $this->b_fmt = StorefrontService::format($fmt);
+        $this->fillPhotos();
+    }
+
     public function setLayout(string $lay): void
     {
         $this->b_lay = array_key_exists($lay, StorefrontService::LAYOUTS) ? $lay : 'esq';
@@ -284,7 +293,7 @@ class BannerEditor extends Component
     /** Quantas fotos o banner usa (o modelo mostra 1 ou 3; trocando as fotos, 3 vezes isso). */
     private function photoMax(): int
     {
-        return StorefrontService::photoCap($this->b_tpl, $this->b_anim);
+        return StorefrontService::photoCap($this->b_tpl, $this->b_anim, $this->b_fmt);
     }
 
     private function addPhoto(array $ref): void
@@ -366,6 +375,7 @@ class BannerEditor extends Component
             'b_lay'          => ['required', 'in:' . implode(',', array_keys(StorefrontService::LAYOUTS))],
             'b_src'          => ['required', 'in:' . implode(',', array_keys(StorefrontService::PHOTO_SOURCES))],
             'b_anim'         => ['required', 'in:' . implode(',', array_keys(StorefrontService::ANIMATIONS))],
+            'b_fmt'          => ['required', 'in:' . implode(',', array_keys(StorefrontService::FORMATS))],
         ], [
             'b_c1.regex' => 'Escolha a cor.', 'b_c2.regex' => 'Escolha a cor.', 'b_acc.regex' => 'Escolha a cor.',
             'b_link_value.required' => 'Escolha para onde o banner leva.',
@@ -395,7 +405,7 @@ class BannerEditor extends Component
             $design = [
                 'tpl' => $this->b_tpl, 'badge' => trim($this->b_badge) ?: null,
                 'c1' => strtolower($this->b_c1), 'c2' => strtolower($this->b_c2), 'acc' => strtolower($this->b_acc), 'ink' => $this->b_ink,
-                'lay' => $this->b_lay, 'src' => $this->b_src, 'anim' => $this->b_anim,
+                'lay' => $this->b_lay, 'src' => $this->b_src, 'anim' => $this->b_anim, 'fmt' => $this->b_fmt,
                 'photos' => array_values(array_map(fn ($ph) => ! empty($ph['f']) ? ['f' => (string) $ph['f']] : ['p' => (int) $ph['p']],
                     $this->b_src === 'manual' ? array_slice($this->b_photos, 0, $this->photoMax()) : [])),
             ];
@@ -505,7 +515,7 @@ class BannerEditor extends Component
 
         $auto = [];
         foreach (['novos', 'vendidos', 'ofertas'] as $src) {
-            $auto[$src] = PortalBanner::autoPhotoUrls($uid, $src, 9);
+            $auto[$src] = PortalBanner::autoPhotoUrls($uid, $src, 12);
         }
         $bPhotoUrls = $this->b_src === 'manual'
             ? PortalBanner::photoUrls($uid, $this->b_photos, true)
@@ -516,6 +526,7 @@ class BannerEditor extends Component
             'auto'          => $auto,
             'bPhotoUrls'    => $bPhotoUrls,
             'photoMax'      => $this->photoMax(),
+            'picsNow'       => StorefrontService::picsFor($this->b_tpl, $this->b_fmt),
             'tplData'       => $this->tpl(),
             'templates'     => StorefrontService::templates($this->kind),
             'collections'   => PortalCollection::where('user_id', $uid)->orderBy('sort')->orderBy('id')->get(['id', 'name', 'slug']),
