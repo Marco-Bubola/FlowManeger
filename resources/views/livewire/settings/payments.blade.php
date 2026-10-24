@@ -413,6 +413,8 @@ new class extends Component {
         @endif
 
         </form>
+
+        <livewire:portal.shipping-zones />
         </div>{{-- /s-col-main --}}
 
         <div class="s-col-side">

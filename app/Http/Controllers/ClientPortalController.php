@@ -668,6 +668,16 @@ class ClientPortalController extends Controller
             'collection', 'banners', 'settings', 'isHome', 'featured', 'collections'));
     }
 
+    /** Calcular frete: CEP + valor dos produtos (para o frete grátis acima de). */
+    public function shippingQuote(Request $request, int $userId)
+    {
+        $data = $request->validate(['cep' => ['required', 'string', 'max:12'], 'valor' => ['nullable', 'numeric', 'min:0', 'max:9999999']]);
+        $q = \App\Services\Portal\ShippingService::quote($userId, $data['cep'], (float) ($data['valor'] ?? 0));
+        unset($q['base']);
+
+        return response()->json($q);
+    }
+
     /**
      * Vistos recentemente: o aparelho guarda os ids (localStorage) e pede aqui os cards
      * atualizados (preço, promoção, estoque), na mesma ordem. Só o que ainda está à venda.
@@ -800,6 +810,7 @@ class ClientPortalController extends Controller
             'store' => $store,
             'stockMap' => $stockMap,
             'minPrice' => $minPrice,
+            'shipOn' => \App\Services\Portal\ShippingService::deliveryOn(\App\Models\PaymentSetting::for($userId)),
         ]);
     }
 
@@ -990,6 +1001,17 @@ class ClientPortalController extends Controller
             $discount = $check['discount'];
         }
 
+        // Frete por CEP: pelo CEP do cadastro e o valor dos produtos com desconto.
+        $deliveryFee = null;
+        if ($delivery === 'entrega') {
+            $productsTotal = collect($items)->sum(fn ($i) => (float) $i['price_ref'] * $i['quantity']) - (float) $discount;
+            $ship = \App\Services\Portal\ShippingService::quote((int) $client->user_id, $client->cep, max(0, $productsTotal), $paySettings);
+            if (! $ship['ok']) {
+                return back()->withErrors(['checkout' => $ship['message']]);
+            }
+            $deliveryFee = $ship['fee'];
+        }
+
         $extraItems = [];
         foreach ($validated['extra_items'] ?? [] as $ei) {
             $extraItems[] = [
@@ -1010,7 +1032,7 @@ class ClientPortalController extends Controller
             'delivery_method'    => $delivery,
             'coupon_code'        => $couponCode,
             'discount'           => $discount,
-            'delivery_fee'       => $delivery === 'entrega' ? (float) $paySettings->delivery_fee : ($delivery ? 0 : null),
+            'delivery_fee'       => $delivery === 'entrega' ? $deliveryFee : ($delivery ? 0 : null),
             'shipping_address'   => $delivery === 'entrega' ? [
                 'name' => $client->name, 'phone' => $client->phone, 'cpf' => $client->cpf_cnpj,
                 'cep' => $client->cep, 'street' => $client->street, 'number' => $client->number,
@@ -1159,12 +1181,24 @@ class ClientPortalController extends Controller
             }
         }
 
+        // Entrega: o frete grátis acima de um valor acompanha os itens novos.
+        $deliveryFee = $quote->delivery_fee;
+        if ($quote->delivery_method === 'entrega') {
+            $cep = $quote->shipping_address['cep'] ?? $client->cep;
+            $productsTotal = collect($items)->sum(fn ($i) => (float) $i['price_ref'] * $i['quantity']) - (float) $discount;
+            $ship = \App\Services\Portal\ShippingService::quote((int) $client->user_id, $cep, max(0, $productsTotal));
+            if ($ship['ok']) {
+                $deliveryFee = $ship['fee'];
+            }
+        }
+
         $quote->update([
             'items'        => $items,
             'extra_items'  => $extraItems ?: null,
             'client_notes' => $validated['client_notes'] ?? null,
             'coupon_code'  => $couponCode,
             'discount'     => $discount,
+            'delivery_fee' => $deliveryFee,
         ]);
 
         return redirect()->route('portal.quotes.show', $quote)

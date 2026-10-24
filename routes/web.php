@@ -157,6 +157,7 @@ Route::prefix('portal')->name('portal.')->group(function () {
     Route::get('/catalogo/{userId?}', [ClientPortalController::class, 'publicCatalog'])->name('catalog');
     // Foto do produto em JPG para a prévia do link no WhatsApp (que não mostra .webp).
     Route::get('/catalogo/{userId}/vistos', [ClientPortalController::class, 'recentlyViewed'])->whereNumber('userId')->middleware('throttle:60,1')->name('catalog.seen');
+    Route::get('/catalogo/{userId}/frete', [ClientPortalController::class, 'shippingQuote'])->whereNumber('userId')->middleware('throttle:30,1')->name('catalog.shipping');
     Route::get('/catalogo/{userId}/produto/{product}/{slug?}', [ClientPortalController::class, 'productPage'])->whereNumber(['userId', 'product'])->name('product');
     Route::get('/catalogo/{userId}/foto/{product}.jpg', [ClientPortalController::class, 'previewImage'])->whereNumber(['userId', 'product'])->name('catalog.preview-image');
     // Entrada do portal sem login: redireciona autenticados ao dashboard, convidados ao catálogo (via cookie) ou login

@@ -10,7 +10,7 @@ class PaymentSetting extends Model
     protected $fillable = [
         'user_id', 'provider', 'enabled', 'access_token', 'public_key', 'webhook_secret',
         'pix_enabled', 'allow_manual', 'pickup_enabled', 'delivery_enabled', 'delivery_fee',
-        'delivery_note', 'pix_minutes', 'card_enabled', 'max_installments', 'boleto_enabled', 'boleto_days',
+        'delivery_note', 'shipping_outside', 'pix_minutes', 'card_enabled', 'max_installments', 'boleto_enabled', 'boleto_days',
     ];
 
     protected $casts = [

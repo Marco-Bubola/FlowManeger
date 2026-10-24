@@ -105,6 +105,21 @@
     @media (min-width: 1180px) {
         .pp-related .ml-rail .ml-card { flex-basis: 196px; }
     }
+    /* Calcular frete */
+    .pp-ship { margin-top: 14px; padding: 12px; border: 1px solid var(--ml-line); border-radius: 8px; }
+    .pp-ship-head { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+    .pp-ship-head i { color: var(--ml-green); }
+    .pp-ship-head a { margin-left: auto; font-size: 12px; color: var(--ml-blue); }
+    .pp-ship-row { display: flex; gap: 8px; margin-top: 10px; }
+    .pp-ship-row input { flex: 1; min-width: 0; height: 42px; border: 1px solid #ccc; border-radius: 6px; padding: 0 12px; font-size: 16px; letter-spacing: .04em; }
+    .pp-ship-row input:focus { outline: 2px solid var(--ml-blue); outline-offset: -1px; border-color: transparent; }
+    .pp-ship-row .ml-btn { width: auto; height: 42px; padding: 0 18px; }
+    .pp-ship-res { margin-top: 10px; display: grid; gap: 3px; font-size: 14px; }
+    .pp-ship-res b { font-weight: 700; }
+    .pp-ship-res .free { color: var(--ml-green); }
+    .pp-ship-res small { font-size: 12px; color: var(--ml-muted); }
+    .pp-ship-res small.free { color: var(--ml-green); font-weight: 600; }
+    .pp-ship-err { margin: 10px 0 0; font-size: 13px; color: #c2410c; }
 </style>
 @endpush
 
@@ -222,10 +237,30 @@
                 <i class="fas fa-piggy-bank"></i>
                 <span>Você economiza <b x-text="money((p.old - p.price) * Math.max(qty, 1))"></b></span>
             </div>
-            <div class="ml-perk">
-                <i class="fas fa-truck-fast"></i>
-                <span><b>Combine a entrega</b> com a loja<small>Retirada ou envio, você escolhe ao finalizar.</small></span>
-            </div>
+            @if($shipOn)
+                @php $myCep = \App\Models\PortalShippingZone::formatCep(Auth::guard('portal')->user()?->cep); @endphp
+                <div class="pp-ship" x-data="ppShip(@js(route('portal.catalog.shipping', ['userId' => $ownerId])), @js($myCep), @js($ownerId))" data-testid="ship-box">
+                    <div class="pp-ship-head"><i class="fas fa-truck-fast"></i><b>Calcular frete</b><a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener">Não sei meu CEP</a></div>
+                    <form class="pp-ship-row" @submit.prevent="calc(p.price * Math.max(qty, 1))">
+                        <input type="text" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000" x-model="cep" @input="cep = mask(cep)" aria-label="CEP" data-testid="ship-cep">
+                        <button type="submit" class="ml-btn ml-btn-soft" :disabled="busy || cep.replace(/\D/g, '').length !== 8" data-testid="ship-calc" x-text="busy ? '...' : 'Calcular'"></button>
+                    </form>
+                    <template x-if="res && res.ok">
+                        <div class="pp-ship-res" data-testid="ship-result">
+                            <span><b x-text="res.fee > 0 ? money(res.fee) : 'Frete grátis'" :class="res.fee > 0 ? '' : 'free'"></b> para <span x-text="res.place"></span></span>
+                            <small x-show="res.eta" x-text="res.eta"></small>
+                            <small class="free" x-show="res.fee > 0 && res.freeAbove" x-text="'Frete grátis a partir de ' + money(res.freeAbove) + ' em produtos'"></small>
+                            <small>Ou retire com a loja, sem custo.</small>
+                        </div>
+                    </template>
+                    <p class="pp-ship-err" x-show="res && !res.ok" x-text="res?.message" data-testid="ship-error"></p>
+                </div>
+            @else
+                <div class="ml-perk">
+                    <i class="fas fa-truck-fast"></i>
+                    <span><b>Combine a entrega</b> com a loja<small>Retirada ou envio, você escolhe ao finalizar.</small></span>
+                </div>
+            @endif
             <div class="ml-perk">
                 <i class="fas fa-shield-halved"></i>
                 <span>Compra direta com <b style="color:#333">{{ $store?->name ?: 'a loja' }}</b><small>Seu pedido chega para a loja confirmar.</small></span>
@@ -328,6 +363,30 @@
 
 @push('scripts')
 @include('portal.partials.catalog-script')
+<script>
+// Calcular frete na página do produto: o CEP fica guardado no aparelho para as próximas.
+function ppShip(url, myCep, owner) {
+    const key = 'portal_cep';
+    let saved = '';
+    try { saved = localStorage.getItem(key) || ''; } catch (e) {}
+    return {
+        cep: myCep || saved, res: null, busy: false,
+        init() { if (this.cep.replace(/\D/g, '').length === 8) this.$nextTick(() => this.calc(this.p.price * Math.max(this.qty, 1))); },
+        mask(v) { const d = String(v).replace(/\D/g, '').slice(0, 8); return d.length > 5 ? d.slice(0, 5) + '-' + d.slice(5) : d; },
+        async calc(valor) {
+            const d = this.cep.replace(/\D/g, '');
+            if (d.length !== 8) return;
+            this.busy = true;
+            try {
+                const r = await fetch(url + '?cep=' + d + '&valor=' + (Number(valor) || 0).toFixed(2), { headers: { Accept: 'application/json' } });
+                this.res = r.ok ? await r.json() : { ok: false, message: r.status === 429 ? 'Muitas consultas. Tente de novo em um minuto.' : 'Não deu para calcular agora. Tente de novo.' };
+                if (this.res.ok) { try { localStorage.setItem(key, this.mask(d)); } catch (e) {} }
+            } catch (e) { this.res = { ok: false, message: 'Sem conexão. Tente de novo.' }; }
+            this.busy = false;
+        },
+    };
+}
+</script>
 @endpush
 
 </x-portal-catalog-layout>

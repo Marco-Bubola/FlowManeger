@@ -70,6 +70,8 @@
         'pickup'     => $online && $canPickup,
         'deliver'    => $canDeliver,
         'fee'        => $canDeliver ? (float) $paySettings->delivery_fee : 0,
+        // Frete pelo CEP do cadastro; o grátis acima de um valor é conferido no total do carrinho.
+        'ship'       => $canDeliver && $client->cep ? \App\Services\Portal\ShippingService::quote((int) $client->user_id, $client->cep, 0, $paySettings) : null,
         'hasCpf'     => strlen(preg_replace('/\D+/', '', (string) $client->cpf_cnpj)) >= 11,
         'hasAddress' => $client->hasRequiredPortalProfileData(),
         'couponUrl'  => route('portal.coupon.check'),
@@ -161,7 +163,7 @@
                         <tr><td x-text="'Produtos (' + units + ')'"></td><td x-text="money(totalOld)"></td></tr>
                         <tr x-show="totalOld - $store.cart.total > 0.009"><td>Descontos</td><td style="color:var(--ml-green)" x-text="'− ' + money(totalOld - $store.cart.total)"></td></tr>
                         <tr x-show="discount > 0" x-cloak><td x-text="'Cupom ' + coupon?.code"></td><td style="color:var(--ml-green)" x-text="'− ' + money(discount)" data-testid="coupon-discount"></td></tr>
-                        <tr x-show="delivery === 'entrega'"><td>Entrega</td><td x-text="cfg.fee > 0 ? money(cfg.fee) : 'Grátis'"></td></tr>
+                        <tr x-show="delivery === 'entrega'"><td>Entrega</td><td x-text="shipFee > 0 ? money(shipFee) : 'Grátis'" data-testid="ship-fee"></td></tr>
                         <tr class="po-sum-total"><td>Total</td><td x-text="money(grand)"></td></tr>
                     </table>
                     <p class="po-hint" style="margin-top:8px" x-show="!online">A loja confirma os valores e combina a entrega com você.</p>
@@ -198,7 +200,15 @@
                         @if($canDeliver)
                         <label class="pc-opt" :class="{ on: delivery === 'entrega' }">
                             <input type="radio" value="entrega" x-model="delivery">
-                            <span><strong>Receber em casa</strong><small>{{ (float) $paySettings->delivery_fee > 0 ? 'Taxa de R$ ' . number_format((float) $paySettings->delivery_fee, 2, ',', '.') : 'Entrega grátis' }}@if($paySettings->delivery_note) · {{ $paySettings->delivery_note }}@endif</small></span>
+                            @php $ship = $checkoutCfg['ship']; @endphp
+                            @if($ship && $ship['ok'])
+                                <span><strong>Receber em casa</strong><small data-testid="ship-label"><span x-text="shipFee > 0 ? 'Frete ' + money(shipFee) : 'Frete grátis'"></span> para {{ $ship['place'] }}@if($ship['eta']) · {{ $ship['eta'] }}@endif</small>
+                                    @if($ship['freeAbove'])<small x-show="shipFee > 0" style="color:var(--ml-green)" x-text="'Frete grátis a partir de ' + money({{ $ship['freeAbove'] }}) + ' em produtos'"></small>@endif</span>
+                            @elseif($ship)
+                                <span><strong>Receber em casa</strong><small style="color:#c2410c" data-testid="ship-label">{{ $ship['message'] }}</small></span>
+                            @else
+                                <span><strong>Receber em casa</strong><small>{{ (float) $paySettings->delivery_fee > 0 ? 'Taxa de R$ ' . number_format((float) $paySettings->delivery_fee, 2, ',', '.') : 'Entrega grátis' }}@if($paySettings->delivery_note) · {{ $paySettings->delivery_note }}@endif</small></span>
+                            @endif
                         </label>
                         @endif
                     </div>
@@ -346,7 +356,14 @@ function portalCart(fresh, stockMap, cfg) {
             return (this.coupon.kind === 'fixed' ? this.money(this.coupon.value) : String(this.coupon.value).replace('.', ',') + '%') + ' de desconto · você economiza ' + this.money(this.discount);
         },
         get couponMinMsg() { return this.coupon?.min ? 'Vale a partir de ' + this.money(this.coupon.min) + ' em produtos' : ''; },
-        get grand() { return Alpine.store('cart').total - this.discount + (this.delivery === 'entrega' ? (Number(this.cfg.fee) || 0) : 0); },
+        // Frete da região do CEP (ou a taxa padrão), grátis quando os produtos passam do valor da região.
+        get shipFee() {
+            const s = this.cfg.ship;
+            if (!s) return Number(this.cfg.fee) || 0;
+            if (!s.ok) return 0;
+            return s.freeAbove && (Alpine.store('cart').total - this.discount) + 0.009 >= s.freeAbove ? 0 : (Number(s.base) || 0);
+        },
+        get grand() { return Alpine.store('cart').total - this.discount + (this.delivery === 'entrega' ? this.shipFee : 0); },
         async applyCoupon() {
             const code = this.couponInput.trim();
             if (!code || this.couponBusy) return;
@@ -370,7 +387,7 @@ function portalCart(fresh, stockMap, cfg) {
         },
         removeCoupon() { this.coupon = null; this.couponInput = ''; this.couponErr = ''; },
         get online() { return this.checkout !== 'manual'; },
-        get blocked() { return (this.online && !this.cfg.hasCpf) || ((this.checkout === 'boleto' || this.delivery === 'entrega') && !this.cfg.hasAddress); },
+        get blocked() { return (this.online && !this.cfg.hasCpf) || ((this.checkout === 'boleto' || this.delivery === 'entrega') && !this.cfg.hasAddress) || (this.delivery === 'entrega' && this.cfg.ship && !this.cfg.ship.ok); },
         get sendLabel() { return this.online ? 'Ir para o pagamento' : 'Enviar pedido'; },
         get units() { return Alpine.store('cart').items.reduce((s, i) => s + (i.qty || 1), 0); },
         get totalOld() { return Alpine.store('cart').items.reduce((s, i) => s + ((this.fresh[i.id]?.old || i.price) * (i.qty || 1)), 0); },
