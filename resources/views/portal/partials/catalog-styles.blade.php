@@ -83,6 +83,9 @@
     .ml-card-body { padding: 10px 12px 14px; display: flex; flex-direction: column; gap: 3px; flex: 1; }
     .ml-deal { align-self: flex-start; background: var(--ml-blue); color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .02em; padding: 3px 6px; border-radius: 3px; text-transform: uppercase; margin-bottom: 2px; }
     .ml-title { margin: 0; font-size: 13px; font-weight: 400; color: #333; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6em; }
+    .rv-stars { --v: 0; display: inline-block; letter-spacing: 1px; line-height: 1; background: linear-gradient(90deg, #f5b301 calc(var(--v) / 5 * 100%), #d4d4d8 0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .ml-rate { display: flex; align-items: center; gap: 3px; font-size: 12px; color: var(--ml-muted); margin-top: 2px; }
+    .ml-rate .rv-stars { font-size: 12px; }
     .ml-old { font-size: 12px; color: #999; text-decoration: line-through; margin-top: 4px; }
     .ml-price-row { display: flex; align-items: flex-start; gap: 6px; flex-wrap: wrap; }
     .ml-price { font-size: 22px; font-weight: 400; color: #333; line-height: 1.1; letter-spacing: -.01em; white-space: nowrap; }

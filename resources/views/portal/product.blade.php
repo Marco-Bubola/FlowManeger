@@ -120,6 +120,67 @@
     .pp-ship-res small { font-size: 12px; color: var(--ml-muted); }
     .pp-ship-res small.free { color: var(--ml-green); font-weight: 600; }
     .pp-ship-err { margin: 10px 0 0; font-size: 13px; color: #c2410c; }
+    /* Estrelas, compre junto e avaliações */
+    .rv-stars { --v: 0; display: inline-block; letter-spacing: 1px; line-height: 1; background: linear-gradient(90deg, #f5b301 calc(var(--v) / 5 * 100%), #d4d4d8 0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .pp-rate { display: inline-flex; align-items: center; gap: 6px; margin: 2px 0 6px; font-size: 13px; color: var(--ml-muted); text-decoration: none; }
+    .pp-rate .rv-stars { font-size: 15px; }
+    .pp-rate b { color: var(--ml-text); }
+    .pp-buy2, .pp-reviews { padding: 16px; }
+    @media (min-width: 768px) { .pp-buy2, .pp-reviews { padding: 20px 24px; } }
+    .pp-buy2 h2, .pp-reviews h2 { font-size: 18px; font-weight: 800; margin: 0 0 12px; }
+    .pp-buy2-row { display: flex; align-items: stretch; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .pp-buy2-item { position: relative; flex: 0 0 150px; display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--ml-line); border-radius: var(--ml-radius); background: var(--ml-card); cursor: pointer; transition: opacity .2s, border-color .2s; }
+    .pp-buy2-item.off { opacity: .45; }
+    .pp-buy2-item.on { border-color: var(--ml-blue); }
+    .pp-buy2-item img, .pp-buy2-item .ph { width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 6px; background: #f5f5f5; }
+    .pp-buy2-item b { font-size: 12px; font-weight: 500; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .pp-buy2-item span { font-size: 15px; font-weight: 700; }
+    .pp-buy2-item input { position: absolute; top: 8px; left: 8px; width: 18px; height: 18px; accent-color: var(--ml-blue); }
+    .pp-buy2-plus { align-self: center; flex-shrink: 0; font-size: 20px; color: var(--ml-muted); }
+    .pp-buy2-sum { flex: 0 0 200px; align-self: center; display: flex; flex-direction: column; gap: 8px; padding-left: 8px; }
+    .pp-buy2-sum small { font-size: 13px; color: var(--ml-muted); }
+    .pp-buy2-sum strong { font-size: 24px; font-weight: 800; }
+    @media (max-width: 640px) {
+        .pp-buy2-row { flex-wrap: wrap; overflow: visible; gap: 4px; }
+        .pp-buy2-item { flex: 1 1 0; min-width: 0; padding: 6px; }
+        .pp-buy2-item a { display: none; }
+        .pp-buy2-plus { font-size: 14px; }
+        .pp-buy2-sum { flex: 1 0 100%; padding: 10px 0 0; flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: 10px; }
+        .pp-buy2-sum .ml-btn { flex: 1 0 100%; }
+    }
+    .pp-reviews-top { display: grid; gap: 18px; grid-template-columns: 1fr; margin-bottom: 16px; }
+    @media (min-width: 720px) { .pp-reviews-top { grid-template-columns: 220px 1fr; align-items: start; } }
+    .pp-avg { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+    .pp-hist { align-self: stretch; }
+    .pp-avg strong { font-size: 44px; font-weight: 800; line-height: 1; }
+    .pp-avg .rv-stars { font-size: 22px; }
+    .pp-avg small { color: var(--ml-muted); font-size: 13px; }
+    .pp-hist { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+    .pp-hist div { display: grid; grid-template-columns: 30px 1fr 26px; align-items: center; gap: 6px; font-size: 12px; color: var(--ml-muted); }
+    .pp-hist i { display: block; height: 6px; border-radius: 3px; background: #e5e7eb; overflow: hidden; }
+    .pp-hist i b { display: block; height: 100%; background: #f5b301; }
+    .pp-rv-form { border: 1px solid var(--ml-line); border-radius: var(--ml-radius); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .pp-rv-form p { margin: 0; font-size: 14px; font-weight: 700; }
+    .pp-pick { display: inline-flex; flex-direction: row-reverse; justify-content: flex-end; gap: 2px; }
+    .pp-pick input { position: absolute; opacity: 0; pointer-events: none; }
+    .pp-pick label { font-size: 32px; line-height: 1; color: #d4d4d8; cursor: pointer; transition: transform .15s, color .15s; }
+    .pp-pick label:hover, .pp-pick label:hover ~ label, .pp-pick input:checked ~ label { color: #f5b301; }
+    .pp-pick label:active { transform: scale(.9); }
+    .pp-pick input:focus-visible + label { outline: 2px solid var(--ml-blue); border-radius: 4px; }
+    .pp-rv-form textarea { width: 100%; min-height: 80px; border: 1px solid var(--ml-line); border-radius: 8px; padding: 10px; font: inherit; font-size: 14px; resize: vertical; }
+    .pp-rv-form .ml-btn { align-self: flex-start; }
+    .pp-rv-msg { padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; background: #ecfdf5; color: #047857; }
+    .pp-rv-msg.err { background: #fef2f2; color: #b91c1c; }
+    .pp-rv-list { display: flex; flex-direction: column; }
+    .pp-rv { padding: 14px 0; border-top: 1px solid var(--ml-line); }
+    .pp-rv-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+    .pp-rv-head b { font-weight: 700; }
+    .pp-rv-head small { color: var(--ml-muted); }
+    .pp-rv-ok { color: var(--ml-green); font-weight: 600; font-size: 12px; }
+    .pp-rv p { margin: 6px 0 0; font-size: 14px; line-height: 1.5; white-space: pre-line; }
+    .pp-rv-reply { margin-top: 8px; padding: 8px 12px; border-left: 3px solid var(--ml-blue); background: var(--ml-blue-soft); border-radius: 0 8px 8px 0; font-size: 13px; }
+    .pp-rv-reply b { display: block; font-size: 12px; margin-bottom: 2px; }
+    .pp-rv-empty { color: var(--ml-muted); font-size: 14px; margin: 0; }
 </style>
 @endpush
 
@@ -194,6 +255,9 @@
         <div class="pp-info">
             <div class="ml-cat-line" x-text="[p.cat, p.brand].filter(Boolean).join(' · ') || 'Produto'">{{ collect([$d['cat'], $d['brand']])->filter()->join(' · ') ?: 'Produto' }}</div>
             <h1 x-text="p.name">{{ $d['name'] }}</h1>
+            @if($rating)
+                <a href="#avaliacoes" class="pp-rate" data-testid="page-rating"><span class="rv-stars" style="--v: {{ $rating['avg'] }}">★★★★★</span><b>{{ number_format($rating['avg'], 1, ',', '') }}</b> ({{ $rating['n'] }} {{ $rating['n'] === 1 ? 'avaliação' : 'avaliações' }})</a>
+            @endif
             <span class="ml-deal" x-show="p.pct" @if(! $d['pct']) x-cloak @endif>Oferta do dia</span>
             <div class="ml-old" x-show="p.old" x-text="money(p.old)" @if(! $d['old']) x-cloak @endif>@if($d['old'])R$ {{ number_format($d['old'], 2, ',', '.') }}@endif</div>
             <div class="ml-price-row" x-show="p.price > 0" @if(! ($d['price'] > 0)) x-cloak @endif>
@@ -305,6 +369,37 @@
         </div>
     </section>
 
+    @if($together->isNotEmpty())
+        @php $tIds = $together->pluck('id')->all(); @endphp
+        <section class="ml-box pp-buy2" data-testid="buy-together"
+                 x-data="{ sel: @js(collect($tIds)->mapWithKeys(fn ($i) => [$i => true])), get items() { return [p].concat(@js($tIds).filter(i => this.sel[i]).map(i => products[i])).filter(x => x && x.buyable !== false && x.stock > 0); }, get total() { return this.items.reduce((s, x) => s + x.price, 0); } }">
+            <h2><i class="fas fa-cart-plus" style="color: var(--ml-blue)"></i> Compre junto</h2>
+            <div class="pp-buy2-row">
+                <div class="pp-buy2-item on">
+                    <template x-if="p.img"><img :src="p.img" alt=""></template><template x-if="!p.img"><div class="ph"></div></template>
+                    <b x-text="p.name"></b><span x-text="money(p.price)"></span>
+                </div>
+                @foreach($together as $t)
+                    @php $td = $all[$t->id]; @endphp
+                    <span class="pp-buy2-plus">+</span>
+                    <label class="pp-buy2-item" :class="sel[{{ $t->id }}] ? 'on' : 'off'">
+                        <input type="checkbox" x-model="sel[{{ $t->id }}]" aria-label="Levar {{ $td['name'] }} junto">
+                        @if($td['img'])<img src="{{ $td['img'] }}" alt="" loading="lazy">@else<div class="ph"></div>@endif
+                        <b>{{ $td['name'] }}</b><span>R$ {{ number_format($td['price'], 2, ',', '.') }}</span>
+                        <a href="{{ $td['url'] }}" style="font-size:12px;color:var(--ml-blue)" @click.stop>Ver produto</a>
+                    </label>
+                @endforeach
+                <div class="pp-buy2-sum">
+                    <small x-text="items.length === 1 ? 'Só este produto' : 'Os ' + items.length + ' juntos por'"></small>
+                    <strong x-text="money(total)"></strong>
+                    <button type="button" class="ml-btn ml-btn-primary" :disabled="!items.length" @click="items.forEach(x => add(x, 1))" data-testid="buy-together-add">
+                        <i class="fas fa-cart-plus"></i> <span x-text="items.length > 1 ? 'Adicionar os ' + items.length : 'Adicionar'"></span>
+                    </button>
+                </div>
+            </div>
+        </section>
+    @endif
+
     <section class="ml-box pp-about" x-show="p.desc || p.brand || p.model || p.code || (p.specs && p.specs.length)">
         <div class="pp-about-in">
             <div x-show="p.desc">
@@ -323,6 +418,66 @@
             </div>
         </div>
     </section>
+
+    @if(\App\Services\Portal\ReviewService::ready())
+        <section class="ml-box pp-reviews" id="avaliacoes" data-testid="reviews">
+            <h2>Avaliações</h2>
+            @if(session('success'))<p class="pp-rv-msg" role="status">{{ session('success') }}</p>@endif
+            @if(session('error') || $errors->any())<p class="pp-rv-msg err" role="alert">{{ session('error') ?: $errors->first() }}</p>@endif
+            <div class="pp-reviews-top">
+                <div class="pp-avg">
+                    @if($rating)
+                        <strong>{{ number_format($rating['avg'], 1, ',', '') }}</strong>
+                        <span class="rv-stars" style="--v: {{ $rating['avg'] }}">★★★★★</span>
+                        <small>{{ $rating['n'] }} {{ $rating['n'] === 1 ? 'avaliação' : 'avaliações' }}</small>
+                        <div class="pp-hist">
+                            @foreach($hist as $star => $cnt)
+                                <div><span>{{ $star }} ★</span><i><b style="width: {{ $rating['n'] ? round($cnt / $rating['n'] * 100) : 0 }}%"></b></i><span>{{ $cnt }}</span></div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="pp-rv-empty">Ainda não tem avaliações. Seja o primeiro a contar o que achou!</p>
+                    @endif
+                </div>
+                @if($canReview)
+                    <form method="POST" action="{{ route('portal.product.review', ['userId' => $owner, 'product' => $item->id]) }}" class="pp-rv-form" data-testid="review-form">
+                        @csrf
+                        <p>{{ $myReview ? 'Sua avaliação (dá para mudar)' : 'O que você achou?' }}</p>
+                        <div class="pp-pick" role="radiogroup" aria-label="Nota">
+                            @for($i = 5; $i >= 1; $i--)
+                                <input type="radio" name="rating" id="rv-{{ $i }}" value="{{ $i }}" @checked((int) old('rating', $myReview?->rating) === $i) required>
+                                <label for="rv-{{ $i }}" title="{{ $i }} {{ $i === 1 ? 'estrela' : 'estrelas' }}" data-testid="rv-star-{{ $i }}">★</label>
+                            @endfor
+                        </div>
+                        <textarea name="comment" maxlength="600" placeholder="Conte como foi: qualidade, entrega, se valeu a pena (opcional)" data-testid="rv-comment">{{ old('comment', $myReview?->comment) }}</textarea>
+                        <button type="submit" class="ml-btn ml-btn-primary" data-testid="rv-send"><i class="fas fa-paper-plane"></i> {{ $myReview ? 'Atualizar avaliação' : 'Enviar avaliação' }}</button>
+                    </form>
+                @elseif(! Auth::guard('portal')->check())
+                    <div class="pp-rv-form">
+                        <p>Comprou este produto?</p>
+                        <span style="font-size:13px;color:var(--ml-muted)">Entre na sua conta para deixar sua avaliação com estrelas.</span>
+                        <a class="ml-btn ml-btn-soft" href="{{ route('portal.login', ['redirect' => parse_url(\App\Http\Controllers\ClientPortalController::productUrl($item), PHP_URL_PATH) . '#avaliacoes']) }}" data-testid="rv-login"><i class="fas fa-right-to-bracket"></i> Entrar para avaliar</a>
+                    </div>
+                @endif
+            </div>
+            @if($reviews->isNotEmpty())
+                <div class="pp-rv-list">
+                    @foreach($reviews as $r)
+                        <article class="pp-rv">
+                            <div class="pp-rv-head">
+                                <span class="rv-stars" style="--v: {{ $r->rating }}">★★★★★</span>
+                                <b>{{ $r->name }}</b>
+                                @if($r->verified)<span class="pp-rv-ok"><i class="fas fa-circle-check"></i> Comprou</span>@endif
+                                <small>{{ $r->created_at?->format('d/m/Y') }}</small>
+                            </div>
+                            @if($r->comment)<p>{{ $r->comment }}</p>@endif
+                            @if($r->reply)<div class="pp-rv-reply"><b>Resposta da loja</b>{{ $r->reply }}</div>@endif
+                        </article>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+    @endif
 
     @if($related->isNotEmpty())
         <section class="ml-box ml-offers pp-related" data-testid="related">

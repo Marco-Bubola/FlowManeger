@@ -61,6 +61,8 @@ class ClientPortalController extends Controller
         // Salva intenção de redirecionar ao carrinho após login
         if ($request->query('redirect') === 'cart') {
             $request->session()->put('portal_intended', 'cart');
+        } elseif (self::catalogPath($request->query('redirect'))) {
+            $request->session()->put('portal_intended', self::catalogPath($request->query('redirect')));
         }
 
         return view('portal.login');
@@ -302,10 +304,38 @@ class ClientPortalController extends Controller
 
             return redirect()->route('portal.profile');
         }
+        if (is_string($intended) && self::catalogPath($intended)) {
+            return redirect(self::catalogPath($intended));
+        }
 
         return $intended === 'cart'
             ? redirect()->route('portal.quotes.create')
             : redirect()->route('portal.dashboard');
+    }
+
+    /** Só caminhos do próprio catálogo (ex.: voltar ao produto para avaliar). */
+    private static function catalogPath($path): ?string
+    {
+        return is_string($path) && preg_match('~^/portal/catalogo/\d+(/[\w\-/]*)?(#[\w-]+)?$~', $path) ? $path : null;
+    }
+
+    /** Cliente do portal avalia o produto (1 a 5 estrelas e comentário). */
+    public function storeReview(Request $request, int $userId, int $product)
+    {
+        /** @var Client $client */
+        $client = Auth::guard('portal')->user();
+        $item = Product::withoutGlobalScope('team_visibility')->where('user_id', $userId)->whereIn('status', ['active', 'ativo'])->find($product);
+        abort_unless($item && \App\Services\Portal\ReviewService::ready(), 404);
+        if ((int) $client->user_id !== $userId) {
+            return back()->with('error', 'Só clientes desta loja podem avaliar.');
+        }
+        $data = $request->validate([
+            'rating'  => ['required', 'integer', 'min:1', 'max:5'],
+            'comment' => ['nullable', 'string', 'max:600'],
+        ], ['rating.required' => 'Escolha de 1 a 5 estrelas.']);
+        \App\Services\Portal\ReviewService::save($client, $item, (int) $data['rating'], $data['comment'] ?? null);
+
+        return redirect()->to(self::productUrl($item) . '#avaliacoes')->with('success', 'Obrigado pela avaliação!');
     }
 
     /** Vendas do cliente logado no portal (sem usuário da loja na sessão). */
@@ -798,6 +828,17 @@ class ClientPortalController extends Controller
             $all[$r->id] = self::cardInfo($r);
         }
 
+        // Avaliações e compre junto
+        $rv = \App\Services\Portal\ReviewService::class;
+        $rootId = (int) ($item->parent_id ?: $item->id);
+        $reviews = $rv::ready() ? $rv::list($userId, $rootId) : collect();
+        $portalClient = Auth::guard('portal')->user();
+        $myReview = $portalClient && $rv::ready() ? \App\Models\PortalReview::where('product_id', $rootId)->where('client_id', $portalClient->id)->first() : null;
+        $together = $item->price_sale > 0 ? $rv::boughtTogether($item) : collect();
+        foreach ($together as $t) {
+            $all[$t->id] ??= self::cardInfo($t);
+        }
+
         $store = \App\Models\User::select('id', 'name', 'phone', 'location')->find($userId);
         $stockMap = self::stockMap($userId);
         $attribute = $choosable ? ($family->pluck('variation_attribute')->filter()->first() ?: 'Opção') : null;
@@ -813,6 +854,12 @@ class ClientPortalController extends Controller
             'stockMap' => $stockMap,
             'minPrice' => $minPrice,
             'shipOn' => \App\Services\Portal\ShippingService::deliveryOn(\App\Models\PaymentSetting::for($userId)),
+            'reviews' => $reviews,
+            'rating' => $rv::summary($userId, $rootId),
+            'hist' => $reviews->isNotEmpty() ? $rv::histogram($userId, $rootId) : [],
+            'myReview' => $myReview,
+            'canReview' => $portalClient && (int) $portalClient->user_id === $userId,
+            'together' => $together,
         ]);
     }
 
@@ -892,6 +939,8 @@ class ClientPortalController extends Controller
             'brand'   => $p->brand,
             'model'   => $p->model,
             'code'    => $p->product_code,
+            'rate'    => ($r = \App\Services\Portal\ReviewService::summary((int) $p->user_id, (int) ($p->parent_id ?: $p->id))) ? $r['avg'] : null,
+            'rates'   => $r['n'] ?? 0,
             'specs'   => collect($p->specs ?? [])->filter(fn ($s) => ($s['n'] ?? '') !== '' && ($s['v'] ?? '') !== '')->values()->all(),
         ];
     }

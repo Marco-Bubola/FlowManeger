@@ -32,6 +32,9 @@
         @endif
         {{-- O link cobre o card todo (::after); coração e carrinho ficam por cima. --}}
         <a class="ml-title ml-card-link" href="{{ $d['url'] }}">{{ $d['name'] }}</a>
+        @if(! empty($d['rate']))
+            <span class="ml-rate" aria-label="Nota {{ $d['rate'] }} de 5"><span class="rv-stars" style="--v: {{ $d['rate'] }}">★★★★★</span> <small>({{ $d['rates'] }})</small></span>
+        @endif
         @if($d['old'])
             <span class="ml-old">R$ {{ number_format($d['old'], 2, ',', '.') }}</span>
         @endif

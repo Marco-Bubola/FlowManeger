@@ -189,6 +189,7 @@ Route::middleware('portal.auth')->prefix('portal')->name('portal.')->group(funct
     Route::get('/orcamentos', [ClientPortalController::class, 'quotes'])->name('quotes');
     Route::get('/orcamentos/novo', [ClientPortalController::class, 'createQuote'])->name('quotes.create');
     Route::post('/orcamentos', [ClientPortalController::class, 'storeQuote'])->name('quotes.store');
+    Route::post('/catalogo/{userId}/produto/{product}/avaliar', [ClientPortalController::class, 'storeReview'])->whereNumber(['userId', 'product'])->middleware('throttle:10,1')->name('product.review');
     Route::post('/cupom', [ClientPortalController::class, 'checkCoupon'])->middleware('throttle:20,1')->name('coupon.check');
     Route::get('/orcamentos/{quote}', [ClientPortalController::class, 'showQuote'])->name('quotes.show');
     // Pagamento online do pedido (Pix pelo Mercado Pago)
@@ -280,6 +281,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/promotions/report', \App\Livewire\Promotions\PromotionsReport::class)->name('promotions.report');
     Route::get('/promotions/cupons', \App\Livewire\Promotions\PortalCoupons::class)->name('promotions.coupons');
     Route::get('/promotions/vitrine', \App\Livewire\Promotions\PortalStorefront::class)->name('promotions.storefront');
+    Route::get('/promotions/avaliacoes', \App\Livewire\Promotions\PortalReviews::class)->name('promotions.reviews');
     Route::get('/promotions/vitrine/banner/novo', \App\Livewire\Promotions\BannerEditor::class)->name('promotions.storefront.banner.create');
     Route::get('/promotions/vitrine/banner/{banner}/editar', \App\Livewire\Promotions\BannerEditor::class)->whereNumber('banner')->name('promotions.storefront.banner.edit');
     Route::get('/promotions/vitrine/colecao/nova', \App\Livewire\Promotions\CollectionEditor::class)->name('promotions.storefront.collection.create');

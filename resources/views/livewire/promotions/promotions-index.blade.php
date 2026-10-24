@@ -49,6 +49,7 @@
             <button type="button" wire:click="openFlyer" title="Folheto com as ofertas para o status do WhatsApp e o Instagram" class="{{ $phBtn }}"><i class="bi bi-images text-pink-500"></i><span class="hidden sm:inline">Folheto</span></button>
             <a href="{{ route('promotions.storefront') }}" title="Banners, destaques e coleções do catálogo" class="{{ $phBtn }} max-sm:!hidden"><i class="bi bi-shop-window text-violet-500"></i><span class="hidden sm:inline">Vitrine</span></a>
             <a href="{{ route('promotions.coupons') }}" title="Cupons de desconto do catálogo" class="{{ $phBtn }} max-sm:!hidden"><i class="bi bi-ticket-perforated text-rose-500"></i><span class="hidden sm:inline">Cupons</span></a>
+            <a href="{{ route('promotions.reviews') }}" title="Avaliações dos clientes no catálogo" class="{{ $phBtn }} max-sm:!hidden"><i class="bi bi-star-half text-amber-500"></i><span class="hidden xl:inline">Avaliações</span></a>
             <a href="{{ route('promotions.report') }}" title="Vendas em promoção: quanto vendeu, desconto dado e lucro" class="{{ $phBtn }} max-sm:!hidden"><i class="bi bi-bar-chart-line text-sky-500"></i><span class="hidden sm:inline">Vendas</span></a>
             <button type="button" wire:click="openSettings" title="Lucro mínimo, validade e mensagem" class="{{ $phBtn }} max-sm:!hidden"><i class="bi bi-gear text-slate-500"></i><span class="hidden sm:inline">Configurar</span></button>
             <a href="{{ route('promotions.create') }}" title="Nova promoção"
@@ -103,6 +104,7 @@
                 <a href="{{ route('promotions.report') }}" class="fm-fs-opt"><i class="bi bi-bar-chart-line"></i>Vendas em promoção</a>
                 <a href="{{ route('promotions.storefront') }}" class="fm-fs-opt"><i class="bi bi-shop-window"></i>Vitrine do catálogo</a>
                 <a href="{{ route('promotions.coupons') }}" class="fm-fs-opt"><i class="bi bi-ticket-perforated"></i>Cupons do catálogo</a>
+                <a href="{{ route('promotions.reviews') }}" class="fm-fs-opt"><i class="bi bi-star-half"></i>Avaliações do catálogo</a>
                 <button type="button" @click="showFilters = false" wire:click="openSettings" class="fm-fs-opt"><i class="bi bi-gear"></i>Configurar</button>
             </div>
         </div>
