@@ -32,6 +32,9 @@
     .ml-sec-head a { color: var(--ml-blue); font-size: 13px; font-weight: 600; white-space: nowrap; }
     .ml-rail { display: flex; gap: 10px; overflow-x: auto; padding: 0 14px 12px; scroll-padding: 0 14px; scroll-snap-type: x mandatory; scrollbar-width: none; }
     .ml-rail::-webkit-scrollbar { display: none; }
+    .ml-seen { margin-top: 12px; }
+    .ml-seen .ml-sec-head h2 i { color: var(--ml-blue); }
+    .ml-seen-clear { border: 0; background: none; color: var(--ml-blue); font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px; }
     .ml-rail .ml-card { flex: 0 0 152px; scroll-snap-align: start; border: 1px solid var(--ml-line); box-shadow: none; }
 
     /* Barra de filtros */

@@ -649,6 +649,38 @@ class ClientPortalController extends Controller
         return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers', 'sort', 'store', 'stockMap', 'countByCategory'));
     }
 
+    /**
+     * Vistos recentemente: o aparelho guarda os ids (localStorage) e pede aqui os cards
+     * atualizados (preço, promoção, estoque), na mesma ordem. Só o que ainda está à venda.
+     */
+    public function recentlyViewed(Request $request, int $userId)
+    {
+        $ids = collect(explode(',', (string) $request->query('ids')))
+            ->map(fn ($v) => (int) $v)->filter(fn ($v) => $v > 0)->unique()->take(20)->values();
+        if ($ids->isEmpty()) {
+            return response()->json(['html' => '', 'items' => (object) []]);
+        }
+        $found = Product::withoutGlobalScope('team_visibility')
+            ->where('user_id', $userId)
+            ->availableForSale()
+            ->whereIn('status', ['active', 'ativo'])
+            ->whereIn('id', $ids)
+            ->with(['category', 'activePromotion', 'images'])
+            ->get()->keyBy('id');
+
+        $items = [];
+        $html = '';
+        foreach ($ids as $id) {
+            if (! $found->has($id)) {
+                continue;
+            }
+            $items[$id] = self::cardInfo($found[$id]);
+            $html .= view('portal.partials.ml-card', ['d' => $items[$id]])->render();
+        }
+
+        return response()->json(['html' => $html, 'items' => (object) $items]);
+    }
+
     /** Endereço da página do produto no portal (com o nome no fim, para o link ficar legível). */
     public static function productUrl(Product $p): string
     {

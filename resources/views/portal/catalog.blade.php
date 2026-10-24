@@ -72,6 +72,10 @@
         </section>
     @endif
 
+    @if($products->currentPage() === 1 && ! $search && ! $category && ! $onlyOffers)
+        @include('portal.partials.recently-viewed')
+    @endif
+
     @guest('portal')
         <div class="ml-box ml-guest">
             <i class="fas fa-circle-info"></i>

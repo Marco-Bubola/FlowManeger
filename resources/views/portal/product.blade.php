@@ -42,6 +42,10 @@
     .pp-main .ml-gal-track > div { max-height: 56vh; }
     .pp-fav { position: absolute; right: 12px; top: 8px; z-index: 2; width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255,255,255,.95); box-shadow: 0 1px 6px rgba(0,0,0,.18); color: #8c8c8c; font-size: 19px; cursor: pointer; }
     .pp-fav.on { color: #ec4899; }
+    .pp-share { top: 60px; color: #555; font-size: 17px; }
+    .pp-share-row { display: flex; gap: 8px; margin-top: 8px; }
+    .pp-share-row a, .pp-share-row button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; border-radius: 6px; border: 1px solid var(--ml-line); background: #fff; color: #444; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .pp-share-row .wa i { color: #128c4b; font-size: 16px; }
     .pp-info { padding: 10px 16px 0; }
     .pp-info .ml-cat-line { font-size: 12px; color: var(--ml-muted); }
     .pp-info h1 { margin: 6px 0 10px; font-size: 20px; font-weight: 500; line-height: 1.3; color: #333; }
@@ -106,7 +110,16 @@
 
 <div class="ml-wrap pp" x-data="mlCatalog(@js($all), @js($cartUrl), @js($stockMap), {
         p: @js($d),
-        setup() { if (! this.p.buyable) this.qty = 0; },
+        setup() { if (! this.p.buyable) this.qty = 0; mlSeenPush(@js($owner), this.p.id); },
+        async share() {
+            const data = { title: this.p.name, text: this.p.name + ' por ' + this.money(this.p.price), url: this.p.url };
+            if (navigator.share) {
+                try { await navigator.share(data); } catch (e) {}
+                return;
+            }
+            try { await navigator.clipboard.writeText(this.p.url); this.say('Link copiado'); }
+            catch (e) { prompt('Copie o link do produto:', this.p.url); }
+        },
         pick(id) {
             const next = this.products[id];
             if (! next || next.id === this.p.id) return;
@@ -115,6 +128,7 @@
             this.slide = 0;
             if (this.$refs.track) this.$refs.track.scrollLeft = 0;
             try { history.replaceState(null, '', next.url); } catch (e) {}
+            mlSeenPush(@js($owner), next.id);
             document.title = next.name + ' · ' + @js($store?->name ?: config('app.name'));
         },
     })" @keydown.escape.window="closeCart()" @open-cart.window="openCart()">
@@ -147,6 +161,9 @@
                 <button type="button" class="pp-fav" :class="{ on: $store.favs.has(p.id) }" @click="fav(p.id)"
                         :aria-pressed="$store.favs.has(p.id)" :aria-label="$store.favs.has(p.id) ? 'Tirar dos favoritos' : 'Salvar nos favoritos'" data-testid="page-fav">
                     <i class="fa-heart" :class="$store.favs.has(p.id) ? 'fas' : 'far'"></i>
+                </button>
+                <button type="button" class="pp-fav pp-share" @click="share()" aria-label="Compartilhar produto" title="Compartilhar" data-testid="page-share">
+                    <i class="fas fa-share-nodes"></i>
                 </button>
             </div>
             <div class="ml-dots" x-show="p.imgs.length > 1">
@@ -242,6 +259,14 @@
                     </a>
                 @endif
             </div>
+            <div class="pp-share-row">
+                <a class="wa" target="_blank" rel="noopener" :href="'https://wa.me/?text=' + encodeURIComponent(p.name + ' ' + p.url)" data-testid="share-wa">
+                    <i class="fab fa-whatsapp"></i> Enviar para alguém
+                </a>
+                <button type="button" @click="navigator.clipboard ? navigator.clipboard.writeText(p.url).then(() => say('Link copiado'), () => share()) : share()" data-testid="share-copy">
+                    <i class="fas fa-link"></i> Copiar link
+                </button>
+            </div>
         </div>
     </section>
 
@@ -277,6 +302,8 @@
             </div>
         </section>
     @endif
+
+    @include('portal.partials.recently-viewed', ['exclude' => $family->isNotEmpty() ? $family->pluck('id')->all() : [$item->id]])
 
     {{-- Barra fixa de compra (celular) --}}
     <div class="pp-buybar">

@@ -1,5 +1,37 @@
 {{-- Componente Alpine do catálogo (carrinho, favoritos, rolagem infinita). --}}
 <script>
+// Vistos recentemente: ids no aparelho, do mais novo para o mais antigo (até 15 por loja).
+function mlSeenKey(owner) { return 'portal_seen_' + owner; }
+function mlSeenIds(owner) {
+    try { return (JSON.parse(localStorage.getItem(mlSeenKey(owner)) || '[]') || []).map(Number).filter(Boolean); } catch (e) { return []; }
+}
+function mlSeenPush(owner, id) {
+    id = Number(id);
+    const ids = [id, ...mlSeenIds(owner).filter(x => x !== id)].slice(0, 15);
+    try { localStorage.setItem(mlSeenKey(owner), JSON.stringify(ids)); } catch (e) {}
+}
+function mlSeen(url, owner, exclude = []) {
+    return {
+        count: 0,
+        async init() {
+            const ids = mlSeenIds(owner).filter(id => !exclude.includes(id));
+            if (!ids.length) return;
+            try {
+                const r = await fetch(url + '?ids=' + ids.join(','), { headers: { 'Accept': 'application/json' } });
+                if (!r.ok) return;
+                const data = await r.json();
+                Object.assign(this.products, data.items || {});
+                this.$refs.rail.innerHTML = data.html || '';
+                this.count = Object.keys(data.items || {}).length;
+            } catch (e) {}
+        },
+        clear() {
+            try { localStorage.removeItem(mlSeenKey(owner)); } catch (e) {}
+            this.count = 0;
+            this.$refs.rail.innerHTML = '';
+        },
+    };
+}
 function mlCatalog(products, cartUrl, stockMap, extra = {}) {
     return {
         init() {
