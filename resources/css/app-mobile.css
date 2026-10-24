@@ -593,3 +593,15 @@ html body .rcv-modal-backdrop { margin: 0 !important; }
 /* Configurações › Plano no modo escuro: recursos fora do plano e nomes do uso do plano estavam quase invisíveis (cor fixa escura). */
 html.dark body .plan-feat-off { color: rgba(226, 232, 240, .45) !important; }
 html.dark body .plan-usage-label { color: #e2e8f0 !important; }
+
+/* Configurações › Conexões no modo escuro: os cards de integração ficavam brancos
+   e o título dos cards "em breve" sumia no fundo escuro. */
+html.dark body .s-conn-card { background: #111827 !important; border-color: #334155 !important; }
+html.dark body .s-conn-card.connected { background: linear-gradient(135deg, rgba(20, 83, 45, .35), #111827) !important; border-color: rgba(16, 185, 129, .4) !important; }
+html.dark body .s-conn-top { border-color: #1f2937 !important; }
+html.dark body .s-conn-info h3 { color: #f1f5f9 !important; }
+html.dark body .s-conn-info p { color: #94a3b8 !important; }
+html.dark body .s-conn-chip { background: #0f172a !important; border-color: #334155 !important; color: #cbd5e1 !important; }
+html.dark body .s-conn-chip--success { background: rgba(20, 83, 45, .28) !important; border-color: rgba(16, 185, 129, .24) !important; color: #86efac !important; }
+html.dark body .s-conn-chip--warning { background: rgba(146, 64, 14, .24) !important; border-color: rgba(245, 158, 11, .28) !important; color: #fdba74 !important; }
+html.dark body .s-conn-btn:not(.s-conn-btn--primary):not(.s-conn-btn--orange):not(.s-conn-btn--blue) { background: #1f2937 !important; border-color: #334155 !important; color: #e2e8f0 !important; }
