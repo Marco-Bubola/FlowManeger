@@ -71,14 +71,6 @@
                                 </button>
                             </div>
 
-                            <!-- Toggle Button -->
-                            <button id="sidebarToggle" type="button" class="lg:flex hidden w-9 h-9 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200 group">
-                                    <button
-                                        type="button"
-                                        @click="toggle()"
-                                        :aria-expanded="open.toString()"
-                                        class="flex w-full items-center justify-between rounded-2xl border border-fuchsia-200/70 bg-fuchsia-50/80 px-3 py-3 text-left transition-all duration-200 hover:border-fuchsia-300 hover:bg-fuchsia-100/80 dark:border-fuchsia-900/70 dark:bg-fuchsia-950/30 dark:hover:border-fuchsia-800 dark:hover:bg-fuchsia-900/30"
-                                    >
                             <button type="button" class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" onclick="closeMobileSidebar()">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -88,7 +80,7 @@
                     </div>
 
                     <!-- Navigation Content -->
-                    <div class="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 custom-scrollbar">
+                    <div id="sidebarScroll" class="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 custom-scrollbar">
                         <!-- ============ DASHBOARDS — Seção colapsável (padrão) ============ -->
                         @php $__dashOpen = request()->routeIs('dashboard.*') ? 'true' : 'false'; @endphp
                         <div class="mb-3 sidebar-section sidebar-section-dashboard" x-data="flowSidebarSection('dashboards', {{ $__dashOpen }})" x-init="init()" aria-label="Dashboards">
@@ -233,14 +225,28 @@
                                     <div class="{{ Request::is('clients') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
                                 </a>
 
-                                <a href="{{ route('promotions.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('promotions*') ? 'bg-gradient-to-r from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20 text-rose-600 dark:text-rose-400 font-semibold' : '' }}" wire:navigate.hover>
-                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('promotions*') ? 'bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/30' : '' }}">
+                                <a href="{{ route('promotions.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ (Request::is('promotions*') && ! Request::is('promotions/vitrine*') && ! Request::is('promotions/avaliacoes')) ? 'bg-gradient-to-r from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20 text-rose-600 dark:text-rose-400 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ (Request::is('promotions*') && ! Request::is('promotions/vitrine*') && ! Request::is('promotions/avaliacoes')) ? 'bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/30' : '' }}">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path>
                                         </svg>
                                     </div>
                                     <span class="sidebar-text flex-1 font-medium truncate">Promoções</span>
-                                    <div class="{{ Request::is('promotions*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-rose-500 to-pink-600 rounded-l-full"></div>
+                                    <div class="{{ (Request::is('promotions*') && ! Request::is('promotions/vitrine*') && ! Request::is('promotions/avaliacoes')) ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-rose-500 to-pink-600 rounded-l-full"></div>
+                                </a>
+                                <a href="{{ route('promotions.storefront') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('promotions/vitrine*') ? 'bg-gradient-to-r from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20 text-rose-600 dark:text-rose-400 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('promotions/vitrine*') ? 'bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-shop-window text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Vitrine do catálogo</span>
+                                    <div class="{{ Request::is('promotions/vitrine*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-violet-500 to-fuchsia-600 rounded-l-full"></div>
+                                </a>
+                                <a href="{{ route('promotions.reviews') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('promotions/avaliacoes') ? 'bg-gradient-to-r from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20 text-rose-600 dark:text-rose-400 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('promotions/avaliacoes') ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-star-half text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Avaliações</span>
+                                    <div class="{{ Request::is('promotions/avaliacoes') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-amber-400 to-orange-500 rounded-l-full"></div>
                                 </a>
 
                                 @php $portalNew = auth()->check() ? \App\Models\ClientQuoteRequest::where('user_id', auth()->id())->where('status', 'pending')->count() : 0; @endphp
@@ -1648,11 +1654,23 @@
                         </div>
                         <span class="more-app-label">Produtos</span>
                     </a>
-                    <a href="{{ route('promotions.index') }}" class="more-app-card {{ Request::is('promotions*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                    <a href="{{ route('promotions.index') }}" class="more-app-card {{ (Request::is('promotions*') && ! Request::is('promotions/vitrine*') && ! Request::is('promotions/avaliacoes')) ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
                         <div class="more-app-icon" style="background:linear-gradient(135deg,#f43f5e,#db2777)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path></svg>
                         </div>
                         <span class="more-app-label">Promoções</span>
+                    </a>
+                    <a href="{{ route('promotions.storefront') }}" class="more-app-card {{ Request::is('promotions/vitrine*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#8b5cf6,#c026d3)">
+                            <i class="bi bi-shop-window text-white"></i>
+                        </div>
+                        <span class="more-app-label">Vitrine</span>
+                    </a>
+                    <a href="{{ route('promotions.reviews') }}" class="more-app-card {{ Request::is('promotions/avaliacoes') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#f59e0b,#f97316)">
+                            <i class="bi bi-star-half text-white"></i>
+                        </div>
+                        <span class="more-app-label">Avaliações</span>
                     </a>
                     <a href="{{ route('products.barcode-scanner') }}" class="more-app-card {{ Request::is('products/barcode-scanner') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
                         <div class="more-app-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
@@ -1977,21 +1995,81 @@
                 localStorage.setItem('flowmanager:sidebar-sections', JSON.stringify(states));
             }
 
+            // Grupo do menu: abre só o da página atual (sem animar ao carregar); os outros ficam fechados.
+            // O usuário ainda abre e fecha à mão; ao trocar de página volta a valer o da página.
+            function sidebarLinkMatches(a) {
+                try {
+                    const u = new URL(a.getAttribute('href'), location.origin);
+                    if (u.origin !== location.origin || u.pathname === '/') return 0;
+                    const here = location.pathname.replace(/\/+$/, '');
+                    const path = u.pathname.replace(/\/+$/, '');
+                    if (here === path) return 2;
+                    return here.startsWith(path + '/') ? 1 : 0;
+                } catch (e) { return 0; }
+            }
+
             window.flowSidebarSection = function(key, defaultOpen = true) {
                 return {
-                    open: defaultOpen,
+                    open: false,
                     init() {
-                        const states = getSidebarSectionStates();
-                        if (typeof states[key] === 'boolean') {
-                            this.open = states[key];
-                        }
+                        const links = Array.from(this.$el.querySelectorAll('nav a[href]'));
+                        const active = links.some(a => sidebarLinkMatches(a) > 0);
+                        this.open = active;
                     },
                     toggle() {
                         this.open = !this.open;
-                        setSidebarSectionState(key, this.open);
                     },
                 };
             };
+
+            // Rolagem do menu: o link clicado fica no mesmo lugar depois de trocar de página.
+            function sidebarScroller() {
+                return document.getElementById("sidebarScroll");
+            }
+            if (!window.__sbScrollBound) {
+            window.__sbScrollBound = true;
+            // Livewire já troca a página no mousedown: mede antes, no pointerdown (e no Enter do teclado).
+            const remember = function(e) {
+                const a = e.target.closest && e.target.closest('#modernSidebar a[href]');
+                const sc = sidebarScroller();
+                if (!a || !sc || (e.type === 'keydown' && e.key !== 'Enter')) return;
+                window._sbAnchor = { href: a.getAttribute('href'), top: a.getBoundingClientRect().top - sc.getBoundingClientRect().top, scroll: sc.scrollTop };
+            };
+            document.addEventListener('pointerdown', remember, true);
+            document.addEventListener('keydown', remember, true);
+            document.addEventListener('livewire:navigating', function() {
+                const sc = sidebarScroller();
+                if (sc && !window._sbAnchor) window._sbAnchor = { href: null, top: 0, scroll: sc.scrollTop };
+            });
+            }
+            function restoreSidebarScroll() {
+                const sc = sidebarScroller();
+                if (!sc) return;
+                const anchor = window._sbAnchor;
+                window._sbAnchor = null;
+                const apply = () => {
+                    let link = anchor && anchor.href ? sc.querySelector('a[href="' + CSS.escape(anchor.href) + '"]') : null;
+                    if (link && link.offsetParent) {
+                        sc.scrollTop += (link.getBoundingClientRect().top - sc.getBoundingClientRect().top) - anchor.top;
+                        return;
+                    }
+                    if (anchor) sc.scrollTop = anchor.scroll;
+                    // Sem clique no menu (veio de outro botão): mostra o item da página atual.
+                    const cur = Array.from(sc.querySelectorAll('nav a[href]')).sort((x, y) => sidebarLinkMatches(y) - sidebarLinkMatches(x))[0];
+                    if (cur && sidebarLinkMatches(cur) > 0 && cur.offsetParent) {
+                        const r = cur.getBoundingClientRect(), b = sc.getBoundingClientRect();
+                        if (r.top < b.top || r.bottom > b.bottom) sc.scrollTop += r.top - b.top - b.height / 3;
+                    }
+                };
+                // Depois que os grupos do menu já abriram/fecharam (Alpine) e de novo um pouco depois.
+                setTimeout(apply, 0);
+                setTimeout(apply, 120);
+                setTimeout(apply, 400);
+            }
+            if (!window.__sbRestoreBound) {
+                window.__sbRestoreBound = true;
+                document.addEventListener('livewire:navigated', () => restoreSidebarScroll());
+            }
 
             function _isAnySheetOpen() {
                 return document.getElementById('mobileFabSheet')?.classList.contains('is-open')
