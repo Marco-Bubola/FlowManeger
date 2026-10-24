@@ -109,7 +109,7 @@ new class extends Component {
                 @php $features = $activePlan->featuresList(); @endphp
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.4rem">
                     @foreach($features as $feat)
-                    <div style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;{{ !$feat['active'] ? 'color:rgba(0,0,0,.3)' : '' }}">
+                    <div class="{{ !$feat['active'] ? 'plan-feat-off' : '' }}" style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;{{ !$feat['active'] ? 'color:rgba(0,0,0,.3)' : '' }}">
                         <span style="color:{{ $feat['active'] ? '#10b981' : '#cbd5e1' }}">{{ $feat['active'] ? '✓' : '✕' }}</span>
                         {{ $feat['label'] }}
                     </div>
@@ -246,7 +246,7 @@ new class extends Component {
                     @foreach($usageCards as [$label,$percent,$value,$color])
                     <div>
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.32rem">
-                            <p style="font-size:.78rem;font-weight:700;color:#334155;margin:0">{{ $label }}</p>
+                            <p class="plan-usage-label" style="font-size:.78rem;font-weight:700;color:#334155;margin:0">{{ $label }}</p>
                             <span style="font-size:.74rem;color:{{ $color }};font-weight:700">{{ $value }}</span>
                         </div>
                         <div style="height:8px;border-radius:999px;background:#eef2ff;overflow:hidden">

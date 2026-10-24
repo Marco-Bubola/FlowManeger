@@ -1046,7 +1046,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="mt-8 px-4 sm:px-6 lg:px-8 pb-8">
     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
         {{-- Header --}}
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-5 bg-gradient-to-r from-sky-50 via-indigo-50 to-purple-50 dark:from-sky-900/20 dark:to-indigo-900/20 border-b border-slate-200 dark:border-slate-700">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-5 bg-gradient-to-r from-sky-50 via-indigo-50 to-purple-50 dark:from-sky-900/20 dark:via-indigo-900/20 dark:to-indigo-900/20 border-b border-slate-200 dark:border-slate-700">
             <div class="flex items-center gap-3">
                 <div class="w-11 h-11 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
                     <i class="fas fa-user-lock text-white text-base"></i>

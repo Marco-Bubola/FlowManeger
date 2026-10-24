@@ -627,7 +627,7 @@
                             </div>
                         </div>
 
-                        <div class="p-6 bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border-2 border-amber-300 dark:border-amber-600">
+                        <div class="p-6 bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 dark:from-slate-700 dark:via-slate-700 dark:to-slate-600 rounded-2xl border-2 border-amber-300 dark:border-amber-600">
                             <div class="flex items-center gap-3 mb-3">
                                 <i class="bi bi-emoji-smile-fill text-3xl text-amber-500"></i>
                                 <div>

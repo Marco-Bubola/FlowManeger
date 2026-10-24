@@ -589,3 +589,7 @@ html body .add-products-page.add-products-page .product-card-modern .card-body {
    (ela deixava uma faixa da página aparecendo embaixo da janela, como no Receber de A receber). */
 html body .fixed.inset-0,
 html body .rcv-modal-backdrop { margin: 0 !important; }
+
+/* Configurações › Plano no modo escuro: recursos fora do plano e nomes do uso do plano estavam quase invisíveis (cor fixa escura). */
+html.dark body .plan-feat-off { color: rgba(226, 232, 240, .45) !important; }
+html.dark body .plan-usage-label { color: #e2e8f0 !important; }
