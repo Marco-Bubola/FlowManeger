@@ -120,9 +120,11 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* ── Classe de entrada de página ── */
+        /* ── Classe de entrada de página ──
+           "backwards" e não "both": com "both" o transform ficava na página depois da animação,
+           e todo modal "fixed" dentro dela passava a se posicionar pela página (cortado, atrás da barra de baixo). */
         .fm-page-in {
-            animation: fm-page-in .38s cubic-bezier(.4,0,.2,1) both;
+            animation: fm-page-in .38s cubic-bezier(.4,0,.2,1) backwards;
         }
 
         /* ── Cursor de espera durante navegação ── */

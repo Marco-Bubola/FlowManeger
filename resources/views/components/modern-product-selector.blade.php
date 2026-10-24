@@ -210,7 +210,7 @@
         <div x-show="showCart" x-cloak class="fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-0 sm:p-4 lg:hidden" x-transition.opacity>
             <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-md" @click="closeCart()"></div>
 
-            <div class="relative w-full sm:max-w-md max-h-[88vh] sm:max-h-[85vh] overflow-hidden rounded-t-3xl sm:rounded-3xl shadow-2xl bg-gradient-to-br from-white via-purple-50/40 to-indigo-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border border-white/40 dark:border-slate-700/60 flex flex-col"
+            <div class="relative w-full sm:max-w-md max-h-[88vh] sm:max-h-[85vh] overflow-hidden rounded-t-3xl sm:rounded-3xl shadow-2xl bg-white dark:bg-slate-900 bg-gradient-to-br from-white via-purple-50/40 to-indigo-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 border border-white/40 dark:border-slate-700/60 flex flex-col"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-8 sm:scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"

@@ -33,10 +33,10 @@
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-4 sm:p-5 grid lg:grid-cols-2 gap-5">
+            <div class="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-2 gap-5">
 
                 {{-- ===== IMAGEM ===== --}}
-                <div class="space-y-3" :class="pane === 'img' ? '' : 'hidden lg:block'">
+                <div class="space-y-3 min-w-0" :class="pane === 'img' ? '' : 'hidden lg:block'">
                     <div class="ps-preview">
                         <canvas x-ref="canvas" class="max-h-[380px] w-auto max-w-full rounded-xl shadow-lg"></canvas>
                     </div>
@@ -90,7 +90,7 @@
                 </div>
 
                 {{-- ===== MENSAGEM ===== --}}
-                <div class="space-y-3" :class="pane === 'msg' ? '' : 'hidden lg:block'">
+                <div class="space-y-3 min-w-0" :class="pane === 'msg' ? '' : 'hidden lg:block'">
                     @if($promo)
                         <div class="flex items-center gap-2 p-2.5 rounded-xl bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 text-xs font-semibold text-orange-700 dark:text-orange-300">
                             <i class="bi bi-fire"></i> Este produto está em promoção: a imagem e a mensagem já saem com o preço De/Por.

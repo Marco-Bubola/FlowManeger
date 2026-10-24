@@ -584,3 +584,8 @@ html body .add-products-page.add-products-page .product-card-modern .card-body {
     html body .s-conn-summary .settings-info-tile-val { font-size: .68rem !important; word-break: keep-all; overflow-wrap: normal; white-space: nowrap; }
     html body .sh-dev-this-badge { display: none !important; }
 }
+
+/* Janelas (modais) que cobrem a tela: sem margem herdada do space-y da página
+   (ela deixava uma faixa da página aparecendo embaixo da janela, como no Receber de A receber). */
+html body .fixed.inset-0,
+html body .rcv-modal-backdrop { margin: 0 !important; }
