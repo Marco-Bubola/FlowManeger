@@ -246,7 +246,10 @@ class PortalOrderService
 
     public function estimatedTotal(ClientQuoteRequest $quote): float
     {
-        return (float) collect($quote->items ?? [])->sum(fn ($i) => (float) ($i['price_ref'] ?? 0) * (int) ($i['quantity'] ?? 1));
+        $sum = (float) collect($quote->items ?? [])->sum(fn ($i) => (float) ($i['price_ref'] ?? 0) * (int) ($i['quantity'] ?? 1));
+
+        // Cupom do catálogo sai do valor dos produtos.
+        return max(0, $sum - (float) ($quote->discount ?? 0));
     }
 
     public function isPaid(Sale $sale): bool

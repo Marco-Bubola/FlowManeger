@@ -268,7 +268,7 @@
         <div class="pq-grid">
         @foreach($filteredQuotes as $quote)
         @php
-            $autoTotal    = collect($quote->items ?? [])->sum(fn($i) => ($i['price_ref'] ?? 0) * ($i['quantity'] ?? 1));
+            $autoTotal    = app(\App\Services\Portal\PortalOrderService::class)->estimatedTotal($quote);
             $displayTotal = $quote->quoted_total ?? $autoTotal;
             $autoValidDate= $quote->valid_until ?? $quote->created_at->copy()->addDays(30);
 
@@ -356,6 +356,11 @@
                     @elseif($quote->payment_status === 'refunded')
                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/40 text-[10px] font-bold text-rose-700 dark:text-rose-300" data-testid="refunded">
                         <i class="bi bi-arrow-counterclockwise text-[9px]"></i> Pagamento devolvido ao cliente
+                    </span>
+                    @endif
+                    @if($quote->coupon_code)
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                        <i class="bi bi-ticket-perforated text-[9px]"></i> Cupom {{ $quote->coupon_code }} · −R$ {{ number_format((float) $quote->discount, 2, ',', '.') }}
                     </span>
                     @endif
                     @if($quote->delivery_method)

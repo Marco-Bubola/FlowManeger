@@ -16,6 +16,7 @@ class ClientQuoteRequest extends Model
         'payment_preference',
         'payment_status', 'payment_amount', 'paid_at', 'delivery_method', 'delivery_fee', 'shipping_address',
         'responded_at', 'client_seen_status', 'client_notified_at',
+        'coupon_code', 'discount',
     ];
 
     protected $casts = [
@@ -28,6 +29,7 @@ class ClientQuoteRequest extends Model
         'paid_at'          => 'datetime',
         'payment_amount'   => 'decimal:2',
         'delivery_fee'     => 'decimal:2',
+        'discount'         => 'decimal:2',
         'shipping_address' => 'array',
     ];
 

@@ -188,6 +188,7 @@ Route::middleware('portal.auth')->prefix('portal')->name('portal.')->group(funct
     Route::get('/orcamentos', [ClientPortalController::class, 'quotes'])->name('quotes');
     Route::get('/orcamentos/novo', [ClientPortalController::class, 'createQuote'])->name('quotes.create');
     Route::post('/orcamentos', [ClientPortalController::class, 'storeQuote'])->name('quotes.store');
+    Route::post('/cupom', [ClientPortalController::class, 'checkCoupon'])->middleware('throttle:20,1')->name('coupon.check');
     Route::get('/orcamentos/{quote}', [ClientPortalController::class, 'showQuote'])->name('quotes.show');
     // Pagamento online do pedido (Pix pelo Mercado Pago)
     Route::get('/orcamentos/{quote}/pagar', [\App\Http\Controllers\PortalPaymentController::class, 'show'])->name('quotes.pay');
@@ -276,6 +277,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/promotions', PromotionsIndex::class)->name('promotions.index');
     Route::get('/promotions/create', PromotionsCreate::class)->name('promotions.create');
     Route::get('/promotions/report', \App\Livewire\Promotions\PromotionsReport::class)->name('promotions.report');
+    Route::get('/promotions/cupons', \App\Livewire\Promotions\PortalCoupons::class)->name('promotions.coupons');
 
     // Manter rotas que ainda usam controller para funcionalidades específicas
     // Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');

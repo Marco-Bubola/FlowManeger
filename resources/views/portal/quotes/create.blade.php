@@ -30,6 +30,14 @@
         .pc-opt strong { display: block; font-size: 14px; color: #222; }
         .pc-opt small { display: block; font-size: 12px; color: var(--ml-muted); margin-top: 2px; }
         .pc-opt.on { border-color: var(--ml-blue); box-shadow: 0 0 0 1px var(--ml-blue); background: #faf8ff; }
+        .pc-coupon-row { display: flex; gap: 8px; }
+        .pc-coupon-row .pf-input { text-transform: uppercase; }
+        .pc-coupon-row .po-btn { flex-shrink: 0; height: 44px; padding: 0 16px; }
+        .pc-coupon-on { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px dashed var(--ml-green); border-radius: 8px; background: #effaf3; }
+        .pc-coupon-on > i { color: var(--ml-green); font-size: 18px; }
+        .pc-coupon-on span { flex: 1; min-width: 0; }
+        .pc-coupon-on b { display: block; font-size: 14px; color: #14532d; letter-spacing: .03em; }
+        .pc-coupon-on small { display: block; font-size: 12px; color: #3f6b4f; }
         .pc-addr { font-size: 13px; color: #444; line-height: 1.45; }
         .pc-addr strong { color: #222; }
         .pc-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: #fff; box-shadow: 0 -2px 12px rgba(0,0,0,.12); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; }
@@ -46,6 +54,8 @@
     $fresh = $products->mapWithKeys(fn ($p) => [$p->id => \App\Http\Controllers\ClientPortalController::cardInfo($p)]);
     $stockMap = $fresh->map(fn ($d) => $d['stock']);
     $address = $client->formattedPortalAddress();
+    // Campo de cupom só quando a loja tem algum cupom ligado.
+    $hasCoupons = \App\Models\PortalCoupon::where('user_id', $client->user_id)->where('active', true)->exists();
     // Pagamento online (Mercado Pago) e entrega, quando a loja ligou em Configurações.
     $online = $paySettings && $paySettings->enabled;
     $payMethods = $paySettings?->methods() ?? [];
@@ -62,6 +72,9 @@
         'fee'        => $canDeliver ? (float) $paySettings->delivery_fee : 0,
         'hasCpf'     => strlen(preg_replace('/\D+/', '', (string) $client->cpf_cnpj)) >= 11,
         'hasAddress' => $client->hasRequiredPortalProfileData(),
+        'couponUrl'  => route('portal.coupon.check'),
+        'oldCoupon'  => old('coupon_code', ''),
+        'hasErrors'  => $errors->any(),
     ];
 @endphp
 
@@ -147,11 +160,30 @@
                     <table class="po-sum">
                         <tr><td x-text="'Produtos (' + units + ')'"></td><td x-text="money(totalOld)"></td></tr>
                         <tr x-show="totalOld - $store.cart.total > 0.009"><td>Descontos</td><td style="color:var(--ml-green)" x-text="'− ' + money(totalOld - $store.cart.total)"></td></tr>
+                        <tr x-show="discount > 0" x-cloak><td x-text="'Cupom ' + coupon?.code"></td><td style="color:var(--ml-green)" x-text="'− ' + money(discount)" data-testid="coupon-discount"></td></tr>
                         <tr x-show="delivery === 'entrega'"><td>Entrega</td><td x-text="cfg.fee > 0 ? money(cfg.fee) : 'Grátis'"></td></tr>
                         <tr class="po-sum-total"><td>Total</td><td x-text="money(grand)"></td></tr>
                     </table>
                     <p class="po-hint" style="margin-top:8px" x-show="!online">A loja confirma os valores e combina a entrega com você.</p>
                 </div>
+                @if($hasCoupons)
+                <div class="po-card-body pc-coupon" style="border-top:1px solid var(--ml-line)" data-testid="coupon-box">
+                    <template x-if="!coupon">
+                        <form class="pc-coupon-row" @submit.prevent="applyCoupon()">
+                            <input type="text" x-model="couponInput" class="pf-input" placeholder="Cupom de desconto" maxlength="40" autocomplete="off" autocapitalize="characters" aria-label="Cupom de desconto" data-testid="coupon-input">
+                            <button type="submit" class="po-btn po-btn-soft" :disabled="couponBusy || !couponInput.trim()" data-testid="coupon-apply" x-text="couponBusy ? '...' : 'Aplicar'"></button>
+                        </form>
+                    </template>
+                    <template x-if="coupon">
+                        <div class="pc-coupon-on">
+                            <i class="fas fa-ticket"></i>
+                            <span><b x-text="coupon.code"></b><small x-text="discount > 0 ? couponLabel : couponMinMsg"></small></span>
+                            <button type="button" class="pc-remove" @click="removeCoupon()">Remover</button>
+                        </div>
+                    </template>
+                    <p class="pf-err" x-show="couponErr" x-text="couponErr" style="margin-top:6px" data-testid="coupon-error"></p>
+                </div>
+                @endif
 
                 @if($online && ($canPickup || $canDeliver))
                 <div class="po-card-body" style="border-top:1px solid var(--ml-line)">
@@ -248,6 +280,7 @@
         <input type="hidden" name="checkout" :value="checkout">
         <input type="hidden" name="delivery_method" :value="delivery">
         <input type="hidden" name="client_notes" :value="notes">
+        <input type="hidden" name="coupon_code" :value="discount > 0 ? coupon.code : ''">
     </form>
 
     <div class="pc-toast" x-show="toast" x-transition.opacity x-text="toast" x-cloak></div>
@@ -266,6 +299,10 @@ function portalCart(fresh, stockMap, cfg) {
         notes: '',
         sending: false,
         toast: '',
+        coupon: null,
+        couponInput: cfg.oldCoupon || '',
+        couponBusy: false,
+        couponErr: '',
         payOptions: [
             { val: 'pix', icon: 'fas fa-qrcode', label: 'Pix' },
             { val: 'dinheiro', icon: 'fas fa-money-bill-wave', label: 'Dinheiro' },
@@ -283,6 +320,14 @@ function portalCart(fresh, stockMap, cfg) {
                 if (f) { i.price = f.price; i.name = f.name; i.img = f.img; i.stock = f.stock; }
             });
             cart.save();
+            // Voltou com erro do envio: o carrinho tinha sido limpo, então volta o que estava nele.
+            if (cfg.hasErrors && !cart.count) {
+                try {
+                    const backup = JSON.parse(sessionStorage.getItem('portal_cart_backup') || '[]');
+                    if (backup.length) { cart.items = backup; cart.sync(stockMap); }
+                } catch (e) {}
+            }
+            if (this.couponInput) this.$nextTick(() => this.applyCoupon());
             // Link direto: ?product_id=ID coloca o produto no carrinho.
             const pre = Number(new URLSearchParams(location.search).get('product_id'));
             if (pre && fresh[pre] && !cart.has(pre)) {
@@ -290,7 +335,40 @@ function portalCart(fresh, stockMap, cfg) {
                 this.flash('Adicionado: ' + fresh[pre].name);
             }
         },
-        get grand() { return Alpine.store('cart').total + (this.delivery === 'entrega' ? (Number(this.cfg.fee) || 0) : 0); },
+        get discount() {
+            const c = this.coupon, sub = Alpine.store('cart').total;
+            if (!c || (c.min && sub + 0.009 < c.min)) return 0;
+            const d = c.kind === 'fixed' ? c.value : sub * c.value / 100;
+            return Math.round(Math.max(0, Math.min(d, sub)) * 100) / 100;
+        },
+        get couponLabel() {
+            if (!this.coupon) return '';
+            return (this.coupon.kind === 'fixed' ? this.money(this.coupon.value) : String(this.coupon.value).replace('.', ',') + '%') + ' de desconto · você economiza ' + this.money(this.discount);
+        },
+        get couponMinMsg() { return this.coupon?.min ? 'Vale a partir de ' + this.money(this.coupon.min) + ' em produtos' : ''; },
+        get grand() { return Alpine.store('cart').total - this.discount + (this.delivery === 'entrega' ? (Number(this.cfg.fee) || 0) : 0); },
+        async applyCoupon() {
+            const code = this.couponInput.trim();
+            if (!code || this.couponBusy) return;
+            this.couponBusy = true;
+            this.couponErr = '';
+            try {
+                const r = await fetch(this.cfg.couponUrl, { method: 'POST', credentials: 'same-origin', headers: {
+                    'Content-Type': 'application/json', 'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                }, body: JSON.stringify({ code, subtotal: Alpine.store('cart').total }) });
+                const d = await r.json();
+                if (r.status === 429) { this.couponErr = 'Muitas tentativas. Espere um minuto e tente de novo.'; return; }
+                if (!d.ok) { this.couponErr = d.message || 'Cupom inválido.'; return; }
+                this.coupon = { code: d.code, kind: d.kind, value: Number(d.value), min: d.min ? Number(d.min) : null };
+                this.flash('Cupom aplicado');
+            } catch (e) {
+                this.couponErr = 'Não deu para conferir o cupom agora. Tente de novo.';
+            } finally {
+                this.couponBusy = false;
+            }
+        },
+        removeCoupon() { this.coupon = null; this.couponInput = ''; this.couponErr = ''; },
         get online() { return this.checkout !== 'manual'; },
         get blocked() { return (this.online && !this.cfg.hasCpf) || ((this.checkout === 'boleto' || this.delivery === 'entrega') && !this.cfg.hasAddress); },
         get sendLabel() { return this.online ? 'Ir para o pagamento' : 'Enviar pedido'; },
@@ -303,6 +381,7 @@ function portalCart(fresh, stockMap, cfg) {
             this.sending = true;
             // O envio monta os campos na hora da chamada; depois o carrinho pode ser limpo.
             this.$refs.form.submit();
+            try { sessionStorage.setItem('portal_cart_backup', JSON.stringify(Alpine.store('cart').items)); } catch (e) {}
             Alpine.store('cart').clear();
         },
     };

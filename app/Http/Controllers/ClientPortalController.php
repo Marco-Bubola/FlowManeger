@@ -864,6 +864,29 @@ class ClientPortalController extends Controller
         ];
     }
 
+    /** Carrinho: confere o cupom digitado e devolve a regra para o desconto aparecer na hora. */
+    public function checkCoupon(Request $request)
+    {
+        /** @var \App\Models\Client $client */
+        $client = Auth::guard('portal')->user();
+        $data = $request->validate([
+            'code'     => ['required', 'string', 'max:40'],
+            'subtotal' => ['required', 'numeric', 'min:0'],
+        ]);
+        $coupon = \App\Models\PortalCoupon::findFor((int) $client->user_id, $data['code']);
+        if (! $coupon) {
+            return response()->json(['ok' => false, 'message' => 'Cupom não encontrado. Confira o código.']);
+        }
+        $check = $coupon->check((float) $data['subtotal'], (int) $client->id);
+
+        return response()->json($check + [
+            'code' => $coupon->code,
+            'kind' => $coupon->kind,
+            'value' => (float) $coupon->value,
+            'min' => $coupon->min_total ? (float) $coupon->min_total : null,
+        ]);
+    }
+
     public function storeQuote(Request $request)
     {
         /** @var \App\Models\Client $client */
@@ -881,6 +904,7 @@ class ClientPortalController extends Controller
             'payment_preference'  => ['nullable', 'string', 'in:pix,dinheiro,credito,debito,boleto,outro'],
             'checkout'            => ['nullable', 'in:pix,cartao,boleto,manual'],
             'delivery_method'     => ['nullable', 'in:retirada,entrega'],
+            'coupon_code'         => ['nullable', 'string', 'max:40'],
         ]);
 
         if (empty($validated['items']) && empty($validated['extra_items'])) {
@@ -933,6 +957,20 @@ class ClientPortalController extends Controller
             }
         }
 
+        // Cupom: conferido de novo aqui, sobre os preços do servidor.
+        $couponCode = null;
+        $discount = null;
+        if (filled($validated['coupon_code'] ?? null)) {
+            $subtotal = collect($items)->sum(fn ($i) => (float) $i['price_ref'] * $i['quantity']);
+            $coupon = \App\Models\PortalCoupon::findFor((int) $client->user_id, $validated['coupon_code']);
+            $check = $coupon ? $coupon->check($subtotal, (int) $client->id) : ['ok' => false, 'message' => 'Cupom não encontrado. Confira o código.'];
+            if (! $check['ok']) {
+                return back()->withErrors(['coupon' => $check['message']]);
+            }
+            $couponCode = $coupon->code;
+            $discount = $check['discount'];
+        }
+
         $extraItems = [];
         foreach ($validated['extra_items'] ?? [] as $ei) {
             $extraItems[] = [
@@ -951,6 +989,8 @@ class ClientPortalController extends Controller
             'payment_preference' => $payNow ? ['pix' => 'pix', 'cartao' => 'credito', 'boleto' => 'boleto'][$method] : ($validated['payment_preference'] ?? null),
             'payment_status'     => $payNow ? 'pending' : null,
             'delivery_method'    => $delivery,
+            'coupon_code'        => $couponCode,
+            'discount'           => $discount,
             'delivery_fee'       => $delivery === 'entrega' ? (float) $paySettings->delivery_fee : ($delivery ? 0 : null),
             'shipping_address'   => $delivery === 'entrega' ? [
                 'name' => $client->name, 'phone' => $client->phone, 'cpf' => $client->cpf_cnpj,
@@ -1087,10 +1127,25 @@ class ClientPortalController extends Controller
             ];
         }
 
+        // Cupom do pedido: o desconto acompanha os itens novos (sem o mínimo, sai do pedido).
+        $discount = null;
+        $couponCode = $quote->coupon_code;
+        if ($couponCode) {
+            $coupon = \App\Models\PortalCoupon::findFor((int) $client->user_id, $couponCode);
+            $subtotal = collect($items)->sum(fn ($i) => (float) $i['price_ref'] * $i['quantity']);
+            if ($coupon && (! $coupon->min_total || $subtotal + 0.009 >= (float) $coupon->min_total)) {
+                $discount = $coupon->discountFor($subtotal);
+            } else {
+                $couponCode = null;
+            }
+        }
+
         $quote->update([
             'items'        => $items,
             'extra_items'  => $extraItems ?: null,
             'client_notes' => $validated['client_notes'] ?? null,
+            'coupon_code'  => $couponCode,
+            'discount'     => $discount,
         ]);
 
         return redirect()->route('portal.quotes.show', $quote)

@@ -174,7 +174,7 @@
                             <tr><td>Produtos</td><td>{{ $orders->money($itemsTotal) }}</td></tr>
                         @endif
                         @if($itemsTotal > 0 && abs($adjust) > 0.009)
-                            <tr><td>{{ $adjust < 0 ? 'Desconto' : 'Ajuste da loja' }}</td><td>{{ $adjust < 0 ? '− ' : '' }}{{ $orders->money(abs($adjust)) }}</td></tr>
+                            <tr><td>{{ $adjust < 0 ? ($quote->coupon_code ? 'Cupom ' . $quote->coupon_code : 'Desconto') : 'Ajuste da loja' }}</td><td>{{ $adjust < 0 ? '− ' : '' }}{{ $orders->money(abs($adjust)) }}</td></tr>
                         @endif
                         @if($quote->delivery_method)
                             <tr><td>{{ $quote->delivery_method === 'entrega' ? 'Entrega' : 'Retirada' }}</td><td>{{ $quote->delivery_method === 'entrega' ? ($deliveryFee > 0 ? $orders->money($deliveryFee) : 'Grátis') : 'Com a loja' }}</td></tr>

@@ -134,6 +134,9 @@
                         @elseif ($q->payment_preference)
                             <span class="po-tag"><i class="bi bi-wallet2"></i>Quer pagar com {{ $orders->paymentLabel($q->payment_preference) }}</span>
                         @endif
+                        @if ($q->coupon_code)
+                            <span class="po-tag is-emerald" data-testid="order-coupon"><i class="bi bi-ticket-perforated"></i>Cupom {{ $q->coupon_code }} · −{{ $orders->money((float) $q->discount) }}</span>
+                        @endif
                         @if ($q->delivery_method)
                             <span class="po-tag"><i class="bi {{ $q->delivery_method === 'entrega' ? 'bi-truck' : 'bi-shop' }}"></i>{{ $q->delivery_method === 'entrega' ? 'Entrega' . ((float) $q->delivery_fee > 0 ? ' · ' . $orders->money((float) $q->delivery_fee) : '') : 'Retira com você' }}</span>
                         @endif

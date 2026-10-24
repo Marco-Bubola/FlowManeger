@@ -59,10 +59,11 @@ class PortalCheckoutService
         return new MercadoPagoService($settings);
     }
 
-    /** Valor a pagar recalculado no servidor: preço do pedido + entrega. */
+    /** Valor a pagar recalculado no servidor: preço do pedido − cupom + entrega. */
     public function amount(ClientQuoteRequest $quote): float
     {
         $sum = collect($quote->items ?? [])->sum(fn ($i) => (float) ($i['price_ref'] ?? 0) * max(1, (int) ($i['quantity'] ?? 1)));
+        $sum = max(0, $sum - (float) ($quote->discount ?? 0));
 
         return round($sum + (float) ($quote->delivery_fee ?? 0), 2);
     }
