@@ -60,6 +60,14 @@ PADRAO = {
     "folga_caixa": "4",
     "prazo_padrao": "15",
     "completar_ao_importar": "sim",
+    "atualizar_sozinho": "sim",
+    "atualizar_repo": "Marco-Bubola/FlowManeger",
+    "atualizar_ref": "claude/project-thread-l778hs",
+    "atualizar_pasta": "ferramentas/robo-stylo",
+    "atualizar_token": "",
+    "copia_diaria": "sim",
+    "pasta_copias": "",
+    "copias_guardar": "14",
 }
 
 
@@ -908,6 +916,58 @@ def _limpar_descricao(texto):
     return re.sub(r"\n{3,}", "\n\n", t).strip()[:5000]
 
 
+def salvar_fotos_ml(info, destino, baixar, max_fotos=10):
+    """Baixa as fotos de um anúncio lido (info["imagens"]) para a pasta, como 01-ml.jpg, 02-ml.jpg..."""
+    nomes = []
+    if not baixar or Image is None:
+        return nomes
+    import io
+    alt = info.get("imagens_alt") or []
+    for n, url in enumerate((info.get("imagens") or [])[:max_fotos], 1):
+        corpo = baixar(url)
+        if not corpo and n - 1 < len(alt) and alt[n - 1] != url:
+            corpo = baixar(alt[n - 1])
+        if not corpo:
+            continue
+        try:
+            with Image.open(io.BytesIO(corpo)) as im:
+                im = im.convert("RGB")
+                nome = f"{n:02d}-ml.jpg"
+                im.save(Path(destino) / nome, "JPEG", quality=90, optimize=True)
+                nomes.append(nome)
+        except Exception:
+            continue
+    return nomes
+
+
+def copia_das_fichas(pasta_produtos, pasta_copias=None, guardar=14):
+    """Uma cópia por dia da pasta das fichas (zip). Devolve o arquivo criado, ou None se a de hoje já existe."""
+    import zipfile
+    origem = Path(pasta_produtos)
+    if not origem.is_dir():
+        return None
+    destino = Path(pasta_copias) if str(pasta_copias or "").strip() else BASE / "copias"
+    destino.mkdir(parents=True, exist_ok=True)
+    arq = destino / f"fichas-{datetime.now():%Y-%m-%d}.zip"
+    if arq.exists():
+        return None
+    tmp = arq.with_suffix(".parcial")
+    with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as z:
+        for p in origem.rglob("*"):
+            if p.is_file():
+                rel = p.relative_to(origem)
+                comprime = zipfile.ZIP_STORED if p.suffix.lower() in FOTO_EXTS else zipfile.ZIP_DEFLATED
+                z.write(p, rel, compress_type=comprime)
+    tmp.replace(arq)
+    antigas = sorted(destino.glob("fichas-*.zip"))
+    for velha in antigas[:-max(int(guardar or 14), 1)]:
+        try:
+            velha.unlink()
+        except OSError:
+            pass
+    return arq
+
+
 def ficha_do_ml(info, pasta_produtos, baixar=None, max_fotos=10):
     """Cria uma pasta de ficha nova com os dados e as fotos de um anúncio do Mercado Livre."""
     dados = json.loads(json.dumps(MODELO_VAZIO))
@@ -958,24 +1018,7 @@ def ficha_do_ml(info, pasta_produtos, baixar=None, max_fotos=10):
     dados["mercado_livre"] = {"link_referencia": info.get("link"), "titulo_anuncio": titulo[:60],
                               "tipo_anuncio": "classico", "quantidade_anuncio": 10}
     destino = nova_pasta(pasta_produtos, dados)
-    nomes = []
-    if baixar and Image is not None:
-        import io
-        alt = info.get("imagens_alt") or []
-        for n, url in enumerate((info.get("imagens") or [])[:max_fotos], 1):
-            corpo = baixar(url)
-            if not corpo and n - 1 < len(alt) and alt[n - 1] != url:
-                corpo = baixar(alt[n - 1])
-            if not corpo:
-                continue
-            try:
-                with Image.open(io.BytesIO(corpo)) as im:
-                    im = im.convert("RGB")
-                    nome = f"{n:02d}-ml.jpg"
-                    im.save(destino / nome, "JPEG", quality=90, optimize=True)
-                    nomes.append(nome)
-            except Exception:
-                continue
+    nomes = salvar_fotos_ml(info, destino, baixar, max_fotos)
     dados["variacoes"][0]["fotos"] = nomes
     (destino / "ficha.md").write_text(texto_da_ficha(dados), encoding="utf-8")
     (destino / "origem-ml.json").write_text(json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8")

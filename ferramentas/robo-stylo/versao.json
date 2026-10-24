@@ -1,0 +1,11 @@
+{
+  "versao": 7,
+  "data": "2026-10-24",
+  "arquivos": ["janela.pyw", "motor.py", "recursos.py", "LEIA-ME.txt", "questionario-produto-stylo.md", "requirements.txt"],
+  "novidades": [
+    "Botão “Atualizar robô” em Configurações: as próximas versões se instalam com um clique (e o robô avisa quando sai uma nova).",
+    "Peso da caixa estimado pelo tipo, material e tamanho da peça quando nenhuma variação tem peso.",
+    "Ficha sem foto com link do Mercado Livre: o robô baixa as fotos do anúncio de referência.",
+    "Cópia das fichas todo dia (guarda as últimas 14), numa pasta que você escolhe."
+  ]
+}

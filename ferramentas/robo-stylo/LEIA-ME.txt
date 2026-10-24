@@ -92,6 +92,17 @@ RESOLVER AVISOS
   custo pela proporção do preço). Se nenhuma tiver, abre a janela "Custo e
   peso que faltam" com todas as fichas numa tela só. Confira o que foi estimado.
 
+FOTOS, PESO, CÓPIAS E ATUALIZAÇÃO
+- Ficha sem foto e com link do Mercado Livre: o botão "Baixar do anúncio" traz
+  as fotos do anúncio de referência.
+- Sem peso em nenhuma variação: o robô estima pelo tipo, material e tamanho da
+  peça. É estimativa: confira na balança quando puder.
+- Todo dia, ao abrir, o robô faz uma cópia da pasta das fichas (zip) em
+  "copias" ou na pasta escolhida em Configurações. Guarda as últimas 14.
+- Configurações › "Atualizar robô": instala a versão nova com um clique. O robô
+  também avisa sozinho quando sai uma. A versão anterior fica em
+  _versao-anterior; fichas, login e configurações não mudam.
+
 CUSTO E PREÇO (no editor)
 - Ficha de custo: materiais e "＋ Mão de obra" (horas × sua hora, que fica em
   Configurações). "Usar como custo de todas" passa o total para as variações.

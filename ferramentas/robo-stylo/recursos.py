@@ -816,7 +816,8 @@ def pendencias(d, n_fotos=None, cfg=None):
         if v.get("custo") in (None, "") and soma <= 0:
             add("custo", f"{rot}: sem custo.", i - 1, "Estimar" if com_custo and motor.numero(v.get("venda")) > 0 else None)
         if motor.numero(_emb(v).get("peso_kg")) <= 0:
-            add("peso", f"{rot}: sem peso da caixa (o frete precisa).", i - 1, "Estimar" if com_peso else "Informar")
+            pode = com_peso or peso_pelo_tipo(d, v, motor.numero(cfg.get("folga_caixa") or 4) or 4) is not None
+            add("peso", f"{rot}: sem peso da caixa (o frete precisa).", i - 1, "Estimar" if pode else "Informar")
     multi = n > 1 or any(str(v.get("valor") or "").strip() for v in vs)
     if str(d.get("nome") or "").strip() and not str(d.get("codigo") or "").strip() and not any(str(v.get("codigo") or "").strip() for v in vs):
         add("codigo", "Sem código (o site inventa um).")
@@ -837,7 +838,7 @@ def pendencias(d, n_fotos=None, cfg=None):
     if d.get("nome") and not str(d.get("descricao") or "").strip():
         add("descricao", "Sem descrição.")
     if n_fotos == 0:
-        add("fotos", "Sem fotos.")
+        add("fotos", "Sem fotos.", acao="Baixar do anúncio" if ml.get("link_referencia") else None)
     return out
 
 
@@ -885,7 +886,7 @@ def estimar_custos(d):
     return n
 
 
-def estimar_pesos(d, peso=None):
+def estimar_pesos(d, peso=None, pelo_tipo=True, folga=4.0):
     """Peso das caixas sem peso: pelo tamanho da caixa comparado com as que têm peso.
     Sem nenhuma com peso, usa `peso` (se veio). Devolve quantas mudou."""
     vs = _vs(d)
@@ -903,6 +904,9 @@ def estimar_pesos(d, peso=None):
             novo = sum(p for p, _ in base) / len(base)
         elif peso:
             novo = motor.numero(peso)
+        elif pelo_tipo and peso_pelo_tipo(d, v, folga) is not None:
+            novo = peso_pelo_tipo(d, v, folga)
+            v["_peso_tipo"] = True
         else:
             continue
         e["peso_kg"] = max(0.1, round(novo, 1))
@@ -981,9 +985,12 @@ def resolver(d, chaves=None, cfg=None, existentes=None, pasta=None, peso=None):
             feito.append(f"Custo estimado em {n} variação(ões) pela proporção das outras (confira)")
     if "peso" in chaves:
         completar(d, cfg, ["caixa"])
-        n = estimar_pesos(d, peso)
-        if n:
-            feito.append(f"Peso da caixa em {n} variação(ões)" + (" (estimado pelo tamanho; confira)" if not peso else ""))
+        n = estimar_pesos(d, peso, folga=motor.numero(cfg.get("folga_caixa") or 4) or 4)
+        tipo = sum(1 for v in _vs(d) if v.pop("_peso_tipo", None))
+        if n - tipo > 0:
+            feito.append(f"Peso da caixa em {n - tipo} variação(ões)" + (" (estimado pelas outras; confira)" if not peso else ""))
+        if tipo:
+            feito.append(f"Peso da caixa em {tipo} variação(ões) estimado pelo tipo, material e tamanho da peça (confira na balança)")
     if "prazo" in chaves and motor.sim(d.get("sob_encomenda")) and motor.numero(d.get("prazo_dias")) <= 0:
         d["prazo_dias"] = prazo_padrao(cfg)
         feito.append(f"Prazo de {d['prazo_dias']} dias (sob encomenda)")
@@ -1023,3 +1030,130 @@ def faltam_numeros(d, n_fotos=None):
         if fc or fp:
             out.append((i - 1, _rot(v, i, len(vs)), fc, fp))
     return out
+
+
+# ------------------------------------------------------------ peso pelo tipo e tamanho (sem nenhuma referência)
+
+# categoria -> (medida de referência em cm (as 2 maiores), peso da peça em kg) para peças de ferro
+PESO_REFERENCIA = {
+    "Mão francesa": ((25, 25), 0.5),
+    "Suportes de vaso": ((60, 30), 1.5),
+    "Prateleiras": ((60, 20), 2.5),
+    "Bicicleta": ((50, 20), 1.5),
+    "Mesas": ((120, 75), 22.0),
+    "Banquetas": ((65, 35), 5.0),
+    "Organizadores": ((80, 30), 4.0),
+    "Jardim": ((50, 50), 2.0),
+    "Decoração": ((40, 40), 1.0),
+}
+PESO_POR_CM2 = 0.0012          # quando a categoria não está na tabela (ferro)
+MATERIAL_FATOR = [(("alumínio", "aluminio"), 0.45), (("mdf", "mdp"), 1.3), (("madeira", "pinus", "eucalipto"), 1.1),
+                  (("vidro",), 1.4), (("inox", "aço", "aco", "ferro"), 1.0)]
+
+
+def _duas_maiores(v, folga=4.0):
+    m = v.get("medidas_peca_cm") if isinstance(v.get("medidas_peca_cm"), dict) else {}
+    med = [motor.numero(m.get(k)) for k in ("altura", "largura", "profundidade", "diametro")]
+    med = sorted((x for x in med if x > 0), reverse=True)
+    if len(med) < 2:
+        e = _emb(v)
+        caixa = sorted((motor.numero(e.get(k)) - folga for k in ("comprimento_cm", "largura_cm", "altura_cm")
+                        if motor.numero(e.get(k)) > folga), reverse=True)
+        med = caixa if len(caixa) >= len(med) else med
+    if not med:
+        return None
+    return med[0], (med[1] if len(med) > 1 else med[0] / 4)
+
+
+def peso_pelo_tipo(d, v, folga=4.0):
+    """Peso da caixa (kg) estimado pela categoria, material e tamanho da peça. None se não tem medida."""
+    dm = _duas_maiores(v, folga)
+    if not dm:
+        return None
+    area = dm[0] * dm[1]
+    cat = str(d.get("categoria") or "").strip() or categoria_pelo_nome(d.get("nome"))
+    if cat in PESO_REFERENCIA:
+        (ra, rb), rp = PESO_REFERENCIA[cat]
+        peca = rp * area / (ra * rb)
+    else:
+        peca = area * PESO_POR_CM2
+    mat = _sem_acento(f"{d.get('material') or ''} {d.get('nome') or ''}").lower()
+    fator = 1.0
+    for palavras, f in MATERIAL_FATOR:
+        if any(_sem_acento(p) in mat for p in palavras):
+            fator = f
+            break
+    if "madeira" in mat and "ferro" in mat:
+        fator = 1.15
+    return max(0.2, round(peca * fator * 1.1 + 0.2, 1))   # +10% e 200 g da caixa e proteção
+
+
+# ------------------------------------------------------------ atualizar o robô sozinho
+
+VERSAO_ARQ = "versao.json"
+
+
+def versao_local():
+    try:
+        return json.loads((motor.BASE / VERSAO_ARQ).read_text(encoding="utf-8"))
+    except Exception:
+        return {"versao": 6}      # a 6 foi a última sem versao.json
+
+
+def _api(cfg, caminho, cru=False, timeout=20):
+    repo = (cfg.get("atualizar_repo") or "Marco-Bubola/FlowManeger").strip()
+    req = urllib.request.Request(f"https://api.github.com/repos/{repo}/{caminho}",
+                                 headers={"Accept": "application/vnd.github.raw" if cru else "application/vnd.github+json",
+                                          "User-Agent": "robo-stylo"})
+    token = (cfg.get("atualizar_token") or "").strip()
+    if token:
+        req.add_header("Authorization", f"Bearer {token}")
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read()
+
+
+def checar_atualizacao(cfg):
+    """Procura versão nova no GitHub. Devolve o versao.json novo (com 'sha') ou None se já está em dia."""
+    cfg = cfg or {}
+    ref = (cfg.get("atualizar_ref") or "claude/project-thread-l778hs").strip()
+    pasta = (cfg.get("atualizar_pasta") or "ferramentas/robo-stylo").strip().strip("/")
+    commits = json.loads(_api(cfg, f"commits?sha={urllib.request.quote(ref, safe='')}&path={pasta}&per_page=1"))
+    if not commits:
+        return None
+    sha = commits[0]["sha"]
+    nova = json.loads(_api(cfg, f"contents/{pasta}/{VERSAO_ARQ}?ref={sha}", cru=True))
+    if int(nova.get("versao") or 0) <= int(versao_local().get("versao") or 0):
+        return None
+    nova["sha"], nova["pasta"] = sha, pasta
+    return nova
+
+
+def instalar_atualizacao(cfg, nova, avisar=lambda t: None):
+    """Baixa os arquivos da versão nova, confere e troca (guarda a atual em _versao-anterior). Devolve se precisa do pip."""
+    import ast
+    import tempfile
+    cfg = cfg or {}
+    arquivos = [a for a in nova.get("arquivos") or [] if re.fullmatch(r"[\w .\-]+", a) and not a.startswith(".")]
+    proibidos = {"config.ini", "concorrentes.json", "historico-ml.json"}
+    arquivos = [a for a in arquivos if a.lower() not in proibidos]
+    if not arquivos:
+        raise ValueError("A versão nova não lista arquivos.")
+    tmp = Path(tempfile.mkdtemp(prefix="robo-stylo-atualizar-"))
+    for i, a in enumerate(arquivos, 1):
+        avisar(f"Baixando {a} ({i}/{len(arquivos)})…")
+        dados = _api(cfg, f"contents/{nova['pasta']}/{urllib.request.quote(a)}?ref={nova['sha']}", cru=True, timeout=60)
+        if a.endswith((".py", ".pyw")):
+            ast.parse(dados.decode("utf-8"))      # não troca nada se o arquivo veio quebrado
+        (tmp / a).write_bytes(dados)
+    (tmp / VERSAO_ARQ).write_text(json.dumps({k: v for k, v in nova.items() if k != "pasta"}, ensure_ascii=False, indent=2), encoding="utf-8")
+    atual = versao_local().get("versao") or "antiga"
+    copia = motor.BASE / "_versao-anterior" / f"v{atual}"
+    copia.mkdir(parents=True, exist_ok=True)
+    req_antes = (motor.BASE / "requirements.txt").read_bytes() if (motor.BASE / "requirements.txt").exists() else b""
+    for a in arquivos + [VERSAO_ARQ]:
+        if (motor.BASE / a).exists():
+            shutil.copy2(motor.BASE / a, copia / a)
+    for a in arquivos + [VERSAO_ARQ]:
+        shutil.copy2(tmp / a, motor.BASE / a)
+    shutil.rmtree(tmp, ignore_errors=True)
+    return "requirements.txt" in arquivos and (motor.BASE / "requirements.txt").read_bytes() != req_antes

@@ -383,6 +383,8 @@ class App(ctk.CTk):
         self.after(120, self._ler_fila)
         self._clip = None
         self.after(1500, self._olhar_area_transf)
+        self._reabrir = False
+        self.after(4000, self._ao_abrir)
         threading.Thread(target=self._trabalhador, daemon=True).start()
         self.protocol("WM_DELETE_WINDOW", self.fechar)
 
@@ -602,10 +604,99 @@ class App(ctk.CTk):
         self.recarregar(selecionar=fichas[0].pasta if len(fichas) == 1 else None)
         if linhas:
             self.status(" | ".join(linhas)[:400])
+        if chaves is None or "fotos" in chaves:
+            sem_foto = [f.pasta for f in motor.listar_fichas(self.pasta()) if any(a.startswith("Sem fotos") for a in f.avisos)
+                        and isinstance(f.dados.get("mercado_livre"), dict) and f.dados["mercado_livre"].get("link_referencia")
+                        and any(Path(f.pasta) == Path(x.pasta) for x in fichas)]
+            if sem_foto:
+                self.baixar_fotos_ml(sem_foto)
         if faltam:
             Faltando(self, faltam, n)
         else:
             self.toast(f"✦ {n} ficha(s) arrumada(s)" if n else "Nada que o robô consiga resolver sozinho", VERDE if n else AMBAR)
+
+    def baixar_fotos_ml(self, pastas):
+        pastas = [Path(p) for p in pastas if p]
+        if not pastas:
+            return
+        if self.rodando or self.ocupado_ml:
+            self.toast("Espere o robô terminar o que está fazendo", AMBAR)
+            return
+        self.ocupado_ml = True
+        self.parar_flag.clear()
+        self.status(f"Baixando as fotos do anúncio de referência ({len(pastas)} ficha(s))…")
+        self.tarefas.put(("ml_fotos", pastas))
+
+    # ---------------------------------------------------------- atualização e cópia das fichas
+    def _ao_abrir(self):
+        r = self.cfg["robo"]
+        if motor.sim(r.get("copia_diaria", "sim")):
+            def copiar():
+                try:
+                    arq = motor.copia_das_fichas(self.pasta(), r.get("pasta_copias"), r.get("copias_guardar") or 14)
+                    if arq:
+                        self.fila.put(("copia_ok", None, str(arq)))
+                except Exception as e:
+                    self.fila.put(("copia_erro", None, str(e)))
+            threading.Thread(target=copiar, daemon=True).start()
+        if motor.sim(r.get("atualizar_sozinho", "sim")):
+            self.procurar_atualizacao(silencioso=True)
+
+    def procurar_atualizacao(self, silencioso=False):
+        cfg = dict(self.cfg["robo"])
+        if not silencioso:
+            self.status("Procurando versão nova do robô…")
+
+        def rodar():
+            try:
+                nova = recursos.checar_atualizacao(cfg)
+                self.fila.put(("atualizacao", None, (nova, silencioso)))
+            except Exception as e:
+                self.fila.put(("atualizacao_erro", None, (str(e), silencioso)))
+        threading.Thread(target=rodar, daemon=True).start()
+
+    def _aviso_versao(self, nova):
+        try:
+            self._banner_v.destroy()
+        except Exception:
+            pass
+        b = self._banner_v = ctk.CTkFrame(self, fg_color=PAINEL, corner_radius=14, border_width=2, border_color=ROXO)
+        ctk.CTkLabel(b, text="⟳", width=36, height=36, corner_radius=10, fg_color=ROXO, text_color="white",
+                     font=F(16, "bold")).pack(side="left", padx=(10, 8), pady=10)
+        ctk.CTkLabel(b, text=f"Versão {nova.get('versao')} do robô disponível", font=F(13, "bold"), text_color=TEXTO).pack(side="left", padx=(0, 12))
+        Botao(b, "Ver e atualizar", "primario", width=130, height=32,
+              command=lambda: (b.destroy(), Atualizar(self, nova))).pack(side="left", padx=4)
+        Botao(b, "✕", "fantasma", width=32, height=32, command=b.destroy).pack(side="left", padx=(2, 10))
+        b.place(relx=1.0, rely=1.0, x=-24, y=-118, anchor="se")
+        b.lift()
+
+    def instalar_versao(self, nova, janela=None):
+        if self.rodando or self.ocupado_ml:
+            self.toast("Espere o robô terminar o que está fazendo", AMBAR)
+            return
+        cfg = dict(self.cfg["robo"])
+
+        def avisar(t):
+            self.fila.put(("atualizando", None, t))
+
+        def rodar():
+            try:
+                pip = recursos.instalar_atualizacao(cfg, nova, avisar)
+                if pip:
+                    avisar("Instalando o que a versão nova precisa…")
+                    subprocess.run([sys.executable.replace("pythonw", "python"), "-m", "pip", "install", "-q", "-r",
+                                    str(motor.BASE / "requirements.txt")], cwd=str(motor.BASE),
+                                   creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                self.fila.put(("atualizado", None, nova))
+            except Exception as e:
+                with open(motor.BASE / "erros.log", "a", encoding="utf-8") as fl:
+                    fl.write(traceback.format_exc() + "\n")
+                self.fila.put(("atualizacao_erro", None, (str(e), False)))
+        threading.Thread(target=rodar, daemon=True).start()
+
+    def reabrir(self):
+        self._reabrir = True
+        self.fechar()
 
     def _olhar_area_transf(self):
         """Avisa quando um link do Mercado Livre é copiado (Ctrl+C) em qualquer lugar."""
@@ -709,6 +800,8 @@ class App(ctk.CTk):
                     self._ml_importar(dado)
                 elif tipo == "ml_importar_lote":
                     self._ml_importar_lote(dado)
+                elif tipo == "ml_fotos":
+                    self._ml_fotos(dado)
                 elif tipo == "fechar_site":
                     self._fechar_site()
                     self.fila.put(("site", None, "fechado"))
@@ -850,6 +943,53 @@ class App(ctk.CTk):
             self._fechar_site()
         self.fila.put(("ml_lote_fim", None, (pastas, falhas)))
 
+    def _ml_fotos(self, pastas):
+        """Baixa as fotos do anúncio de referência das fichas que estão sem foto."""
+        feitas, falhas = [], []
+        try:
+            ml = None
+            for i, pasta in enumerate(pastas, 1):
+                if self.parar_flag.is_set():
+                    break
+                f = motor.ler_ficha(pasta)
+                link = (f.dados.get("mercado_livre") or {}).get("link_referencia") if isinstance(f.dados.get("mercado_livre"), dict) else None
+                if not link:
+                    continue
+                self.fila.put(("ml_status", None, f"Fotos {i} de {len(pastas)}: lendo o anúncio de {f.nome}…"))
+                try:
+                    ml = ml or self._garantir_ml()
+                    info = None
+                    origem = Path(pasta) / "origem-ml.json"
+                    if origem.exists():
+                        try:
+                            info = json.loads(origem.read_text(encoding="utf-8"))
+                        except Exception:
+                            info = None
+                    if not (info and info.get("imagens")):
+                        info = ml.extrair(link)
+                    nomes = motor.salvar_fotos_ml(info, pasta, ml.baixar)
+                    if not nomes:
+                        falhas.append((f.nome, "o anúncio não tem fotos que dê para baixar"))
+                        continue
+                    d = json.loads(json.dumps(f.dados))
+                    vs = recursos._vs(d)
+                    if vs and not any(v.get("fotos") for v in vs):
+                        vs[0]["fotos"] = nomes
+                    motor.salvar_ficha(f, d)
+                    feitas.append((Path(pasta), nomes))
+                except motor.Parar:
+                    break
+                except Exception as e:
+                    if "closed" in str(e).lower() or "Target" in str(e):
+                        raise
+                    falhas.append((f.nome, str(e).splitlines()[0] if str(e) else repr(e)))
+                    with open(motor.BASE / "erros.log", "a", encoding="utf-8") as fl:
+                        fl.write(traceback.format_exc() + "\n")
+        except Exception as e:
+            falhas.append(("", str(e).splitlines()[0] if str(e) else repr(e)))
+            self._fechar_site()
+        self.fila.put(("ml_fotos_fim", None, (feitas, falhas)))
+
     def _ml_importar(self, link):
         try:
             ml = self._garantir_ml()
@@ -883,6 +1023,53 @@ class App(ctk.CTk):
 
     def _evento(self, ev, f, t):
         pf = self.paginas["fichas"]
+        if ev == "ml_fotos_fim":
+            self.ocupado_ml = False
+            feitas, falhas = t
+            n = sum(len(x[1]) for x in feitas)
+            ed = self.paginas.get("editor")
+            for pasta, nomes in feitas:
+                if ed is not None and ed.winfo_exists() and ed.ficha and Path(ed.ficha.pasta) == pasta:
+                    ed.fotos_baixadas(nomes)
+            self.recarregar(selecionar=feitas[0][0] if len(feitas) == 1 and ed is None else None)
+            self.status("Pronto.")
+            if falhas:
+                self.status("Fotos que não vieram: " + " | ".join(f"{a}: {b}" for a, b in falhas)[:300])
+            self.toast(f"{n} foto(s) baixada(s) do anúncio" if n else "Não deu para baixar as fotos do anúncio", VERDE if n else AMBAR)
+            return
+        if ev == "copia_ok":
+            self.escrever(f"Cópia das fichas de hoje: {t}")
+            return
+        if ev == "copia_erro":
+            self.escrever(f"Não deu para fazer a cópia das fichas: {t}")
+            return
+        if ev == "atualizacao":
+            nova, silencioso = t
+            cfgp = self.paginas.get("config")
+            if cfgp is not None:
+                cfgp.mostrar_versao(nova)
+            if nova:
+                self._aviso_versao(nova)
+            elif not silencioso:
+                self.toast(f"O robô já está na versão mais nova ({recursos.versao_local().get('versao')})")
+                self.status("Pronto.")
+            return
+        if ev == "atualizacao_erro":
+            msg, silencioso = t
+            self.escrever(f"Atualização: {msg}")
+            if not silencioso:
+                self.toast("Não deu para atualizar agora. Confira a internet e tente de novo.", VERMELHO)
+                self.status(f"Atualização: {msg}"[:300])
+            return
+        if ev == "atualizando":
+            self.status(t)
+            return
+        if ev == "atualizado":
+            self.status(f"Robô atualizado para a versão {t.get('versao')}.")
+            if messagebox.askyesno("Robô atualizado", f"Pronto! O robô está na versão {t.get('versao')}.\n\n"
+                                   "Reabrir agora para usar a versão nova?\n(A anterior ficou guardada em _versao-anterior.)"):
+                self.reabrir()
+            return
         if ev == "site":
             if t == "login":
                 self.chip_nav.mudar("Entre na conta", AMBAR)
@@ -1037,6 +1224,12 @@ class App(ctk.CTk):
         self.after(8000, self._sair)
 
     def _sair(self):
+        if getattr(self, "_reabrir", False):
+            self._reabrir = False
+            try:
+                subprocess.Popen([sys.executable, str(motor.BASE / "janela.pyw")], cwd=str(motor.BASE))
+            except Exception:
+                pass
         try:
             self.destroy()
         except Exception:
@@ -1557,13 +1750,14 @@ class PaginaFichas(ctk.CTkFrame):
                 if chave in ("custo", "peso") and not acoes_pend.get(chave):
                     acao = None
                 if chave == "fotos":
-                    acao = None
+                    acao = acoes_pend.get("fotos")
                 ctk.CTkLabel(av, text="•  " + a, anchor="w", justify="left", wraplength=wrap - 190, text_color=("#92400e", "#fcd34d"),
                              font=F(12)).grid(row=i, column=0, sticky="w", padx=(14, 6), pady=3)
                 if acao:
                     rot = acao if acao != "Informar" else "Informar…"
+                    cmd = (lambda: app.baixar_fotos_ml([f.pasta])) if chave == "fotos" else (lambda k=chave: app.resolver_avisos([f], {k}))
                     Botao(av, rot, "suave", height=26, width=40, font=F(11, "bold"), state=trava,
-                          command=lambda k=chave: app.resolver_avisos([f], {k})).grid(row=i, column=1, sticky="e", padx=(0, 10), pady=3)
+                          command=cmd).grid(row=i, column=1, sticky="e", padx=(0, 10), pady=3)
                 elif chave == "fotos":
                     Botao(av, "Editar", "fantasma", height=26, width=40, font=F(11), state=trava,
                           command=lambda: app.editar(f)).grid(row=i, column=1, sticky="e", padx=(0, 10), pady=3)
@@ -2170,10 +2364,41 @@ class PaginaConfig(ctk.CTkFrame):
         self.auto_imp = ctk.CTkSwitch(c3, text="Completar a ficha sozinho ao importar do Mercado Livre", progress_color=ROXO, font=F(13), text_color=TEXTO)
         self.auto_imp.grid(row=7, column=0, columnspan=2, sticky="w", padx=20, pady=(12, 18))
         (self.auto_imp.select if motor.sim(r.get("completar_ao_importar", "sim")) else self.auto_imp.deselect)()
+        c4 = ctk.CTkFrame(raiz, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA)
+        c4.grid(row=2, column=1, sticky="new", padx=(8, 18), pady=(16, 10))
+        c4.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(c4, text="Atualização e cópias", font=F(15, "bold"), text_color=TEXTO, anchor="w").grid(
+            row=0, column=0, columnspan=2, sticky="w", padx=20, pady=(16, 0))
+        self.lbl_versao = ctk.CTkLabel(c4, text=f"Versão {recursos.versao_local().get('versao') or '—'} instalada", font=F(13),
+                                       text_color=MUDO, anchor="w")
+        self.lbl_versao.grid(row=1, column=0, sticky="w", padx=20, pady=(8, 0))
+        self.bt_versao = Botao(c4, "⟳  Atualizar robô", "primario", width=160, command=lambda: app.procurar_atualizacao())
+        self.bt_versao.grid(row=1, column=1, sticky="e", padx=20, pady=(8, 0))
+        self.auto_atu = ctk.CTkSwitch(c4, text="Procurar versão nova sozinho ao abrir", progress_color=ROXO, font=F(13), text_color=TEXTO)
+        self.auto_atu.grid(row=2, column=0, columnspan=2, sticky="w", padx=20, pady=(12, 0))
+        (self.auto_atu.select if motor.sim(r.get("atualizar_sozinho", "sim")) else self.auto_atu.deselect)()
+        self.copia = ctk.CTkSwitch(c4, text="Fazer cópia das fichas todo dia", progress_color=ROXO, font=F(13), text_color=TEXTO)
+        self.copia.grid(row=3, column=0, columnspan=2, sticky="w", padx=20, pady=(12, 0))
+        (self.copia.select if motor.sim(r.get("copia_diaria", "sim")) else self.copia.deselect)()
+        ctk.CTkLabel(c4, text="Pasta das cópias", anchor="w", font=F(13, "bold"), text_color=TEXTO).grid(row=4, column=0, sticky="w", padx=20, pady=(12, 0))
+        lc = ctk.CTkFrame(c4, fg_color="transparent")
+        lc.grid(row=5, column=0, columnspan=2, sticky="ew", padx=20)
+        lc.grid_columnconfigure(0, weight=1)
+        self.campos["pasta_copias"] = Entrada(lc, placeholder_text=str(motor.BASE / "copias"))
+        self.campos["pasta_copias"].definir(r.get("pasta_copias") or None)
+        self.campos["pasta_copias"].grid(row=0, column=0, sticky="ew")
+        Botao(lc, "Abrir", "fantasma", width=70, command=lambda: abrir_no_sistema(Path(self.campos["pasta_copias"].get().strip() or motor.BASE / "copias"))).grid(row=0, column=1, padx=(6, 0))
+        ctk.CTkLabel(c4, text="Guarda as últimas 14 cópias. Dica: escolha uma pasta do OneDrive ou Google Drive para ter cópia fora do PC.",
+                     text_color=MUDO, anchor="w", justify="left", wraplength=420, font=F(11)).grid(row=6, column=0, columnspan=2, sticky="w", padx=20, pady=(4, 18))
         bts = ctk.CTkFrame(card, fg_color="transparent")
         bts.grid(row=10, column=0, columnspan=2, sticky="e", padx=20, pady=20)
         Botao(bts, "Fechar o navegador do robô", "fantasma", width=200, command=lambda: app.tarefas.put(("fechar_site", None))).pack(side="left", padx=6)
         Botao(bts, "Salvar", "primario", width=140, command=self.salvar).pack(side="left")
+
+    def mostrar_versao(self, nova):
+        atual = recursos.versao_local().get("versao") or "—"
+        self.lbl_versao.configure(text=f"Versão {atual} instalada" + (f"  ·  versão {nova.get('versao')} disponível" if nova else "  ·  em dia"),
+                                  text_color=ROXO_TXT if nova else MUDO)
 
     def escolher_pasta(self):
         p = filedialog.askdirectory(parent=self, title="Pasta dos produtos")
@@ -2202,6 +2427,9 @@ class PaginaConfig(ctk.CTkFrame):
         r["folga_caixa"] = decimal_txt(self.campos["folga_caixa"].valor() or 4).replace(",", ".")
         r["completar_ao_importar"] = "sim" if self.auto_imp.get() else "nao"
         r["prazo_padrao"] = str(self.campos["prazo_padrao"].valor() or 15)
+        r["atualizar_sozinho"] = "sim" if self.auto_atu.get() else "nao"
+        r["copia_diaria"] = "sim" if self.copia.get() else "nao"
+        r["pasta_copias"] = self.campos["pasta_copias"].get().strip()
         motor.salvar_config(self.app.cfg)
         if self.app.site and not self.app.rodando:
             self.app.tarefas.put(("fechar_site", None))
@@ -2846,7 +3074,7 @@ class Editor(ctk.CTkFrame):
             r += 1
 
         vis = [f for f in self.fotos if not f.removida]
-        img = miniatura(vis[0].caminho, 96) if vis else None
+        img = miniatura(vis[0].caminho, 72) if vis else None
         topo = ctk.CTkFrame(self.painel, fg_color="transparent")
         topo.grid_columnconfigure(1, weight=1)
         if img:
@@ -2935,7 +3163,7 @@ class Editor(ctk.CTkFrame):
             if p["acao"] and p["acao"] != "Informar":
                 Botao(bts, "✦ " + p["acao"], "suave", height=24, width=40, font=F(11, "bold"),
                       command=lambda k=p["chave"]: self.resolver({k})).pack(side="left", padx=(0, 4))
-            if p["chave"] == "fotos":
+            if p["chave"] == "fotos" and not p["acao"]:
                 Botao(bts, "＋ Adicionar fotos", "suave", height=24, width=40, font=F(11, "bold"),
                       command=self.escolher_fotos).pack(side="left", padx=(0, 4))
             ir = "Preencher" if p["acao"] in (None, "Informar") and p["chave"] != "fotos" else "Ver"
@@ -2962,6 +3190,18 @@ class Editor(ctk.CTkFrame):
                         text_color=("#b45309", "#fcd34d") if n else TEXTO)
 
     def resolver(self, chaves):
+        chaves = set(chaves)
+        if "fotos" in chaves:
+            chaves.discard("fotos")
+            if self.ficha is None:
+                self.app.toast("Salve a ficha uma vez para o robô baixar as fotos", AMBAR)
+            elif self._n_fotos() == 0:
+                if self.ml_link.valor() and self.ml_link.valor() != (self.ficha.dados.get("mercado_livre") or {}).get("link_referencia"):
+                    self.app.toast("Salve a ficha com o link novo antes de baixar as fotos", AMBAR)
+                else:
+                    self.app.baixar_fotos_ml([self.ficha.pasta])
+            if not chaves:
+                return
         d = self.montar()
         cfg = dict(self.app.cfg["robo"])
         feito = recursos.resolver(d, chaves, cfg, self._existentes())
@@ -2972,6 +3212,14 @@ class Editor(ctk.CTkFrame):
             self.app.status(" · ".join(feito))
         else:
             self.app.toast("Nada que o robô consiga deduzir sozinho aqui", AMBAR)
+
+    def fotos_baixadas(self, nomes):
+        for n in nomes:
+            p = self.ficha.pasta / n
+            if p.exists() and not any(f.caminho == p for f in self.fotos):
+                self.fotos.append(FotoEd(p, uso="todas"))
+        self.desenhar_fotos()
+        self._ultima = None
 
     def _campo_da(self, p):
         i = p.get("variacao")
@@ -3926,6 +4174,33 @@ class Faltando(Dialogo):
         self.destroy()
         self.app.recarregar()
         self.app.toast(f"{n} variação(ões) atualizada(s)" if n else "Nada preenchido", VERDE if n else ROXO)
+
+
+class Atualizar(Dialogo):
+    """Mostra o que mudou na versão nova e instala com um clique."""
+
+    def __init__(self, app, nova):
+        atual = recursos.versao_local().get("versao") or "—"
+        super().__init__(app, f"Versão {nova.get('versao')} do robô",
+                         f"Você está na versão {atual}. Suas fichas, login e configurações não mudam.", larg=600, alt=460)
+        self.nova = nova
+        caixa = ctk.CTkScrollableFrame(self.corpo, fg_color="transparent")
+        caixa.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=12, pady=(10, 6))
+        self.corpo.grid_rowconfigure(0, weight=1)
+        self.corpo.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(caixa, text="O que tem de novo", font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(fill="x", pady=(2, 4))
+        for t in nova.get("novidades") or ["Melhorias e correções."]:
+            ctk.CTkLabel(caixa, text="✦  " + t, anchor="w", justify="left", wraplength=500, fg_color=ROXO_CLARO, text_color=ROXO_TXT,
+                         corner_radius=10, padx=12, pady=6, font=F(12)).pack(fill="x", pady=2)
+        self.info = ctk.CTkLabel(self.corpo, text="", font=F(12), text_color=MUDO, anchor="w")
+        self.info.grid(row=1, column=0, columnspan=2, sticky="w", padx=18, pady=(0, 10))
+        self.botao_ok("Atualizar agora", self.atualizar)
+
+    def atualizar(self):
+        self.bt_ok.configure(state="disabled", text="Atualizando…")
+        self.info.configure(text="Baixando a versão nova. O robô reabre no fim.")
+        self.app.instalar_versao(self.nova, self)
+        self.after(600, self.destroy)
 
 
 class ImportarLinks(Dialogo):
