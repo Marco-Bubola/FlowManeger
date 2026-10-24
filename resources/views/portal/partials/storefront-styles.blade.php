@@ -88,4 +88,98 @@
     .sf-col-page { margin-top: 12px; }
     .sf-col-page .sf-col-head { border-radius: var(--ml-radius); }
     .ml-sec-head h2 i.sf-star { color: #f5b301; }
+
+    /* Modelos prontos (banner desenhado em HTML) */
+    .sf-ban.has-design { display: block; }
+    .sf-d { position: relative; isolation: isolate; display: flex; align-items: center; gap: 14px; width: 100%; height: 100%; overflow: hidden; padding: 18px 18px; color: #fff; background: linear-gradient(120deg, var(--c1), var(--c2)); text-align: left; }
+    .sf-d.ink-dark { color: #1f2937; }
+    .sf-d-txt { position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+    .sf-d-badge { font-style: normal; font-size: 11px; font-weight: 900; letter-spacing: .08em; padding: 4px 10px; border-radius: 999px; background: var(--acc); color: var(--c2); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+    .sf-d.ink-dark .sf-d-badge, .sf-d.ink-dark .sf-d-cta { color: #fff; }
+    .sf-d-title { font-size: 22px; line-height: 1.08; font-weight: 900; letter-spacing: -.01em; text-wrap: balance; max-width: 620px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .sf-d-sub { font-size: 13px; opacity: .9; line-height: 1.35; max-width: 520px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .sf-d-cta { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; background: var(--acc); color: var(--c2); font-weight: 800; font-size: 13px; padding: 8px 14px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,.16); white-space: nowrap; }
+    .sf-d-cta svg { width: 14px; height: 14px; fill: currentColor; }
+    .sf-d-pics { position: relative; z-index: 1; flex-shrink: 0; display: flex; align-items: center; gap: 10px; }
+    .sf-d-pic { display: block; width: 118px; aspect-ratio: 1; border-radius: 18px; background: #fff; padding: 8px; box-shadow: 0 10px 28px rgba(0,0,0,.2); overflow: hidden; }
+    .sf-d-pic img { width: 100%; height: 100%; object-fit: contain; }
+    .sf-d-deco { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+    .sf-d-deco i { position: absolute; display: block; width: 34px; height: 34px; opacity: .16; }
+    .sf-d-deco svg { width: 100%; height: 100%; fill: currentColor; }
+    .sf-d-deco i:nth-child(1) { right: 4%; top: -8%; width: 120px; height: 120px; opacity: .12; transform: rotate(14deg); }
+    .sf-d-deco i:nth-child(2) { left: 46%; top: 10%; width: 26px; height: 26px; }
+    .sf-d-deco i:nth-child(3) { left: 58%; bottom: 8%; width: 40px; height: 40px; transform: rotate(-12deg); }
+    .sf-d-deco i:nth-child(4) { right: 28%; bottom: -12%; width: 70px; height: 70px; opacity: .1; }
+    .sf-d-deco i:nth-child(5) { left: -10px; bottom: -14px; width: 60px; height: 60px; opacity: .1; }
+    /* cada modelo */
+    .sf-d-novidade .sf-d-pic { border-radius: 50%; box-shadow: 0 0 0 10px rgba(124,58,237,.12), 0 12px 30px rgba(124,58,237,.25); }
+    .sf-d-novidade .sf-d-deco i { color: var(--acc); }
+    .sf-d-maes .sf-d-pic { transform: rotate(-4deg); border-radius: 24px; }
+    .sf-d-black { background: radial-gradient(circle at 85% 30%, #3f3f46 0, transparent 45%), linear-gradient(120deg, var(--c1), var(--c2)); }
+    .sf-d-black::after { content: ''; position: absolute; z-index: 0; left: -10%; right: -10%; bottom: 18%; height: 18px; background: var(--acc); transform: rotate(-4deg); opacity: .9; }
+    .sf-d-black .sf-d-deco i { color: var(--acc); opacity: .35; }
+    .sf-d-black .sf-d-badge, .sf-d-black .sf-d-cta { color: #111; }
+    .sf-d-black .sf-d-pic { box-shadow: 0 0 0 3px var(--acc), 0 12px 30px rgba(0,0,0,.5); }
+    .sf-d-frete .sf-d-deco i:nth-child(1) { width: 170px; height: 170px; right: 2%; top: 50%; margin-top: -85px; transform: none; opacity: .14; }
+    .sf-d-cupom .sf-d-badge { order: 3; font-size: 18px; letter-spacing: .14em; padding: 8px 16px; border-radius: 10px; border: 2px dashed var(--c2); box-shadow: 0 0 0 4px var(--acc); margin: 4px 0 2px 4px; }
+    .sf-d-cupom .sf-d-cta { order: 4; }
+    .sf-d-vitrine { border: 1px solid #e5e7eb; }
+    .sf-d-vitrine .sf-d-pic { box-shadow: 0 6px 18px rgba(15,23,42,.1); border: 1px solid #eef2f7; }
+    .sf-d.sf-d-vitrine .sf-d-badge { background: transparent; color: var(--acc); padding: 0; letter-spacing: .12em; }
+    .sf-d-natal .sf-d-deco i { color: var(--acc); opacity: .3; }
+    .sf-d-natal .sf-d-badge { font-family: Georgia, serif; font-style: italic; letter-spacing: .04em; font-size: 13px; }
+
+    /* tamanhos por lugar: medidos pela largura do próprio banner (vale igual no catálogo e na prévia do painel) */
+    .sf-ban.has-design { container-type: inline-size; }
+    .sf-hero.has-design { display: flex; }
+    .sf-hero .sf-d { height: auto; min-height: 196px; }
+    .sf-hero .sf-d.pics-3 .sf-d-pic { width: 74px; padding: 5px; border-radius: 12px; }
+    .sf-hero .sf-d.pics-3 .sf-d-pic:nth-child(3) { display: none; }
+    @container (max-width: 400px) { .sf-hero .sf-d.pics-1 .sf-d-pic { width: 104px; } .sf-hero .sf-d-title { font-size: 20px; } .sf-hero .sf-d-sub { -webkit-line-clamp: 1; } }
+    @container (min-width: 680px) {
+        .sf-hero .sf-d { min-height: 260px; padding: 26px 40px; gap: 24px; }
+        .sf-hero .sf-d-title { font-size: 34px; }
+        .sf-hero .sf-d-sub { font-size: 16px; }
+        .sf-hero .sf-d-badge { font-size: 12px; padding: 5px 12px; }
+        .sf-hero .sf-d-cta { font-size: 15px; padding: 10px 18px; margin-top: 8px; }
+        .sf-hero .sf-d-pic { width: 190px; border-radius: 22px; padding: 12px; }
+        .sf-hero .sf-d.pics-3 .sf-d-pic { width: 140px; padding: 8px; border-radius: 18px; }
+        .sf-hero .sf-d.pics-3 .sf-d-pic:nth-child(3) { display: block; }
+        .sf-hero .sf-d.pics-3 .sf-d-pic:nth-child(2) { transform: translateY(-14px); }
+        .sf-hero .sf-d.pics-3 .sf-d-pic { width: 118px; }
+        .sf-hero .sf-d.pics-3 .sf-d-title { font-size: 28px; }
+    }
+    @container (min-width: 1000px) {
+        .sf-hero .sf-d { min-height: 300px; padding: 30px 64px; }
+        .sf-hero .sf-d-title { font-size: 44px; }
+        .sf-hero .sf-d-pic { width: 228px; }
+        .sf-hero .sf-d.pics-3 .sf-d-pic { width: 170px; }
+        .sf-hero .sf-d.pics-3 .sf-d-title { font-size: 38px; }
+    }
+    .sf-strip .sf-d { min-height: 96px; padding: 10px 16px; gap: 12px; }
+    .sf-strip .sf-d-txt { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+    .sf-strip .sf-d-title { font-size: 16px; -webkit-line-clamp: 2; }
+    .sf-strip .sf-d-sub { display: none; }
+    .sf-strip .sf-d-cta { margin: 0; padding: 7px 12px; font-size: 12px; }
+    .sf-strip .sf-d-pic { width: 70px; padding: 5px; border-radius: 12px; }
+    .sf-strip .sf-d.pics-3 .sf-d-pic:nth-child(n+2) { display: none; }
+    .sf-strip .sf-d-deco i:nth-child(1) { width: 80px; height: 80px; }
+    .sf-strip .sf-d-cupom .sf-d-badge { font-size: 14px; padding: 4px 10px; }
+    @container (max-width: 500px) { .sf-strip .sf-d-badge { display: none; } .sf-strip .sf-d-cupom .sf-d-badge { display: inline-block; } }
+    @container (min-width: 680px) {
+        .sf-strip .sf-d { min-height: 112px; padding: 12px 32px; gap: 20px; }
+        .sf-strip .sf-d-title { font-size: 22px; -webkit-line-clamp: 1; }
+        .sf-strip .sf-d-sub { display: block; font-size: 14px; -webkit-line-clamp: 1; }
+        .sf-strip .sf-d-cta { margin-left: auto; font-size: 14px; padding: 9px 16px; }
+        .sf-strip .sf-d-pic { width: 84px; }
+        .sf-strip .sf-d.pics-3 .sf-d-pic:nth-child(n+2) { display: block; }
+    }
+    .sf-sb .sf-d { height: 600px; max-height: calc(100vh - 110px); flex-direction: column-reverse; justify-content: space-between; align-items: stretch; padding: 18px 14px; }
+    .sf-sb .sf-d-title { font-size: 22px; -webkit-line-clamp: 4; }
+    .sf-sb .sf-d-sub { font-size: 13px; -webkit-line-clamp: 3; }
+    .sf-sb .sf-d-pics { justify-content: center; padding-top: 10px; }
+    .sf-sb .sf-d-pic { width: 120px; }
+    .sf-sb .sf-d.pics-3 .sf-d-pic:nth-child(n+2) { display: none; }
+    .sf-sb .sf-d-cta { white-space: normal; }
+    @container (min-width: 200px) { .sf-sb .sf-d-pic { width: 170px; } .sf-sb .sf-d-title { font-size: 28px; } }
 </style>

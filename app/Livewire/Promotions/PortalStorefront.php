@@ -41,6 +41,18 @@ class PortalStorefront extends Component
     public $b_image_mobile = null;
     public ?string $b_image_old = null;
     public ?string $b_mobile_old = null;
+    // Modelo pronto (banner desenhado, tudo editável) ou imagem própria
+    public string $b_mode = 'modelo';
+    public string $b_tpl = 'oferta';
+    public string $b_badge = '';
+    public string $b_c1 = '#ff7733';
+    public string $b_c2 = '#e11d48';
+    public string $b_acc = '#fff7ed';
+    public string $b_ink = 'light';
+    public array $b_photos = [];
+    public $b_photo = null;
+    /** Fotos enviadas nesta janela e ainda não salvas (apagadas se cancelar). */
+    public array $b_newFiles = [];
 
     // Destaques
     public string $featured_title = '';
@@ -81,11 +93,153 @@ class PortalStorefront extends Component
 
     /* ---------- Banners ---------- */
 
-    public function newBanner(string $placement = 'hero'): void
+    public function newBanner(string $placement = 'hero', ?string $tpl = null): void
     {
         $this->resetBanner();
         $this->b_placement = array_key_exists($placement, PortalBanner::PLACEMENTS) ? $placement : 'hero';
+        $this->b_mode = 'modelo';
+        $this->b_tpl = '';
+        $this->applyTemplate(array_key_exists((string) $tpl, StorefrontService::TEMPLATES) ? $tpl : 'oferta');
         $this->showBanner = true;
+    }
+
+    /**
+     * Troca o modelo: cores e selo do modelo novo; os textos só mudam se ainda
+     * estão vazios ou iguais aos do modelo anterior (o que você escreveu fica).
+     */
+    public function applyTemplate(string $key): void
+    {
+        $t = StorefrontService::TEMPLATES[$key] ?? null;
+        if (! $t) {
+            return;
+        }
+        $prev = StorefrontService::TEMPLATES[$this->b_tpl] ?? [];
+        foreach (['b_badge' => 'badge', 'b_title' => 'title', 'b_subtitle' => 'subtitle', 'b_button' => 'button'] as $prop => $f) {
+            $cur = trim($this->{$prop});
+            if ($cur === '' || $cur === ($prev[$f] ?? null)) {
+                $this->{$prop} = $t[$f];
+            }
+        }
+        $this->b_tpl = $key;
+        $this->b_c1 = $t['c1'];
+        $this->b_c2 = $t['c2'];
+        $this->b_acc = $t['acc'];
+        $this->b_ink = $t['ink'];
+        if ($this->b_link_type === 'none' && $t['link'] === 'offers') {
+            $this->b_link_type = 'offers';
+        }
+        $max = $this->photoMax();
+        if (count($this->b_photos) < $max) {
+            $have = collect($this->b_photos)->pluck('p')->filter()->all();
+            foreach ($this->samplePhotos($max + count($have)) as $ref) {
+                if (count($this->b_photos) >= $max) {
+                    break;
+                }
+                if (! in_array($ref['p'], $have, true)) {
+                    $this->b_photos[] = $ref;
+                }
+            }
+        }
+    }
+
+    public function setPalette(int $i): void
+    {
+        if ($c = StorefrontService::PALETTES[$i] ?? null) {
+            [$this->b_c1, $this->b_c2, $this->b_acc, $this->b_ink] = $c;
+        }
+    }
+
+    public function setMode(string $mode): void
+    {
+        $this->b_mode = $mode === 'imagem' ? 'imagem' : 'modelo';
+        $this->resetErrorBag();
+        // Texto de exemplo do modelo não vai por cima da arte própria.
+        if ($this->b_mode === 'imagem' && ! $this->bannerId && ($t = StorefrontService::TEMPLATES[$this->b_tpl] ?? null)) {
+            foreach (['b_title' => 'title', 'b_subtitle' => 'subtitle', 'b_button' => 'button'] as $prop => $f) {
+                if (trim($this->{$prop}) === $t[$f]) {
+                    $this->{$prop} = '';
+                }
+            }
+        }
+    }
+
+    public function updatedBPlacement(): void
+    {
+        $this->b_photos = array_slice($this->b_photos, 0, max($this->photoMax(), 1));
+    }
+
+    public function updatedBPhoto(): void
+    {
+        $this->validate(['b_photo' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120']], ['b_photo.max' => 'A foto pode ter até 5 MB.'], ['b_photo' => 'foto']);
+        $path = $this->b_photo->store('portal-banners', 'public');
+        $this->b_photo = null;
+        $this->b_newFiles[] = $path;
+        $this->addPhoto(['f' => $path]);
+    }
+
+    public function removePhoto(int $index): void
+    {
+        $ph = $this->b_photos[$index] ?? null;
+        if (! $ph) {
+            return;
+        }
+        array_splice($this->b_photos, $index, 1);
+        if (! empty($ph['f']) && in_array($ph['f'], $this->b_newFiles, true)) {
+            $this->dropFiles([$ph['f']]);
+            $this->b_newFiles = array_values(array_diff($this->b_newFiles, [$ph['f']]));
+        }
+    }
+
+    public function movePhoto(int $index, int $dir): void
+    {
+        $this->b_photos = $this->moved($this->b_photos, $index, $dir);
+    }
+
+    public function closeBanner(): void
+    {
+        $this->dropFiles($this->b_newFiles);
+        $this->b_newFiles = [];
+        $this->showBanner = false;
+        $this->pickFor = '';
+    }
+
+    /** Quantas fotos o modelo mostra (vitrine mostra 3; os outros, 1). */
+    private function photoMax(): int
+    {
+        return $this->b_tpl === 'vitrine' ? 3 : 1;
+    }
+
+    private function addPhoto(array $ref): void
+    {
+        $max = $this->photoMax();
+        if (count($this->b_photos) >= $max) {
+            $out = array_splice($this->b_photos, $max - 1);
+            foreach ($out as $o) {
+                if (! empty($o['f']) && in_array($o['f'], $this->b_newFiles, true)) {
+                    $this->dropFiles([$o['f']]);
+                    $this->b_newFiles = array_values(array_diff($this->b_newFiles, [$o['f']]));
+                }
+            }
+        }
+        $this->b_photos[] = $ref;
+    }
+
+    /** Produtos com foto para os modelos já abrirem bonitos (destaques primeiro). */
+    private function samplePhotos(int $n): array
+    {
+        $uid = Auth::id();
+        $real = fn ($q) => $q->whereNotNull('image')->where('image', '!=', 'product-placeholder.png')->where('image', 'not like', 'ml_%');
+        $ids = collect($this->featuredIds)->map(fn ($v) => (int) $v);
+        $withImg = $ids->isEmpty() ? collect() : Product::where('user_id', $uid)->whereIn('id', $ids)->where($real)->pluck('id');
+        $ordered = $ids->filter(fn ($id) => $withImg->contains($id));
+        if ($ordered->count() < $n) {
+            $more = Product::where('user_id', $uid)->whereNull('parent_id')->whereIn('status', ['active', 'ativo'])->where($real)
+                ->where(fn ($q) => $q->where('stock_quantity', '>', 0)->orWhere('made_to_order', true))
+                ->whereNotIn('id', $ordered->all())->orderByDesc('id')->limit($n)->pluck('id');
+            $ordered = $ordered->concat($more);
+        }
+
+        return $ordered->take($n)->map(fn ($id) => ['p' => (int) $id])->values()->all();
     }
 
     public function editBanner(int $id): void
@@ -108,6 +262,20 @@ class PortalStorefront extends Component
         $this->b_ends = $b->ends_at?->format('Y-m-d') ?? '';
         $this->b_image_old = $b->image;
         $this->b_mobile_old = $b->image_mobile;
+        if ($b->isDesign()) {
+            $d = $b->design;
+            $t = StorefrontService::TEMPLATES[$d['tpl']] ?? StorefrontService::TEMPLATES['oferta'];
+            $this->b_mode = 'modelo';
+            $this->b_tpl = array_key_exists($d['tpl'], StorefrontService::TEMPLATES) ? $d['tpl'] : 'oferta';
+            $this->b_badge = (string) ($d['badge'] ?? '');
+            $this->b_c1 = $d['c1'] ?? $t['c1'];
+            $this->b_c2 = $d['c2'] ?? $t['c2'];
+            $this->b_acc = $d['acc'] ?? $t['acc'];
+            $this->b_ink = ($d['ink'] ?? 'light') === 'dark' ? 'dark' : 'light';
+            $this->b_photos = array_values(array_filter($d['photos'] ?? [], fn ($ph) => ! empty($ph['p']) || ! empty($ph['f'])));
+        } else {
+            $this->b_mode = 'imagem';
+        }
         $this->showBanner = true;
     }
 
@@ -142,7 +310,15 @@ class PortalStorefront extends Component
             'b_ends'         => array_filter(['nullable', 'date', $this->b_starts ? 'after_or_equal:b_starts' : null]),
             'b_image'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'b_image_mobile' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'b_mode'         => ['required', 'in:modelo,imagem'],
+            'b_tpl'          => ['required', 'in:' . implode(',', array_keys(StorefrontService::TEMPLATES))],
+            'b_badge'        => ['nullable', 'string', 'max:30'],
+            'b_c1'           => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'b_c2'           => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'b_acc'          => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'b_ink'          => ['required', 'in:light,dark'],
         ], [
+            'b_c1.regex' => 'Escolha a cor.', 'b_c2.regex' => 'Escolha a cor.', 'b_acc.regex' => 'Escolha a cor.',
             'b_link_value.required' => 'Escolha para onde o banner leva.',
             'b_link_value.url' => 'Cole o endereço completo, começando com https://',
             'b_ends.after_or_equal' => 'O fim tem que ser depois do começo.',
@@ -150,17 +326,35 @@ class PortalStorefront extends Component
             'b_image_mobile.max' => 'A imagem pode ter até 5 MB.',
         ], ['b_image' => 'imagem', 'b_image_mobile' => 'imagem do celular', 'b_title' => 'título']);
 
+        $modelo = $this->b_mode === 'modelo';
         $hasImage = $this->b_image || $this->b_image_old;
-        if (! $hasImage && trim($this->b_title) === '') {
-            $this->addError('b_title', 'Coloque uma imagem ou escreva um título.');
+        if ($modelo && trim($this->b_title) === '' && trim($this->b_badge) === '') {
+            $this->addError('b_title', 'Escreva um título para o banner.');
+
+            return;
+        }
+        if (! $modelo && ! $hasImage && trim($this->b_title) === '') {
+            $this->addError('b_image', 'Coloque uma imagem ou escreva um título.');
 
             return;
         }
 
         $old = $this->bannerId ? $this->banner($this->bannerId) : null;
-        $image = $this->b_image ? $this->b_image->store('portal-banners', 'public') : $this->b_image_old;
-        $mobile = $this->b_placement === 'side' ? null
-            : ($this->b_image_mobile ? $this->b_image_mobile->store('portal-banners', 'public') : $this->b_mobile_old);
+        $design = null;
+        if ($modelo) {
+            $image = $mobile = null;
+            $design = [
+                'tpl' => $this->b_tpl, 'badge' => trim($this->b_badge) ?: null,
+                'c1' => strtolower($this->b_c1), 'c2' => strtolower($this->b_c2), 'acc' => strtolower($this->b_acc), 'ink' => $this->b_ink,
+                'photos' => array_values(array_map(fn ($ph) => ! empty($ph['f']) ? ['f' => (string) $ph['f']] : ['p' => (int) $ph['p']],
+                    array_slice($this->b_photos, 0, $this->photoMax()))),
+            ];
+        } else {
+            $image = $this->b_image ? $this->b_image->store('portal-banners', 'public') : $this->b_image_old;
+            $mobile = $this->b_placement === 'side' ? null
+                : ($this->b_image_mobile ? $this->b_image_mobile->store('portal-banners', 'public') : $this->b_mobile_old);
+        }
+        $keepFiles = array_merge([$image, $mobile], collect($design['photos'] ?? [])->pluck('f')->filter()->all());
 
         $row = [
             'placement'   => $this->b_placement,
@@ -175,9 +369,13 @@ class PortalStorefront extends Component
             'active'      => $this->b_active,
             'starts_at'   => $this->b_starts ?: null,
             'ends_at'     => $this->b_ends ?: null,
+            'design'      => $design,
         ];
+        // Fotos enviadas que não entraram (trocou de modelo ou foi para imagem própria).
+        $this->dropFiles($this->b_newFiles, $keepFiles);
+        $this->b_newFiles = [];
         if ($old) {
-            $this->dropFiles([$old->image, $old->image_mobile], [$image, $mobile]);
+            $this->dropFiles(array_merge([$old->image, $old->image_mobile], $old->designFiles()), $keepFiles);
             $old->update($row);
         } else {
             $row['sort'] = (int) PortalBanner::where('user_id', Auth::id())->where('placement', $this->b_placement)->max('sort') + 1;
@@ -207,7 +405,7 @@ class PortalStorefront extends Component
     public function deleteBanner(int $id): void
     {
         if ($b = $this->banner($id)) {
-            $this->dropFiles([$b->image, $b->image_mobile]);
+            $this->dropFiles(array_merge([$b->image, $b->image_mobile], $b->designFiles()));
             $b->delete();
             $this->dispatch('notify', type: 'success', message: 'Banner excluído.');
         }
@@ -363,7 +561,7 @@ class PortalStorefront extends Component
 
     public function openPicker(string $for): void
     {
-        $this->pickFor = in_array($for, ['featured', 'collection', 'banner'], true) ? $for : '';
+        $this->pickFor = in_array($for, ['featured', 'collection', 'banner', 'photos'], true) ? $for : '';
         $this->pickSearch = '';
     }
 
@@ -374,6 +572,22 @@ class PortalStorefront extends Component
 
     public function pick(int $id): void
     {
+        if ($this->pickFor === 'photos') {
+            if (! Product::where('user_id', Auth::id())->whereKey($id)->exists()) {
+                return;
+            }
+            $at = collect($this->b_photos)->search(fn ($ph) => (int) ($ph['p'] ?? 0) === $id);
+            if ($at !== false) {
+                array_splice($this->b_photos, $at, 1);
+            } else {
+                $this->addPhoto(['p' => $id]);
+            }
+            if ($this->photoMax() === 1 || count($this->b_photos) >= $this->photoMax()) {
+                $this->pickFor = '';
+            }
+
+            return;
+        }
         $root = StorefrontService::rootsOf(Auth::id(), [$id])[0] ?? null;
         if (! $root) {
             return;
@@ -467,6 +681,14 @@ class PortalStorefront extends Component
         $this->b_image = $this->b_image_mobile = null;
         $this->b_image_old = $this->b_mobile_old = null;
         $this->pickFor = '';
+        $this->dropFiles($this->b_newFiles);
+        $this->b_newFiles = [];
+        $this->b_mode = 'modelo';
+        $this->b_tpl = 'oferta';
+        $this->b_badge = '';
+        [$this->b_c1, $this->b_c2, $this->b_acc, $this->b_ink] = ['#ff7733', '#e11d48', '#fff7ed', 'light'];
+        $this->b_photos = [];
+        $this->b_photo = null;
     }
 
     private function resetCollection(): void
@@ -532,13 +754,19 @@ class PortalStorefront extends Component
             'collection' => array_map('intval', $this->c_products),
             'featured'   => array_map('intval', $this->featuredIds),
             'banner'     => [(int) $this->b_link_value],
+            'photos'     => collect($this->b_photos)->pluck('p')->filter()->map(fn ($v) => (int) $v)->all(),
             default      => [],
         };
 
         $bannerProduct = $this->b_link_type === 'product' && (int) $this->b_link_value > 0
             ? Product::where('user_id', $uid)->find((int) $this->b_link_value) : null;
 
+        // Fotos de exemplo para a galeria de modelos e fotos da prévia do banner aberto.
+        $samples = $this->tab === 'banners' ? PortalBanner::photoUrls($uid, $this->samplePhotos(3)) : [];
+
         return view('livewire.promotions.portal-storefront', [
+            'samples'       => $samples,
+            'bPhotoUrls'    => $this->showBanner ? PortalBanner::photoUrls($uid, $this->b_photos, true) : [],
             'banners'       => $banners,
             'collections'   => $collections,
             'counts'        => $counts,

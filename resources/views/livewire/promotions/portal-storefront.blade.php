@@ -41,7 +41,8 @@
     $tabs = ['banners' => ['Banners', 'bi-images'], 'destaques' => ['Destaques', 'bi-star'], 'colecoes' => ['Coleções', 'bi-collection'], 'aviso' => ['Aviso no topo', 'bi-megaphone']];
 @endphp
 
-<div class="w-full px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-24 space-y-4">
+<div class="w-full px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-24 space-y-4" style="--ml-radius: 14px; --ml-blue: #3483fa">
+    @include('portal.partials.storefront-styles')
     <x-page-header title="Vitrine do catálogo" icon="bi-shop-window" section="produtos" back-route="promotions.index"
                    subtitle="Banners, produtos em destaque e coleções da página inicial do seu catálogo">
         <x-slot:actions>
@@ -61,6 +62,25 @@
     {{-- ===================== Banners ===================== --}}
     @if($tab === 'banners')
         <div class="space-y-4">
+            <section class="{{ $card }} p-4 sm:p-5 overflow-hidden" data-testid="tpl-row">
+                <div class="flex items-start gap-3">
+                    <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-lg"><i class="bi bi-magic"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <h2 class="font-bold text-slate-900 dark:text-white">Modelos prontos</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Toque em um modelo para criar o banner do topo. Você muda textos, cores e fotos, e pode usar em faixa ou lateral também.</p>
+                    </div>
+                </div>
+                <div class="-mx-4 sm:-mx-5 px-4 sm:px-5 scroll-px-4 sm:scroll-px-5 mt-3 flex gap-3 overflow-x-auto pb-2 snap-x [scrollbar-width:thin]">
+                    @foreach($front::TEMPLATES as $key => $t)
+                        <button type="button" wire:click="newBanner('hero', '{{ $key }}')" wire:key="tplrow-{{ $key }}" data-testid="tplrow-{{ $key }}"
+                                class="group snap-start shrink-0 rounded-2xl p-1.5 text-left ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-2 hover:ring-violet-400 transition">
+                            @include('livewire.promotions.partials.storefront-mini', ['kind' => 'hero', 'scale' => 0.36, 'tpl' => $key, 'c1' => $t['c1'], 'c2' => $t['c2'], 'acc' => $t['acc'], 'ink' => $t['ink'],
+                                'badge' => $t['badge'], 'title' => $t['title'], 'subtitle' => $t['subtitle'], 'button' => $t['button'], 'photos' => array_slice($samples, 0, $key === 'vitrine' ? 3 : 1)])
+                            <span class="flex items-center justify-between gap-2 px-1 pt-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">{{ $t['name'] }}<span class="text-violet-600 dark:text-violet-300 opacity-0 group-hover:opacity-100 transition"><i class="bi bi-plus-lg"></i> Usar</span></span>
+                        </button>
+                    @endforeach
+                </div>
+            </section>
             @foreach($sizes as $place => [$title, $help, $ico])
                 @php $list = $banners[$place] ?? collect(); @endphp
                 <section class="{{ $card }} p-4 sm:p-5" data-testid="banners-{{ $place }}">
@@ -82,6 +102,15 @@
                             @foreach($list as $b)
                                 @php [$st, $tone] = $bState($b); @endphp
                                 <article wire:key="bn-{{ $b->id }}" class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex {{ $place === 'side' ? 'flex-row' : 'flex-col' }} {{ $b->active ? '' : 'opacity-70' }}">
+                                    @if($b->isDesign())
+                                        @php $dz = $b->design + ['c1' => null, 'c2' => null, 'acc' => null, 'ink' => 'light', 'badge' => null];
+                                            $dArgs = ['tpl' => $dz['tpl'], 'c1' => $dz['c1'], 'c2' => $dz['c2'], 'acc' => $dz['acc'], 'ink' => $dz['ink'], 'badge' => $dz['badge'], 'title' => $b->title, 'subtitle' => $b->subtitle, 'button' => $b->button_text, 'photos' => $b->designPhotos()]; @endphp
+                                        @if($place === 'side')
+                                            <div class="shrink-0 bg-slate-50 dark:bg-slate-800/50 p-1.5">@include('livewire.promotions.partials.storefront-mini', $dArgs + ['kind' => 'side', 'scale' => 0.4])</div>
+                                        @else
+                                            <div class="sf-ban sf-{{ $place }} has-design !rounded-none">@include('portal.partials.storefront-design', $dArgs)</div>
+                                        @endif
+                                    @else
                                     <div class="relative {{ $place === 'side' ? 'w-16 shrink-0 aspect-[4/15]' : ($place === 'strip' ? 'aspect-[6/1] min-h-[56px]' : 'aspect-[3/1]') }} overflow-hidden" style="background: {{ $front::gradient($b->color) }}">
                                         @if($b->image)
                                             <img src="{{ $b->imageUrl() }}" alt="" class="absolute inset-0 w-full h-full object-cover">
@@ -92,9 +121,10 @@
                                                 @if($b->subtitle && $place !== 'strip')<span class="text-[11px] opacity-90 line-clamp-1">{{ $b->subtitle }}</span>@endif
                                             </div>
                                         @endif
-                                                                            </div>
+                                    </div>
+                                    @endif
                                     <div class="p-3 flex flex-col gap-2 flex-1 min-w-0">
-                                        <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 min-w-0"><span class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $tones[$tone] }}">{{ $st }}</span><i class="bi bi-link-45deg"></i><span class="truncate">{{ $linkLabel($b) }}</span></p>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 min-w-0"><span class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $tones[$tone] }}">{{ $st }}</span><i class="bi bi-link-45deg"></i><span class="truncate">{{ $linkLabel($b) }}</span>@if($b->isDesign())<span class="ml-auto shrink-0 text-[11px] text-violet-600 dark:text-violet-300"><i class="bi bi-magic"></i> {{ $front::TEMPLATES[$b->design['tpl']]['name'] ?? 'Modelo' }}</span>@endif</p>
                                         @if($b->starts_at || $b->ends_at)
                                             <p class="text-xs text-slate-500 dark:text-slate-400"><i class="bi bi-calendar3"></i> {{ $b->starts_at ? 'de ' . $b->starts_at->format('d/m') : '' }} {{ $b->ends_at ? 'até ' . $b->ends_at->format('d/m/Y') : '' }}</p>
                                         @endif
@@ -218,161 +248,7 @@
 
     {{-- ===================== Janela: banner ===================== --}}
     @if($showBanner)
-        @php
-            $preview = $b_image ? $b_image->temporaryUrl() : ($b_image_old ? asset('storage/' . $b_image_old) : null);
-            $previewM = $b_image_mobile ? $b_image_mobile->temporaryUrl() : ($b_mobile_old ? asset('storage/' . $b_mobile_old) : null);
-            $ratio = ['hero' => 'aspect-[3/1]', 'strip' => 'aspect-[6/1]', 'side' => 'aspect-[4/15] max-h-72'][$b_placement] ?? 'aspect-[3/1]';
-        @endphp
-        <div class="fixed inset-0 z-[90] flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-sm p-0 sm:p-4" wire:keydown.escape="$set('showBanner', false)">
-            <div class="absolute inset-0" wire:click="$set('showBanner', false)"></div>
-            <form wire:submit="saveBanner" class="relative w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl p-5 sm:p-6 space-y-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))]" data-testid="banner-form">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ $bannerId ? 'Editar banner' : 'Novo banner' }}</h2>
-                    <button type="button" wire:click="$set('showBanner', false)" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
-                </div>
-
-                <div>
-                    <span class="{{ $label }}">Onde aparece</span>
-                    <div class="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
-                        @foreach(['hero' => 'Topo', 'strip' => 'Faixa', 'side' => 'Lateral'] as $k => $n)
-                            <button type="button" wire:click="$set('b_placement', '{{ $k }}')" class="rounded-lg py-2 text-sm font-semibold {{ $b_placement === $k ? 'bg-white dark:bg-slate-700 shadow text-violet-600 dark:text-violet-300' : 'text-slate-500' }}">{{ $n }}</button>
-                        @endforeach
-                    </div>
-                    <p class="mt-1 text-xs text-slate-500">{{ $sizes[$b_placement][1] ?? '' }}</p>
-                </div>
-
-                {{-- Prévia --}}
-                <div class="relative {{ $ratio }} w-full {{ $b_placement === 'side' ? 'sm:w-40 mx-auto w-32' : '' }} rounded-xl overflow-hidden text-white" style="background: {{ $front::gradient($b_color) }}" data-testid="banner-preview">
-                    @if($preview)<img src="{{ $preview }}" alt="" class="absolute inset-0 w-full h-full object-cover">@endif
-                    @if($b_title || $b_subtitle || $b_button)
-                        <div class="absolute inset-0 flex flex-col {{ $b_placement === 'side' ? 'justify-end' : 'justify-center' }} gap-1 px-4 py-3 {{ $preview ? 'bg-gradient-to-r from-black/55 to-transparent' : '' }}">
-                            @if($b_title)<b class="{{ $b_placement === 'hero' ? 'text-lg sm:text-2xl' : 'text-sm sm:text-base' }} font-black leading-tight line-clamp-2">{{ $b_title }}</b>@endif
-                            @if($b_subtitle && $b_placement !== 'strip')<span class="text-xs opacity-90 line-clamp-2">{{ $b_subtitle }}</span>@endif
-                            @if($b_button)<span class="self-start mt-1 rounded-full bg-white text-slate-800 text-xs font-bold px-3 py-1">{{ $b_button }} →</span>@endif
-                        </div>
-                    @elseif(! $preview)
-                        <div class="absolute inset-0 flex items-center justify-center text-sm opacity-80">Coloque uma imagem ou escreva um título</div>
-                    @endif
-                </div>
-
-                <div class="grid gap-3 {{ $b_placement === 'side' ? '' : 'sm:grid-cols-2' }}">
-                    <div>
-                        <span class="{{ $label }}">Imagem {{ $b_placement === 'side' ? '' : '(computador)' }} <span class="font-normal text-slate-400">(opcional)</span></span>
-                        <div class="flex items-center gap-2">
-                            <label class="{{ $phBtn }} cursor-pointer flex-1 justify-center"><i class="bi bi-upload text-violet-500"></i><span wire:loading.remove wire:target="b_image">{{ $preview ? 'Trocar imagem' : 'Escolher imagem' }}</span><span wire:loading wire:target="b_image">Enviando…</span>
-                                <input type="file" wire:model="b_image" accept="image/jpeg,image/png,image/webp" class="sr-only" data-testid="banner-image"></label>
-                            @if($preview)<button type="button" wire:click="removeBannerImage('main')" class="{{ $iconBtn }}" title="Tirar a imagem"><i class="bi bi-x-lg text-rose-500"></i></button>@endif
-                        </div>
-                        @error('b_image')<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
-                    </div>
-                    @if($b_placement !== 'side')
-                        <div>
-                            <span class="{{ $label }}">Imagem para celular <span class="font-normal text-slate-400">(opcional)</span></span>
-                            <div class="flex items-center gap-2">
-                                <label class="{{ $phBtn }} cursor-pointer flex-1 justify-center"><i class="bi bi-phone text-violet-500"></i><span wire:loading.remove wire:target="b_image_mobile">{{ $previewM ? 'Trocar' : 'Escolher imagem' }}</span><span wire:loading wire:target="b_image_mobile">Enviando…</span>
-                                    <input type="file" wire:model="b_image_mobile" accept="image/jpeg,image/png,image/webp" class="sr-only"></label>
-                                @if($previewM)
-                                    <img src="{{ $previewM }}" alt="" class="w-14 h-9 rounded-md object-cover border border-slate-200">
-                                    <button type="button" wire:click="removeBannerImage('mobile')" class="{{ $iconBtn }}" title="Tirar"><i class="bi bi-x-lg text-rose-500"></i></button>
-                                @endif
-                            </div>
-                            @error('b_image_mobile')<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
-                        </div>
-                    @endif
-                </div>
-
-                @if(! $preview)
-                    <div>
-                        <span class="{{ $label }}">Cor do fundo</span>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach($front::COLORS as $k => [$n, $g])
-                                <button type="button" wire:click="$set('b_color', '{{ $k }}')" title="{{ $n }}" aria-label="{{ $n }}" class="w-9 h-9 rounded-full ring-offset-2 dark:ring-offset-slate-900 {{ $b_color === $k ? 'ring-2 ring-violet-500' : '' }}" style="background: {{ $g }}"></button>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
-
-                <div class="grid gap-3 sm:grid-cols-2">
-                    <div class="sm:col-span-2">
-                        <label class="{{ $label }}" for="bn-title">Título {{ $preview ? '(opcional, se a imagem já tem texto deixe vazio)' : '' }}</label>
-                        <input id="bn-title" type="text" wire:model.live.debounce.400ms="b_title" maxlength="120" placeholder="Ex.: Semana do perfume com até 30% OFF" class="{{ $input }}" data-testid="banner-title">
-                        @error('b_title')<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
-                    </div>
-                    @if($b_placement !== 'strip')
-                        <div class="sm:col-span-2">
-                            <label class="{{ $label }}" for="bn-sub">Texto menor <span class="font-normal text-slate-400">(opcional)</span></label>
-                            <input id="bn-sub" type="text" wire:model.live.debounce.400ms="b_subtitle" maxlength="200" placeholder="Ex.: Só até domingo, enquanto durar o estoque" class="{{ $input }}">
-                        </div>
-                    @endif
-                    <div>
-                        <label class="{{ $label }}" for="bn-btn">Texto do botão <span class="font-normal text-slate-400">(opcional)</span></label>
-                        <input id="bn-btn" type="text" wire:model.live.debounce.400ms="b_button" maxlength="40" placeholder="Ver ofertas" class="{{ $input }}">
-                    </div>
-                    <div>
-                        <label class="{{ $label }}" for="bn-link">Ao tocar, leva para</label>
-                        <select id="bn-link" wire:model.live="b_link_type" class="{{ $input }}" data-testid="banner-link-type">
-                            @foreach($front::LINK_TYPES as $k => $n)
-                                <option value="{{ $k }}">{{ $n }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    @if($b_link_type === 'collection')
-                        <div class="sm:col-span-2">
-                            <label class="{{ $label }}" for="bn-col">Coleção</label>
-                            <select id="bn-col" wire:model="b_link_value" class="{{ $input }}">
-                                <option value="">Escolha…</option>
-                                @foreach($collections as $c)<option value="{{ $c->slug }}">{{ $c->name }}</option>@endforeach
-                            </select>
-                            @if($collections->isEmpty())<p class="mt-1 text-xs text-slate-500">Crie uma coleção na aba Coleções primeiro.</p>@endif
-                        </div>
-                    @elseif($b_link_type === 'category')
-                        <div class="sm:col-span-2">
-                            <label class="{{ $label }}" for="bn-cat">Categoria</label>
-                            <select id="bn-cat" wire:model="b_link_value" class="{{ $input }}">
-                                <option value="">Escolha…</option>
-                                @foreach($categories as $cat)<option value="{{ $cat->id_category }}">{{ $cat->name }}</option>@endforeach
-                            </select>
-                        </div>
-                    @elseif($b_link_type === 'product')
-                        <div class="sm:col-span-2">
-                            <span class="{{ $label }}">Produto</span>
-                            <button type="button" wire:click="openPicker('banner')" class="{{ $phBtn }} w-full justify-start">
-                                @if($bannerProduct)
-                                    <img src="{{ $bannerProduct->image_url }}" alt="" class="w-8 h-8 rounded-md object-cover"><span class="truncate">{{ $bannerProduct->name }}</span><span class="ml-auto text-violet-600 text-xs">Trocar</span>
-                                @else
-                                    <i class="bi bi-search text-violet-500"></i>Escolher produto
-                                @endif
-                            </button>
-                        </div>
-                    @elseif($b_link_type === 'url')
-                        <div class="sm:col-span-2">
-                            <label class="{{ $label }}" for="bn-url">Endereço</label>
-                            <input id="bn-url" type="url" wire:model="b_link_value" placeholder="https://" class="{{ $input }}">
-                        </div>
-                    @endif
-                    @error('b_link_value')<p class="sm:col-span-2 -mt-2 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
-                    <div>
-                        <label class="{{ $label }}" for="bn-start">Começa em <span class="font-normal text-slate-400">(opcional)</span></label>
-                        <input id="bn-start" type="date" wire:model="b_starts" class="{{ $input }}">
-                    </div>
-                    <div>
-                        <label class="{{ $label }}" for="bn-end">Termina em <span class="font-normal text-slate-400">(opcional)</span></label>
-                        <input id="bn-end" type="date" wire:model="b_ends" class="{{ $input }}">
-                        @error('b_ends')<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
-                    </div>
-                </div>
-
-                <label class="flex items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3 cursor-pointer">
-                    <input type="checkbox" wire:model="b_active" class="mt-0.5 rounded text-violet-500 focus:ring-violet-400">
-                    <span class="text-sm text-slate-700 dark:text-slate-200"><b>Ligado</b><small class="block text-xs text-slate-500">Desligado, o banner fica guardado aqui e não aparece no catálogo.</small></span>
-                </label>
-
-                <div class="flex gap-2 pt-1">
-                    <button type="button" wire:click="$set('showBanner', false)" class="flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">Cancelar</button>
-                    <button type="submit" class="flex-1 {{ $primary }}" data-testid="banner-save" wire:loading.attr="disabled" wire:target="saveBanner,b_image,b_image_mobile"><span wire:loading.remove wire:target="saveBanner">Salvar banner</span><span wire:loading wire:target="saveBanner">Salvando…</span></button>
-                </div>
-            </form>
-        </div>
+        @include('livewire.promotions.partials.banner-form')
     @endif
 
     {{-- ===================== Janela: coleção ===================== --}}

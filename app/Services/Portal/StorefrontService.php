@@ -28,6 +28,36 @@ class StorefrontService
         'dark'   => ['Escuro', 'linear-gradient(135deg,#1f2937 0%,#0f172a 100%)'],
     ];
 
+    /**
+     * Modelos prontos de banner: tudo editável (textos, selo, cores, fotos).
+     * c1/c2 = fundo em degradê, acc = cor do selo e do botão, ink = texto claro ou escuro.
+     */
+    public const TEMPLATES = [
+        'oferta'   => ['name' => 'Oferta relâmpago', 'badge' => 'ATÉ 40% OFF', 'title' => 'Oferta relâmpago', 'subtitle' => 'Só hoje, enquanto durar o estoque', 'button' => 'Aproveitar', 'c1' => '#ff7733', 'c2' => '#e11d48', 'acc' => '#fff7ed', 'ink' => 'light', 'link' => 'offers'],
+        'novidade' => ['name' => 'Lançamento', 'badge' => 'NOVIDADE', 'title' => 'Chegou a nova coleção', 'subtitle' => 'Conheça os lançamentos da semana', 'button' => 'Ver novidades', 'c1' => '#f5f3ff', 'c2' => '#ddd6fe', 'acc' => '#7c3aed', 'ink' => 'dark', 'link' => 'none'],
+        'maes'     => ['name' => 'Dia das Mães', 'badge' => 'PRESENTES', 'title' => 'Dia das Mães', 'subtitle' => 'Kits lindos a partir de R$ 59,90', 'button' => 'Escolher presente', 'c1' => '#f9a8d4', 'c2' => '#db2777', 'acc' => '#ffffff', 'ink' => 'light', 'link' => 'none'],
+        'black'    => ['name' => 'Black Friday', 'badge' => 'BLACK FRIDAY', 'title' => 'Os menores preços do ano', 'subtitle' => 'Descontos de verdade em toda a loja', 'button' => 'Ver ofertas', 'c1' => '#111111', 'c2' => '#27272a', 'acc' => '#facc15', 'ink' => 'light', 'link' => 'offers'],
+        'frete'    => ['name' => 'Frete grátis', 'badge' => 'FRETE GRÁTIS', 'title' => 'Entrega grátis no seu bairro', 'subtitle' => 'Em pedidos acima de R$ 150', 'button' => 'Comprar agora', 'c1' => '#10b981', 'c2' => '#047857', 'acc' => '#ecfdf5', 'ink' => 'light', 'link' => 'none'],
+        'cupom'    => ['name' => 'Cupom de desconto', 'badge' => 'BEMVINDA10', 'title' => 'Ganhe 10% na primeira compra', 'subtitle' => 'Digite o cupom no carrinho', 'button' => 'Usar cupom', 'c1' => '#6366f1', 'c2' => '#7c3aed', 'acc' => '#ffffff', 'ink' => 'light', 'link' => 'none'],
+        'vitrine'  => ['name' => 'Vitrine de produtos', 'badge' => 'MAIS VENDIDOS', 'title' => 'Os queridinhos da semana', 'subtitle' => 'Os produtos que mais saíram', 'button' => 'Ver todos', 'c1' => '#ffffff', 'c2' => '#f1f5f9', 'acc' => '#3483fa', 'ink' => 'dark', 'link' => 'none'],
+        'natal'    => ['name' => 'Natal', 'badge' => 'FELIZ NATAL', 'title' => 'Presentes de Natal', 'subtitle' => 'Embrulhamos para presente sem custo', 'button' => 'Ver presentes', 'c1' => '#b91c1c', 'c2' => '#7f1d1d', 'acc' => '#fde68a', 'ink' => 'light', 'link' => 'none'],
+    ];
+
+    /** Combinações de cores para os modelos: fundo início, fundo fim, selo/botão, letras. */
+    public const PALETTES = [
+        ['#ff7733', '#e11d48', '#fff7ed', 'light'],
+        ['#3483fa', '#2968c8', '#ffffff', 'light'],
+        ['#ec4899', '#be185d', '#fff1f2', 'light'],
+        ['#8b5cf6', '#6d28d9', '#fde68a', 'light'],
+        ['#10b981', '#047857', '#ecfdf5', 'light'],
+        ['#111111', '#27272a', '#facc15', 'light'],
+        ['#b91c1c', '#7f1d1d', '#fde68a', 'light'],
+        ['#fdf2f8', '#fbcfe8', '#db2777', 'dark'],
+        ['#fffbeb', '#fde68a', '#b45309', 'dark'],
+        ['#f0f9ff', '#bae6fd', '#0369a1', 'dark'],
+        ['#ffffff', '#f1f5f9', '#3483fa', 'dark'],
+    ];
+
     public const LINK_TYPES = [
         'none'       => 'Sem link',
         'offers'     => 'Ofertas',
