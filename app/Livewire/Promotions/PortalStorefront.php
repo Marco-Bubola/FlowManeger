@@ -7,6 +7,7 @@ use App\Models\PortalBanner;
 use App\Models\PortalCollection;
 use App\Models\PortalSetting;
 use App\Models\Product;
+use App\Services\Portal\HomeLayout;
 use App\Services\Portal\StorefrontService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -22,7 +23,18 @@ class PortalStorefront extends Component
 {
     use WithFileUploads;
 
-    public string $tab = 'banners';
+    public string $tab = 'inicio';
+
+    // Página inicial (montagem): ordem dos blocos, escondidos, cores [topo 1, topo 2, principal], cantos e tema
+    public array $home_order = [];
+    public array $home_off = [];
+    public array $home_colors = [];
+    public string $home_style = 'padrao';
+    public string $home_theme = 'padrao';
+    public string $pendingTheme = '';
+    public bool $withBanner = true;
+    public bool $withNotice = true;
+    public int $previewKey = 0;
 
     /** Grupo aberto na fileira de modelos prontos. */
     public string $galleryGroup = 'datas';
@@ -41,7 +53,7 @@ class PortalStorefront extends Component
     public string $pickFor = '';
     public string $pickSearch = '';
 
-    protected $queryString = ['tab' => ['except' => 'banners']];
+    protected $queryString = ['tab' => ['except' => 'inicio']];
 
     public function mount()
     {
@@ -56,6 +68,7 @@ class PortalStorefront extends Component
         $this->notice_text = (string) $s->notice_text;
         $this->notice_link = (string) $s->notice_link;
         $this->notice_active = (bool) $s->notice_active;
+        $this->loadHome($s);
         // Uma coleção pronta para cada categoria, criada uma vez; as categorias novas pelo botão.
         if (\Illuminate\Support\Facades\Schema::hasColumn('portal_settings', 'home') && empty(($s->home ?? [])['cats_done'])) {
             $made = StorefrontService::createCategoryCollections(Auth::id(), $this->kind);
@@ -65,6 +78,91 @@ class PortalStorefront extends Component
                 session()->flash('success', $made === 1 ? 'Criamos 1 coleção para a sua categoria.' : 'Criamos ' . $made . ' coleções, uma para cada categoria.');
             }
         }
+    }
+
+    /* ---------- Página inicial ---------- */
+
+    private function loadHome(?PortalSetting $s = null): void
+    {
+        $h = HomeLayout::get($s ?? PortalSetting::for(Auth::id()));
+        $this->home_order = $h['order'];
+        $this->home_off = $h['off'];
+        $this->home_colors = $h['colors'];
+        $this->home_style = $h['style'];
+        $this->home_theme = $h['theme'];
+    }
+
+    private function saveHome(): void
+    {
+        if (! HomeLayout::ready()) {
+            return;
+        }
+        HomeLayout::save(Auth::id(), [
+            'theme' => $this->home_theme, 'order' => array_values($this->home_order), 'off' => array_values($this->home_off),
+            'colors' => $this->home_colors, 'style' => $this->home_style,
+        ]);
+        $this->loadHome();
+        $this->previewKey++;
+    }
+
+    public function moveSection(string $key, int $dir): void
+    {
+        $i = array_search($key, $this->home_order, true);
+        $j = $i === false ? false : $i + $dir;
+        if ($j === false || $j < 0 || $j >= count($this->home_order)) {
+            return;
+        }
+        [$this->home_order[$i], $this->home_order[$j]] = [$this->home_order[$j], $this->home_order[$i]];
+        $this->saveHome();
+    }
+
+    public function toggleSection(string $key): void
+    {
+        if (! isset(HomeLayout::SECTIONS[$key])) {
+            return;
+        }
+        $this->home_off = in_array($key, $this->home_off, true)
+            ? array_values(array_diff($this->home_off, [$key]))
+            : array_merge($this->home_off, [$key]);
+        $this->saveHome();
+    }
+
+    public function setStyle(string $style): void
+    {
+        if (isset(HomeLayout::STYLES[$style])) {
+            $this->home_style = $style;
+            $this->saveHome();
+        }
+    }
+
+    public function updatedHomeColors(): void
+    {
+        $this->home_colors = array_map(fn ($c, $d) => preg_match('/^#[0-9a-fA-F]{6}$/', (string) $c) ? strtolower($c) : $d, array_values($this->home_colors) + HomeLayout::BASE, HomeLayout::BASE);
+        $this->saveHome();
+    }
+
+    public function pickTheme(string $key): void
+    {
+        $this->pendingTheme = isset(HomeLayout::THEMES[$key]) && $this->pendingTheme !== $key ? $key : '';
+    }
+
+    public function applyTheme(): void
+    {
+        $key = $this->pendingTheme;
+        if (! isset(HomeLayout::THEMES[$key]) || ! HomeLayout::ready()) {
+            return;
+        }
+        $done = HomeLayout::apply(Auth::id(), $key, $this->kind, $this->withBanner, $this->withNotice);
+        $s = PortalSetting::for(Auth::id());
+        $this->featured_title = (string) $s->featured_title;
+        $this->notice_text = (string) $s->notice_text;
+        $this->notice_active = (bool) $s->notice_active;
+        $this->loadHome($s);
+        $this->pendingTheme = '';
+        $this->previewKey++;
+        $t = HomeLayout::THEMES[$key];
+        $extra = array_filter([in_array('banner', $done, true) ? 'banner no topo' : null, in_array('aviso', $done, true) ? 'aviso' : null]);
+        $this->dispatch('notify', type: 'success', message: 'Tema ' . $t['name'] . ' aplicado' . ($extra ? ' (com ' . implode(' e ', $extra) . ')' : '') . '. Mude o que quiser abaixo.');
     }
 
     public function createCategoryCollections(): void
@@ -337,6 +435,26 @@ class PortalStorefront extends Component
             'results'       => $results,
             'picked'        => $picked,
             'catalogUrl'    => route('portal.catalog', ['userId' => $uid]),
+            'themes'        => $this->tab === 'inicio' ? HomeLayout::themes($this->kind) : [],
+            'secInfo'       => $this->tab === 'inicio' ? $this->sectionInfo($uid, $banners, $collections) : [],
         ]);
+    }
+
+    /** Uma linha de cada bloco: quanto tem e onde muda. */
+    private function sectionInfo(int $uid, $banners, $collections): array
+    {
+        $live = fn ($place) => ($banners[$place] ?? collect())->filter(fn ($b) => $b->active && (! $b->ends_at || now()->startOfDay()->lte($b->ends_at)) && (! $b->starts_at || now()->startOfDay()->gte($b->starts_at)))->count();
+        $home = $collections->where('active', true)->where('show_on_home', true)->count();
+        $offers = \App\Models\Promotion::where('user_id', $uid)->where('status', \App\Models\Promotion::ATIVA)->count();
+        $n = fn ($v, $one, $many) => $v === 1 ? "1 {$one}" : "{$v} {$many}";
+
+        return [
+            'hero'        => [$n($live('hero'), 'banner no ar', 'banners no ar'), 'banners'],
+            'cats'        => [$n(\App\Models\Category::where('user_id', $uid)->whereIn('id_category', StorefrontService::categoryCounts($uid)->keys())->count(), 'categoria', 'categorias'), null],
+            'featured'    => [$n(count($this->featuredIds), 'produto escolhido', 'produtos escolhidos'), 'destaques'],
+            'offers'      => [$n($offers, 'promoção ativa', 'promoções ativas'), null],
+            'collections' => [$n($home, 'coleção', 'coleções') . ' e ' . $n($live('strip'), 'faixa', 'faixas'), 'colecoes'],
+            'recent'      => ['Só aparece para quem já abriu algum produto', null],
+        ];
     }
 }

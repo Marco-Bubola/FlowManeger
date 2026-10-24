@@ -287,7 +287,7 @@ class BannerEditor extends Component
         $this->dropFiles($this->b_newFiles);
         $this->b_newFiles = [];
 
-        return $this->redirectRoute('promotions.storefront', navigate: false);
+        return $this->redirectRoute('promotions.storefront', ['tab' => 'banners'], navigate: false);
     }
 
     /** Quantas fotos o banner usa (o modelo mostra 1 ou 3; trocando as fotos, 3 vezes isso). */
@@ -443,7 +443,7 @@ class BannerEditor extends Component
         }
         session()->flash('success', 'Banner salvo.');
 
-        return $this->redirectRoute('promotions.storefront', navigate: false);
+        return $this->redirectRoute('promotions.storefront', ['tab' => 'banners'], navigate: false);
     }
 
     /* ---------- Escolher produto ---------- */

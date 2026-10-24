@@ -3,6 +3,8 @@
     $storeName = $store?->name ?: config('app.name');
     // Cores da logo do app (rosa, roxo e azul), escolhidas pelo dono.
     $theme = ['header' => 'linear-gradient(90deg, #ec4899 0%, #a855f7 50%, #3b82f6 100%)', 'primary' => '#8b5cf6', 'dark' => '#7c3aed', 'soft' => '#ede9fe', 'hero' => 'linear-gradient(135deg, #db2777 0%, #8b5cf6 55%, #2563eb 100%)', 'meta' => '#a855f7'];
+    // Vitrine › Página inicial: cores do tema (evento ou escolhidas) e os cantos.
+    $theme = array_merge($theme, \App\Services\Portal\HomeLayout::cssTheme($ownerId ? (int) $ownerId : null) ?? []);
     $cartUrl = Auth::guard('portal')->check() ? route('portal.quotes.create') : route('portal.login', ['redirect' => 'cart']);
     // Novidades nos pedidos (confirmado/recusado/proposta) para o menu da conta.
     $orderAlerts = Auth::guard('portal')->check()
@@ -59,7 +61,7 @@
             --ml-green: #00a650;
             --ml-orange: #ff7733;
             --ml-red: #f23d4f;
-            --ml-radius: 8px;
+            --ml-radius: {{ $theme['radius'] ?? '8px' }};
             --ml-shadow: 0 1px 2px rgba(0,0,0,.12);
         }
         *, *::before, *::after { box-sizing: border-box; }

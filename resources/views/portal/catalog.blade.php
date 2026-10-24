@@ -22,6 +22,9 @@
     $heroBanners = $isHome ? ($banners['hero'] ?? collect()) : collect();
     $strips = $isHome ? ($banners['strip'] ?? collect())->values() : collect();
     $sides = ($banners['side'] ?? collect())->values();
+    $homeLayout = \App\Services\Portal\HomeLayout::get($settings);
+    $homeOrder = $homeLayout['order'];
+    $homeOff = $isHome ? $homeLayout['off'] : [];
     $notice = $settings && $settings->notice_active && trim((string) $settings->notice_text) !== '' ? $settings : null;
 @endphp
 
@@ -41,114 +44,120 @@
         </{{ $nHref ? 'a' : 'p' }}>
     @endif
 
-    @if($heroBanners->isNotEmpty())
-        <section class="sf-hero-wrap" x-data="sfHero({{ $heroBanners->count() }})" aria-roledescription="carrossel" aria-label="Destaques da loja" data-testid="hero-carousel">
-            <div class="sf-hero-track" x-ref="track">
-                @foreach($heroBanners as $b)
-                    @include('portal.partials.storefront-banner', ['b' => $b, 'kind' => 'hero', 'eager' => $loop->first])
-                @endforeach
-            </div>
-            @if($heroBanners->count() > 1)
-                <button type="button" class="sf-arrow l" @click="go(i - 1)" aria-label="Banner anterior"><i class="fas fa-chevron-left"></i></button>
-                <button type="button" class="sf-arrow r" @click="go(i + 1)" aria-label="Próximo banner"><i class="fas fa-chevron-right"></i></button>
-                <div class="sf-dots">
-                    @foreach($heroBanners as $b)
-                        <button type="button" :class="i === {{ $loop->index }} && 'on'" @click="go({{ $loop->index }})" aria-label="Banner {{ $loop->iteration }}"></button>
+    {{-- Blocos da página inicial na ordem da Vitrine › Página inicial (os escondidos ficam de fora só na inicial) --}}
+    @foreach($homeOrder as $sec)
+        @continue(in_array($sec, $homeOff, true))
+        @if($sec === 'hero')
+            @if($heroBanners->isNotEmpty())
+                <section class="sf-hero-wrap" x-data="sfHero({{ $heroBanners->count() }})" aria-roledescription="carrossel" aria-label="Destaques da loja" data-testid="hero-carousel">
+                    <div class="sf-hero-track" x-ref="track">
+                        @foreach($heroBanners as $b)
+                            @include('portal.partials.storefront-banner', ['b' => $b, 'kind' => 'hero', 'eager' => $loop->first])
+                        @endforeach
+                    </div>
+                    @if($heroBanners->count() > 1)
+                        <button type="button" class="sf-arrow l" @click="go(i - 1)" aria-label="Banner anterior"><i class="fas fa-chevron-left"></i></button>
+                        <button type="button" class="sf-arrow r" @click="go(i + 1)" aria-label="Próximo banner"><i class="fas fa-chevron-right"></i></button>
+                        <div class="sf-dots">
+                            @foreach($heroBanners as $b)
+                                <button type="button" :class="i === {{ $loop->index }} && 'on'" @click="go({{ $loop->index }})" aria-label="Banner {{ $loop->iteration }}"></button>
+                            @endforeach
+                        </div>
+                    @endif
+                </section>
+            @elseif($showOffers)
+                <section class="ml-hero">
+                    <small><i class="fas fa-bolt"></i> Ofertas da semana</small>
+                    <h1>Até {{ $offers->max(fn ($o) => $o->livePromotion()->discount_percent) }}% OFF em produtos selecionados</h1>
+                    <p>Escolha, adicione ao carrinho e finalize seu pedido em poucos toques.</p>
+                    <div class="ml-hero-stats">
+                        <span><i class="fas fa-tag"></i> {{ $offers->count() }} {{ $offers->count() === 1 ? 'oferta' : 'ofertas' }}</span>
+                        <span><i class="fas fa-box"></i> {{ $stockMap->count() }} produtos disponíveis</span>
+                    </div>
+                </section>
+            @endif
+        @elseif($sec === 'cats')
+            @if($categories->count())
+                <nav class="ml-cats" aria-label="Categorias">
+                    <a href="{{ route('portal.catalog', ['userId' => $owner]) }}" class="ml-cat {{ ! $category && ! $onlyOffers ? 'on' : '' }}">
+                        <span class="ml-cat-ico"><i class="fas fa-store"></i></span>
+                        <span>Tudo ({{ $stockMap->count() }})</span>
+                    </a>
+                    @if($offers->isNotEmpty())
+                        <a href="{{ route('portal.catalog', ['userId' => $owner, 'ofertas' => 1]) }}" class="ml-cat hot {{ $onlyOffers ? 'on' : '' }}">
+                            <span class="ml-cat-ico"><i class="fas fa-fire"></i></span>
+                            <span>Ofertas</span>
+                        </a>
+                    @endif
+                    @foreach($categories as $cat)
+                        <a href="{{ route('portal.catalog', ['userId' => $owner, 'category' => $cat->getKey()]) }}"
+                           class="ml-cat {{ (string) $category === (string) $cat->getKey() ? 'on' : '' }}">
+                            <span class="ml-cat-ico"><i class="{{ $cat->icone ?: 'fas fa-tag' }}"></i></span>
+                            <span>{{ $cat->name }} ({{ $countByCategory[$cat->getKey()] ?? 0 }})</span>
+                        </a>
                     @endforeach
-                </div>
+                </nav>
             @endif
-        </section>
-    @elseif($showOffers)
-        <section class="ml-hero">
-            <small><i class="fas fa-bolt"></i> Ofertas da semana</small>
-            <h1>Até {{ $offers->max(fn ($o) => $o->livePromotion()->discount_percent) }}% OFF em produtos selecionados</h1>
-            <p>Escolha, adicione ao carrinho e finalize seu pedido em poucos toques.</p>
-            <div class="ml-hero-stats">
-                <span><i class="fas fa-tag"></i> {{ $offers->count() }} {{ $offers->count() === 1 ? 'oferta' : 'ofertas' }}</span>
-                <span><i class="fas fa-box"></i> {{ $stockMap->count() }} produtos disponíveis</span>
-            </div>
-        </section>
-    @endif
-
-    @if($categories->count())
-        <nav class="ml-cats" aria-label="Categorias">
-            <a href="{{ route('portal.catalog', ['userId' => $owner]) }}" class="ml-cat {{ ! $category && ! $onlyOffers ? 'on' : '' }}">
-                <span class="ml-cat-ico"><i class="fas fa-store"></i></span>
-                <span>Tudo ({{ $stockMap->count() }})</span>
-            </a>
-            @if($offers->isNotEmpty())
-                <a href="{{ route('portal.catalog', ['userId' => $owner, 'ofertas' => 1]) }}" class="ml-cat hot {{ $onlyOffers ? 'on' : '' }}">
-                    <span class="ml-cat-ico"><i class="fas fa-fire"></i></span>
-                    <span>Ofertas</span>
-                </a>
+        @elseif($sec === 'featured')
+            @if($featured->isNotEmpty())
+                <section class="ml-box ml-offers" data-testid="featured">
+                    <div class="ml-sec-head">
+                        <h2><i class="fas fa-star sf-star"></i> {{ $settings->featured_title ?: 'Destaques da loja' }}</h2>
+                    </div>
+                    <div class="ml-rail">
+                        @foreach($featured as $p)
+                            @include('portal.partials.ml-card', ['d' => $all[$p->id]])
+                        @endforeach
+                    </div>
+                </section>
             @endif
-            @foreach($categories as $cat)
-                <a href="{{ route('portal.catalog', ['userId' => $owner, 'category' => $cat->getKey()]) }}"
-                   class="ml-cat {{ (string) $category === (string) $cat->getKey() ? 'on' : '' }}">
-                    <span class="ml-cat-ico"><i class="{{ $cat->icone ?: 'fas fa-tag' }}"></i></span>
-                    <span>{{ $cat->name }} ({{ $countByCategory[$cat->getKey()] ?? 0 }})</span>
-                </a>
+        @elseif($sec === 'offers')
+            @if($showOffers)
+                <section class="ml-box ml-offers">
+                    <div class="ml-sec-head">
+                        <h2><i class="fas fa-bolt"></i> Ofertas do dia</h2>
+                        <a href="{{ route('portal.catalog', ['userId' => $owner, 'ofertas' => 1]) }}">Ver todas</a>
+                    </div>
+                    <div class="ml-rail">
+                        @foreach($offers->take(15) as $o)
+                            @include('portal.partials.ml-card', ['d' => $all[$o->id]])
+                        @endforeach
+                    </div>
+                </section>
+            @endif
+        @elseif($sec === 'collections')
+            {{-- Faixas e coleções: uma faixa depois das ofertas e outra depois de cada coleção --}}
+            @if($strips->isNotEmpty())
+                @include('portal.partials.storefront-banner', ['b' => $strips[0], 'kind' => 'strip'])
+            @endif
+            @foreach($collections as $c)
+                @php $cHref = route('portal.catalog', ['userId' => $owner, 'colecao' => $c->slug]); @endphp
+                <section class="ml-box sf-col" data-testid="collection-{{ $c->slug }}">
+                    @include('portal.partials.collection-head', ['c' => $c, 'href' => $cHref])
+                    <div class="ml-rail">
+                        @foreach($c->items as $p)
+                            @include('portal.partials.ml-card', ['d' => $all[$p->id]])
+                        @endforeach
+                    </div>
+                </section>
+                @if(isset($strips[$loop->iteration]))
+                    @include('portal.partials.storefront-banner', ['b' => $strips[$loop->iteration], 'kind' => 'strip'])
+                @endif
             @endforeach
-        </nav>
-    @endif
+            @foreach($strips->slice($collections->count() + 1) as $b)
+                @include('portal.partials.storefront-banner', ['b' => $b, 'kind' => 'strip'])
+            @endforeach
+        @elseif($sec === 'recent')
+            @if($isHome)
+                @include('portal.partials.recently-viewed')
+            @endif
+        @endif
+    @endforeach
 
     @if($collection)
         <section class="sf-col-page" data-testid="collection-head">
             @include('portal.partials.collection-head', ['c' => $collection, 'href' => null])
         </section>
-    @endif
-
-    @if($featured->isNotEmpty())
-        <section class="ml-box ml-offers" data-testid="featured">
-            <div class="ml-sec-head">
-                <h2><i class="fas fa-star sf-star"></i> {{ $settings->featured_title ?: 'Destaques da loja' }}</h2>
-            </div>
-            <div class="ml-rail">
-                @foreach($featured as $p)
-                    @include('portal.partials.ml-card', ['d' => $all[$p->id]])
-                @endforeach
-            </div>
-        </section>
-    @endif
-
-    @if($showOffers)
-        <section class="ml-box ml-offers">
-            <div class="ml-sec-head">
-                <h2><i class="fas fa-bolt"></i> Ofertas do dia</h2>
-                <a href="{{ route('portal.catalog', ['userId' => $owner, 'ofertas' => 1]) }}">Ver todas</a>
-            </div>
-            <div class="ml-rail">
-                @foreach($offers->take(15) as $o)
-                    @include('portal.partials.ml-card', ['d' => $all[$o->id]])
-                @endforeach
-            </div>
-        </section>
-    @endif
-
-    {{-- Faixas e coleções: uma faixa depois das ofertas e outra depois de cada coleção --}}
-    @if($strips->isNotEmpty())
-        @include('portal.partials.storefront-banner', ['b' => $strips[0], 'kind' => 'strip'])
-    @endif
-    @foreach($collections as $c)
-        @php $cHref = route('portal.catalog', ['userId' => $owner, 'colecao' => $c->slug]); @endphp
-        <section class="ml-box sf-col" data-testid="collection-{{ $c->slug }}">
-            @include('portal.partials.collection-head', ['c' => $c, 'href' => $cHref])
-            <div class="ml-rail">
-                @foreach($c->items as $p)
-                    @include('portal.partials.ml-card', ['d' => $all[$p->id]])
-                @endforeach
-            </div>
-        </section>
-        @if(isset($strips[$loop->iteration]))
-            @include('portal.partials.storefront-banner', ['b' => $strips[$loop->iteration], 'kind' => 'strip'])
-        @endif
-    @endforeach
-    @foreach($strips->slice($collections->count() + 1) as $b)
-        @include('portal.partials.storefront-banner', ['b' => $b, 'kind' => 'strip'])
-    @endforeach
-
-    @if($isHome)
-        @include('portal.partials.recently-viewed')
     @endif
 
     @guest('portal')

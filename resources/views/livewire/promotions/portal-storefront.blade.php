@@ -38,7 +38,7 @@
             default => 'Sem link',
         };
     };
-    $tabs = ['banners' => ['Banners', 'bi-images'], 'destaques' => ['Destaques', 'bi-star'], 'colecoes' => ['Coleções', 'bi-collection'], 'aviso' => ['Aviso no topo', 'bi-megaphone']];
+    $tabs = ['inicio' => ['Página inicial', 'bi-house'], 'banners' => ['Banners', 'bi-images'], 'destaques' => ['Destaques', 'bi-star'], 'colecoes' => ['Coleções', 'bi-collection'], 'aviso' => ['Aviso no topo', 'bi-megaphone']];
 @endphp
 
 <div class="w-full px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-24 space-y-4" style="--ml-radius: 14px; --ml-blue: #3483fa">
@@ -58,6 +58,117 @@
             </button>
         @endforeach
     </nav>
+
+    {{-- ===================== Página inicial ===================== --}}
+    @if($tab === 'inicio')
+        @php $home = \App\Services\Portal\HomeLayout::class; $cur = $themes[$home_theme] ?? null; @endphp
+        <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] items-start" data-testid="home-builder">
+            <div class="space-y-4 min-w-0">
+                {{-- 1. Tema --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-themes">
+                    <div class="flex items-start gap-3">
+                        <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-lg"><i class="bi bi-palette"></i></div>
+                        <div class="min-w-0">
+                            <h2 class="font-bold text-slate-900 dark:text-white">Tema da loja</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Escolha um evento e a página inteira muda de uma vez: cores do topo, cantos, ordem dos blocos, banner do evento e aviso. Depois você ajusta o que quiser.</p>
+                        </div>
+                        @if($cur)<span class="ml-auto shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $tones['emerald'] }}" data-testid="theme-current">{{ $cur['emoji'] }} {{ $cur['name'] }}</span>@endif
+                    </div>
+                    <div class="grid grid-cols-2 min-[520px]:grid-cols-3 xl:grid-cols-4 gap-2">
+                        @foreach($themes as $k => $t)
+                            <button type="button" wire:click="pickTheme('{{ $k }}')" wire:key="th-{{ $k }}" data-testid="theme-{{ $k }}"
+                                    class="relative text-left rounded-xl border p-2 transition {{ $pendingTheme === $k ? 'border-violet-500 ring-2 ring-violet-200 dark:ring-violet-500/30' : ($home_theme === $k ? 'border-emerald-400' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300') }}">
+                                <span class="block h-9 rounded-lg mb-1.5 relative overflow-hidden" style="background: linear-gradient(90deg, {{ $t['colors'][0] }}, {{ $t['colors'][1] }})">
+                                    <span class="absolute right-1.5 bottom-1.5 w-4 h-4 rounded-full border-2 border-white" style="background: {{ $t['colors'][2] }}"></span>
+                                    <span class="absolute left-2 top-1/2 -translate-y-1/2 text-lg">{{ $t['emoji'] }}</span>
+                                </span>
+                                <b class="block text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{{ $t['name'] }}</b>
+                                <small class="block text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ $t['when'] ? ($t['when']['now'] ? 'Agora, até ' . $t['when']['end']->format('d/m') : 'De ' . $t['when']['start']->format('d/m') . ' a ' . $t['when']['end']->format('d/m')) : ($k === 'padrao' ? 'O dia a dia' : 'Quando quiser') }}</small>
+                                @if($home_theme === $k)<i class="bi bi-check-circle-fill absolute top-1 right-1 text-emerald-500 bg-white rounded-full"></i>@endif
+                            </button>
+                        @endforeach
+                    </div>
+                    @if($pendingTheme !== '' && isset($themes[$pendingTheme]))
+                        @php $pt = $themes[$pendingTheme]; @endphp
+                        <div class="rounded-xl bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 p-3 space-y-2" data-testid="theme-apply-box">
+                            <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ $pt['emoji'] }} Usar o tema {{ $pt['name'] }}?</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-300">Troca as cores do topo, os cantos e a ordem dos blocos ({{ collect($pt['order'])->map(fn ($k) => $home::SECTIONS[$k][0])->take(3)->join(', ') }}…).</p>
+                            @if($pt['tpl'])
+                                <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200"><input type="checkbox" wire:model="withBanner" class="rounded text-violet-500 focus:ring-violet-400" data-testid="theme-with-banner"> Criar o banner do evento no começo do carrossel{{ $pt['when'] ? ' (sai do ar em ' . $pt['when']['end']->format('d/m') . ')' : ' (por 7 dias)' }}</label>
+                            @endif
+                            @if($pt['notice'])
+                                <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200"><input type="checkbox" wire:model="withNotice" class="rounded text-violet-500 focus:ring-violet-400"> Trocar o aviso do topo por “{{ $pt['notice'][$kind === 'moveis' ? 1 : 0] }}”</label>
+                            @endif
+                            <div class="flex gap-2 pt-1">
+                                <button type="button" wire:click="applyTheme" wire:loading.attr="disabled" class="{{ $primary }}" data-testid="theme-apply"><i class="bi bi-magic"></i>Aplicar tema</button>
+                                <button type="button" wire:click="pickTheme('{{ $pendingTheme }}')" class="{{ $phBtn }}">Cancelar</button>
+                            </div>
+                        </div>
+                    @endif
+                </section>
+
+                {{-- 2. Cores e cantos --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-colors">
+                    <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-droplet-half text-violet-500"></i>Cores e cantos</h2>
+                    <div class="grid grid-cols-1 min-[480px]:grid-cols-3 gap-2">
+                        @foreach(['Topo, começo', 'Topo, fim', 'Botões e links'] as $i => $cname)
+                            <label class="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-2.5 py-2 cursor-pointer">
+                                <input type="color" wire:model.live.debounce.400ms="home_colors.{{ $i }}" class="shrink-0 w-9 h-9 rounded-lg border-0 bg-transparent p-0 cursor-pointer" data-testid="home-color-{{ $i }}">
+                                <span class="min-w-0"><b class="block text-xs text-slate-700 dark:text-slate-200">{{ $cname }}</b><small class="block text-[11px] text-slate-400 uppercase">{{ $home_colors[$i] ?? '' }}</small></span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <div class="h-3 rounded-full" style="background: linear-gradient(90deg, {{ $home_colors[0] ?? '#ec4899' }}, {{ $home_colors[1] ?? '#3b82f6' }})"></div>
+                    <div class="grid grid-cols-3 gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+                        @foreach($home::STYLES as $k => [$n, $r, $ico])
+                            <button type="button" wire:click="setStyle('{{ $k }}')" data-testid="style-{{ $k }}" class="rounded-lg py-2 text-xs sm:text-sm font-semibold {{ $home_style === $k ? 'bg-white dark:bg-slate-700 shadow text-violet-600 dark:text-violet-300' : 'text-slate-500' }}"><i class="bi {{ $ico }}"></i> {{ $n }}</button>
+                        @endforeach
+                    </div>
+                </section>
+
+                {{-- 3. Blocos --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-2" data-testid="home-sections">
+                    <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-list-ol text-violet-500"></i>O que aparece e em que ordem</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">De cima para baixo, como o cliente vê. O aviso fica sempre no alto e a lista de todos os produtos sempre no fim.</p>
+                    <ol class="space-y-1.5">
+                        @foreach($home_order as $k)
+                            @php [$sname, $sico, $sdesc] = $home::SECTIONS[$k]; $on = ! in_array($k, $home_off, true); [$sinfo, $stab] = $secInfo[$k] ?? ['', null]; @endphp
+                            <li wire:key="sec-{{ $k }}" class="flex items-center gap-2 rounded-xl border px-2.5 py-2 {{ $on ? 'border-slate-200 dark:border-slate-700' : 'border-dashed border-slate-300 dark:border-slate-700 opacity-60' }}" data-testid="sec-{{ $k }}">
+                                <span class="shrink-0 w-6 text-center text-xs font-bold text-slate-400">{{ $loop->iteration }}</span>
+                                <span class="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center bg-violet-50 dark:bg-violet-500/15 text-violet-600"><i class="bi {{ $sico }}"></i></span>
+                                <span class="min-w-0 flex-1">
+                                    <b class="block text-sm text-slate-800 dark:text-slate-100 truncate">{{ $sname }}</b>
+                                    <small class="block text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ $sinfo ?: $sdesc }}@if($stab) · <a href="#" wire:click.prevent="$set('tab', '{{ $stab }}')" class="text-violet-600 font-semibold">mudar</a>@endif</small>
+                                </span>
+                                <button type="button" wire:click="moveSection('{{ $k }}', -1)" class="{{ $iconBtn }} !w-8 !h-8" title="Subir" @disabled($loop->first)><i class="bi bi-arrow-up"></i></button>
+                                <button type="button" wire:click="moveSection('{{ $k }}', 1)" class="{{ $iconBtn }} !w-8 !h-8" title="Descer" @disabled($loop->last) data-testid="down-{{ $k }}"><i class="bi bi-arrow-down"></i></button>
+                                <button type="button" wire:click="toggleSection('{{ $k }}')" role="switch" aria-checked="{{ $on ? 'true' : 'false' }}" title="{{ $on ? 'Esconder' : 'Mostrar' }}" data-testid="toggle-{{ $k }}"
+                                        class="shrink-0 relative w-10 h-6 rounded-full transition {{ $on ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600' }}"><span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all {{ $on ? 'left-[18px]' : 'left-0.5' }}"></span></button>
+                            </li>
+                        @endforeach
+                    </ol>
+                </section>
+            </div>
+
+            {{-- Prévia ao vivo do catálogo --}}
+            <aside class="min-w-0 lg:sticky lg:top-4 {{ $card }} p-3 space-y-2" x-data="{ dev: 'pc', w: 0 }" x-init="w = $refs.box.clientWidth; new ResizeObserver(() => w = $refs.box.clientWidth).observe($refs.box)" data-testid="home-preview">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold text-slate-800 dark:text-slate-100"><i class="bi bi-eye text-violet-500"></i> Como fica</span>
+                    <div class="ml-auto inline-flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 text-xs font-semibold">
+                        <button type="button" @click="dev = 'pc'" :class="dev === 'pc' ? 'bg-white dark:bg-slate-700 shadow text-violet-600' : 'text-slate-500'" class="rounded-md px-2.5 py-1"><i class="bi bi-display"></i> Computador</button>
+                        <button type="button" @click="dev = 'cel'" :class="dev === 'cel' ? 'bg-white dark:bg-slate-700 shadow text-violet-600' : 'text-slate-500'" class="rounded-md px-2.5 py-1"><i class="bi bi-phone"></i> Celular</button>
+                    </div>
+                </div>
+                <div x-ref="box" class="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 h-[560px] lg:h-[calc(100vh-150px)] lg:max-h-[820px]">
+                    @php $pv = $catalogUrl . (str_contains($catalogUrl, '?') ? '&' : '?') . 'previa=' . $previewKey; @endphp
+                    <iframe wire:key="pv-{{ $previewKey }}" src="{{ $pv }}" title="Prévia do catálogo" loading="lazy" data-testid="home-preview-frame"
+                            class="absolute top-0 border-0 bg-white origin-top-left"
+                            :style="(() => { const iw = dev === 'pc' ? 1280 : 390; const sc = Math.min(1, w / iw); const left = Math.max(0, (w - iw * sc) / 2); return `width:${iw}px;height:${Math.round($refs.box.clientHeight / sc)}px;transform:scale(${sc});left:${left}px`; })()"></iframe>
+                </div>
+                <a href="{{ $catalogUrl }}" target="_blank" rel="noopener" class="{{ $phBtn }} w-full justify-center"><i class="bi bi-box-arrow-up-right text-violet-500"></i>Abrir o catálogo</a>
+            </aside>
+        </div>
+    @endif
 
     {{-- ===================== Banners ===================== --}}
     @if($tab === 'banners')
