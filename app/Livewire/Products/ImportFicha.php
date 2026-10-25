@@ -28,6 +28,8 @@ class ImportFicha extends Component
     public ?array $plan = null;
     public string $parseError = '';
     public array $result = [];
+    /** Atualizar os produtos da ficha que já estão cadastrados (o robô marca #ficha-update). */
+    public bool $updateExisting = false;
 
     protected function photoRule(): string
     {
@@ -45,6 +47,12 @@ class ImportFicha extends Component
     }
 
     public function updatedFichaText(): void
+    {
+        $this->result = [];
+        $this->replan();
+    }
+
+    public function updatedUpdateExisting(): void
     {
         $this->result = [];
         $this->replan();
@@ -97,7 +105,7 @@ class ImportFicha extends Component
         $importer = app(ProductFichaImporter::class);
         try {
             $data = $importer->parse($this->fichaText);
-            $this->plan = $importer->plan(Auth::id(), $data, $this->photoNames());
+            $this->plan = $importer->plan(Auth::id(), $data, $this->photoNames(), $this->updateExisting);
         } catch (\Throwable $e) {
             $this->parseError = $e->getMessage();
         }
@@ -116,7 +124,7 @@ class ImportFicha extends Component
 
             return;
         }
-        if (!collect($this->plan['rows'])->contains(fn ($r) => $r['status'] === 'ok')) {
+        if (!collect($this->plan['rows'])->contains(fn ($r) => in_array($r['status'], ['ok', 'update'], true))) {
             $this->notifyWarning('Nada novo para importar nesta ficha.');
 
             return;
@@ -144,8 +152,13 @@ class ImportFicha extends Component
             'ml_link' => $this->plan['product']['ml_link'],
             'skipped' => collect($this->plan['rows'])->where('status', 'skip')->count(),
         ];
-        $this->notifySuccess(count($created) === 1 ? '1 produto cadastrado.' : count($created) . ' produtos cadastrados.');
-        $this->reset(['fichaText', 'fichaName', 'photos', 'plan', 'parseError']);
+        $novos = collect($created)->where('action', '!=', 'atualizado')->count();
+        $atualizados = count($created) - $novos;
+        $this->result['created'] = $novos;
+        $this->result['updated'] = $atualizados;
+        $this->notifySuccess(trim(($novos ? ($novos === 1 ? '1 produto cadastrado. ' : "{$novos} produtos cadastrados. ") : '')
+            . ($atualizados ? ($atualizados === 1 ? '1 produto atualizado.' : "{$atualizados} produtos atualizados.") : '')));
+        $this->reset(['fichaText', 'fichaName', 'photos', 'plan', 'parseError', 'updateExisting']);
     }
 
     public function clear(): void

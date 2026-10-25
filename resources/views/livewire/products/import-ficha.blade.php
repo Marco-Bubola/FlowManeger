@@ -3,7 +3,7 @@
         subtitle="Um produto completo a partir da ficha feita pela IA, com variações e fotos">
         @if($plan)
         <x-slot:meta>
-            @php $okRows = collect($plan['rows'])->where('status', 'ok')->count(); @endphp
+            @php $okRows = collect($plan['rows'])->whereIn('status', ['ok', 'update'])->count(); @endphp
             <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"><i class="bi bi-check2-circle"></i>{{ $okRows }} {{ $okRows === 1 ? 'pronto' : 'prontos' }}</span>
             <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"><i class="bi bi-images"></i>{{ count($photos) }} {{ count($photos) === 1 ? 'foto' : 'fotos' }}</span>
         </x-slot:meta>
@@ -16,8 +16,9 @@
     <section class="ep-card if-done mb-4" data-testid="ficha-result">
         <div class="ep-card-h">
             <span class="ep-ico green"><i class="bi bi-check2-all"></i></span>
-            <div class="flex-1 min-w-0"><h3>{{ $result['name'] }} cadastrado</h3>
-                <p>{{ count($result['items']) }} {{ count($result['items']) === 1 ? 'produto criado' : 'produtos criados' }}@if($result['skipped']) · {{ $result['skipped'] }} já existiam @endif</p></div>
+            @php $rc = $result['created'] ?? count($result['items']); $ru = $result['updated'] ?? 0; @endphp
+            <div class="flex-1 min-w-0"><h3>{{ $result['name'] }} {{ $rc ? 'cadastrado' : 'atualizado' }}</h3>
+                <p>@if($rc){{ $rc }} {{ $rc === 1 ? 'produto criado' : 'produtos criados' }}@endif @if($rc && $ru) · @endif @if($ru){{ $ru }} {{ $ru === 1 ? 'atualizado' : 'atualizados' }}@endif @if($result['skipped']) · {{ $result['skipped'] }} já existiam @endif</p></div>
             <button type="button" wire:click="clear" class="ep-btn ep-btn-soft shrink-0" style="padding:.45rem .8rem;font-size:.8rem"><i class="bi bi-plus-lg"></i>Outra ficha</button>
         </div>
         <div class="if-list">
@@ -103,7 +104,7 @@
 
     @if($plan)
     @php $pr = $plan['product']; @endphp
-    <section class="ep-card mt-4" data-testid="ficha-preview" data-errors="{{ count($plan['errors']) }}" data-ok="{{ collect($plan['rows'])->where('status', 'ok')->count() }}">
+    <section class="ep-card mt-4" data-testid="ficha-preview" data-errors="{{ count($plan['errors']) }}" data-ok="{{ collect($plan['rows'])->whereIn('status', ['ok', 'update'])->count() }}" data-update="{{ collect($plan['rows'])->where('status', 'update')->count() }}">
         <div class="ep-card-h">
             <span class="ep-ico"><i class="bi bi-list-check"></i></span>
             <div class="flex-1 min-w-0"><h3>{{ $pr['name'] ?: '(sem nome)' }}</h3>
@@ -115,6 +116,15 @@
             @foreach($plan['errors'] as $e)<p class="if-alert"><i class="bi bi-x-octagon-fill"></i>{{ $e }}</p>@endforeach
             @foreach($plan['warnings'] as $w)<p class="if-warn"><i class="bi bi-exclamation-circle"></i>{{ $w }}</p>@endforeach
             @if($plan['missing_photos'])<p class="if-warn" data-testid="ficha-missing-photos"><i class="bi bi-image"></i>Fotos da ficha que não foram enviadas: {{ implode(', ', $plan['missing_photos']) }}</p>@endif
+        </div>
+        @endif
+
+        @if(collect($plan['rows'])->contains(fn ($r) => $r['existing_id']))
+        <div class="ep-card-b pb-0">
+            <label class="if-update" for="ficha-update">
+                <input type="checkbox" id="ficha-update" wire:model.live="updateExisting" data-testid="ficha-update">
+                <span><b>Atualizar os que já estão cadastrados</b><small>Preços, textos, medidas, prazo e as fotos enviadas. O estoque não muda.</small></span>
+            </label>
         </div>
         @endif
 
@@ -142,7 +152,7 @@
                             @if($r['code'] !== '')<span><i class="bi bi-upc"></i>{{ $r['code'] }}</span>@endif
                             <span>Custo R$ {{ number_format($r['price'], 2, ',', '.') }}</span>
                             <span class="if-sale">Venda R$ {{ number_format($r['price_sale'], 2, ',', '.') }}</span>
-                            <span><i class="bi bi-stack"></i>{{ $r['stock'] }}</span>
+                            @if ($r['status'] !== 'update')<span><i class="bi bi-stack"></i>{{ $r['stock'] }}</span>@endif
                             @if($r['weight_grams'])<span><i class="bi bi-box-seam"></i>{{ rtrim(rtrim(number_format($r['weight_grams'] / 1000, 2, ',', ''), '0'), ',') }} kg</span>@endif
                             @if($r['length_cm'])<span>{{ (float) $r['length_cm'] }}×{{ (float) $r['width_cm'] }}×{{ (float) $r['height_cm'] }} cm</span>@endif
                             <span><i class="bi bi-images"></i>{{ count($r['photos']) }}</span>
@@ -155,10 +165,13 @@
 
         <div class="if-actions">
             <button type="button" wire:click="clear" class="ep-btn ep-btn-ghost">Cancelar</button>
-            @php $canImport = !$plan['errors'] && collect($plan['rows'])->contains(fn ($r) => $r['status'] === 'ok'); @endphp
-            <button type="button" wire:click="import" wire:loading.attr="disabled" wire:target="import,photoBatch,photoOne,fichaFile" class="ep-btn ep-btn-primary" @disabled(!$canImport) data-testid="ficha-import" data-mobile-save="Cadastrar produto">
-                <span wire:loading.remove wire:target="import"><i class="bi bi-check2"></i> Cadastrar produto</span>
-                <span wire:loading wire:target="import"><i class="bi bi-arrow-repeat animate-spin"></i> Cadastrando...</span>
+            @php
+                $canImport = !$plan['errors'] && collect($plan['rows'])->contains(fn ($r) => in_array($r['status'], ['ok', 'update'], true));
+                $soAtualiza = !collect($plan['rows'])->contains(fn ($r) => $r['status'] === 'ok');
+            @endphp
+            <button type="button" wire:click="import" wire:loading.attr="disabled" wire:target="import,photoBatch,photoOne,fichaFile,updateExisting" class="ep-btn ep-btn-primary" @disabled(!$canImport) data-testid="ficha-import" data-mobile-save="{{ $soAtualiza && $canImport ? 'Atualizar produto' : 'Cadastrar produto' }}">
+                <span wire:loading.remove wire:target="import"><i class="bi bi-check2"></i> {{ $soAtualiza && $canImport ? 'Atualizar produto' : 'Cadastrar produto' }}</span>
+                <span wire:loading wire:target="import"><i class="bi bi-arrow-repeat animate-spin"></i> {{ $soAtualiza && $canImport ? 'Atualizando...' : 'Cadastrando...' }}</span>
             </button>
         </div>
     </section>
@@ -229,6 +242,11 @@
         .dark .import-ficha-page .if-sale { color: #6ee7b7; }
         .import-ficha-page .if-note { flex-shrink: 0; padding: .2rem .6rem; border-radius: 999px; font-size: .7rem; font-weight: 800; background: rgba(148,163,184,.18); color: #475569; }
         .import-ficha-page .is-skip { opacity: .6; }
+        .import-ficha-page .is-update .if-note { background: rgba(99,102,241,.12); color: #4f46e5; }
+        .import-ficha-page .if-update { display: flex; gap: .7rem; align-items: flex-start; padding: .75rem .9rem; border-radius: 14px; border: 1px dashed rgba(99,102,241,.45); background: rgba(99,102,241,.06); cursor: pointer; }
+        .import-ficha-page .if-update input { margin-top: .2rem; width: 1.05rem; height: 1.05rem; accent-color: #6366f1; }
+        .import-ficha-page .if-update b { display: block; font-size: .88rem; }
+        .import-ficha-page .if-update small { display: block; font-size: .76rem; opacity: .75; }
         .import-ficha-page .is-error .if-note { background: rgba(244,63,94,.12); color: #be123c; }
         .dark .import-ficha-page .if-note { color: #cbd5e1; }
         .import-ficha-page .if-ml { border-top: 1px solid rgba(148,163,184,.18); display: grid; gap: .35rem; font-size: .84rem; color: #334155; }

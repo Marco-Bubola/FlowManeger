@@ -14,7 +14,10 @@ use Illuminate\Support\Str;
  * ficha que uma IA monta com o questionário da Móveis Stylo (bloco JSON) e as
  * fotos. Usado à mão e pelo robô de cadastro (robo-stylo).
  *
- * plan() só confere e monta a prévia; import() grava.
+ * plan() só confere e monta a prévia; import() grava. Com $update, os códigos
+ * que já existem são atualizados (preços, textos, medidas, fotos enviadas) em
+ * vez de pulados; o estoque nunca muda por aqui (depois do cadastro quem manda
+ * é o site: vendas, ML).
  */
 class ProductFichaImporter
 {
@@ -50,7 +53,7 @@ class ProductFichaImporter
      * @param array<int, string> $photoNames nomes dos arquivos de foto enviados
      * @return array{product: array, rows: array<int, array>, errors: array<int, string>, warnings: array<int, string>, missing_photos: array<int, string>, unused_photos: array<int, string>}
      */
-    public function plan(int $userId, array $f, array $photoNames): array
+    public function plan(int $userId, array $f, array $photoNames, bool $update = false): array
     {
         $errors = [];
         $warnings = [];
@@ -171,7 +174,7 @@ class ProductFichaImporter
             } elseif ($code !== '' && isset($seen[$key])) {
                 [$row['status'], $row['note']] = ['error', 'Código repetido na ficha'];
             } elseif ($code !== '' && $existing->has($key)) {
-                [$row['status'], $row['note']] = ['skip', 'Já cadastrado'];
+                [$row['status'], $row['note']] = $update ? ['update', 'Vai atualizar'] : ['skip', 'Já cadastrado'];
                 $row['existing_id'] = $existing[$key]->id;
             }
             if ($code !== '') {
@@ -189,7 +192,10 @@ class ProductFichaImporter
         }
 
         if ($rows && collect($rows)->every(fn ($r) => $r['status'] === 'skip')) {
-            $warnings[] = 'Todos os códigos desta ficha já estão cadastrados: nada novo para importar.';
+            $warnings[] = 'Todos os códigos desta ficha já estão cadastrados: nada novo para importar. Marque "Atualizar os que já estão cadastrados" para mudar os cadastrados.';
+        }
+        if (collect($rows)->contains(fn ($r) => $r['status'] === 'update')) {
+            $warnings[] = 'Os cadastrados são atualizados (preços, textos, medidas e as fotos enviadas). O estoque deles não muda.';
         }
         if (!collect($rows)->contains(fn ($r) => $r['photos'])) {
             $warnings[] = 'Nenhuma foto da ficha foi enviada: o produto entra sem foto.';
@@ -278,7 +284,7 @@ class ProductFichaImporter
             $parent = null;
             if ($multi) {
                 foreach ($rows as $r) {
-                    if ($r['status'] === 'skip' && $r['existing_id']) {
+                    if (in_array($r['status'], ['skip', 'update'], true) && $r['existing_id']) {
                         $found = Product::withoutGlobalScope('team_visibility')->where('user_id', $userId)->find($r['existing_id']);
                         if ($found) {
                             $parent = $found->parent_id ? ($found->parent ?? $found) : $found;
@@ -292,6 +298,12 @@ class ProductFichaImporter
             $fallbackPhotos = collect($rows)->first(fn ($r) => $r['photos'])['photos'] ?? [];
 
             foreach ($rows as $r) {
+                if ($r['status'] === 'update') {
+                    if ($updated = $this->updateExisting($userId, $p, $r, $categoryId, $r['photos'] ?: $fallbackPhotos, $store)) {
+                        $result[] = $updated;
+                    }
+                    continue;
+                }
                 if ($r['status'] !== 'ok') {
                     continue;
                 }
@@ -368,6 +380,69 @@ class ProductFichaImporter
         });
 
         return $result;
+    }
+
+    /** Atualiza um produto que já existe com a linha da ficha. Estoque e código ficam como estão. */
+    private function updateExisting(int $userId, array $p, array $r, int $categoryId, array $photos, \Closure $store): ?array
+    {
+        $product = Product::withoutGlobalScope('team_visibility')->where('user_id', $userId)->find($r['existing_id']);
+        if (!$product) {
+            return null;
+        }
+
+        $specs = $p['specs'];
+        foreach ($r['piece'] as $n => $cm) {
+            $specs[] = ['n' => $n, 'v' => $this->fmt($cm) . ' cm'];
+        }
+        $multi = $p['attribute'] !== '';
+
+        $product->fill(array_filter([
+            'name' => $product->is_variation_parent ? $p['name'] : $r['name'],
+            'price' => $r['price'],
+            'price_sale' => $r['price_sale'],
+            'price_original' => $r['price_original'],
+            'category_id' => $categoryId,
+            'description' => $p['description'] ?: null,
+            'brand' => $p['brand'] ?: null,
+            'model' => $p['model'] ?: null,
+            'barcode' => !$multi ? $p['barcode'] : null,
+            'warranty_months' => $p['warranty_months'],
+            'condition' => $p['condition'],
+            'weight_grams' => $r['weight_grams'],
+            'length_cm' => $r['length_cm'],
+            'width_cm' => $r['width_cm'],
+            'height_cm' => $r['height_cm'],
+            'specs' => $specs ?: null,
+            'cost_items' => $p['cost_items'] ?: null,
+        ], fn ($v) => $v !== null));
+        // Preço "de" e prazo podem ter sido tirados da ficha
+        $product->price_original = $r['price_original'];
+        $product->made_to_order = $p['made_to_order'];
+        $product->production_days = $p['production_days'];
+        if ($product->is_variation_parent && $r['value'] !== '') {
+            $product->variation_value = $r['value'];
+        }
+
+        // Fotos só mudam quando a ficha veio com fotos
+        if ($photos && ($main = $store($photos[0]))) {
+            $product->image = $main;
+            ProductImage::where('product_id', $product->id)->where('source', 'upload')->delete();
+            $sort = (int) ProductImage::where('product_id', $product->id)->max('sort_order');
+            foreach (array_slice($photos, 1) as $name) {
+                if ($file = $store($name)) {
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'filename' => $file,
+                        'alt_text' => $product->name,
+                        'source' => 'upload',
+                        'sort_order' => ++$sort,
+                    ]);
+                }
+            }
+        }
+        $product->save();
+
+        return ['id' => $product->id, 'name' => $product->name, 'code' => $product->product_code, 'action' => 'atualizado'];
     }
 
     private function description(array $f): string
