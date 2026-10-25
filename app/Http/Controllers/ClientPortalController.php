@@ -692,6 +692,25 @@ class ClientPortalController extends Controller
         $front = \App\Services\Portal\StorefrontService::class;
         $banners = $front::banners($ownerId);
         $settings = $front::settings($ownerId);
+        // Prévia de tema (o dono vendo pela Vitrine, sem aplicar): banner, aviso e título do tema.
+        if ($pv = \App\Services\Portal\HomeLayout::previewing($ownerId)) {
+            $theme = \App\Services\Portal\HomeLayout::THEMES[$pv[0]];
+            $kind = \App\Services\Promotions\StoreKind::for($ownerId);
+            $settings = $settings ? clone $settings : new \App\Models\PortalSetting(['user_id' => $ownerId]);
+            if ($theme['featured']) {
+                $settings->featured_title = $theme['featured'];
+            }
+            if ($pv[2] && $theme['notice']) {
+                $settings->notice_text = $theme['notice'][$kind === 'moveis' ? 1 : 0];
+                $settings->notice_active = true;
+            }
+            if ($pv[1] && ($data = \App\Services\Portal\HomeLayout::bannerData($ownerId, $pv[0], $kind))) {
+                $fake = new \App\Models\PortalBanner($data);
+                $fake->id = 0;
+                $hero = ($banners['hero'] ?? collect())->reject(fn ($b) => ($b->design['tpl'] ?? null) === ($data['design']['tpl'] ?? '-'));
+                $banners = collect($banners)->put('hero', $hero->prepend($fake)->values());
+            }
+        }
         $isHome = $products->currentPage() === 1 && ! $search && ! $category && ! $onlyOffers && ! $collection;
         $featured = $isHome && $settings ? $front::productsFor($ownerId, $settings->featured_ids ?? [], 15) : collect();
         $collections = $isHome ? $front::collections($ownerId) : collect();

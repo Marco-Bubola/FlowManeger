@@ -54,11 +54,14 @@
         :root {
             --ml-header: {!! $theme['header'] !!};
             --ml-hero: {!! $theme['hero'] !!};
-            --ml-bg: #f0f0f3;
-            --ml-card: #ffffff;
-            --ml-text: #333333;
-            --ml-muted: #737373;
-            --ml-line: #e6e6e6;
+            /* Cores das áreas: vêm do tema (Vitrine › Página inicial) */
+            --ml-bg: {{ $theme['bg'] ?? '#f0f0f3' }};
+            --ml-card: {{ $theme['card'] ?? '#ffffff' }};
+            --ml-text: {{ $theme['text'] ?? '#333333' }};
+            --ml-muted: {{ $theme['muted'] ?? '#737373' }};
+            --ml-line: {{ $theme['line'] ?? '#e6e6e6' }};
+            --ml-page-text: {{ $theme['page_text'] ?? '#555555' }};
+            --ml-chip: {{ $theme['chip'] ?? '#ffffff' }};
             --ml-blue: {{ $theme['primary'] }};
             --ml-blue-dark: {{ $theme['dark'] }};
             --ml-blue-soft: {{ $theme['soft'] }};
@@ -92,24 +95,24 @@
         @media (min-width: 768px) { .ml-brand { display: block; } }
         /* Fonte dos títulos escolhida na Identidade da loja */
         h1, h2, h3, .sf-font { font-family: var(--sf-font); }
-        .ml-foot2 { background: #fff; border-top: 1px solid #eee; margin-top: 24px; padding: 28px 0 110px; color: #555; font-size: 13px; }
+        .ml-foot2 { background: var(--ml-card); border-top: 1px solid var(--ml-line); margin-top: 24px; padding: 28px 0 110px; color: var(--ml-muted); font-size: 13px; }
         .ml-foot2-grid { display: grid; gap: 22px; grid-template-columns: 1fr; }
         @media (min-width: 640px) { .ml-foot2-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
         @media (min-width: 1024px) { .ml-foot2-grid { grid-template-columns: 1.3fr 1fr 1fr 1fr; } }
-        .ml-foot2 h4 { margin: 0 0 10px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: #222; font-family: var(--sf-font); }
-        .ml-foot2 a { color: #444; text-decoration: none; }
+        .ml-foot2 h4 { margin: 0 0 10px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--ml-text); font-family: var(--sf-font); }
+        .ml-foot2 a { color: var(--ml-text); text-decoration: none; }
         .ml-foot2 a:hover { color: var(--ml-primary); }
         .ml-foot2 ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
         .ml-foot2 li { display: flex; gap: 8px; align-items: flex-start; overflow-wrap: anywhere; }
         .ml-foot2 li i { width: 16px; margin-top: 2px; color: var(--ml-primary); text-align: center; flex-shrink: 0; }
         .ml-foot2-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
         .ml-foot2-brand img { height: 40px; max-width: 120px; object-fit: contain; }
-        .ml-foot2-brand b { font-size: 18px; color: #222; font-family: var(--sf-font); }
+        .ml-foot2-brand b { font-size: 18px; color: var(--ml-text); font-family: var(--sf-font); }
         .ml-foot2-soc { display: flex; gap: 8px; margin-top: 12px; }
         .ml-foot2-soc a { width: 38px; height: 38px; border-radius: 50%; background: var(--ml-soft); color: var(--ml-primary); display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
         .ml-foot2-pay { display: flex; flex-wrap: wrap; gap: 6px; }
-        .ml-foot2-pay span { border: 1px solid #e5e5e5; border-radius: 6px; padding: 4px 9px; font-size: 12px; font-weight: 600; color: #444; background: #fafafa; }
-        .ml-foot2-copy { margin-top: 22px; padding-top: 14px; border-top: 1px solid #f0f0f0; text-align: center; color: #999; font-size: 12px; }
+        .ml-foot2-pay span { border: 1px solid var(--ml-line); border-radius: 6px; padding: 4px 9px; font-size: 12px; font-weight: 600; color: var(--ml-text); background: var(--ml-chip); }
+        .ml-foot2-copy { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--ml-line); text-align: center; color: var(--ml-muted); font-size: 12px; }
         .ml-search { flex: 1; min-width: 0; position: relative; max-width: 680px; margin: 0 auto; }
         .ml-search input { width: 100%; height: 40px; border: 0; border-radius: 999px; padding: 0 44px 0 16px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); font-size: 14px; outline: none; }
         .ml-search input::placeholder { color: #999; }
@@ -143,7 +146,7 @@
     </style>
     @stack('styles')
 </head>
-<body>
+<body class="{{ ! empty($theme['dark_mode']) ? 'ml-dark' : '' }}">
 <script>
 document.addEventListener('alpine:init', () => {
     Alpine.store('cart', {

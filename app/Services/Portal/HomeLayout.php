@@ -34,6 +34,24 @@ class HomeLayout
         'reto'   => ['Reto', '2px', 'bi-stop'],
     ];
 
+    /**
+     * Cores das áreas de cada tema: [fundo da página, fundo dos cards e das seções].
+     * O texto (escuro ou claro) sai sozinho da cor de fundo.
+     */
+    public const SURFACES = [
+        'padrao'     => ['#f0f0f3', '#ffffff'],
+        'black'      => ['#0b0b0d', '#1c1c21'],
+        'natal'      => ['#f6efe3', '#fffdf8'],
+        'maes'       => ['#fcecf3', '#fffafc'],
+        'namorados'  => ['#fde8ec', '#fffafb'],
+        'pais'       => ['#e8edf3', '#ffffff'],
+        'criancas'   => ['#fff6d6', '#ffffff'],
+        'consumidor' => ['#e8f0ff', '#ffffff'],
+        'cliente'    => ['#efeaff', '#ffffff'],
+        'pascoa'     => ['#f5eee2', '#fffcf6'],
+        'liquida'    => ['#fff0dc', '#ffffff'],
+    ];
+
     /** Cores da logo do app: o tema "Cores da loja". */
     public const BASE = ['#ec4899', '#3b82f6', '#8b5cf6'];
 
@@ -98,10 +116,29 @@ class HomeLayout
         return $out;
     }
 
-    /** Montagem salva, completa (blocos novos entram no fim). */
+    /**
+     * Prévia de um tema sem aplicar (Vitrine › Página inicial): o catálogo aberto com ?tema=
+     * pelo próprio dono, logado no app, mostra tudo como vai ficar. Para os outros, nada muda.
+     * Retorna [tema, com banner, com aviso] ou null.
+     */
+    public static function previewing(?int $ownerId): ?array
+    {
+        $key = (string) request()->query('tema', '');
+        if (! $ownerId || $key === '' || ! isset(self::THEMES[$key]) || (int) \Illuminate\Support\Facades\Auth::guard('web')->id() !== $ownerId) {
+            return null;
+        }
+
+        return [$key, request()->query('com_banner', '1') !== '0', request()->query('com_aviso', '1') !== '0'];
+    }
+
+    /** Montagem salva, completa (blocos novos entram no fim). Na prévia de tema, a do tema. */
     public static function get(?PortalSetting $s): array
     {
-        $h = ($s?->home ?? []) + ['theme' => 'padrao', 'order' => [], 'off' => [], 'colors' => null, 'style' => 'padrao'];
+        $h = ($s?->home ?? []) + ['theme' => 'padrao', 'order' => [], 'off' => [], 'colors' => null, 'style' => 'padrao', 'surface' => null];
+        if ($pv = self::previewing($s?->user_id ? (int) $s->user_id : null)) {
+            $t = self::THEMES[$pv[0]];
+            $h = ['theme' => $pv[0], 'order' => $t['order'], 'off' => [], 'colors' => $t['colors'], 'style' => $t['style'], 'surface' => self::SURFACES[$pv[0]] ?? null];
+        }
         $order = array_values(array_intersect((array) $h['order'], array_keys(self::SECTIONS)));
         foreach (self::DEFAULT_ORDER as $k) {
             if (! in_array($k, $order, true)) {
@@ -110,20 +147,24 @@ class HomeLayout
         }
         $colors = is_array($h['colors']) && count($h['colors']) === 3 ? array_values($h['colors']) : (self::THEMES[$h['theme']]['colors'] ?? self::BASE);
         $colors = array_map(fn ($c, $d) => preg_match('/^#[0-9a-fA-F]{6}$/', (string) $c) ? strtolower($c) : $d, $colors, self::BASE);
+        $theme = isset(self::THEMES[$h['theme']]) ? $h['theme'] : 'padrao';
+        $surface = is_array($h['surface']) && count($h['surface']) === 2 ? array_values($h['surface']) : (self::SURFACES[$theme] ?? self::SURFACES['padrao']);
+        $surface = array_map(fn ($c, $d) => preg_match('/^#[0-9a-fA-F]{6}$/', (string) $c) ? strtolower($c) : $d, $surface, self::SURFACES['padrao']);
 
         return [
-            'theme'  => isset(self::THEMES[$h['theme']]) ? $h['theme'] : 'padrao',
-            'order'  => $order,
-            'off'    => array_values(array_intersect((array) $h['off'], array_keys(self::SECTIONS))),
-            'colors' => $colors,
-            'style'  => isset(self::STYLES[$h['style']]) ? $h['style'] : 'padrao',
+            'theme'   => $theme,
+            'order'   => $order,
+            'off'     => array_values(array_intersect((array) $h['off'], array_keys(self::SECTIONS))),
+            'colors'  => $colors,
+            'style'   => isset(self::STYLES[$h['style']]) ? $h['style'] : 'padrao',
+            'surface' => $surface,
         ];
     }
 
     public static function save(int $ownerId, array $layout): void
     {
         $s = PortalSetting::for($ownerId);
-        $s->home = array_merge($s->home ?? [], array_intersect_key($layout, array_flip(['theme', 'order', 'off', 'colors', 'style'])));
+        $s->home = array_merge($s->home ?? [], array_intersect_key($layout, array_flip(['theme', 'order', 'off', 'colors', 'style', 'surface'])));
         $s->save();
     }
 
@@ -134,13 +175,18 @@ class HomeLayout
             return null;
         }
         $s = PortalSetting::where('user_id', $ownerId)->first();
-        if (! $s || empty($s->home['colors']) && ($s->home['style'] ?? 'padrao') === 'padrao' && ($s->home['theme'] ?? 'padrao') === 'padrao') {
+        $preview = self::previewing($ownerId);
+        if (! $preview && (! $s || empty($s->home['colors']) && empty($s->home['surface']) && ($s->home['style'] ?? 'padrao') === 'padrao' && ($s->home['theme'] ?? 'padrao') === 'padrao')) {
             return null;
         }
-        $h = self::get($s);
+        $h = self::get($s ?? new PortalSetting(['user_id' => $ownerId]));
         [$a, $b, $p] = $h['colors'];
+        // Cards escuros com botões escuros somem: os links e botões ficam dourados.
+        if (self::isDark($h['surface'][1]) && self::isDark($p)) {
+            $p = '#f59e0b';
+        }
 
-        return [
+        return array_merge([
             'header' => "linear-gradient(90deg, {$a} 0%, {$b} 100%)",
             'hero'   => "linear-gradient(135deg, {$a} 0%, {$b} 100%)",
             'primary'=> $p,
@@ -148,7 +194,34 @@ class HomeLayout
             'soft'   => self::shade($p, 0.88),
             'meta'   => $a,
             'radius' => self::STYLES[$h['style']][1],
+        ], self::surfaceVars($h['surface'], $p));
+    }
+
+    /** Fundo, cards e as cores de texto que combinam (claro em fundo escuro). */
+    public static function surfaceVars(array $surface, string $primary): array
+    {
+        [$bg, $card] = $surface;
+        $dark = self::isDark($card);
+        $darkBg = self::isDark($bg);
+
+        return [
+            'bg'        => $bg,
+            'card'      => $card,
+            'text'      => $dark ? '#f4f4f5' : '#333333',
+            'muted'     => $dark ? '#a1a1aa' : '#737373',
+            'line'      => $dark ? '#2e2e35' : self::shade($bg, -0.06),
+            'page_text' => $darkBg ? '#e4e4e7' : '#555555',
+            'chip'      => $dark ? self::shade($card, 0.08) : '#ffffff',
+            'soft'      => $dark ? self::shade($primary, -0.62) : self::shade($primary, 0.88),
+            'dark_mode' => $dark,
         ];
+    }
+
+    public static function isDark(string $hex): bool
+    {
+        [$r, $g, $b] = sscanf(ltrim($hex, '#'), '%02x%02x%02x');
+
+        return (0.299 * $r + 0.587 * $g + 0.114 * $b) < 128;
     }
 
     /** Clareia (amount > 0, até 1) ou escurece (amount < 0) uma cor. */
@@ -168,7 +241,7 @@ class HomeLayout
     {
         $t = self::THEMES[$key] ?? self::THEMES['padrao'];
         $s = PortalSetting::for($ownerId);
-        $s->home = array_merge($s->home ?? [], ['theme' => $key, 'order' => $t['order'], 'off' => [], 'colors' => $t['colors'], 'style' => $t['style']]);
+        $s->home = array_merge($s->home ?? [], ['theme' => $key, 'order' => $t['order'], 'off' => [], 'colors' => $t['colors'], 'style' => $t['style'], 'surface' => self::SURFACES[$key] ?? null]);
         if ($t['featured']) {
             $s->featured_title = $t['featured'];
         } elseif ($key === 'padrao') {
@@ -183,33 +256,44 @@ class HomeLayout
         }
         $s->save();
 
-        if ($banner && $t['tpl'] && ($tpl = StorefrontService::template($t['tpl'], $kind))) {
-            $when = $t['date'] ? CommercialCalendar::next($t['date']) : null;
+        if ($banner && ($data = self::bannerData($ownerId, $key, $kind))) {
             $exists = PortalBanner::where('user_id', $ownerId)->where('placement', 'hero')
                 ->where('design->tpl', $t['tpl'])->where(fn ($q) => $q->whereNull('ends_at')->orWhereDate('ends_at', '>=', now()->toDateString()))->first();
             if ($exists) {
-                $exists->update(['active' => true, 'sort' => (int) PortalBanner::where('user_id', $ownerId)->where('placement', 'hero')->min('sort') - 1]);
+                $exists->update(['active' => true, 'sort' => $data['sort']]);
             } else {
-                PortalBanner::create([
-                    'user_id'     => $ownerId,
-                    'placement'   => 'hero',
-                    'title'       => $tpl['title'],
-                    'subtitle'    => $tpl['subtitle'],
-                    'button_text' => $tpl['button'],
-                    'link_type'   => $tpl['link'] ?? 'none',
-                    'link_value'  => null,
-                    'sort'        => (int) PortalBanner::where('user_id', $ownerId)->where('placement', 'hero')->min('sort') - 1,
-                    'active'      => true,
-                    'starts_at'   => null,
-                    'ends_at'     => $when ? $when['end']->toDateString() : now()->addDays(7)->toDateString(),
-                    'design'      => ['tpl' => $t['tpl'], 'badge' => $tpl['badge'], 'c1' => $tpl['c1'], 'c2' => $tpl['c2'], 'acc' => $tpl['acc'], 'ink' => $tpl['ink'],
-                        'lay' => 'esq', 'src' => in_array($tpl['src'] ?? 'manual', ['novos', 'vendidos', 'ofertas'], true) ? $tpl['src'] : 'vendidos',
-                        'anim' => 'vivo', 'fmt' => StorefrontService::format($tpl['fmt'] ?? null), 'photos' => []],
-                ]);
+                PortalBanner::create($data);
             }
             $done[] = 'banner';
         }
 
         return $done;
+    }
+
+    /** O banner que o tema cria (no começo do carrossel, no período da data). Também usado na prévia. */
+    public static function bannerData(int $ownerId, string $key, string $kind): ?array
+    {
+        $t = self::THEMES[$key] ?? null;
+        if (! $t || ! $t['tpl'] || ! ($tpl = StorefrontService::template($t['tpl'], $kind))) {
+            return null;
+        }
+        $when = $t['date'] ? CommercialCalendar::next($t['date']) : null;
+
+        return [
+            'user_id'     => $ownerId,
+            'placement'   => 'hero',
+            'title'       => $tpl['title'],
+            'subtitle'    => $tpl['subtitle'],
+            'button_text' => $tpl['button'],
+            'link_type'   => $tpl['link'] ?? 'none',
+            'link_value'  => null,
+            'sort'        => (int) PortalBanner::where('user_id', $ownerId)->where('placement', 'hero')->min('sort') - 1,
+            'active'      => true,
+            'starts_at'   => null,
+            'ends_at'     => $when ? $when['end']->toDateString() : now()->addDays(7)->toDateString(),
+            'design'      => ['tpl' => $t['tpl'], 'badge' => $tpl['badge'], 'c1' => $tpl['c1'], 'c2' => $tpl['c2'], 'acc' => $tpl['acc'], 'ink' => $tpl['ink'],
+                'lay' => 'esq', 'src' => in_array($tpl['src'] ?? 'manual', ['novos', 'vendidos', 'ofertas'], true) ? $tpl['src'] : 'vendidos',
+                'anim' => 'vivo', 'fmt' => StorefrontService::format($tpl['fmt'] ?? null), 'photos' => []],
+        ];
     }
 }

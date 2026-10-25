@@ -32,7 +32,7 @@
 @include('portal.partials.catalog-styles')
 <style>
     .pp-crumbs { display: flex; align-items: center; gap: 8px; padding: 12px 2px 10px; font-size: 13px; color: var(--ml-muted); min-width: 0; }
-    .pp-back { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 999px; background: #fff; border: 1px solid #d9d9d9; color: #333; font-weight: 600; }
+    .pp-back { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 999px; background: var(--ml-chip); border: 1px solid var(--ml-line); color: var(--ml-text); font-weight: 600; }
     .pp-trail { display: flex; align-items: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; }
     .pp-trail a { color: var(--ml-blue); font-weight: 600; }
     .pp-trail span:last-child { overflow: hidden; text-overflow: ellipsis; }
@@ -43,13 +43,13 @@
     .pp-main .ml-gal-track > div { max-height: 56vh; }
     .pp-fav { position: absolute; right: 12px; top: 8px; z-index: 2; width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255,255,255,.95); box-shadow: 0 1px 6px rgba(0,0,0,.18); color: #8c8c8c; font-size: 19px; cursor: pointer; }
     .pp-fav.on { color: #ec4899; }
-    .pp-share { top: 60px; color: #555; font-size: 17px; }
+    .pp-share { top: 60px; color: var(--ml-muted); font-size: 17px; }
     .pp-share-row { display: flex; gap: 8px; margin-top: 8px; }
-    .pp-share-row a, .pp-share-row button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; border-radius: 6px; border: 1px solid var(--ml-line); background: #fff; color: #444; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .pp-share-row a, .pp-share-row button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; border-radius: 6px; border: 1px solid var(--ml-line); background: var(--ml-chip); color: var(--ml-text); font-size: 13px; font-weight: 600; cursor: pointer; }
     .pp-share-row .wa i { color: #128c4b; font-size: 16px; }
     .pp-info { padding: 10px 16px 0; }
     .pp-info .ml-cat-line { font-size: 12px; color: var(--ml-muted); }
-    .pp-info h1 { margin: 6px 0 10px; font-size: 20px; font-weight: 500; line-height: 1.3; color: #333; }
+    .pp-info h1 { margin: 6px 0 10px; font-size: 20px; font-weight: 500; line-height: 1.3; color: var(--ml-text); }
     .pp-info .ml-price { font-size: 34px; }
     .pp-info .ml-price sup { font-size: 16px; }
     .pp-info .ml-pct { font-size: 17px; }
@@ -61,7 +61,7 @@
     .pp-opts-label { font-size: 14px; margin-bottom: 8px; }
     .pp-opts-label b { font-weight: 700; }
     .pp-opts-list { display: flex; flex-wrap: wrap; gap: 8px; }
-    .pp-opt { min-width: 48px; min-height: 42px; padding: 6px 14px; border: 1px solid #d0d0d0; border-radius: 8px; background: #fff; font-size: 14px; font-weight: 600; color: #333; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .pp-opt { min-width: 48px; min-height: 42px; padding: 6px 14px; border: 1px solid var(--ml-line); border-radius: 8px; background: var(--ml-chip); font-size: 14px; font-weight: 600; color: var(--ml-text); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
     .pp-opt img { width: 28px; height: 28px; object-fit: contain; border-radius: 4px; }
     .pp-opt.on { border: 2px solid var(--ml-blue); color: var(--ml-blue); padding: 5px 13px; background: var(--ml-blue-soft); }
     .pp-opt.off { color: #a3a3a3; border-style: dashed; }
@@ -69,7 +69,7 @@
 
     .pp-about { margin-top: 12px; padding: 18px 16px; }
     .pp-about h2 { margin: 0 0 10px; font-size: 18px; font-weight: 700; }
-    .pp-about h2 + p { margin: 0; white-space: pre-line; color: #555; font-size: 14px; line-height: 1.6; }
+    .pp-about h2 + p { margin: 0; white-space: pre-line; color: var(--ml-muted); font-size: 14px; line-height: 1.6; }
     .pp-about .pp-sub { margin-top: 20px; }
     .pp-about .ml-specs { margin-top: 0; }
 
@@ -77,7 +77,7 @@
     .pp-related .ml-sec-head h2 i { color: var(--ml-blue); }
 
     /* Barra de compra fixa no celular (no lugar da barra do carrinho) */
-    .pp-buybar { position: fixed; z-index: 70; left: 0; right: 0; bottom: 0; background: #fff; box-shadow: 0 -2px 12px rgba(0,0,0,.12); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 10px; }
+    .pp-buybar { position: fixed; z-index: 70; left: 0; right: 0; bottom: 0; background: var(--ml-card); box-shadow: 0 -2px 12px rgba(0,0,0,.12); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 10px; }
     .pp-buybar-sum { flex: 1; min-width: 0; }
     .pp-buybar-sum small { display: block; color: var(--ml-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .pp-buybar-sum strong { font-size: 19px; font-weight: 700; }
@@ -328,7 +328,7 @@
             @endif
             <div class="ml-perk">
                 <i class="fas fa-shield-halved"></i>
-                <span>Compra direta com <b style="color:#333">{{ $store?->name ?: 'a loja' }}</b><small>Seu pedido chega para a loja confirmar.</small></span>
+                <span>Compra direta com <b style="color:var(--ml-text)">{{ $store?->name ?: 'a loja' }}</b><small>Seu pedido chega para a loja confirmar.</small></span>
             </div>
 
             <div class="ml-qty" x-show="p.buyable">

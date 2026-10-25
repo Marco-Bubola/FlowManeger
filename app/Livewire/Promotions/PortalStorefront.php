@@ -29,6 +29,8 @@ class PortalStorefront extends Component
     public array $home_order = [];
     public array $home_off = [];
     public array $home_colors = [];
+    /** Cores das áreas: [fundo da página, cards e seções] */
+    public array $home_surface = [];
     public string $home_style = 'padrao';
     public string $home_theme = 'padrao';
     public string $pendingTheme = '';
@@ -97,6 +99,7 @@ class PortalStorefront extends Component
         $this->home_order = $h['order'];
         $this->home_off = $h['off'];
         $this->home_colors = $h['colors'];
+        $this->home_surface = $h['surface'];
         $this->home_style = $h['style'];
         $this->home_theme = $h['theme'];
     }
@@ -108,7 +111,7 @@ class PortalStorefront extends Component
         }
         HomeLayout::save(Auth::id(), [
             'theme' => $this->home_theme, 'order' => array_values($this->home_order), 'off' => array_values($this->home_off),
-            'colors' => $this->home_colors, 'style' => $this->home_style,
+            'colors' => $this->home_colors, 'style' => $this->home_style, 'surface' => $this->home_surface,
         ]);
         $this->loadHome();
         $this->previewKey++;
@@ -147,6 +150,13 @@ class PortalStorefront extends Component
     public function updatedHomeColors(): void
     {
         $this->home_colors = array_map(fn ($c, $d) => preg_match('/^#[0-9a-fA-F]{6}$/', (string) $c) ? strtolower($c) : $d, array_values($this->home_colors) + HomeLayout::BASE, HomeLayout::BASE);
+        $this->saveHome();
+    }
+
+    public function updatedHomeSurface(): void
+    {
+        $def = HomeLayout::SURFACES['padrao'];
+        $this->home_surface = array_map(fn ($c, $d) => preg_match('/^#[0-9a-fA-F]{6}$/', (string) $c) ? strtolower($c) : $d, array_values($this->home_surface) + $def, $def);
         $this->saveHome();
     }
 

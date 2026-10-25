@@ -249,6 +249,10 @@
                                     <span class="absolute right-1.5 bottom-1.5 w-4 h-4 rounded-full border-2 border-white" style="background: {{ $t['colors'][2] }}"></span>
                                     <span class="absolute left-2 top-1/2 -translate-y-1/2 text-lg">{{ $t['emoji'] }}</span>
                                 </span>
+                                @php $sf = $home::SURFACES[$k] ?? $home::SURFACES['padrao']; @endphp
+                                <span class="flex gap-1 mb-1.5 rounded-md p-1" style="background: {{ $sf[0] }}" title="Fundo e cards">
+                                    <span class="flex-1 h-3 rounded-sm" style="background: {{ $sf[1] }}"></span><span class="flex-1 h-3 rounded-sm" style="background: {{ $sf[1] }}"></span><span class="flex-1 h-3 rounded-sm" style="background: {{ $sf[1] }}"></span>
+                                </span>
                                 <b class="block text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{{ $t['name'] }}</b>
                                 <small class="block text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ $t['when'] ? ($t['when']['now'] ? 'Agora, até ' . $t['when']['end']->format('d/m') : 'De ' . $t['when']['start']->format('d/m') . ' a ' . $t['when']['end']->format('d/m')) : ($k === 'padrao' ? 'O dia a dia' : 'Quando quiser') }}</small>
                                 @if($home_theme === $k)<i class="bi bi-check-circle-fill absolute top-1 right-1 text-emerald-500 bg-white rounded-full"></i>@endif
@@ -259,12 +263,12 @@
                         @php $pt = $themes[$pendingTheme]; @endphp
                         <div class="rounded-xl bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 p-3 space-y-2" data-testid="theme-apply-box">
                             <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ $pt['emoji'] }} Usar o tema {{ $pt['name'] }}?</p>
-                            <p class="text-xs text-slate-600 dark:text-slate-300">Troca as cores do topo, os cantos e a ordem dos blocos ({{ collect($pt['order'])->map(fn ($k) => $home::SECTIONS[$k][0])->take(3)->join(', ') }}…).</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-300"><b>A prévia ao lado já mostra o site com este tema.</b> Troca as cores do topo, do fundo, dos cards e das áreas, os cantos e a ordem dos blocos ({{ collect($pt['order'])->map(fn ($k) => $home::SECTIONS[$k][0])->take(3)->join(', ') }}…).</p>
                             @if($pt['tpl'])
-                                <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200"><input type="checkbox" wire:model="withBanner" class="rounded text-violet-500 focus:ring-violet-400" data-testid="theme-with-banner"> Criar o banner do evento no começo do carrossel{{ $pt['when'] ? ' (sai do ar em ' . $pt['when']['end']->format('d/m') . ')' : ' (por 7 dias)' }}</label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200"><input type="checkbox" wire:model.live="withBanner" class="rounded text-violet-500 focus:ring-violet-400" data-testid="theme-with-banner"> Criar o banner do evento no começo do carrossel{{ $pt['when'] ? ' (sai do ar em ' . $pt['when']['end']->format('d/m') . ')' : ' (por 7 dias)' }}</label>
                             @endif
                             @if($pt['notice'])
-                                <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200"><input type="checkbox" wire:model="withNotice" class="rounded text-violet-500 focus:ring-violet-400"> Trocar o aviso do topo por “{{ $pt['notice'][$kind === 'moveis' ? 1 : 0] }}”</label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200"><input type="checkbox" wire:model.live="withNotice" class="rounded text-violet-500 focus:ring-violet-400"> Trocar o aviso do topo por “{{ $pt['notice'][$kind === 'moveis' ? 1 : 0] }}”</label>
                             @endif
                             <div class="flex gap-2 pt-1">
                                 <button type="button" wire:click="applyTheme" wire:loading.attr="disabled" class="{{ $primary }}" data-testid="theme-apply"><i class="bi bi-magic"></i>Aplicar tema</button>
@@ -286,6 +290,15 @@
                         @endforeach
                     </div>
                     <div class="h-3 rounded-full" style="background: linear-gradient(90deg, {{ $home_colors[0] ?? '#ec4899' }}, {{ $home_colors[1] ?? '#3b82f6' }})"></div>
+                    <div class="grid grid-cols-1 min-[480px]:grid-cols-2 gap-2">
+                        @foreach(['Fundo da página', 'Cards e áreas'] as $i => $cname)
+                            <label class="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-2.5 py-2 cursor-pointer">
+                                <input type="color" wire:model.live.debounce.400ms="home_surface.{{ $i }}" class="shrink-0 w-9 h-9 rounded-lg border-0 bg-transparent p-0 cursor-pointer" data-testid="home-surface-{{ $i }}">
+                                <span class="min-w-0"><b class="block text-xs text-slate-700 dark:text-slate-200">{{ $cname }}</b><small class="block text-[11px] text-slate-400 uppercase">{{ $home_surface[$i] ?? '' }}</small></span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">O texto fica claro sozinho quando os cards forem escuros.</p>
                     <div class="grid grid-cols-3 gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
                         @foreach($home::STYLES as $k => [$n, $r, $ico])
                             <button type="button" wire:click="setStyle('{{ $k }}')" data-testid="style-{{ $k }}" class="rounded-lg py-2 text-xs sm:text-sm font-semibold {{ $home_style === $k ? 'bg-white dark:bg-slate-700 shadow text-violet-600 dark:text-violet-300' : 'text-slate-500' }}"><i class="bi {{ $ico }}"></i> {{ $n }}</button>
@@ -318,22 +331,7 @@
             </div>
 
             {{-- Prévia ao vivo do catálogo --}}
-            <aside class="min-w-0 lg:sticky lg:top-4 {{ $card }} p-3 space-y-2" x-data="{ dev: 'pc', w: 0 }" x-init="w = $refs.box.clientWidth; new ResizeObserver(() => w = $refs.box.clientWidth).observe($refs.box)" data-testid="home-preview">
-                <div class="flex items-center gap-2">
-                    <span class="text-sm font-bold text-slate-800 dark:text-slate-100"><i class="bi bi-eye text-violet-500"></i> Como fica</span>
-                    <div class="ml-auto inline-flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 text-xs font-semibold">
-                        <button type="button" @click="dev = 'pc'" :class="dev === 'pc' ? 'bg-white dark:bg-slate-700 shadow text-violet-600' : 'text-slate-500'" class="rounded-md px-2.5 py-1"><i class="bi bi-display"></i> Computador</button>
-                        <button type="button" @click="dev = 'cel'" :class="dev === 'cel' ? 'bg-white dark:bg-slate-700 shadow text-violet-600' : 'text-slate-500'" class="rounded-md px-2.5 py-1"><i class="bi bi-phone"></i> Celular</button>
-                    </div>
-                </div>
-                <div x-ref="box" class="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 h-[560px] lg:h-[calc(100vh-150px)] lg:max-h-[820px]">
-                    @php $pv = $catalogUrl . (str_contains($catalogUrl, '?') ? '&' : '?') . 'previa=' . $previewKey; @endphp
-                    <iframe wire:key="pv-{{ $previewKey }}" src="{{ $pv }}" title="Prévia do catálogo" loading="lazy" data-testid="home-preview-frame"
-                            class="absolute top-0 border-0 bg-white origin-top-left"
-                            :style="(() => { const iw = dev === 'pc' ? 1280 : 390; const sc = Math.min(1, w / iw); const left = Math.max(0, (w - iw * sc) / 2); return `width:${iw}px;height:${Math.round($refs.box.clientHeight / sc)}px;transform:scale(${sc});left:${left}px`; })()"></iframe>
-                </div>
-                <a href="{{ $catalogUrl }}" target="_blank" rel="noopener" class="{{ $phBtn }} w-full justify-center"><i class="bi bi-box-arrow-up-right text-violet-500"></i>Abrir o catálogo</a>
-            </aside>
+            @include('livewire.promotions.partials.storefront-preview', ['inline' => true])
         </div>
     @endif
 
@@ -616,6 +614,10 @@
     @endif
 
     </x-portal-settings-nav>
+
+    @if(in_array($tab, ['identidade', 'banners', 'destaques', 'colecoes', 'aviso'], true))
+        @include('livewire.promotions.partials.storefront-preview', ['inline' => false])
+    @endif
 
     @include('livewire.promotions.partials.storefront-picker')
 </div>
