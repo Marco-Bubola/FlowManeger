@@ -66,7 +66,7 @@
                         @endif
                     </div>
                     <div style="min-width:0">
-                        <div class="po-prod-name">{{ $first['name'] ?? ($quote->extra_items[0]['description'] ?? 'Itens do pedido') }}</div>
+                        <div class="po-prod-name">{{ $quote->kit ? \App\Services\Portal\KitService::style($quote->kit['style'] ?? null)[1] . ' ' . ($quote->kit['name'] ?? 'Kit') : ($first['name'] ?? ($quote->extra_items[0]['description'] ?? 'Itens do pedido')) }}</div>
                         <div class="po-prod-sub">
                             {{ $units }} {{ $units === 1 ? 'unidade' : 'unidades' }}
                             @if(count($items) > 1) · {{ count($items) }} produtos @endif

@@ -47,6 +47,11 @@
     .pp-share-row { display: flex; gap: 8px; margin-top: 8px; }
     .pp-share-row a, .pp-share-row button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; border-radius: 6px; border: 1px solid var(--ml-line); background: var(--ml-chip); color: var(--ml-text); font-size: 13px; font-weight: 600; cursor: pointer; }
     .pp-share-row .wa i { color: #128c4b; font-size: 16px; }
+    .pp-kit { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 11px 14px; border-radius: 12px; text-decoration: none; color: #fff; background: linear-gradient(120deg, #e11d48, #c026d3 60%, #7c3aed); }
+    .pp-kit > span:first-child { font-size: 24px; }
+    .pp-kit b { display: block; font-size: 14px; }
+    .pp-kit small { display: block; font-size: 12px; opacity: .9; }
+    .pp-kit i { margin-left: auto; }
     .pp-info { padding: 10px 16px 0; }
     .pp-info .ml-cat-line { font-size: 12px; color: var(--ml-muted); }
     .pp-info h1 { margin: 6px 0 10px; font-size: 20px; font-weight: 500; line-height: 1.3; color: var(--ml-text); }
@@ -367,6 +372,11 @@
                     <i class="fas fa-link"></i> Copiar link
                 </button>
             </div>
+            @if(\App\Services\Portal\KitService::enabled((int) $owner))
+                <a class="pp-kit" x-show="p.buyable" :href="@js(route('portal.kit', ['userId' => $owner])) + '?produto=' + p.id" data-testid="product-kit">
+                    <span aria-hidden="true">🎁</span><span><b>Montar um kit com este produto</b><small>Cesta, balão, doces e cartão</small></span><i class="fas fa-chevron-right"></i>
+                </a>
+            @endif
         </div>
     </section>
 

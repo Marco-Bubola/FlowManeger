@@ -21,11 +21,12 @@ class HomeLayout
         'cats'        => ['Categorias', 'bi-grid-3x3-gap', 'Os atalhos redondos das categorias.'],
         'featured'    => ['Destaques', 'bi-star', 'Os produtos escolhidos na aba Destaques.'],
         'offers'      => ['Ofertas do dia', 'bi-lightning-charge', 'Os produtos com promoção ativa.'],
+        'kits'        => ['Monte seu kit', 'bi-gift', 'Os kits que o cliente monta (aparece quando tem kit ligado).'],
         'collections' => ['Coleções e faixas', 'bi-collection', 'Uma fileira para cada coleção, com as faixas entre elas.'],
         'recent'      => ['Vistos por último', 'bi-clock-history', 'Os produtos que o cliente abriu por último.'],
     ];
 
-    public const DEFAULT_ORDER = ['hero', 'cats', 'featured', 'offers', 'collections', 'recent'];
+    public const DEFAULT_ORDER = ['hero', 'cats', 'featured', 'kits', 'offers', 'collections', 'recent'];
 
     /** Cantos dos cards e banners. */
     public const STYLES = [
@@ -140,9 +141,11 @@ class HomeLayout
             $h = ['theme' => $pv[0], 'order' => $t['order'], 'off' => [], 'colors' => $t['colors'], 'style' => $t['style'], 'surface' => self::SURFACES[$pv[0]] ?? null];
         }
         $order = array_values(array_intersect((array) $h['order'], array_keys(self::SECTIONS)));
-        foreach (self::DEFAULT_ORDER as $k) {
+        // Bloco novo entra logo depois do que vem antes dele na ordem padrão.
+        foreach (self::DEFAULT_ORDER as $i => $k) {
             if (! in_array($k, $order, true)) {
-                $order[] = $k;
+                $prev = $i > 0 ? array_search(self::DEFAULT_ORDER[$i - 1], $order, true) : -1;
+                array_splice($order, $prev === false ? count($order) : $prev + 1, 0, [$k]);
             }
         }
         $colors = is_array($h['colors']) && count($h['colors']) === 3 ? array_values($h['colors']) : (self::THEMES[$h['theme']]['colors'] ?? self::BASE);

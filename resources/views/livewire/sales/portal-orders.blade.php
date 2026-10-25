@@ -157,7 +157,7 @@
                         @endforeach
                         @if (count($r->items) > 5)<span class="po-thumb is-more">+{{ count($r->items) - 5 }}</span>@endif
                         <span class="po-thumbs-label">
-                            <span class="truncate">{{ $r->items[0]['name'] ?? 'Pedido sem produtos' }}@if (count($r->items) > 1) <span class="po-dim">e mais {{ count($r->items) - 1 }}</span>@endif</span>
+                            <span class="truncate">@if ($q->kit)<b class="text-rose-600 dark:text-rose-300">{{ \App\Services\Portal\KitService::style($q->kit['style'] ?? null)[1] }} Kit {{ $q->kit['name'] ?? '' }}:</b> @endif{{ $r->items[0]['name'] ?? 'Pedido sem produtos' }}@if (count($r->items) > 1) <span class="po-dim">e mais {{ count($r->items) - 1 }}</span>@endif</span>
                             <i class="bi" :class="more ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
                         </span>
                     </button>
@@ -180,12 +180,18 @@
                                     <strong class="po-item-total">{{ $orders->money($it['total']) }}</strong>
                                 </li>
                             @endforeach
+                            @foreach (\App\Services\Portal\KitService::lines($q->kit) as [$kName, $kQty, $kVal])
+                                <li data-testid="order-kit-line"><span class="po-thumb is-sm">{{ mb_substr($kName, 0, 1) }}</span><div class="min-w-0 flex-1"><p class="po-item-name">{{ trim(mb_substr($kName, 1)) }}</p><p class="po-dim">{{ $loop->first ? 'base do kit' : 'enfeite · ' . $kQty . 'x' }}</p></div><strong class="po-item-total">{{ $orders->money($kVal) }}</strong></li>
+                            @endforeach
                             @foreach ($q->extra_items ?? [] as $extra)
                                 <li><span class="po-thumb is-sm"><i class="bi bi-plus-lg"></i></span><div class="min-w-0 flex-1"><p class="po-item-name">{{ $extra['description'] ?? 'Item extra' }}</p><p class="po-dim">pedido à parte · {{ $extra['quantity'] ?? 1 }}x</p></div></li>
                             @endforeach
                         </ul>
                         @if ($q->delivery_method === 'entrega' && filled($q->shipping_address['text'] ?? null))
                             <p class="po-note"><i class="bi bi-geo-alt-fill text-violet-500"></i><span>{{ $q->shipping_address['text'] }}</span></p>
+                        @endif
+                        @if (filled($q->kit['message'] ?? null) || filled($q->kit['to'] ?? null))
+                            <p class="po-note is-amber"><i class="bi bi-envelope-heart-fill"></i><span><b>Cartão do kit:</b> {{ filled($q->kit['to'] ?? null) ? 'Para ' . $q->kit['to'] . '. ' : '' }}{{ $q->kit['message'] ?? '' }}{{ filled($q->kit['from'] ?? null) ? ' De: ' . $q->kit['from'] : '' }}</span></p>
                         @endif
                         @if ($q->client_notes)
                             <p class="po-note is-amber"><i class="bi bi-chat-left-text-fill"></i><span><b>Recado do cliente:</b> {{ $q->client_notes }}</span></p>

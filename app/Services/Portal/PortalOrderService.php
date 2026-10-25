@@ -249,7 +249,8 @@ class PortalOrderService
         $sum = (float) collect($quote->items ?? [])->sum(fn ($i) => (float) ($i['price_ref'] ?? 0) * (int) ($i['quantity'] ?? 1));
 
         // Cupom do catálogo sai do valor dos produtos.
-        return max(0, $sum - (float) ($quote->discount ?? 0));
+        // Kit montado: a base e os enfeites somam ao valor.
+        return max(0, $sum - (float) ($quote->discount ?? 0)) + KitService::total($quote);
     }
 
     public function isPaid(Sale $sale): bool

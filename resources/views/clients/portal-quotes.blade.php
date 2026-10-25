@@ -483,6 +483,23 @@
             </div>
             @endif
 
+            @if($quote->kit)
+            <div class="mx-4 mt-3 rounded-xl border border-rose-100 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-900/10 p-3">
+                <p class="text-[9px] font-black uppercase tracking-widest text-rose-400 mb-2"><i class="fas fa-gift mr-1"></i> Kit montado pelo cliente</p>
+                <div class="space-y-1">
+                    @foreach(\App\Services\Portal\KitService::lines($quote->kit) as [$kName, $kQty, $kVal])
+                    <div class="flex justify-between gap-2 rounded-lg bg-white dark:bg-slate-700 px-3 py-2 border border-slate-100 dark:border-slate-600">
+                        <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">{{ $kName }}{{ $kQty > 1 ? ' · ' . $kQty . 'x' : '' }}</span>
+                        <span class="text-xs font-black text-rose-600 dark:text-rose-300">R$ {{ number_format($kVal, 2, ',', '.') }}</span>
+                    </div>
+                    @endforeach
+                    @if(filled($quote->kit['message'] ?? null))
+                    <p class="text-xs text-slate-600 dark:text-slate-300 pt-1"><i class="fas fa-envelope-open-text mr-1 text-rose-400"></i>{{ filled($quote->kit['to'] ?? null) ? 'Para ' . $quote->kit['to'] . ': ' : '' }}“{{ $quote->kit['message'] }}”{{ filled($quote->kit['from'] ?? null) ? ' De: ' . $quote->kit['from'] : '' }}</p>
+                    @endif
+                </div>
+            </div>
+            @endif
+
             {{-- ── Painel de resposta ─────────────────────────────── --}}
             <div class="p-4 pt-3 mt-3 border-t border-slate-100 dark:border-slate-700/60 space-y-3">
 

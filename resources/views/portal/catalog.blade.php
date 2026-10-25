@@ -147,6 +147,10 @@
             @foreach($strips->slice($collections->count() + 1) as $b)
                 @include('portal.partials.storefront-banner', ['b' => $b, 'kind' => 'strip'])
             @endforeach
+        @elseif($sec === 'kits')
+            @if($isHome && \App\Services\Portal\KitService::enabled($owner))
+                @include('portal.partials.kit-home')
+            @endif
         @elseif($sec === 'recent')
             @if($isHome)
                 @include('portal.partials.recently-viewed')

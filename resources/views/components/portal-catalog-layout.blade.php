@@ -137,8 +137,8 @@
         .ml-acc-menu i { width: 18px; text-align: center; color: var(--ml-blue); }
         .ml-acc-menu form { margin: 4px 0 0; padding-top: 4px; border-top: 1px solid var(--ml-line); }
         .ml-acc-badge.pink { background: #ec4899; }
-        .ml-fav-head { display: none; }
-        @media (min-width: 640px) { .ml-fav-head { display: flex; } }
+        .ml-fav-head, .ml-kit-head { display: none; }
+        @media (min-width: 640px) { .ml-fav-head, .ml-kit-head { display: flex; } }
         .ml-acc-badge { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--ml-blue); color: #fff; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
 
         main { padding-bottom: 96px; }
@@ -283,6 +283,9 @@ document.addEventListener('alpine:init', () => {
                     </div>
                 @else
                     <a href="{{ route('portal.login') }}" class="ml-login"><i class="fas fa-circle-user"></i><span>Entrar</span></a>
+                @endif
+                @if($idOwner && \App\Services\Portal\KitService::enabled((int) $idOwner))
+                    <a href="{{ route('portal.kit', ['userId' => $idOwner]) }}" class="ml-icon-btn ml-kit-head" aria-label="Monte seu kit" title="Monte seu kit" data-testid="head-kit"><i class="fas fa-gift"></i></a>
                 @endif
                 <a href="{{ $favoritesUrl }}" class="ml-icon-btn ml-fav-head" x-data aria-label="Meus favoritos" title="Meus favoritos">
                     <i class="fas fa-heart"></i>

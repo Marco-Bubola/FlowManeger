@@ -159,6 +159,7 @@ Route::prefix('portal')->name('portal.')->group(function () {
     Route::get('/catalogo/{userId}/vistos', [ClientPortalController::class, 'recentlyViewed'])->whereNumber('userId')->middleware('throttle:60,1')->name('catalog.seen');
     Route::get('/catalogo/{userId}/frete', [ClientPortalController::class, 'shippingQuote'])->whereNumber('userId')->middleware('throttle:30,1')->name('catalog.shipping');
     Route::get('/catalogo/{userId}/pagina/{page}', [ClientPortalController::class, 'storePage'])->whereNumber('userId')->whereIn('page', ['sobre', 'trocas', 'entrega'])->name('store-page');
+    Route::get('/catalogo/{userId}/monte-seu-kit', [ClientPortalController::class, 'kitBuilder'])->whereNumber('userId')->name('kit');
     Route::get('/catalogo/{userId}/produto/{product}/{slug?}', [ClientPortalController::class, 'productPage'])->whereNumber(['userId', 'product'])->name('product');
     Route::get('/catalogo/{userId}/foto/{product}.jpg', [ClientPortalController::class, 'previewImage'])->whereNumber(['userId', 'product'])->name('catalog.preview-image');
     // Entrada do portal sem login: redireciona autenticados ao dashboard, convidados ao catálogo (via cookie) ou login
@@ -191,6 +192,7 @@ Route::middleware('portal.auth')->prefix('portal')->name('portal.')->group(funct
     Route::get('/orcamentos/novo', [ClientPortalController::class, 'createQuote'])->name('quotes.create');
     Route::post('/orcamentos', [ClientPortalController::class, 'storeQuote'])->name('quotes.store');
     Route::post('/catalogo/{userId}/produto/{product}/avaliar', [ClientPortalController::class, 'storeReview'])->whereNumber(['userId', 'product'])->middleware('throttle:10,1')->name('product.review');
+    Route::post('/catalogo/{userId}/monte-seu-kit', [ClientPortalController::class, 'storeKit'])->whereNumber('userId')->middleware('throttle:10,1')->name('kit.store');
     Route::post('/cupom', [ClientPortalController::class, 'checkCoupon'])->middleware('throttle:20,1')->name('coupon.check');
     Route::get('/orcamentos/{quote}', [ClientPortalController::class, 'showQuote'])->name('quotes.show');
     // Pagamento online do pedido (Pix pelo Mercado Pago)
@@ -280,6 +282,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/promotions', PromotionsIndex::class)->name('promotions.index');
     Route::get('/promotions/create', PromotionsCreate::class)->name('promotions.create');
     Route::get('/promotions/report', \App\Livewire\Promotions\PromotionsReport::class)->name('promotions.report');
+    Route::get('/promotions/kits', \App\Livewire\Promotions\PortalKits::class)->name('promotions.kits');
     Route::get('/promotions/cupons', \App\Livewire\Promotions\PortalCoupons::class)->name('promotions.coupons');
     Route::get('/promotions/vitrine', \App\Livewire\Promotions\PortalStorefront::class)->name('promotions.storefront');
     Route::get('/promotions/avaliacoes', \App\Livewire\Promotions\PortalReviews::class)->name('promotions.reviews');

@@ -64,6 +64,8 @@ class PortalCheckoutService
     {
         $sum = collect($quote->items ?? [])->sum(fn ($i) => (float) ($i['price_ref'] ?? 0) * max(1, (int) ($i['quantity'] ?? 1)));
         $sum = max(0, $sum - (float) ($quote->discount ?? 0));
+        // Kit montado: base + enfeites.
+        $sum += \App\Services\Portal\KitService::total($quote);
 
         return round($sum + (float) ($quote->delivery_fee ?? 0), 2);
     }

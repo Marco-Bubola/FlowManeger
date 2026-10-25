@@ -24,6 +24,7 @@
     $onlinePay = $quote->payments()->whereIn('status', ['approved', 'refunded'])->latest('id')->first();
     $deliveryFee = (float) ($quote->delivery_fee ?? 0);
     $addr = $quote->shipping_address ?? [];
+    $kitTotal = \App\Services\Portal\KitService::total($quote);
 @endphp
 
 <div class="po-page" x-data="{ deleteModal: false }">
@@ -161,6 +162,10 @@
                     </ul>
                 </div>
             </div>
+
+            @if($quote->kit)
+                @include('portal.partials.kit-box', ['kit' => $quote->kit, 'money' => fn ($v) => $orders->money($v)])
+            @endif
         </div>
 
         <div class="po-side">
@@ -169,9 +174,12 @@
                 <div class="po-card-body">
                     <h2 class="po-sec-title">Resumo</h2>
                     <table class="po-sum" data-testid="summary">
-                        @php $adjust = $total - $itemsTotal - ($quote->delivery_method === 'entrega' ? $deliveryFee : 0); @endphp
-                        @if($itemsTotal > 0 && (abs($adjust) > 0.009 || $quote->delivery_method === 'entrega'))
+                        @php $adjust = $total - $itemsTotal - $kitTotal - ($quote->delivery_method === 'entrega' ? $deliveryFee : 0); @endphp
+                        @if($itemsTotal > 0 && (abs($adjust) > 0.009 || $quote->delivery_method === 'entrega' || $kitTotal > 0))
                             <tr><td>Produtos</td><td>{{ $orders->money($itemsTotal) }}</td></tr>
+                        @endif
+                        @if($kitTotal > 0)
+                            <tr><td>Kit (base e enfeites)</td><td>{{ $orders->money($kitTotal) }}</td></tr>
                         @endif
                         @if($itemsTotal > 0 && abs($adjust) > 0.009)
                             <tr><td>{{ $adjust < 0 ? ($quote->coupon_code ? 'Cupom ' . $quote->coupon_code : 'Desconto') : 'Ajuste da loja' }}</td><td>{{ $adjust < 0 ? '− ' : '' }}{{ $orders->money(abs($adjust)) }}</td></tr>
@@ -222,7 +230,7 @@
                         <a href="{{ $storeWa }}" target="_blank" rel="noopener" class="po-btn po-btn-wa po-btn-block"><i class="fab fa-whatsapp" style="font-size:18px"></i> Falar com a loja</a>
                     @endif
                     @if($quote->can_edit)
-                        <a href="{{ route('portal.quotes.edit', $quote) }}" class="po-btn po-btn-soft po-btn-block"><i class="fas fa-pen"></i> Alterar pedido</a>
+                        @unless($quote->kit)<a href="{{ route('portal.quotes.edit', $quote) }}" class="po-btn po-btn-soft po-btn-block"><i class="fas fa-pen"></i> Alterar pedido</a>@endunless
                         <button type="button" @click="deleteModal = true" class="po-btn po-btn-red po-btn-block"><i class="fas fa-trash"></i> Cancelar pedido</button>
                     @endif
                     <a href="{{ route('portal.catalog', ['userId' => $client->user_id]) }}" class="po-btn po-btn-ghost po-btn-block"><i class="fas fa-store"></i> Continuar comprando</a>

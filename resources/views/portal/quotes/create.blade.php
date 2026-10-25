@@ -8,26 +8,26 @@
         .pc-item:first-of-type { border-top: 0; }
         .pc-item .po-thumb { width: 76px; height: 76px; }
         .pc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-        .pc-name { font-size: 14px; color: #333; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .pc-name { font-size: 14px; color: var(--ml-text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .pc-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
         .pc-qty { display: inline-flex; align-items: center; border: 1px solid var(--ml-line); border-radius: 6px; height: 34px; overflow: hidden; }
-        .pc-qty button { width: 34px; height: 100%; border: 0; background: #fff; color: var(--ml-blue); font-size: 18px; font-weight: 700; cursor: pointer; }
+        .pc-qty button { width: 34px; height: 100%; border: 0; background: var(--ml-card); color: var(--ml-blue); font-size: 18px; font-weight: 700; cursor: pointer; }
         .pc-qty button:disabled { color: #ccc; cursor: default; }
         .pc-qty span { min-width: 34px; text-align: center; font-weight: 700; font-size: 14px; }
         .pc-remove { border: 0; background: none; padding: 0; color: var(--ml-blue-dark); font-size: 13px; font-weight: 700; cursor: pointer; }
         .pc-price { text-align: right; }
         .pc-price s { display: block; font-size: 12px; color: #999; }
-        .pc-price strong { font-size: 17px; color: #222; }
+        .pc-price strong { font-size: 17px; color: var(--ml-text); }
         .pc-unit { font-size: 12px; color: var(--ml-muted); }
         .pc-last { font-size: 12px; color: var(--ml-orange); font-weight: 600; }
         .pc-pay { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-        .pc-pay button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; border: 1px solid var(--ml-line); border-radius: 8px; background: #fff; font-size: 12px; font-weight: 700; color: #555; cursor: pointer; }
+        .pc-pay button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; border: 1px solid var(--ml-line); border-radius: 8px; background: var(--ml-card); font-size: 12px; font-weight: 700; color: var(--ml-muted); cursor: pointer; }
         .pc-pay button i { font-size: 16px; color: var(--ml-blue); }
         .pc-pay button.on { border-color: var(--ml-blue); background: var(--ml-blue-soft); color: var(--ml-blue-dark); box-shadow: 0 0 0 1px var(--ml-blue); }
         .pc-opts { display: grid; gap: 8px; }
-        .pc-opt { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border: 1px solid var(--ml-line); border-radius: 8px; cursor: pointer; background: #fff; }
+        .pc-opt { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border: 1px solid var(--ml-line); border-radius: 8px; cursor: pointer; background: var(--ml-card); }
         .pc-opt input { margin: 3px 0 0; accent-color: var(--ml-blue); width: 16px; height: 16px; flex-shrink: 0; }
-        .pc-opt strong { display: block; font-size: 14px; color: #222; }
+        .pc-opt strong { display: block; font-size: 14px; color: var(--ml-text); }
         .pc-opt small { display: block; font-size: 12px; color: var(--ml-muted); margin-top: 2px; }
         .pc-opt.on { border-color: var(--ml-blue); box-shadow: 0 0 0 1px var(--ml-blue); background: #faf8ff; }
         .pc-coupon-row { display: flex; gap: 8px; }
@@ -38,9 +38,9 @@
         .pc-coupon-on span { flex: 1; min-width: 0; }
         .pc-coupon-on b { display: block; font-size: 14px; color: #14532d; letter-spacing: .03em; }
         .pc-coupon-on small { display: block; font-size: 12px; color: #3f6b4f; }
-        .pc-addr { font-size: 13px; color: #444; line-height: 1.45; }
-        .pc-addr strong { color: #222; }
-        .pc-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: #fff; box-shadow: 0 -2px 12px rgba(0,0,0,.12); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; }
+        .pc-addr { font-size: 13px; color: var(--ml-muted); line-height: 1.45; }
+        .pc-addr strong { color: var(--ml-text); }
+        .pc-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: var(--ml-card); box-shadow: 0 -2px 12px rgba(0,0,0,.12); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; }
         .pc-bar .po-btn { flex: 1; height: 46px; font-size: 15px; }
         @media (min-width: 900px) { .pc-bar { display: none; } }
         .pc-toast { position: fixed; left: 50%; bottom: 88px; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 70; box-shadow: 0 4px 14px rgba(0,0,0,.25); }

@@ -1,5 +1,5 @@
 @props([
-    // Parte aberta agora (inicio, banners, destaques, colecoes, aviso, cupons, pagamentos, pedidos, avaliacoes)
+    // Parte aberta agora (inicio, banners, destaques, colecoes, aviso, kits, cupons, pagamentos, pedidos, avaliacoes)
     'current' => 'inicio',
     // Na Vitrine as partes dela trocam sem recarregar (wire:click); nas outras telas viram links.
     'wire' => false,
@@ -19,6 +19,7 @@
             'aviso' => ['Aviso no topo', 'bi-megaphone', 'Uma linha em todas as páginas', 'tab'],
         ],
         'Vendas pelo catálogo' => [
+            'kits' => ['Monte seu kit', 'bi-gift', 'Cestas, caixas e enfeites', 'promotions.kits'],
             'cupons' => ['Cupons', 'bi-ticket-perforated', 'Códigos de desconto', 'promotions.coupons'],
             'pagamentos' => ['Pagamento e frete', 'bi-credit-card', 'Pix, cartão, boleto e entrega', 'settings.payments'],
             'pedidos' => ['Pedidos do portal', 'bi-bag-check', 'Pedidos que chegaram', 'sales.portal-orders'],

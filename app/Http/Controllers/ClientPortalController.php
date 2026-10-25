@@ -799,6 +799,82 @@ class ClientPortalController extends Controller
         ]);
     }
 
+    /** Monte seu kit: o cliente escolhe o tipo, os produtos e os enfeites (sem login; pedir pede conta). */
+    public function kitBuilder(Request $request, int $userId)
+    {
+        $store = User::find($userId);
+        if (! $store || ! \App\Services\Portal\KitService::enabled($userId)) {
+            return redirect()->route('portal.catalog', ['userId' => $userId]);
+        }
+        cookie()->queue('portal_store', (string) $userId, 60 * 24 * 30);
+        $K = \App\Services\Portal\KitService::class;
+        $types = $K::types($userId)->map(fn ($t) => [
+            'id' => $t->id, 'name' => $t->name, 'desc' => (string) $t->description, 'style' => $t->style,
+            'look' => $K::style($t->style), 'img' => $K::imageUrl($t->image), 'base' => (float) $t->base_price,
+            'min' => (int) $t->min_items, 'max' => (int) $t->max_items, 'cats' => array_map('intval', (array) ($t->category_ids ?? [])),
+        ])->values();
+        $extras = $K::extras($userId)->map(fn ($e) => [
+            'id' => $e->id, 'name' => $e->name, 'group' => $e->group, 'desc' => (string) $e->description,
+            'price' => (float) $e->price, 'max' => max(1, (int) $e->max_qty), 'img' => $K::imageUrl($e->image),
+        ])->values();
+        $products = $K::products($userId);
+        $catIds = collect($products)->pluck('cat')->filter()->unique();
+        $cats = \App\Models\Category::where('user_id', $userId)->whereIn('id_category', $catIds)->orderBy('name')->get(['id_category', 'name'])
+            ->map(fn ($c) => ['id' => (int) $c->id_category, 'name' => $c->name])->values();
+
+        $client = Auth::guard('portal')->user();
+        $own = $client && (int) $client->user_id === $userId;
+        $pay = \App\Models\PaymentSetting::for($userId);
+        $online = $pay && $pay->enabled;
+        $methods = $pay?->methods() ?? [];
+        $checkout = [
+            'methods' => $methods,
+            'manual' => $methods === [] || $pay->allow_manual,
+            'pickup' => $online && $pay->pickup_enabled,
+            'deliver' => $online && $pay->delivery_enabled,
+            'fee' => $online && $pay->delivery_enabled ? (float) $pay->delivery_fee : 0,
+            'ship' => $own && $online && $pay->delivery_enabled && $client->cep ? \App\Services\Portal\ShippingService::quote($userId, $client->cep, 0, $pay) : null,
+            'hasCpf' => $own && strlen(preg_replace('/\D+/', '', (string) $client->cpf_cnpj)) >= 11,
+            'hasAddress' => $own && $client->hasRequiredPortalProfileData(),
+        ];
+
+        return view('portal.kit-builder', [
+            'ownerId' => $userId, 'store' => $store, 'types' => $types, 'extras' => $extras, 'products' => $products, 'cats' => $cats,
+            'groups' => $K::GROUPS, 'checkout' => $checkout, 'client' => $own ? $client : null, 'otherStore' => $client && ! $own,
+            'start' => ['tipo' => $request->integer('tipo') ?: null, 'produto' => $request->integer('produto') ?: null],
+        ]);
+    }
+
+    /** Pedido do kit montado: confere tudo no servidor e segue o mesmo caminho do carrinho. */
+    public function storeKit(Request $request, int $userId)
+    {
+        $client = Auth::guard('portal')->user();
+        if ((int) $client->user_id !== $userId) {
+            return back()->withErrors(['kit' => 'Sua conta é de outra loja. Entre com a conta desta loja para pedir o kit.']);
+        }
+        $in = $request->validate([
+            'kit.type' => ['required', 'integer'],
+            'kit.products' => ['required', 'array'],
+            'kit.products.*' => ['integer', 'min:0', 'max:20'],
+            'kit.extras' => ['nullable', 'array'],
+            'kit.extras.*' => ['integer', 'min:0', 'max:99'],
+            'kit.message' => ['nullable', 'string', 'max:300'],
+            'kit.to' => ['nullable', 'string', 'max:60'],
+            'kit.from' => ['nullable', 'string', 'max:60'],
+        ]);
+        $built = \App\Services\Portal\KitService::build($userId, $in['kit']);
+        if (! $built['ok']) {
+            return back()->withErrors(['kit' => $built['message']]);
+        }
+        $request->merge(['items' => array_map(fn ($i) => ['product_id' => $i['product_id'], 'quantity' => $i['quantity'], 'notes' => $i['notes']], $built['items']), 'extra_items' => null, 'coupon_code' => null]);
+        $this->pendingKit = $built['kit'];
+
+        return $this->storeQuote($request);
+    }
+
+    /** Kit montado que o próximo storeQuote grava no pedido. */
+    private ?array $pendingKit = null;
+
     public function productPage(Request $request, int $userId, int $product, ?string $slug = null)
     {
         $base = fn () => Product::withoutGlobalScope('team_visibility')
@@ -1090,7 +1166,7 @@ class ClientPortalController extends Controller
         // Frete por CEP: pelo CEP do cadastro e o valor dos produtos com desconto.
         $deliveryFee = null;
         if ($delivery === 'entrega') {
-            $productsTotal = collect($items)->sum(fn ($i) => (float) $i['price_ref'] * $i['quantity']) - (float) $discount;
+            $productsTotal = collect($items)->sum(fn ($i) => (float) $i['price_ref'] * $i['quantity']) - (float) $discount + (float) ($this->pendingKit['total'] ?? 0);
             $ship = \App\Services\Portal\ShippingService::quote((int) $client->user_id, $client->cep, max(0, $productsTotal), $paySettings);
             if (! $ship['ok']) {
                 return back()->withErrors(['checkout' => $ship['message']]);
@@ -1118,6 +1194,7 @@ class ClientPortalController extends Controller
             'delivery_method'    => $delivery,
             'coupon_code'        => $couponCode,
             'discount'           => $discount,
+            'kit'                => $this->pendingKit,
             'delivery_fee'       => $delivery === 'entrega' ? $deliveryFee : ($delivery ? 0 : null),
             'shipping_address'   => $delivery === 'entrega' ? [
                 'name' => $client->name, 'phone' => $client->phone, 'cpf' => $client->cpf_cnpj,
@@ -1192,6 +1269,9 @@ class ClientPortalController extends Controller
 
         abort_if($quote->client_id !== $client->id, 403);
         abort_unless($quote->can_edit, 403, 'Este orçamento não pode mais ser editado.');
+        if ($quote->kit) {
+            return redirect()->route('portal.quotes.show', $quote)->withErrors(['kit' => 'O kit montado não muda por aqui. Exclua o pedido e monte de novo, ou fale com a loja.']);
+        }
 
         $products = Product::withoutGlobalScope('team_visibility')
             ->where('user_id', $client->user_id)
@@ -1212,7 +1292,7 @@ class ClientPortalController extends Controller
         $client = Auth::guard('portal')->user();
 
         abort_if($quote->client_id !== $client->id, 403);
-        abort_unless($quote->can_edit, 422, 'Este orçamento não pode mais ser editado.');
+        abort_unless($quote->can_edit && ! $quote->kit, 422, 'Este orçamento não pode mais ser editado.');
 
         $validated = $request->validate([
             'items'               => ['nullable', 'array'],
