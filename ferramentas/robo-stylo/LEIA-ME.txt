@@ -103,6 +103,16 @@ FOTOS, PESO, CÓPIAS E ATUALIZAÇÃO
   também avisa sozinho quando sai uma. A versão anterior fica em
   _versao-anterior; fichas, login e configurações não mudam.
 
+ATUALIZAR UM PRODUTO JÁ CADASTRADO
+- Mudou a ficha depois de cadastrar? Em Cadastradas use "✎ Editar" (ou abra a
+  ficha e escolha "Sim = editar esta ficha"). Ao salvar, o robô pergunta se
+  quer atualizar o produto no site.
+- "⟳ Atualizar no site" manda a ficha de novo: mudam preços, textos, medidas,
+  prazo e as fotos. O estoque do site NÃO muda (lá quem manda são as vendas e
+  o Mercado Livre). Variação nova na ficha entra no mesmo grupo.
+- O anúncio do Mercado Livre não muda sozinho: atualize no site, em Mercado
+  Livre › Produtos, se precisar.
+
 CUSTO E PREÇO (no editor)
 - Ficha de custo: materiais e "＋ Mão de obra" (horas × sua hora, que fica em
   Configurações). "Usar como custo de todas" passa o total para as variações.

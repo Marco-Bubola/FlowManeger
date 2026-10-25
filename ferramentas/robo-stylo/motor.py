@@ -291,16 +291,21 @@ def listar_fichas(pasta_produtos, incluir_feitas=False):
     if incluir_feitas and (raiz / "feitos").is_dir():
         for p in sorted((raiz / "feitos").iterdir(), key=lambda x: x.stat().st_mtime, reverse=True):
             if p.is_dir():
-                f = ler_ficha(p)
-                f.status, f.mensagem, f.resultado = "feita", "Já cadastrada no site.", []
-                try:
-                    info = json.loads((p / "resultado.json").read_text(encoding="utf-8"))
-                    f.resultado = info.get("produtos") or []
-                    f.mensagem = info.get("mensagem") or f.mensagem
-                except Exception:
-                    pass
-                fichas.append(f)
+                fichas.append(ler_feita(p))
     return fichas
+
+
+def ler_feita(p):
+    """Uma ficha da pasta feitos, com o que o site devolveu no cadastro (resultado.json)."""
+    f = ler_ficha(Path(p))
+    f.status, f.mensagem, f.resultado = "feita", "Já cadastrada no site.", []
+    try:
+        info = json.loads((f.pasta / "resultado.json").read_text(encoding="utf-8"))
+        f.resultado = info.get("produtos") or []
+        f.mensagem = info.get("mensagem") or f.mensagem
+    except Exception:
+        pass
+    return f
 
 
 # ------------------------------------------------------------ editar fichas
@@ -550,8 +555,11 @@ class Site:
         self.page.wait_for_selector("#ficha-file", state="attached", timeout=30000)
         self.avisar("conectado")
 
-    def cadastrar(self, ficha, fotos):
-        """Envia a ficha e as fotos e aperta Cadastrar. Devolve a lista de produtos criados."""
+    def cadastrar(self, ficha, fotos, atualizar=False):
+        """Envia a ficha e as fotos e aperta Cadastrar. Devolve a lista de produtos criados.
+
+        Com atualizar, marca "Atualizar os que já estão cadastrados": os códigos que já
+        existem no site recebem preços, textos, medidas e fotos da ficha (o estoque não muda)."""
         pg = self.page
         if self._na_tela_de_login() or not pg.url.startswith(self.url_ficha):
             self.entrar()
@@ -585,6 +593,15 @@ class Site:
 
         prev = pg.locator("[data-testid=ficha-preview]")
         prev.wait_for(timeout=30000)
+        if atualizar:
+            caixa = pg.locator("#ficha-update")
+            if caixa.count():
+                if not caixa.is_checked():
+                    caixa.check()
+                pg.wait_for_function("() => { const p = document.querySelector('[data-testid=ficha-preview]');"
+                                     " return p && Number(p.dataset.update || 0) > 0; }", timeout=30000)
+            elif prev.get_attribute("data-update") is None and int(prev.get_attribute("data-ok") or 0) == 0:
+                raise RuntimeError("O site ainda não tem a opção de atualizar produtos. Peça para subir a atualização do site.")
         erros = int(prev.get_attribute("data-errors") or 0)
         ok = int(prev.get_attribute("data-ok") or 0)
         if erros:
@@ -606,6 +623,7 @@ class Site:
             "codigo": itens.nth(i).get_attribute("data-product-code"),
             "nome": itens.nth(i).locator(".if-name").inner_text().strip(),
             "link": itens.nth(i).get_attribute("href"),
+            "acao": itens.nth(i).locator(".if-tag").inner_text().strip() if itens.nth(i).locator(".if-tag").count() else "",
         } for i in range(itens.count())]
 
     def mostrar(self, url):
@@ -1063,8 +1081,11 @@ def mover_para_feitos(ficha, pasta_produtos):
         ficha.arquivo = destino / ficha.arquivo.relative_to(antiga)
 
 
-def rodar(fichas, cfg, avisar, parar, site=None):
-    """Cadastra as fichas prontas, uma por vez. avisar(evento, ficha, texto) atualiza a janela."""
+def rodar(fichas, cfg, avisar, parar, site=None, atualizar=False):
+    """Cadastra as fichas prontas, uma por vez. avisar(evento, ficha, texto) atualiza a janela.
+
+    Com atualizar, também manda as fichas já cadastradas: o site atualiza os produtos
+    que já existem (preços, textos, medidas, fotos; o estoque não muda)."""
     r = cfg["robo"]
     proprio = site is None
     site = site or Site(r.get("site"), visivel=sim(r.get("navegador_visivel")),
@@ -1075,18 +1096,31 @@ def rodar(fichas, cfg, avisar, parar, site=None):
         for ficha in fichas:
             if parar():
                 raise Parar()
-            if not ficha.pronta:
+            if not (ficha.pronta or (atualizar and not ficha.erros and ficha.dados)):
                 continue
-            avisar("inicio", ficha, f"Cadastrando {ficha.nome}...")
+            ja_feita = ficha.status == "feita"
+            avisar("inicio", ficha, f"{'Atualizando' if atualizar else 'Cadastrando'} {ficha.nome}...")
             tmp = Path(tempfile.mkdtemp(prefix="robo-stylo-"))
             try:
                 fotos = preparar_fotos(ficha, tmp, int(r.get("lado_maximo_foto")), int(r.get("tamanho_maximo_foto_kb")))
-                res = site.cadastrar(ficha, fotos)
+                res = site.cadastrar(ficha, fotos, atualizar=atualizar)
                 if res is None:
                     ficha.status, ficha.mensagem = "ja", "Todos os códigos já estavam cadastrados."
+                    if ja_feita:
+                        ficha.status = "feita"
                 else:
+                    novos = sum(1 for x in res if (x.get("acao") or "").lower() != "atualizado")
+                    mudados = len(res) - novos
+                    if atualizar and ficha.resultado:
+                        # junta com o que já tinha: o primeiro continua sendo o principal
+                        por_id = {str(x.get("id")): x for x in ficha.resultado}
+                        for x in res:
+                            por_id[str(x.get("id"))] = {**por_id.get(str(x.get("id")), {}), **x}
+                        res = list(por_id.values())
                     ficha.status, ficha.resultado = "feita", res
-                    ficha.mensagem = f"{len(res)} produto(s) criado(s)."
+                    ficha.mensagem = " e ".join(t for t in [
+                        f"{novos} produto(s) criado(s)" if novos else "",
+                        f"{mudados} atualizado(s)" if mudados else ""] if t) + "."
                     feitas += 1
                 try:
                     (ficha.pasta / "resultado.json").write_text(json.dumps({
@@ -1094,7 +1128,7 @@ def rodar(fichas, cfg, avisar, parar, site=None):
                         "mensagem": ficha.mensagem, "produtos": ficha.resultado}, ensure_ascii=False, indent=2), encoding="utf-8")
                 except OSError:
                     pass
-                if sim(r.get("mover_feitos")):
+                if sim(r.get("mover_feitos")) and ficha.pasta.parent.name.lower() != "feitos":
                     mover_para_feitos(ficha, r.get("pasta_produtos"))
             except Parar:
                 raise

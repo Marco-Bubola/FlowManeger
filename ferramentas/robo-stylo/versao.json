@@ -1,11 +1,18 @@
 {
-  "versao": 7,
-  "data": "2026-10-24",
-  "arquivos": ["janela.pyw", "motor.py", "recursos.py", "LEIA-ME.txt", "questionario-produto-stylo.md", "requirements.txt"],
+  "versao": 8,
+  "data": "2026-10-25",
+  "arquivos": [
+    "janela.pyw",
+    "motor.py",
+    "recursos.py",
+    "LEIA-ME.txt",
+    "questionario-produto-stylo.md",
+    "requirements.txt"
+  ],
   "novidades": [
-    "Botão “Atualizar robô” em Configurações: as próximas versões se instalam com um clique (e o robô avisa quando sai uma nova).",
-    "Peso da caixa estimado pelo tipo, material e tamanho da peça quando nenhuma variação tem peso.",
-    "Ficha sem foto com link do Mercado Livre: o robô baixa as fotos do anúncio de referência.",
-    "Cópia das fichas todo dia (guarda as últimas 14), numa pasta que você escolhe."
+    "Ficha já cadastrada pode atualizar o produto no site: botão “Atualizar no site” em Cadastradas e na ficha.",
+    "Editar uma ficha cadastrada: ao salvar, o robô oferece atualizar o produto no site (preços, textos, medidas, prazo e fotos). O estoque do site não muda.",
+    "Variação nova numa ficha cadastrada entra no mesmo grupo do produto no site.",
+    "Ao cadastrar uma ficha que já existe no site, o robô pergunta se quer atualizar."
   ]
 }

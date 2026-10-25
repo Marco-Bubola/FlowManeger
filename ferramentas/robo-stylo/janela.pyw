@@ -537,15 +537,29 @@ class App(ctk.CTk):
     def atualizar_botao(self):
         self.paginas["fichas"].atualizar_botao()
 
+    def _oferecer_atualizar(self, fichas):
+        nomes = "\n".join("• " + f.nome for f in fichas[:8]) + ("\n…" if len(fichas) > 8 else "")
+        if messagebox.askyesno("Já estavam no site", f"Estas fichas já estavam cadastradas no site:\n\n{nomes}\n\n"
+                               "Quer atualizar os produtos do site com o que está nelas agora? "
+                               "(preços, textos, medidas, prazo e fotos; o estoque não muda)"):
+            self.cadastrar(fichas, atualizar=True)
+
     def editar(self, ficha=None):
         if self.rodando:
             messagebox.showinfo("Robô", "Espere o cadastro terminar para editar.")
             return
         if ficha is not None and ficha.status == "feita":
-            if not messagebox.askyesno("Ficha já cadastrada", "Esta ficha já foi cadastrada no site. Mudar a ficha não muda o produto no site.\n\nQuer criar uma cópia para editar?"):
+            r = messagebox.askyesnocancel(
+                "Ficha já cadastrada",
+                "Esta ficha já foi cadastrada no site.\n\n"
+                "Sim = editar esta ficha e depois atualizar o produto no site\n"
+                "Não = criar uma cópia para um produto novo\n"
+                "Cancelar = voltar")
+            if r is None:
                 return
-            destino = motor.duplicar_ficha(ficha, self.pasta())
-            ficha = motor.ler_ficha(destino)
+            if r is False:
+                destino = motor.duplicar_ficha(ficha, self.pasta())
+                ficha = motor.ler_ficha(destino)
         if "editor" in self.paginas:
             self.paginas["editor"].destroy()
         ed = Editor(self.area, self, ficha)
@@ -559,7 +573,7 @@ class App(ctk.CTk):
 
     def fechar_editor(self, pasta=None):
         ed = self.paginas.pop("editor", None)
-        self.ir("fichas")
+        self.ir("feitas" if pasta is not None and Path(pasta).parent.name.lower() == "feitos" else "fichas")
         if ed:
             ed.destroy()
         self.recarregar(selecionar=pasta)
@@ -751,17 +765,34 @@ class App(ctk.CTk):
 
     # ---------------------------------------------------------- robô (thread)
 
-    def cadastrar(self, fichas):
+    def cadastrar(self, fichas, atualizar=False):
         if not fichas or self.rodando or self.ocupado_ml:
             return
         self.rodando = True
+        self.modo_atualizar = atualizar
         self.parar_flag.clear()
         self.barra.set(0)
         self.total = len(fichas)
         self.feitas_n = 0
-        self.escrever(f"— Cadastrando {len(fichas)} ficha(s) em {self.cfg['robo']['site']}")
+        self.escrever(f"— {'Atualizando' if atualizar else 'Cadastrando'} {len(fichas)} ficha(s) em {self.cfg['robo']['site']}")
+        if atualizar:
+            self.status(f"Atualizando {len(fichas)} ficha(s) no site…")
         self.paginas["fichas"].rodando(True)
-        self.tarefas.put(("cadastrar", fichas))
+        self.tarefas.put(("cadastrar", (fichas, atualizar)))
+
+    def atualizar_no_site(self, fichas):
+        """Manda de novo fichas já cadastradas: o site atualiza os produtos (o estoque não muda)."""
+        fichas = [f for f in fichas if f.dados and not f.erros]
+        if not fichas or self.rodando or self.ocupado_ml:
+            if self.rodando or self.ocupado_ml:
+                messagebox.showinfo("Robô", "Espere o robô terminar o que está fazendo.")
+            return
+        nomes = "\n".join("• " + f.nome for f in fichas[:8]) + ("\n…" if len(fichas) > 8 else "")
+        if not messagebox.askyesno("Atualizar no site", f"Atualizar no site com o que está na ficha?\n\n{nomes}\n\n"
+                                   "Mudam preços, textos, medidas, prazo e as fotos. O estoque do site não muda. "
+                                   "Variação nova na ficha entra como produto novo no mesmo grupo."):
+            return
+        self.cadastrar(fichas, atualizar=True)
 
     def _garantir_site(self):
         if self.site is None:
@@ -787,7 +818,7 @@ class App(ctk.CTk):
             tipo, dado = self.tarefas.get()
             try:
                 if tipo == "cadastrar":
-                    self._trabalho(dado)
+                    self._trabalho(*dado)
                 elif tipo == "ml_buscar":
                     self._ml_buscar(*dado)
                 elif tipo == "ml_mais":
@@ -819,11 +850,11 @@ class App(ctk.CTk):
         self.site = None
         self.ml = None
 
-    def _trabalho(self, fichas):
+    def _trabalho(self, fichas, atualizar=False):
         avisar = lambda ev, f, t: self.fila.put((ev, f, t))
         try:
             site = self._garantir_site()
-            feitas, falhas = motor.rodar(fichas, self.cfg, avisar, self.parar_flag.is_set, site=site)
+            feitas, falhas = motor.rodar(fichas, self.cfg, avisar, self.parar_flag.is_set, site=site, atualizar=atualizar)
             self.fila.put(("acabou", None, (feitas, falhas)))
         except motor.Parar:
             self.fila.put(("parado", None, None))
@@ -1103,13 +1134,18 @@ class App(ctk.CTk):
         elif ev in ("acabou", "parado", "erro"):
             self.rodando = False
             self.trazer_para_frente()
+            atualizou = getattr(self, "modo_atualizar", False)
+            ja_fichas = []
             if ev == "acabou":
                 feitas, falhas = t
-                ja = sum(1 for c in self.mapa.values() if c.ficha.status == "ja")
-                msg = f"Pronto! {feitas} ficha(s) cadastrada(s)" + (f", {ja} já existia(m) no site" if ja else "") + \
+                ja_fichas = [c.ficha for c in self.mapa.values() if c.ficha.status == "ja"] if not atualizou else []
+                ja = len(ja_fichas)
+                msg = f"Pronto! {feitas} ficha(s) {'atualizada(s) no site' if atualizou else 'cadastrada(s)'}" + \
+                      (f", {ja} já existia(m) no site" if ja else "") + \
                       (f", {falhas} com falha (veja o motivo em cada uma)" if falhas else "") + "."
                 self.barra.set(1)
-                self.toast(msg if len(msg) < 70 else "Cadastro terminado", VERDE if not falhas else AMBAR)
+                self.toast(msg if len(msg) < 70 else ("Atualização terminada" if atualizou else "Cadastro terminado"),
+                           VERDE if not falhas else AMBAR)
             elif ev == "parado":
                 msg = "Parado. O que já foi cadastrado ficou no site."
             else:
@@ -1119,6 +1155,10 @@ class App(ctk.CTk):
             self.status(msg)
             self.escrever(msg)
             pf.rodando(False)
+            if self.pagina is self.paginas.get("feitas"):
+                self.paginas["feitas"].carregar()
+            if ja_fichas:
+                self.after(300, lambda: self._oferecer_atualizar(ja_fichas))
         elif ev == "ml_aviso":
             if t == "ml_verificar":
                 self.status("O Mercado Livre pediu uma verificação. Resolva na janela do navegador e o robô continua.")
@@ -1765,6 +1805,9 @@ class PaginaFichas(ctk.CTkFrame):
             por(av, pady=(4, 6))
         if f.mensagem and f.status in ("falhou", "feita", "ja"):
             faixa(("✓  " if f.status == "feita" else "•  ") + f.mensagem, ROXO_CLARO, ROXO_TXT)
+            if f.status in ("feita", "ja"):
+                por(Botao(self.det, "⟳  Atualizar no site com esta ficha", "suave", height=32, font=F(12, "bold"), state=trava,
+                          command=lambda: app.atualizar_no_site([f])), sticky="w")
         for res in f.resultado:
             rot = f"↗  {res.get('codigo') or ''}  ·  {res.get('nome') or ''}"
             maxc = max(wrap // 8, 30)
@@ -1878,6 +1921,10 @@ class PaginaFeitas(ctk.CTkFrame):
         if f.resultado and f.resultado[0].get("link"):
             Botao(bts, "↗  Ver no site", "suave", width=110, height=30, font=F(12, "bold"),
                   command=lambda: webbrowser.open(f.resultado[0]["link"])).pack(side="left", padx=3)
+        Botao(bts, "⟳  Atualizar no site", "suave", width=150, height=30, font=F(12, "bold"),
+              command=lambda: self.app.atualizar_no_site([f])).pack(side="left", padx=3)
+        Botao(bts, "✎  Editar", "fantasma", width=80, height=30, font=F(12),
+              command=lambda: self.app.editar(f)).pack(side="left", padx=3)
         Botao(bts, "⧉  Nova a partir desta", "fantasma", width=160, height=30, font=F(12),
               command=lambda: self.app.duplicar(f)).pack(side="left", padx=3)
         Botao(bts, "Pasta", "fantasma", width=60, height=30, font=F(12), command=lambda: abrir_no_sistema(f.pasta)).pack(side="left", padx=3)
@@ -3682,7 +3729,10 @@ class Editor(ctk.CTkFrame):
                 fl.write(traceback.format_exc() + "\n")
             return
         self.app.toast("Ficha salva")
+        ja_no_site = self.ficha is not None and self.ficha.status == "feita"
         self.app.fechar_editor(pasta)
+        if ja_no_site:
+            self.app.atualizar_no_site([motor.ler_feita(pasta)])
 
     def ir_secao(self, sec):
         self.update_idletasks()
