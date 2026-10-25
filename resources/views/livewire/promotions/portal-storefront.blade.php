@@ -52,6 +52,180 @@
 
     <x-portal-settings-nav :current="$tab" :wire="true" :info="$navInfo">
 
+    {{-- ===================== Identidade da loja ===================== --}}
+    @if($tab === 'identidade')
+        @php
+            $SI = \App\Services\Portal\StoreIdentity::class;
+            $logoUrl = ($identity['logo'] ?? null) ? asset('storage/' . $identity['logo']) : null;
+            $fontCss = $SI::FONTS[$identity['font'] ?? 'padrao'][1] ?? $SI::FONTS['padrao'][1];
+            $fontLinks = collect($SI::FONTS)->pluck(2)->filter()->implode('&family=');
+        @endphp
+        <link href="https://fonts.googleapis.com/css2?family={{ $fontLinks }}&display=swap" rel="stylesheet">
+        <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start" data-testid="identity-panel">
+            <div class="space-y-4 min-w-0">
+                {{-- Logo e nome --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-4">
+                    <div class="flex items-start gap-3">
+                        <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-violet-50 dark:bg-violet-500/15 text-violet-600 text-lg"><i class="bi bi-person-badge"></i></div>
+                        <div><h2 class="font-bold text-slate-900 dark:text-white">Logo e nome da loja</h2><p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Aparecem no topo de todas as páginas do catálogo e no rodapé.</p></div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4 sm:items-center">
+                        <div class="shrink-0 w-28 h-28 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden relative">
+                            @if($logoUrl)
+                                <img src="{{ $logoUrl }}" alt="Logo" class="max-w-full max-h-full object-contain p-2">
+                            @else
+                                <i class="bi bi-image text-3xl text-slate-300"></i>
+                            @endif
+                            <div wire:loading.flex wire:target="logoUpload" class="absolute inset-0 bg-white/80 dark:bg-slate-900/80 items-center justify-center"><i class="bi bi-arrow-repeat animate-spin text-violet-500 text-xl"></i></div>
+                        </div>
+                        <div class="space-y-2 min-w-0">
+                            <label class="{{ $phBtn }} cursor-pointer" data-testid="logo-upload"><i class="bi bi-upload text-violet-500"></i>{{ $logoUrl ? 'Trocar a logo' : 'Enviar a logo' }}
+                                <input type="file" wire:model="logoUpload" accept="image/*" class="sr-only">
+                            </label>
+                            @if($logoUrl)<button type="button" wire:click="removeLogo" class="ml-1 text-xs font-semibold text-rose-600 hover:underline">Tirar a logo</button>@endif
+                            <p class="text-xs text-slate-500">PNG com fundo transparente fica melhor. Até 3 MB.</p>
+                            @error('logoUpload')<p class="text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <div>
+                            <label class="{{ $label }}" for="id-name">Nome da loja</label>
+                            <input id="id-name" type="text" wire:model.blur="identity.name" maxlength="60" class="{{ $input }}" data-testid="id-name">
+                            @error('identity.name')<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="{{ $label }}" for="id-tag">Frase curta <span class="font-normal text-slate-400">(opcional)</span></label>
+                            <input id="id-tag" type="text" wire:model.blur="identity.tagline" maxlength="80" placeholder="Perfumes e maquiagem com entrega rápida" class="{{ $input }}">
+                        </div>
+                    </div>
+                    <label class="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-200 cursor-pointer">
+                        <input type="checkbox" wire:model.live="identity.show_name" class="rounded text-violet-500 focus:ring-violet-400">
+                        Mostrar o nome ao lado da logo no topo <small class="text-slate-400">(no celular aparece só a logo)</small>
+                    </label>
+                </section>
+
+                {{-- Fonte --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-3">
+                    <div class="flex items-start gap-3">
+                        <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-sky-50 dark:bg-sky-500/15 text-sky-600 text-lg"><i class="bi bi-fonts"></i></div>
+                        <div><h2 class="font-bold text-slate-900 dark:text-white">Fonte dos títulos</h2><p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Muda o nome da loja e os títulos das seções. O texto dos produtos continua fácil de ler.</p></div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        @foreach($SI::FONTS as $fk => [$fname, $fcss])
+                            @php $fon = ($identity['font'] ?? 'padrao') === $fk; @endphp
+                            <button type="button" wire:click="setFont('{{ $fk }}')" data-testid="font-{{ $fk }}"
+                                    class="rounded-xl border p-3 text-left transition {{ $fon ? 'border-violet-400 bg-violet-50 dark:bg-violet-500/15 ring-1 ring-violet-300' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300' }}">
+                                <span class="block text-lg font-bold text-slate-900 dark:text-white truncate" style="font-family: {!! $fcss !!}">{{ \Illuminate\Support\Str::limit($identity['name'] ?? 'Sua loja', 14) }}</span>
+                                <small class="block text-[11px] text-slate-500 truncate">{{ $fname }}</small>
+                            </button>
+                        @endforeach
+                    </div>
+                </section>
+
+                {{-- Contatos --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-3">
+                    <div class="flex items-start gap-3">
+                        <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 text-lg"><i class="bi bi-telephone"></i></div>
+                        <div><h2 class="font-bold text-slate-900 dark:text-white">Contatos e redes</h2><p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Ficam no rodapé do catálogo. Deixe em branco o que não quiser mostrar.</p></div>
+                    </div>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        @foreach([
+                            'whatsapp' => ['WhatsApp', 'bi-whatsapp', '(16) 99999-9999', 'tel'],
+                            'phone' => ['Telefone fixo', 'bi-telephone', '(16) 3333-3333', 'tel'],
+                            'email' => ['E-mail', 'bi-envelope', 'contato@sualoja.com', 'email'],
+                            'instagram' => ['Instagram', 'bi-instagram', '@sualoja', 'text'],
+                            'facebook' => ['Facebook', 'bi-facebook', 'sualoja', 'text'],
+                            'tiktok' => ['TikTok', 'bi-tiktok', '@sualoja', 'text'],
+                        ] as $fk => [$fl, $fi, $fp, $ft])
+                            <div>
+                                <label class="{{ $label }}" for="id-{{ $fk }}"><i class="bi {{ $fi }} text-slate-400"></i> {{ $fl }}</label>
+                                <input id="id-{{ $fk }}" type="{{ $ft }}" wire:model.blur="identity.{{ $fk }}" placeholder="{{ $fp }}" class="{{ $input }}" data-testid="id-{{ $fk }}">
+                                @error('identity.' . $fk)<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
+                            </div>
+                        @endforeach
+                        <div class="sm:col-span-2">
+                            <label class="{{ $label }}" for="id-address"><i class="bi bi-geo-alt text-slate-400"></i> Endereço <span class="font-normal text-slate-400">(abre no mapa)</span></label>
+                            <input id="id-address" type="text" wire:model.blur="identity.address" placeholder="Rua, número, bairro, cidade" class="{{ $input }}">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="{{ $label }}" for="id-hours"><i class="bi bi-clock text-slate-400"></i> Horário de atendimento</label>
+                            <input id="id-hours" type="text" wire:model.blur="identity.hours" placeholder="Seg a sex 9h às 18h · Sáb 9h às 13h" class="{{ $input }}">
+                        </div>
+                    </div>
+                    <div>
+                        <span class="{{ $label }}">Formas de pagamento no rodapé</span>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($SI::PAYMENTS as $pk => $pn)
+                                <label class="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 cursor-pointer has-[:checked]:border-violet-400 has-[:checked]:bg-violet-50 dark:has-[:checked]:bg-violet-500/15">
+                                    <input type="checkbox" value="{{ $pk }}" wire:model="identity.payments" class="rounded text-violet-500 focus:ring-violet-400">{{ $pn }}
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                </section>
+
+                {{-- Páginas --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-3">
+                    <div class="flex items-start gap-3">
+                        <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-amber-50 dark:bg-amber-500/15 text-amber-600 text-lg"><i class="bi bi-file-earmark-text"></i></div>
+                        <div><h2 class="font-bold text-slate-900 dark:text-white">Páginas da loja</h2><p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Cada texto preenchido vira uma página com link no rodapé. Em branco, a página não aparece.</p></div>
+                    </div>
+                    @foreach($SI::PAGES as $pk => [$pt, $pi, $ph])
+                        <div x-data="{ open: {{ trim($pages[$pk] ?? '') !== '' ? 'true' : 'false' }} }" class="rounded-xl border border-slate-200 dark:border-slate-700">
+                            <button type="button" @click="open = !open" class="w-full flex items-center gap-3 p-3 text-left">
+                                <b class="flex-1 text-sm text-slate-800 dark:text-slate-100">{{ $pt }}</b>
+                                @if(trim($pages[$pk] ?? '') !== '')
+                                    <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $tones['emerald'] }}">No ar</span>
+                                    <a href="{{ route('portal.store-page', ['userId' => auth()->id(), 'page' => $pk]) }}" target="_blank" rel="noopener" @click.stop class="text-xs font-semibold text-violet-600">Ver</a>
+                                @else
+                                    <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $tones['slate'] }}">Vazia</span>
+                                @endif
+                                <i class="bi bi-chevron-down text-slate-400 transition" :class="open && 'rotate-180'"></i>
+                            </button>
+                            <div x-show="open" x-cloak class="px-3 pb-3">
+                                <textarea wire:model.blur="pages.{{ $pk }}" rows="5" maxlength="5000" placeholder="{{ $ph }}" class="{{ $input }}" data-testid="page-{{ $pk }}"></textarea>
+                            </div>
+                        </div>
+                    @endforeach
+                </section>
+
+                <div class="flex justify-end sticky bottom-20 lg:bottom-4 z-10">
+                    <button type="button" wire:click="saveIdentity" class="{{ $primary }}" data-testid="identity-save"><i class="bi bi-check2"></i><span wire:loading.remove wire:target="saveIdentity">Salvar identidade</span><span wire:loading wire:target="saveIdentity">Salvando…</span></button>
+                </div>
+            </div>
+
+            {{-- Como fica: topo e rodapé --}}
+            <aside class="{{ $card }} p-4 space-y-3 xl:sticky xl:top-4">
+                <b class="block text-sm text-slate-900 dark:text-white">Como fica no catálogo</b>
+                <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center gap-2 px-3 h-14" style="background: linear-gradient(90deg, {{ $home_colors[0] ?? '#ec4899' }}, {{ $home_colors[1] ?? '#3b82f6' }})">
+                        <span class="shrink-0 h-10 {{ $logoUrl ? 'px-1.5 min-w-10' : 'w-10' }} rounded-xl bg-white flex items-center justify-center shadow">
+                            <img src="{{ $logoUrl ?: \Illuminate\Support\Facades\Vite::asset('resources/images/icons/logo-64.png') }}" alt="" class="{{ $logoUrl ? 'h-8 max-w-[90px]' : 'h-7 w-7' }} object-contain">
+                        </span>
+                        @if($identity['show_name'] ?? true)
+                            <span class="min-w-0 text-white leading-tight">
+                                <b class="block truncate text-[15px]" style="font-family: {!! $fontCss !!}">{{ $identity['name'] ?? '' }}</b>
+                                @if(($identity['tagline'] ?? '') !== '')<small class="block truncate text-[10px] opacity-85">{{ $identity['tagline'] }}</small>@endif
+                            </span>
+                        @endif
+                        <span class="ml-auto h-8 w-20 rounded-md bg-white/90"></span>
+                    </div>
+                    <div class="h-16 bg-slate-100 dark:bg-slate-800"></div>
+                    <div class="bg-white dark:bg-slate-900 p-3 text-[11px] text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
+                        <b class="block text-sm text-slate-900 dark:text-white" style="font-family: {!! $fontCss !!}">{{ $identity['name'] ?? '' }}</b>
+                        @foreach(['whatsapp' => 'bi-whatsapp', 'phone' => 'bi-telephone', 'email' => 'bi-envelope', 'address' => 'bi-geo-alt', 'hours' => 'bi-clock'] as $ck => $ci)
+                            @if(trim((string) ($identity[$ck] ?? '')) !== '')<p class="truncate"><i class="bi {{ $ci }} text-violet-500"></i> {{ $identity[$ck] }}</p>@endif
+                        @endforeach
+                        @php $pv = collect($SI::PAGES)->filter(fn ($v, $k) => trim($pages[$k] ?? '') !== ''); @endphp
+                        @if($pv->isNotEmpty())<p class="text-violet-600 font-semibold">{{ $pv->pluck(0)->implode(' · ') }}</p>@endif
+                        @if(! empty($identity['payments']))<p>{{ collect($identity['payments'])->map(fn ($k) => $SI::PAYMENTS[$k] ?? null)->filter()->implode(' · ') }}</p>@endif
+                    </div>
+                </div>
+                <a href="{{ $catalogUrl }}" target="_blank" rel="noopener" class="{{ $phBtn }} w-full justify-center"><i class="bi bi-box-arrow-up-right text-violet-500"></i>Abrir o catálogo</a>
+            </aside>
+        </div>
+    @endif
+
     {{-- ===================== Página inicial ===================== --}}
     @if($tab === 'inicio')
         @php $home = \App\Services\Portal\HomeLayout::class; $cur = $themes[$home_theme] ?? null; @endphp

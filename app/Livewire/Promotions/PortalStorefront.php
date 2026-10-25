@@ -44,6 +44,11 @@ class PortalStorefront extends Component
     public string $featured_title = '';
     public array $featuredIds = [];
 
+    // Identidade da loja (logo, nome, contatos, fonte) e as páginas Sobre / Trocas / Entrega
+    public array $identity = [];
+    public array $pages = [];
+    public $logoUpload = null;
+
     // Aviso no topo
     public string $notice_text = '';
     public string $notice_link = '';
@@ -72,6 +77,7 @@ class PortalStorefront extends Component
         $this->notice_link = (string) $s->notice_link;
         $this->notice_active = (bool) $s->notice_active;
         $this->loadHome($s);
+        $this->loadIdentity($s);
         // Uma coleção pronta para cada categoria, criada uma vez; as categorias novas pelo botão.
         if (\Illuminate\Support\Facades\Schema::hasColumn('portal_settings', 'home') && empty(($s->home ?? [])['cats_done'])) {
             $made = StorefrontService::createCategoryCollections(Auth::id(), $this->kind);
@@ -220,6 +226,74 @@ class PortalStorefront extends Component
             $this->dropFiles(array_merge([$b->image, $b->image_mobile], $b->designFiles()));
             $b->delete();
             $this->dispatch('notify', type: 'success', message: 'Banner excluído.');
+        }
+    }
+
+    /* ---------- Identidade da loja ---------- */
+
+    private function loadIdentity(PortalSetting $s): void
+    {
+        $id = \App\Services\Portal\StoreIdentity::for(Auth::id());
+        $this->identity = array_intersect_key($id, array_flip(\App\Services\Portal\StoreIdentity::FIELDS));
+        $this->identity['payments'] = array_values((array) ($this->identity['payments'] ?? []));
+        $this->identity['show_name'] = (bool) ($this->identity['show_name'] ?? true);
+        foreach (array_keys(\App\Services\Portal\StoreIdentity::PAGES) as $k) {
+            $this->pages[$k] = (string) (($s->pages ?? [])[$k] ?? '');
+        }
+    }
+
+    public function updatedLogoUpload(): void
+    {
+        $this->validate(['logoUpload' => ['image', 'max:3072']], [], ['logoUpload' => 'logo']);
+        $path = $this->logoUpload->store('portal-banners/logos', 'public');
+        $this->dropFiles(array_filter([$this->identity['logo'] ?? null]));
+        $this->identity['logo'] = $path;
+        $this->logoUpload = null;
+        $this->saveIdentity(true);
+    }
+
+    public function removeLogo(): void
+    {
+        $this->dropFiles(array_filter([$this->identity['logo'] ?? null]));
+        $this->identity['logo'] = null;
+        $this->saveIdentity(true);
+    }
+
+    public function setFont(string $font): void
+    {
+        if (isset(\App\Services\Portal\StoreIdentity::FONTS[$font])) {
+            $this->identity['font'] = $font;
+            $this->saveIdentity(true);
+        }
+    }
+
+    public function saveIdentity(bool $quiet = false): void
+    {
+        $this->validate([
+            'identity.name' => ['required', 'string', 'max:60'],
+            'identity.tagline' => ['nullable', 'string', 'max:80'],
+            'identity.whatsapp' => ['nullable', 'string', 'max:30'],
+            'identity.phone' => ['nullable', 'string', 'max:30'],
+            'identity.email' => ['nullable', 'email', 'max:120'],
+            'identity.instagram' => ['nullable', 'string', 'max:120'],
+            'identity.facebook' => ['nullable', 'string', 'max:120'],
+            'identity.tiktok' => ['nullable', 'string', 'max:120'],
+            'identity.address' => ['nullable', 'string', 'max:200'],
+            'identity.hours' => ['nullable', 'string', 'max:200'],
+            'pages.*' => ['nullable', 'string', 'max:5000'],
+        ], [], ['identity.name' => 'nome da loja', 'identity.email' => 'e-mail', 'pages.*' => 'texto']);
+        $data = array_intersect_key($this->identity, array_flip(\App\Services\Portal\StoreIdentity::FIELDS));
+        $data = array_map(fn ($v) => is_string($v) ? trim($v) : $v, $data);
+        $data['payments'] = array_values(array_intersect(array_keys(\App\Services\Portal\StoreIdentity::PAYMENTS), (array) ($data['payments'] ?? [])));
+        $data['show_name'] = (bool) ($data['show_name'] ?? true);
+        $s = PortalSetting::for(Auth::id());
+        $s->identity = $data;
+        $s->pages = array_map(fn ($v) => trim((string) $v), array_intersect_key($this->pages, \App\Services\Portal\StoreIdentity::PAGES));
+        $s->save();
+        \App\Services\Portal\StoreIdentity::forget(Auth::id());
+        $this->previewKey++;
+        if (! $quiet) {
+            $this->dispatch('notify', type: 'success', message: 'Identidade da loja salva.');
         }
     }
 
@@ -519,6 +593,7 @@ class PortalStorefront extends Component
         $theme = HomeLayout::THEMES[$this->home_theme]['name'] ?? null;
 
         return [
+            'identidade' => ($this->identity['logo'] ?? null) ? 'Com a sua logo' : 'Logo, nome, contatos e páginas',
             'inicio'    => $theme ? 'Tema: ' . $theme : null,
             'banners'   => $n($live, 'banner no ar', 'banners no ar'),
             'destaques' => $n(count($this->featuredIds), 'produto escolhido', 'produtos escolhidos'),

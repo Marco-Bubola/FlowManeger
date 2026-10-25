@@ -764,6 +764,22 @@ class ClientPortalController extends Controller
      * descrição, características e produtos relacionados. Produto sem estoque ainda abre,
      * como "Esgotado", para o cliente salvar nos favoritos e ser avisado.
      */
+    /** Páginas da loja (Sobre nós, Trocas e devoluções, Entrega), escritas na Vitrine › Identidade. */
+    public function storePage(int $userId, string $page)
+    {
+        $store = \App\Models\User::find($userId);
+        $id = \App\Services\Portal\StoreIdentity::for($userId);
+        $text = $id['pages'][$page] ?? null;
+        if (! $store || ! $text) {
+            return redirect()->route('portal.catalog', ['userId' => $userId]);
+        }
+
+        return view('portal.store-page', [
+            'ownerId' => $userId, 'store' => $store, 'page' => $page, 'text' => $text, 'identity' => $id,
+            'pageInfo' => \App\Services\Portal\StoreIdentity::PAGES[$page],
+        ]);
+    }
+
     public function productPage(Request $request, int $userId, int $product, ?string $slug = null)
     {
         $base = fn () => Product::withoutGlobalScope('team_visibility')

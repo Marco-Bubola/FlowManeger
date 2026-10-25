@@ -1,6 +1,9 @@
 @props(['title' => 'Catálogo de Produtos', 'store' => null, 'ownerId' => null, 'search' => '', 'cartHref' => null, 'og' => null])
 @php
-    $storeName = $store?->name ?: config('app.name');
+    // Vitrine › Identidade da loja: logo, nome, fonte dos títulos, contatos e páginas.
+    $identity = \App\Services\Portal\StoreIdentity::for($ownerId ? (int) $ownerId : ($store?->id ? (int) $store->id : null));
+    $idOwner = $ownerId ?: $store?->id;
+    $storeName = $identity['name'] ?: ($store?->name ?: config('app.name'));
     // Cores da logo do app (rosa, roxo e azul), escolhidas pelo dono.
     $theme = ['header' => 'linear-gradient(90deg, #ec4899 0%, #a855f7 50%, #3b82f6 100%)', 'primary' => '#8b5cf6', 'dark' => '#7c3aed', 'soft' => '#ede9fe', 'hero' => 'linear-gradient(135deg, #db2777 0%, #8b5cf6 55%, #2563eb 100%)', 'meta' => '#a855f7'];
     // Vitrine › Página inicial: cores do tema (evento ou escolhidas) e os cantos.
@@ -44,6 +47,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    @if($identity['font_url'])<link href="{{ $identity['font_url'] }}" rel="stylesheet">@endif
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
@@ -62,6 +66,7 @@
             --ml-orange: #ff7733;
             --ml-red: #f23d4f;
             --ml-radius: {{ $theme['radius'] ?? '8px' }};
+            --sf-font: {!! $identity['font_css'] !!};
             --ml-shadow: 0 1px 2px rgba(0,0,0,.12);
         }
         *, *::before, *::after { box-sizing: border-box; }
@@ -78,6 +83,33 @@
         .ml-header-row { display: flex; align-items: center; gap: 10px; height: 60px; }
         .ml-logo { width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
         .ml-logo img { width: 28px; height: 28px; }
+        .ml-logo.own { width: auto; min-width: 40px; max-width: 120px; padding: 3px 6px; }
+        .ml-logo.own img { width: auto; height: 34px; max-width: 108px; object-fit: contain; }
+        @media (max-width: 767px) { .ml-logo.own { max-width: 72px; padding: 3px 4px; } .ml-logo.own img { max-width: 64px; height: 32px; } }
+        .ml-brand { display: none; color: #fff; text-decoration: none; min-width: 0; max-width: 220px; line-height: 1.1; }
+        .ml-brand b { display: block; font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--sf-font); }
+        .ml-brand small { display: block; font-size: 11px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        @media (min-width: 768px) { .ml-brand { display: block; } }
+        /* Fonte dos títulos escolhida na Identidade da loja */
+        h1, h2, h3, .sf-font { font-family: var(--sf-font); }
+        .ml-foot2 { background: #fff; border-top: 1px solid #eee; margin-top: 24px; padding: 28px 0 110px; color: #555; font-size: 13px; }
+        .ml-foot2-grid { display: grid; gap: 22px; grid-template-columns: 1fr; }
+        @media (min-width: 640px) { .ml-foot2-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (min-width: 1024px) { .ml-foot2-grid { grid-template-columns: 1.3fr 1fr 1fr 1fr; } }
+        .ml-foot2 h4 { margin: 0 0 10px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: #222; font-family: var(--sf-font); }
+        .ml-foot2 a { color: #444; text-decoration: none; }
+        .ml-foot2 a:hover { color: var(--ml-primary); }
+        .ml-foot2 ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+        .ml-foot2 li { display: flex; gap: 8px; align-items: flex-start; overflow-wrap: anywhere; }
+        .ml-foot2 li i { width: 16px; margin-top: 2px; color: var(--ml-primary); text-align: center; flex-shrink: 0; }
+        .ml-foot2-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .ml-foot2-brand img { height: 40px; max-width: 120px; object-fit: contain; }
+        .ml-foot2-brand b { font-size: 18px; color: #222; font-family: var(--sf-font); }
+        .ml-foot2-soc { display: flex; gap: 8px; margin-top: 12px; }
+        .ml-foot2-soc a { width: 38px; height: 38px; border-radius: 50%; background: var(--ml-soft); color: var(--ml-primary); display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
+        .ml-foot2-pay { display: flex; flex-wrap: wrap; gap: 6px; }
+        .ml-foot2-pay span { border: 1px solid #e5e5e5; border-radius: 6px; padding: 4px 9px; font-size: 12px; font-weight: 600; color: #444; background: #fafafa; }
+        .ml-foot2-copy { margin-top: 22px; padding-top: 14px; border-top: 1px solid #f0f0f0; text-align: center; color: #999; font-size: 12px; }
         .ml-search { flex: 1; min-width: 0; position: relative; max-width: 680px; margin: 0 auto; }
         .ml-search input { width: 100%; height: 40px; border: 0; border-radius: 999px; padding: 0 44px 0 16px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); font-size: 14px; outline: none; }
         .ml-search input::placeholder { color: #999; }
@@ -212,9 +244,14 @@ document.addEventListener('alpine:init', () => {
 <header class="ml-header">
     <div class="ml-wrap">
         <div class="ml-header-row">
-            <a href="{{ $ownerId ? route('portal.catalog', ['userId' => $ownerId]) : '#' }}" class="ml-logo" aria-label="Início do catálogo">
-                <img src="{{ Vite::asset('resources/images/icons/logo-64.png') }}" alt="">
+            <a href="{{ $ownerId ? route('portal.catalog', ['userId' => $ownerId]) : '#' }}" class="ml-logo {{ $identity['logo_url'] ? 'own' : '' }}" aria-label="Início do catálogo" data-testid="store-logo">
+                <img src="{{ $identity['logo_url'] ?: Vite::asset('resources/images/icons/logo-64.png') }}" alt="{{ $storeName }}">
             </a>
+            @if($identity['show_name'])
+                <a href="{{ $ownerId ? route('portal.catalog', ['userId' => $ownerId]) : '#' }}" class="ml-brand" data-testid="store-name">
+                    <b>{{ $storeName }}</b>@if($identity['tagline'])<small>{{ $identity['tagline'] }}</small>@endif
+                </a>
+            @endif
             <form method="GET" action="{{ $ownerId ? route('portal.catalog', ['userId' => $ownerId]) : route('portal.catalog') }}" class="ml-search" role="search">
                 <input type="search" name="search" value="{{ $search }}" placeholder="Buscar" aria-label="Buscar produtos" enterkeyhint="search">
                 <button type="submit" aria-label="Buscar"><i class="fas fa-magnifying-glass"></i></button>
@@ -270,8 +307,62 @@ document.addEventListener('alpine:init', () => {
     {{ $slot }}
 </main>
 
-<footer class="ml-foot">
-    {{ $storeName }} · Catálogo online · {{ date('Y') }}
+@php
+    $fContacts = array_filter([
+        $identity['wa_link'] ? ['fab fa-whatsapp', 'WhatsApp ' . $identity['whatsapp'], $identity['wa_link']] : null,
+        $identity['phone'] ? ['fas fa-phone', $identity['phone'], 'tel:' . preg_replace('/[^\d+]/', '', $identity['phone'])] : null,
+        $identity['email'] ? ['fas fa-envelope', $identity['email'], 'mailto:' . $identity['email']] : null,
+        $identity['address'] ? ['fas fa-location-dot', $identity['address'], 'https://www.google.com/maps/search/?api=1&query=' . urlencode($identity['address'])] : null,
+        $identity['hours'] ? ['fas fa-clock', $identity['hours'], null] : null,
+    ]);
+    $fSocial = array_filter(['fab fa-instagram' => $identity['ig_link'], 'fab fa-facebook-f' => $identity['fb_link'], 'fab fa-tiktok' => $identity['tt_link'], 'fab fa-whatsapp' => $identity['wa_link']]);
+    $fPages = $idOwner ? collect(\App\Services\Portal\StoreIdentity::PAGES)->filter(fn ($v, $k) => isset($identity['pages'][$k])) : collect();
+    $fPay = array_intersect_key(\App\Services\Portal\StoreIdentity::PAYMENTS, array_flip((array) $identity['payments']));
+@endphp
+<footer class="ml-foot2" data-testid="store-footer">
+    <div class="ml-wrap">
+        <div class="ml-foot2-grid">
+            <div>
+                <div class="ml-foot2-brand">
+                    @if($identity['logo_url'])<img src="{{ $identity['logo_url'] }}" alt="">@endif
+                    <b>{{ $storeName }}</b>
+                </div>
+                @if($identity['tagline'])<p style="margin:0">{{ $identity['tagline'] }}</p>@endif
+                @if($fSocial)
+                    <div class="ml-foot2-soc">
+                        @foreach($fSocial as $ic => $link)<a href="{{ $link }}" target="_blank" rel="noopener" aria-label="Rede social"><i class="{{ $ic }}"></i></a>@endforeach
+                    </div>
+                @endif
+            </div>
+            @if($fContacts)
+                <div>
+                    <h4>Atendimento</h4>
+                    <ul>
+                        @foreach($fContacts as [$ic, $txt, $link])
+                            <li><i class="{{ $ic }}"></i>@if($link)<a href="{{ $link }}" @if(! str_starts_with($link, 'tel:') && ! str_starts_with($link, 'mailto:')) target="_blank" rel="noopener" @endif>{{ $txt }}</a>@else<span style="white-space:pre-line">{{ $txt }}</span>@endif</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+            @if($fPages->isNotEmpty())
+                <div>
+                    <h4>A loja</h4>
+                    <ul>
+                        @foreach($fPages as $k => [$t, $ic])
+                            <li><i class="fas {{ $ic }}"></i><a href="{{ route('portal.store-page', ['userId' => $idOwner, 'page' => $k]) }}">{{ $t }}</a></li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+            @if($fPay)
+                <div>
+                    <h4>Formas de pagamento</h4>
+                    <div class="ml-foot2-pay">@foreach($fPay as $pname)<span>{{ $pname }}</span>@endforeach</div>
+                </div>
+            @endif
+        </div>
+        <p class="ml-foot2-copy">{{ $storeName }} · Catálogo online · {{ date('Y') }}</p>
+    </div>
 </footer>
 
 @vite('resources/js/hover-photos.js')

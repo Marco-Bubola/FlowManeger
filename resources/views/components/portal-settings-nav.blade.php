@@ -11,6 +11,7 @@
     // Todas as configurações do catálogo online num lugar só, separadas em grupos.
     $groups = [
         'Aparência da loja' => [
+            'identidade' => ['Identidade da loja', 'bi-person-badge', 'Logo, nome, contatos e páginas', 'tab'],
             'inicio' => ['Página inicial', 'bi-house', 'Tema, cores e ordem dos blocos', 'tab'],
             'banners' => ['Banners', 'bi-images', 'Carrossel, faixas e laterais', 'tab'],
             'destaques' => ['Destaques', 'bi-star', 'Produtos da fileira de destaque', 'tab'],

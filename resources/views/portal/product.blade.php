@@ -5,7 +5,8 @@
     $catalogHome = route('portal.catalog', ['userId' => $owner]);
     $categoryUrl = $item->category_id ? route('portal.catalog', ['userId' => $owner, 'category' => $item->category_id]) : null;
 
-    $phone = preg_replace('/\D+/', '', (string) ($store?->phone ?? ''));
+    // WhatsApp da Identidade da loja; sem ele, o telefone da conta.
+    $phone = preg_replace('/\D+/', '', (string) (\App\Services\Portal\StoreIdentity::for((int) $owner)['whatsapp'] ?: ($store?->phone ?? '')));
     if ($phone && strlen($phone) <= 11) { $phone = '55' . $phone; }
 
     // Prévia do link no WhatsApp: foto, nome e preço do produto.
