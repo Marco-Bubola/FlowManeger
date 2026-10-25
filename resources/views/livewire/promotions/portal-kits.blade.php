@@ -81,6 +81,8 @@
                             <div class="flex flex-wrap gap-1.5 text-[11px] font-semibold">
                                 <span class="rounded-full px-2 py-0.5 bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300">Base {{ $money($t->base_price) }}</span>
                                 <span class="rounded-full px-2 py-0.5 bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">{{ $t->min_items == $t->max_items ? $t->min_items : $t->min_items . ' a ' . $t->max_items }} produtos</span>
+                                @if($t->options)<span class="rounded-full px-2 py-0.5 bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-500/15 dark:text-fuchsia-300">{{ count($t->options) }} {{ count($t->options) == 1 ? 'opção' : 'opções' }}</span>@endif
+                                @if($t->setting('photos'))<span class="rounded-full px-2 py-0.5 bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="bi bi-images"></i> fotos</span>@endif
                                 @if($t->category_ids)<span class="rounded-full px-2 py-0.5 bg-sky-50 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300">{{ count($t->category_ids) }} {{ count($t->category_ids) == 1 ? 'categoria' : 'categorias' }}</span>@endif
                             </div>
                             <div class="flex items-center gap-1.5 mt-auto pt-2">
@@ -228,6 +230,62 @@
                         </div>
                     </div>
                 @endif
+
+                {{-- Opções que o cliente escolhe --}}
+                <div class="rounded-2xl border border-slate-200 dark:border-slate-700 p-3 space-y-3" data-testid="kit-options">
+                    <div class="flex items-start gap-2">
+                        <i class="bi bi-palette2 text-fuchsia-500 text-lg"></i>
+                        <div class="min-w-0 flex-1">
+                            <b class="block text-sm text-slate-800 dark:text-slate-100">Opções que o cliente escolhe</b>
+                            <small class="block text-xs text-slate-500 dark:text-slate-400">Ex.: cor do laço, tamanho, papel. Cada opção pode ter um valor a mais.</small>
+                        </div>
+                    </div>
+                    @foreach($t_options as $oi => $opt)
+                        <div wire:key="opt-{{ $oi }}" class="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5 space-y-2">
+                            <div class="flex items-center gap-2">
+                                <input type="text" wire:model="t_options.{{ $oi }}.name" maxlength="40" placeholder="Nome da opção (ex.: Cor do laço)" class="{{ $input }} !py-2 font-semibold">
+                                <label class="shrink-0 inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500" title="O cliente tem que escolher"><input type="checkbox" wire:model="t_options.{{ $oi }}.required" class="rounded text-rose-500">Obrigatória</label>
+                                <button type="button" wire:click="removeOption({{ $oi }})" class="shrink-0 w-8 h-8 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-rose-500" title="Tirar opção"><i class="bi bi-trash3"></i></button>
+                            </div>
+                            <div class="grid gap-1.5">
+                                @foreach($opt['choices'] ?? [] as $ci => $ch)
+                                    <div wire:key="ch-{{ $oi }}-{{ $ci }}" class="flex items-center gap-1.5">
+                                        <input type="color" wire:model.blur="t_options.{{ $oi }}.choices.{{ $ci }}.color" value="{{ $ch['color'] ?? '#ffffff' }}" class="shrink-0 w-8 h-8 rounded-lg border-0 bg-transparent p-0 cursor-pointer {{ empty($ch['color']) ? 'opacity-40' : '' }}" title="Cor (opcional)">
+                                        <input type="text" wire:model="t_options.{{ $oi }}.choices.{{ $ci }}.label" maxlength="40" placeholder="Escolha (ex.: Rosa)" class="{{ $input }} !py-1.5 min-w-0" style="flex:1 1 0%">
+                                        <span class="shrink-0 text-xs text-slate-400">+R$</span>
+                                        <input type="text" inputmode="decimal" wire:model="t_options.{{ $oi }}.choices.{{ $ci }}.price" class="{{ $input }} !py-1.5 shrink-0" style="width:5rem;flex:0 0 5rem" placeholder="0">
+                                        <button type="button" wire:click="removeChoice({{ $oi }}, {{ $ci }})" class="shrink-0 w-7 h-7 rounded-lg text-slate-400 hover:text-rose-500" title="Tirar"><i class="bi bi-x-lg"></i></button>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <button type="button" wire:click="addChoice({{ $oi }})" class="text-xs font-semibold text-rose-600 dark:text-rose-300"><i class="bi bi-plus-lg"></i> Adicionar escolha</button>
+                        </div>
+                    @endforeach
+                    <div class="flex flex-wrap gap-1.5">
+                        @foreach($K::OPTION_IDEAS as $ik => [$iname])
+                            @continue(collect($t_options)->pluck('name')->contains($iname))
+                            <button type="button" wire:click="addOption('{{ $ik }}')" class="rounded-full border border-dashed border-slate-300 dark:border-slate-600 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-rose-400"><i class="bi bi-plus"></i> {{ $iname }}</button>
+                        @endforeach
+                        <button type="button" wire:click="addOption" class="rounded-full border border-dashed border-rose-300 px-3 py-1 text-xs font-semibold text-rose-600 dark:text-rose-300"><i class="bi bi-plus"></i> Outra opção</button>
+                    </div>
+                </div>
+
+                {{-- O que mais o cliente manda --}}
+                <div class="grid sm:grid-cols-2 gap-2">
+                    <label class="flex items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+                        <i class="bi bi-images text-fuchsia-500 text-lg"></i>
+                        <span class="min-w-0 flex-1 text-sm text-slate-700 dark:text-slate-200"><b>Fotos do cliente</b><small class="block text-xs text-slate-500">Para polaroid, caneca ou porta-retrato.</small>
+                            <select wire:model="t_photos" class="{{ $input }} !py-1.5 mt-1.5">
+                                <option value="0">Não pedir fotos</option>
+                                @foreach([1, 2, 3, 4, 5, 6] as $n)<option value="{{ $n }}">Até {{ $n }} {{ $n == 1 ? 'foto' : 'fotos' }}</option>@endforeach
+                            </select>
+                        </span>
+                    </label>
+                    <label class="flex items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3 cursor-pointer">
+                        <input type="checkbox" wire:model="t_date" class="mt-0.5 rounded text-rose-500 focus:ring-rose-400">
+                        <span class="text-sm text-slate-700 dark:text-slate-200"><b>Data de entrega</b><small class="block text-xs text-slate-500">O cliente diz para quando quer o kit (aniversário, data especial).</small></span>
+                    </label>
+                </div>
 
                 <label class="flex items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-3 cursor-pointer">
                     <input type="checkbox" wire:model="t_active" class="mt-0.5 rounded text-rose-500 focus:ring-rose-400">

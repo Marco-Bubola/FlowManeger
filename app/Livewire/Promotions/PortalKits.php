@@ -38,6 +38,9 @@ class PortalKits extends Component
     public bool $t_active = true;
     public ?string $t_image = null;
     public $t_upload = null;
+    public array $t_options = [];
+    public int $t_photos = 0;
+    public bool $t_date = true;
 
     // Formulário do enfeite
     public bool $extraForm = false;
@@ -73,6 +76,9 @@ class PortalKits extends Component
         $this->t_active = true;
         $this->t_image = null;
         $this->t_upload = null;
+        $this->t_options = array_map(fn ($k) => KitService::optionIdea($k), KitService::STARTER_OPTIONS[$this->t_style] ?? ['laco']);
+        $this->t_photos = in_array($this->t_style, ['balao', 'caneca'], true) ? 4 : 0;
+        $this->t_date = true;
         $this->typeForm = true;
     }
 
@@ -93,7 +99,39 @@ class PortalKits extends Component
         $this->t_active = (bool) $t->active;
         $this->t_image = $t->image;
         $this->t_upload = null;
+        $this->t_options = array_map(fn ($o) => $o + ['required' => true], KitService::options($t));
+        $this->t_photos = (int) $t->setting('photos', 0);
+        $this->t_date = (bool) $t->setting('date', true);
         $this->typeForm = true;
+    }
+
+    public function addOption(?string $idea = null): void
+    {
+        if (count($this->t_options) >= 6) {
+            return;
+        }
+        $this->t_options[] = $idea && isset(KitService::OPTION_IDEAS[$idea])
+            ? KitService::optionIdea($idea)
+            : ['name' => '', 'required' => true, 'choices' => [['label' => '', 'price' => 0, 'color' => null]]];
+    }
+
+    public function removeOption(int $i): void
+    {
+        unset($this->t_options[$i]);
+        $this->t_options = array_values($this->t_options);
+    }
+
+    public function addChoice(int $i): void
+    {
+        if (isset($this->t_options[$i]) && count($this->t_options[$i]['choices']) < 12) {
+            $this->t_options[$i]['choices'][] = ['label' => '', 'price' => 0, 'color' => null];
+        }
+    }
+
+    public function removeChoice(int $i, int $j): void
+    {
+        unset($this->t_options[$i]['choices'][$j]);
+        $this->t_options[$i]['choices'] = array_values($this->t_options[$i]['choices'] ?? []);
     }
 
     public function updatedTUpload(): void
@@ -125,6 +163,16 @@ class PortalKits extends Component
             'base_price' => $data['t_base_price'], 'min_items' => (int) $data['t_min'], 'max_items' => (int) $data['t_max'],
             'category_ids' => array_values(array_map('intval', array_filter($this->t_cats))) ?: null,
             'active' => $this->t_active, 'image' => $image,
+            'options' => array_values(array_map(fn ($o) => [
+                'name' => mb_substr(trim((string) ($o['name'] ?? '')), 0, 40),
+                'required' => (bool) ($o['required'] ?? true),
+                'choices' => array_values(array_map(fn ($c) => [
+                    'label' => mb_substr(trim((string) ($c['label'] ?? '')), 0, 40),
+                    'price' => max(0, round((float) str_replace(',', '.', (string) ($c['price'] ?? 0)), 2)),
+                    'color' => preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($c['color'] ?? '')) ? $c['color'] : null,
+                ], array_filter($o['choices'] ?? [], fn ($c) => trim((string) ($c['label'] ?? '')) !== ''))),
+            ], array_filter($this->t_options, fn ($o) => trim((string) ($o['name'] ?? '')) !== ''))),
+            'settings' => ['photos' => max(0, min(6, $this->t_photos)), 'date' => $this->t_date],
         ];
         if ($this->typeId && ($t = $this->type($this->typeId))) {
             $t->update($row);

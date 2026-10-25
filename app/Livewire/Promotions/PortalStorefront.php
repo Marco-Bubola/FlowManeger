@@ -32,6 +32,7 @@ class PortalStorefront extends Component
     /** Cores das áreas: [fundo da página, cards e seções] */
     public array $home_surface = [];
     public string $home_style = 'padrao';
+    public array $home_look = [];
     public string $home_theme = 'padrao';
     public string $pendingTheme = '';
     public bool $withBanner = true;
@@ -101,6 +102,7 @@ class PortalStorefront extends Component
         $this->home_colors = $h['colors'];
         $this->home_surface = $h['surface'];
         $this->home_style = $h['style'];
+        $this->home_look = $h['look'];
         $this->home_theme = $h['theme'];
     }
 
@@ -112,6 +114,7 @@ class PortalStorefront extends Component
         HomeLayout::save(Auth::id(), [
             'theme' => $this->home_theme, 'order' => array_values($this->home_order), 'off' => array_values($this->home_off),
             'colors' => $this->home_colors, 'style' => $this->home_style, 'surface' => $this->home_surface,
+            'look' => HomeLayout::look($this->home_theme, $this->home_look),
         ]);
         $this->loadHome();
         $this->previewKey++;
@@ -145,6 +148,22 @@ class PortalStorefront extends Component
             $this->home_style = $style;
             $this->saveHome();
         }
+    }
+
+    /** Estilo do site: uma escolha de cada parte (topo, cards, fundo…). */
+    public function setLook(string $part, string $value): void
+    {
+        if (isset(HomeLayout::LOOKS[$part][1][$value])) {
+            $this->home_look[$part] = $value;
+            $this->saveHome();
+        }
+    }
+
+    /** Volta o estilo para o que o tema traz. */
+    public function resetLook(): void
+    {
+        $this->home_look = HomeLayout::look($this->home_theme);
+        $this->saveHome();
     }
 
     public function updatedHomeColors(): void

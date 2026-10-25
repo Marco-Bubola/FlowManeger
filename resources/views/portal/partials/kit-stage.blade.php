@@ -16,6 +16,10 @@
             <template x-if="!e.img"><span x-text="groupEmoji(e.group)"></span></template>
         </div>
     </template>
+    <div class="kb-stage-ribbon" x-show="ribbon" :style="`background:${ribbon}`"></div>
+    <div class="kb-stage-tags" x-show="pickedOpts.length">
+        <template x-for="(x, i) in pickedOpts" :key="'st' + i"><span><i x-show="x.c.color" :style="`background:${x.c.color}`"></i><span x-text="x.c.label"></span></span></template>
+    </div>
     <div class="kb-stage-hint" x-show="type && !count" style="padding-bottom:120px">Coloque os produtos e veja seu kit tomando forma ✨</div>
     <div class="kb-stage-hint" x-show="!type">Escolha um kit para começar 🎁</div>
 </div>

@@ -2,6 +2,8 @@
 @php
     $kLook = \App\Services\Portal\KitService::style($kit['style'] ?? null);
     $kLines = \App\Services\Portal\KitService::lines($kit);
+    $kDetails = \App\Services\Portal\KitService::details($kit);
+    $kPhotos = \App\Services\Portal\KitService::photoUrls($kit);
 @endphp
 <div class="po-card" data-testid="order-kit" style="overflow:hidden">
     <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;color:#fff;background:linear-gradient(135deg, {{ $kLook[3] }}, {{ $kLook[4] }})">
@@ -18,12 +20,27 @@
                     <div class="po-thumb" style="font-size:22px">{{ mb_substr($kName, 0, 1) }}</div>
                     <div class="po-info">
                         <div class="po-prod-name">{{ trim(mb_substr($kName, 1)) }}</div>
-                        <div class="po-prod-sub">{{ $loop->first ? 'Base e montagem' : $kQty . ($kQty == 1 ? ' unidade' : ' unidades') }}</div>
+                        <div class="po-prod-sub">{{ $loop->first ? 'Base e montagem' : (str_starts_with($kName, '🎨') ? 'Opção escolhida' : $kQty . ($kQty == 1 ? ' unidade' : ' unidades')) }}</div>
                     </div>
-                    <div class="po-price"><strong>{{ $kVal > 0 ? $money($kVal) : 'Grátis' }}</strong></div>
+                    <div class="po-price"><strong>{{ $kVal > 0 ? $money($kVal) : (str_starts_with($kName, '🎨') ? 'Incluso' : 'Grátis') }}</strong></div>
                 </li>
             @endforeach
         </ul>
+        @if($kDetails)
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px" data-testid="order-kit-details">
+                @foreach($kDetails as [$dIc, $dTx])
+                    <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:var(--ml-chip, #f5f5f5);color:var(--ml-text, #333);font-size:12.5px;font-weight:600">{{ $dIc }} {{ $dTx }}</span>
+                @endforeach
+            </div>
+        @endif
+        @if($kPhotos)
+            <div style="margin-top:12px">
+                <small style="display:block;font-size:11px;font-weight:700;color:var(--ml-muted, #666);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">📷 Suas fotos</small>
+                <div style="display:flex;flex-wrap:wrap;gap:8px">
+                    @foreach($kPhotos as $ph)<a href="{{ $ph }}" target="_blank" rel="noopener"><img src="{{ $ph }}" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--ml-line, #eee)"></a>@endforeach
+                </div>
+            </div>
+        @endif
         @if(filled($kit['message'] ?? null) || filled($kit['to'] ?? null))
             <div style="margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--ml-chip, #fdf2f8);border:1px dashed {{ $kLook[3] }}">
                 <small style="display:block;font-size:11px;font-weight:700;color:{{ $kLook[3] }};text-transform:uppercase;letter-spacing:.05em">💌 Cartão</small>

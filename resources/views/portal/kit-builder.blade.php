@@ -6,7 +6,7 @@
     $cfg = [
         'owner' => $ownerId, 'types' => $types, 'extras' => $extras, 'products' => $products, 'cats' => $cats,
         'groups' => collect($groups)->map(fn ($g, $k) => ['key' => $k, 'name' => $g[0], 'emoji' => $g[1]])->values(),
-        'checkout' => $checkout, 'logged' => $logged, 'start' => $start, 'hasErrors' => $errors->any(),
+        'cards' => $cards, 'occasions' => $occasions, 'checkout' => $checkout, 'logged' => $logged, 'start' => $start, 'hasErrors' => $errors->any(),
         'old' => old('kit'),
     ];
     $msgIdeas = ['Feliz aniversário! 🎉', 'Eu te amo ❤️', 'Para a melhor mãe do mundo 💐', 'Obrigado por tudo!', 'Você merece esse carinho ✨', 'Feliz Natal! 🎄'];
@@ -154,6 +154,42 @@
     .kb-opt.on { border-color: var(--k1); box-shadow: 0 0 0 1px var(--k1); }
     .kb-h3 { margin: 16px 0 8px; font-size: 14px; font-weight: 800; color: var(--ml-text, #222); }
 
+    .kb-optgrp { margin-bottom: 14px; }
+    .kb-optgrp > b { display: block; font-size: 14px; color: var(--ml-text, #222); margin-bottom: 8px; }
+    .kb-optgrp > b small { font-weight: 500; color: var(--ml-muted, #888); }
+    .kb-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+    .kb-sw { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--ml-line, #e5e5e5); background: var(--ml-card, #fff); color: var(--ml-text, #333); font-size: 13px; font-weight: 700; cursor: pointer; transition: .15s; }
+    .kb-sw i { width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+    .kb-sw small { font-weight: 600; color: var(--k1); }
+    .kb-sw.on { border-color: var(--k1); box-shadow: 0 0 0 2px var(--k1); }
+    .kb-occ { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); }
+    .kb-occ button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border-radius: 16px; border: 1px solid var(--ml-line, #e5e5e5); background: var(--ml-card, #fff); color: var(--ml-text, #333); cursor: pointer; transition: .15s; }
+    .kb-occ button span { font-size: 26px; }
+    .kb-occ button b { font-size: 12px; }
+    .kb-occ button.on { border-color: var(--k1); box-shadow: 0 0 0 2px var(--k1); background: color-mix(in srgb, var(--k1) 8%, var(--ml-card, #fff)); }
+    .kb-cards { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 4px 2px 10px; }
+    .kb-cards::-webkit-scrollbar { display: none; }
+    .kb-cardsty { flex: 0 0 96px; height: 70px; border-radius: 14px; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; box-shadow: 0 2px 8px rgba(0,0,0,.12); transition: .15s; }
+    .kb-cardsty span { font-size: 20px; }
+    .kb-cardsty b { font-size: 11.5px; }
+    .kb-cardsty.on { outline: 3px solid var(--k1); outline-offset: 2px; }
+    .kb-letter-wrap { display: grid; gap: 16px; margin-top: 6px; }
+    @media (min-width: 720px) { .kb-letter-wrap { grid-template-columns: 260px minmax(0, 1fr); align-items: start; } }
+    .kb-letter { position: relative; min-height: 220px; border-radius: 18px; padding: 22px 20px; box-shadow: 0 14px 30px -14px rgba(0,0,0,.4); transform: rotate(-1.5deg); overflow: hidden; }
+    .kb-letter::after { content: ''; position: absolute; inset: 8px; border: 1.5px dashed currentColor; border-radius: 12px; opacity: .25; pointer-events: none; }
+    .kb-letter-em { position: absolute; right: 14px; top: 10px; font-size: 32px; }
+    .kb-letter-to { margin: 0 0 10px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; opacity: .85; }
+    .kb-letter-msg { margin: 0; font-family: var(--sf-font, Georgia, serif); font-size: 18px; line-height: 1.45; font-style: italic; white-space: pre-line; overflow-wrap: anywhere; }
+    .kb-letter-from { margin: 14px 0 0; font-size: 13px; font-weight: 700; text-align: right; opacity: .85; }
+    .kb-photos { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+    .kb-photo { position: relative; aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: var(--ml-chip, #f3f3f3); border: 2px dashed var(--ml-line, #ddd); display: flex; align-items: center; justify-content: center; color: var(--ml-muted, #888); font-size: 22px; cursor: pointer; }
+    .kb-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .kb-photo button { position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; cursor: pointer; }
+    .kb-stage-ribbon { position: absolute; left: 0; right: 0; bottom: 34px; height: 14px; z-index: 1; opacity: .9; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+    .kb-stage-tags { position: absolute; left: 10px; bottom: 10px; z-index: 6; display: flex; flex-wrap: wrap; gap: 4px; max-width: 60%; }
+    .kb-stage-tags span { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: rgba(255,255,255,.92); color: #333; font-size: 10.5px; font-weight: 700; }
+    .kb-stage-tags i { width: 10px; height: 10px; border-radius: 50%; }
+
     /* Barra fixa no celular e iPad */
     .kb-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--ml-card, #fff); box-shadow: 0 -6px 20px rgba(0,0,0,.12); display: flex; align-items: center; gap: 12px; }
     .kb-bar-sum { flex: 1; min-width: 0; }
@@ -164,6 +200,7 @@
     .kb-bar-peek b { position: absolute; right: -4px; top: -4px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--k1); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; }
     @media (min-width: 1024px) { .kb-bar { display: none; } .kb { padding-bottom: 40px; } }
     @media (max-width: 1023px) { .kb-side-desk { display: none; } }
+    @media (min-width: 1024px) { .kb-only-mob { display: none; } }
     .kb-sheet-bg { position: fixed; inset: 0; z-index: 70; background: rgba(15,23,42,.5); backdrop-filter: blur(3px); }
     .kb-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 71; max-height: 88vh; overflow-y: auto; border-radius: 24px 24px 0 0; background: var(--ml-page-bg, #f5f5f5); padding: 14px 12px calc(16px + env(safe-area-inset-bottom)); }
     .kb-sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
@@ -315,36 +352,85 @@
                 <p class="kb-empty" x-show="!extras.length">Esta loja ainda não tem enfeites. Pode seguir.</p>
             </section>
 
-            {{-- 4. Cartão --}}
+            {{-- 4. Personalizar: opções, ocasião, cartão, data e entrega --}}
             <section class="kb-box" x-show="step === 3" x-cloak data-testid="kit-message">
-                <h2 class="kb-h2">Um recado no cartão 💌</h2>
-                <p class="kb-sub">Opcional. A loja escreve no cartão do kit.</p>
-                <div class="kb-card-note">
-                    <div class="kb-two">
-                        <label class="kb-field"><span>Para</span><input type="text" x-model="to" maxlength="60" placeholder="Nome de quem recebe"></label>
-                        <label class="kb-field"><span>De</span><input type="text" x-model="from" maxlength="60" placeholder="Seu nome"></label>
+                <template x-if="type && type.options.length">
+                    <div data-testid="kit-options">
+                        <h2 class="kb-h2">Do seu jeito 🎨</h2>
+                        <p class="kb-sub">Escolha como a loja vai montar o seu kit.</p>
+                        <template x-for="(o, oi) in type.options" :key="'o' + oi">
+                            <div class="kb-optgrp">
+                                <b><span x-text="o.name"></span> <small x-show="!o.required">(opcional)</small></b>
+                                <div class="kb-swatches">
+                                    <template x-for="(c, ci) in o.choices" :key="'c' + ci">
+                                        <button type="button" class="kb-sw" :class="opts[oi] === ci && 'on'" @click="setOpt(oi, ci)" :data-testid="'kit-opt-' + oi + '-' + ci">
+                                            <i x-show="c.color" :style="`background:${c.color}`"></i>
+                                            <span x-text="c.label"></span>
+                                            <small x-show="c.price > 0" x-text="'+ ' + money(c.price)"></small>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
                     </div>
-                    <label class="kb-field"><span>Mensagem</span><textarea x-model="message" rows="4" maxlength="300" placeholder="Escreva sua mensagem" data-testid="kit-message-text"></textarea></label>
-                    <div class="kb-ideas">
-                        @foreach($msgIdeas as $idea)
-                            <button type="button" @click="message = @js($idea)">{{ $idea }}</button>
-                        @endforeach
-                    </div>
-                    <small style="font-size:12px;color:var(--ml-muted,#777)" x-text="message.length + ' de 300'"></small>
+                </template>
+
+                <h2 class="kb-h2" :style="type && type.options.length ? 'margin-top:22px' : ''">Para qual ocasião?</h2>
+                <p class="kb-sub">Ajuda a loja a caprichar e já sugere o cartão.</p>
+                <div class="kb-occ">
+                    <template x-for="(o, k) in cfg.occasions" :key="k">
+                        <button type="button" :class="occasion === k && 'on'" @click="setOccasion(k)" :data-testid="'kit-occ-' + k"><span x-text="o[1]"></span><b x-text="o[0]"></b></button>
+                    </template>
                 </div>
+
+                <h2 class="kb-h2" style="margin-top:22px">O cartão 💌</h2>
+                <p class="kb-sub">Escolha o modelo e escreva o recado. É opcional.</p>
+                <div class="kb-cards">
+                    <template x-for="(c, k) in cfg.cards" :key="k">
+                        <button type="button" class="kb-cardsty" :class="card === k && 'on'" @click="card = k" :style="`background:linear-gradient(135deg, ${c[2]}, ${c[3]});color:${c[4]}`" :data-testid="'kit-card-' + k"><span x-text="c[1]"></span><b x-text="c[0]"></b></button>
+                    </template>
+                </div>
+                <div class="kb-letter-wrap">
+                    <div class="kb-letter" :style="`background:linear-gradient(135deg, ${cardLook[2]}, ${cardLook[3]});color:${cardLook[4]}`" data-testid="kit-card-preview">
+                        <span class="kb-letter-em" x-text="cardLook[1]"></span>
+                        <p class="kb-letter-to" x-text="to ? 'Para ' + to : 'Para quem?'"></p>
+                        <p class="kb-letter-msg" x-text="message || 'Sua mensagem aparece aqui ✨'"></p>
+                        <p class="kb-letter-from" x-text="from ? 'Com carinho, ' + from : ''"></p>
+                    </div>
+                    <div>
+                        <div class="kb-two">
+                            <label class="kb-field"><span>Para</span><input type="text" x-model="to" maxlength="60" placeholder="Nome de quem recebe"></label>
+                            <label class="kb-field"><span>De</span><input type="text" x-model="from" maxlength="60" placeholder="Seu nome"></label>
+                        </div>
+                        <label class="kb-field"><span>Mensagem</span><textarea x-model="message" rows="4" maxlength="300" placeholder="Escreva sua mensagem" data-testid="kit-message-text"></textarea></label>
+                        <div class="kb-ideas">
+                            @foreach($msgIdeas as $idea)
+                                <button type="button" @click="message = @js($idea)">{{ $idea }}</button>
+                            @endforeach
+                        </div>
+                        <small style="font-size:12px;color:var(--ml-muted,#777)" x-text="message.length + ' de 300'"></small>
+                    </div>
+                </div>
+
+                <h2 class="kb-h2" style="margin-top:22px">Entrega do presente 🚚</h2>
+                <div class="kb-two" style="margin-top:10px">
+                    <label class="kb-field" x-show="type && type.date"><span>Para quando?</span><input type="date" x-model="date" :min="today" data-testid="kit-date"></label>
+                    <label class="kb-field"><span>Entregar para outra pessoa? (nome e telefone)</span><input type="text" x-model="recipient" maxlength="120" placeholder="Ex.: Ana, (16) 99999-0000"></label>
+                </div>
+                <label class="kb-opt" :class="gift && 'on'" style="margin-top:4px"><input type="checkbox" x-model="gift"><span><strong>É presente</strong><small>A loja não manda nota nem etiqueta com o preço junto.</small></span></label>
             </section>
 
             {{-- 5. Revisar --}}
             <section class="kb-box" x-show="step === 4" x-cloak data-testid="kit-review">
                 <h2 class="kb-h2">Confira seu kit</h2>
                 <p class="kb-sub">Se estiver tudo certo, é só pedir. A loja confirma e combina a entrega.</p>
-                <div class="lg:hidden" style="margin-bottom:14px">
+                <div class="kb-only-mob" style="margin-bottom:14px">
                     @include('portal.partials.kit-stage')
                 </div>
                 @include('portal.partials.kit-lines')
 
                 @if($logged)
-                    <form method="POST" action="{{ route('portal.kit.store', ['userId' => $ownerId]) }}" x-ref="form" @submit="sending = true; markSent()">
+                    <form method="POST" action="{{ route('portal.kit.store', ['userId' => $ownerId]) }}" enctype="multipart/form-data" x-ref="form" @submit="syncPhotos(); sending = true; markSent()">
                         @csrf
                         <input type="hidden" name="kit[type]" :value="type ? type.id : ''">
                         <template x-for="(n, id) in picked" :key="'p' + id"><input type="hidden" :name="'kit[products][' + id + ']'" :value="n"></template>
@@ -352,6 +438,26 @@
                         <input type="hidden" name="kit[message]" :value="message">
                         <input type="hidden" name="kit[to]" :value="to">
                         <input type="hidden" name="kit[from]" :value="from">
+                        <template x-for="(ci, oi) in opts" :key="'oi' + oi"><input type="hidden" :name="'kit[options][' + oi + ']'" :value="ci" :disabled="ci === null"></template>
+                        <input type="hidden" name="kit[card]" :value="card">
+                        <input type="hidden" name="kit[occasion]" :value="occasion">
+                        <input type="hidden" name="kit[date]" :value="date">
+                        <input type="hidden" name="kit[recipient]" :value="recipient">
+                        <input type="hidden" name="kit[gift]" :value="gift ? 1 : 0">
+
+                        <template x-if="type && type.photos > 0">
+                            <div data-testid="kit-photos">
+                                <h3 class="kb-h3">Suas fotos para o kit 📸 <small style="font-weight:500;color:var(--ml-muted,#888)" x-text="'(até ' + type.photos + ')'"></small></h3>
+                                <p class="kb-sub" style="margin-bottom:8px">Para polaroid, caneca ou porta-retrato. Opcional.</p>
+                                <div class="kb-photos">
+                                    <template x-for="(ph, i) in photos" :key="ph.url">
+                                        <div class="kb-photo"><img :src="ph.url" alt=""><button type="button" @click="removePhoto(i)" aria-label="Tirar foto">✕</button></div>
+                                    </template>
+                                    <label class="kb-photo" x-show="photos.length < type.photos"><i class="fas fa-camera"></i><input type="file" accept="image/*" multiple class="kb-file" style="display:none" @change="addPhotos($event)" data-testid="kit-photo-input"></label>
+                                </div>
+                                <input type="file" name="photos[]" multiple x-ref="photoField" style="display:none">
+                            </div>
+                        </template>
 
                         <template x-if="cfg.checkout.pickup || cfg.checkout.deliver">
                             <div>
@@ -379,7 +485,7 @@
 
                         <div class="kb-nav">
                             <button type="button" class="kb-btn kb-btn-soft" @click="go(3)"><i class="fas fa-arrow-left"></i> Voltar</button>
-                            <button type="submit" class="kb-btn kb-btn-main" :disabled="!ready || blocked || sending" data-testid="kit-submit">
+                            <button type="submit" class="kb-btn kb-btn-main" :disabled="!canOrder || blocked || sending" data-testid="kit-submit">
                                 <span x-show="!sending" x-text="checkout && checkout !== 'manual' ? 'Pedir e pagar' : 'Pedir este kit'"></span><span x-show="sending">Enviando…</span>
                             </button>
                         </div>
@@ -413,7 +519,7 @@
     <div class="kb-bar" x-show="type" x-cloak>
         <button type="button" class="kb-bar-peek" @click="peek = true" aria-label="Ver meu kit"><span x-text="look[1]"></span><b x-show="count" x-text="count"></b></button>
         <div class="kb-bar-sum"><small x-text="type ? type.name : ''"></small><strong x-text="money(total)"></strong></div>
-        <button type="button" class="kb-btn kb-btn-main" x-show="step < 4" @click="next()" :disabled="!canGo(step + 1)" x-text="step === 3 ? 'Revisar' : 'Continuar'"></button>
+        <button type="button" class="kb-btn kb-btn-main" x-show="step < 4" @click="next()" :disabled="!canGo(step + 1)" x-text="step === 3 ? 'Revisar' : (step === 2 ? 'Personalizar' : 'Continuar')"></button>
     </div>
     <div class="kb-sheet-bg" x-show="peek" x-cloak x-transition.opacity @click="peek = false"></div>
     <div class="kb-sheet" x-show="peek" x-cloak x-transition data-testid="kit-peek">
@@ -433,8 +539,10 @@ function kitBuilder(cfg) {
     const extraPos = [[14, 22], [84, 18], [10, 60], [88, 58], [24, 8], [74, 6], [50, 6], [6, 40], [94, 38], [32, 30], [68, 28]];
     return {
         cfg, types: cfg.types, extras: cfg.extras, products: cfg.products, cats: cfg.cats,
-        steps: ['Kit', 'Produtos', 'Enfeites', 'Cartão', 'Revisar'],
+        steps: ['Kit', 'Produtos', 'Enfeites', 'Personalizar', 'Revisar'],
         step: 0, type: null, picked: {}, chosen: {}, to: '', from: '', message: '',
+        opts: [], card: 'classico', occasion: '', date: '', recipient: '', gift: false, photos: [],
+        today: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10),
         q: '', cat: 0, grp: '', limit: 40, peek: false, toast: '', sending: false,
         delivery: cfg.checkout.pickup ? 'retirada' : (cfg.checkout.deliver ? 'entrega' : ''),
         checkout: cfg.checkout.methods.length ? (cfg.checkout.manual ? 'manual' : cfg.checkout.methods[0]) : '',
@@ -443,7 +551,8 @@ function kitBuilder(cfg) {
             try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
             // Pedido enviado e a pessoa voltou sem erro: começa um kit novo.
             if (saved && saved.sent && !cfg.hasErrors) { saved = null; this.clear(); }
-            if (cfg.old && cfg.old.type) saved = { type: +cfg.old.type, picked: cfg.old.products || {}, chosen: cfg.old.extras || {}, to: cfg.old.to || '', from: cfg.old.from || '', message: cfg.old.message || '', step: 4 };
+            if (cfg.old && cfg.old.type) saved = { type: +cfg.old.type, picked: cfg.old.products || {}, chosen: cfg.old.extras || {}, to: cfg.old.to || '', from: cfg.old.from || '', message: cfg.old.message || '', step: 4,
+                opts: Object.values(cfg.old.options || {}).map(Number), card: cfg.old.card, occasion: cfg.old.occasion, date: cfg.old.date, recipient: cfg.old.recipient, gift: cfg.old.gift === '1' };
             if (saved) {
                 const t = this.types.find(x => x.id === saved.type);
                 if (t) {
@@ -451,6 +560,11 @@ function kitBuilder(cfg) {
                     this.picked = this.clean(saved.picked, this.products);
                     this.chosen = this.clean(saved.chosen, this.extras);
                     this.to = saved.to || ''; this.from = saved.from || ''; this.message = saved.message || '';
+                    this.resetOpts(saved.opts);
+                    if (cfg.cards[saved.card]) this.card = saved.card;
+                    this.occasion = cfg.occasions[saved.occasion] ? saved.occasion : '';
+                    this.date = saved.date && saved.date >= this.today ? saved.date : '';
+                    this.recipient = saved.recipient || ''; this.gift = !!saved.gift;
                     this.step = Math.min(saved.step || 1, 4);
                     if (cfg.hasErrors) this.step = 4;
                 }
@@ -463,7 +577,8 @@ function kitBuilder(cfg) {
                 if (p && this.allowed(p) && !this.picked[p.id]) { this.picked[p.id] = 1; this.step = Math.max(this.step, 1); }
             }
             this.$watch('step', () => { this.save(); this.limit = 40; window.scrollTo({ top: 0, behavior: 'smooth' }); });
-            ['picked', 'chosen', 'to', 'from', 'message', 'type'].forEach(k => this.$watch(k, () => this.save()));
+            ['picked', 'chosen', 'to', 'from', 'message', 'type', 'opts', 'card', 'occasion', 'date', 'recipient', 'gift'].forEach(k => this.$watch(k, () => this.save()));
+            if (this.type && this.opts.length !== this.type.options.length) this.resetOpts();
         },
         clean(map, list) {
             const out = {};
@@ -471,7 +586,8 @@ function kitBuilder(cfg) {
             return out;
         },
         save() {
-            try { localStorage.setItem(KEY, JSON.stringify({ type: this.type?.id, picked: this.picked, chosen: this.chosen, to: this.to, from: this.from, message: this.message, step: this.step })); } catch (e) {}
+            try { localStorage.setItem(KEY, JSON.stringify({ type: this.type?.id, picked: this.picked, chosen: this.chosen, to: this.to, from: this.from, message: this.message, step: this.step,
+                opts: this.opts, card: this.card, occasion: this.occasion, date: this.date, recipient: this.recipient, gift: this.gift })); } catch (e) {}
         },
         markSent() { try { const s = JSON.parse(localStorage.getItem(KEY) || '{}'); s.sent = true; localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} },
         clear() { try { localStorage.removeItem(KEY); } catch (e) {} },
@@ -498,6 +614,7 @@ function kitBuilder(cfg) {
                 const keep = {}; let n = 0;
                 Object.entries(this.picked).forEach(([id, q]) => { const p = this.products.find(x => x.id === +id); if (p && this.allowed(p) && n < t.max) { keep[id] = Math.min(q, t.max - n); n += keep[id]; } });
                 this.picked = keep; this.cat = 0;
+                this.resetOpts();
             }
             this.go(1);
         },
@@ -519,7 +636,38 @@ function kitBuilder(cfg) {
         get pickedList() { return Object.entries(this.picked).map(([id, n]) => ({ p: this.products.find(x => x.id === +id), n })).filter(x => x.p); },
         get chosenList() { return Object.entries(this.chosen).map(([id, n]) => ({ e: this.extras.find(x => x.id === +id), n })).filter(x => x.e); },
         get productsTotal() { return this.pickedList.reduce((s, x) => s + x.p.price * x.n, 0); },
-        get extrasTotal() { return this.chosenList.reduce((s, x) => s + x.e.price * x.n, 0); },
+        get extrasTotal() { return this.chosenList.reduce((s, x) => s + x.e.price * x.n, 0) + this.optionsTotal; },
+        // Opções (cor do laço, tamanho…): obrigatórias já vêm com a primeira escolha.
+        resetOpts(prev) {
+            const o = this.type ? this.type.options : [];
+            this.opts = o.map((g, i) => { const v = prev ? prev[i] : undefined; return Number.isInteger(v) && g.choices[v] ? v : (g.required ? 0 : null); });
+        },
+        setOpt(oi, ci) { const m = [...this.opts]; m[oi] = m[oi] === ci && !this.type.options[oi].required ? null : ci; this.opts = m; },
+        get pickedOpts() { return this.type ? this.type.options.map((g, i) => this.opts[i] === null || this.opts[i] === undefined ? null : { g, c: g.choices[this.opts[i]] }).filter(x => x && x.c) : []; },
+        get optionsTotal() { return this.pickedOpts.reduce((s, x) => s + (x.c.price || 0), 0); },
+        get optsReady() { return !this.type || this.type.options.every((g, i) => !g.required || (this.opts[i] !== null && this.opts[i] !== undefined)); },
+        get ribbon() { const x = this.pickedOpts.find(x => x.c.color); return x ? x.c.color : null; },
+        get cardLook() { return cfg.cards[this.card] || cfg.cards.classico; },
+        setOccasion(k) {
+            this.occasion = this.occasion === k ? '' : k;
+            const o = cfg.occasions[this.occasion];
+            if (o) { if (cfg.cards[o[2]]) this.card = o[2]; if (!this.message.trim() && o[3]) this.message = o[3]; }
+        },
+        addPhotos(ev) {
+            const max = this.type ? this.type.photos : 0;
+            [...ev.target.files].forEach(f => {
+                if (this.photos.length >= max || !f.type.startsWith('image/')) return;
+                if (f.size > 8 * 1024 * 1024) { this.flash('Foto grande demais (até 8 MB)'); return; }
+                this.photos.push({ file: f, url: URL.createObjectURL(f) });
+            });
+            ev.target.value = '';
+        },
+        removePhoto(i) { URL.revokeObjectURL(this.photos[i].url); this.photos.splice(i, 1); },
+        syncPhotos() {
+            const f = this.$refs.photoField;
+            if (!f) return;
+            try { const dt = new DataTransfer(); this.photos.forEach(p => dt.items.add(p.file)); f.files = dt.files; } catch (e) {}
+        },
         get base() { return this.type ? this.type.base : 0; },
         get shipFee() {
             const s = cfg.checkout.ship;
@@ -535,18 +683,20 @@ function kitBuilder(cfg) {
         },
         get total() { return this.productsTotal + this.base + this.extrasTotal + (this.delivery === 'entrega' && this.step === 4 ? this.shipFee : 0); },
         get ready() { return this.type && this.count >= this.type.min && this.count <= this.type.max; },
+        get canOrder() { return this.ready && this.optsReady; },
         get blocked() {
             const c = cfg.checkout;
             return (this.checkout && this.checkout !== 'manual' && !c.hasCpf) || ((this.checkout === 'boleto' || this.delivery === 'entrega') && !c.hasAddress) || (this.delivery === 'entrega' && c.ship && !c.ship.ok);
         },
         doneStep(i) { return [!!this.type, this.ready, this.ready && this.step > 2, this.ready && this.step > 3, false][i]; },
-        canGo(i) { return i <= 0 || (i === 1 ? !!this.type : (i <= 4 && this.ready)); },
+        canGo(i) { return i <= 0 || (i === 1 ? !!this.type : (i === 4 ? this.canOrder : (i <= 3 && this.ready))); },
         go(i) { if (this.canGo(i)) this.step = i; },
         next() {
             if (this.step === 1 && !this.ready) { this.flash(this.type ? 'Escolha pelo menos ' + this.type.min + ' produtos' : 'Escolha um kit'); return; }
+            if (this.step === 3 && !this.optsReady) { this.flash('Escolha as opções do kit'); return; }
             this.go(this.step + 1);
         },
-        get nextLabel() { return ['Escolher produtos', 'Escolher enfeites', 'Escrever cartão', 'Revisar o kit', ''][this.step]; },
+        get nextLabel() { return ['Escolher produtos', 'Escolher enfeites', 'Personalizar', 'Revisar o kit', ''][this.step]; },
         // Posições no palco: produtos em leque acima da base, enfeites em volta.
         pPos(i) {
             const n = Math.max(1, this.pickedList.length), spread = Math.min(150, 30 + n * 22);

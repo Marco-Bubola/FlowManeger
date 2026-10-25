@@ -306,6 +306,31 @@
                     </div>
                 </section>
 
+                {{-- 2b. Estilo do site --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-look">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-palette2 text-violet-500"></i>Estilo do site</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">O jeito do topo, dos cards, dos botões e um desenho no fundo. A prévia mostra na hora.</p>
+                        </div>
+                        <button type="button" wire:click="resetLook" class="shrink-0 text-xs font-semibold text-violet-600 dark:text-violet-300 hover:underline" data-testid="look-reset">Voltar ao do tema</button>
+                    </div>
+                    @foreach($home::LOOKS as $part => [$pname, $choices])
+                        <div>
+                            <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">{{ $pname }}</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach($choices as $k => [$n, $ico])
+                                    @php $on = ($home_look[$part] ?? null) === $k; @endphp
+                                    <button type="button" wire:click="setLook('{{ $part }}', '{{ $k }}')" data-testid="look-{{ $part }}-{{ $k }}"
+                                        class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition {{ $on ? 'border-violet-500 bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-200 ring-1 ring-violet-500' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-violet-300' }}">
+                                        <i class="bi {{ $ico }}"></i>{{ $n }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </section>
+
                 {{-- 3. Blocos --}}
                 <section class="{{ $card }} p-4 sm:p-5 space-y-2" data-testid="home-sections">
                     <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-list-ol text-violet-500"></i>O que aparece e em que ordem</h2>

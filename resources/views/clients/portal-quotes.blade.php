@@ -493,6 +493,12 @@
                         <span class="text-xs font-black text-rose-600 dark:text-rose-300">R$ {{ number_format($kVal, 2, ',', '.') }}</span>
                     </div>
                     @endforeach
+                    @foreach(\App\Services\Portal\KitService::details($quote->kit) as [$dIc, $dTx])
+                    <p class="text-xs text-slate-600 dark:text-slate-300">{{ $dIc }} {{ $dTx }}</p>
+                    @endforeach
+                    @if($kPh = \App\Services\Portal\KitService::photoUrls($quote->kit))
+                    <div class="flex flex-wrap gap-2 pt-1">@foreach($kPh as $ph)<a href="{{ $ph }}" target="_blank" rel="noopener"><img src="{{ $ph }}" alt="" class="w-12 h-12 rounded-lg object-cover"></a>@endforeach</div>
+                    @endif
                     @if(filled($quote->kit['message'] ?? null))
                     <p class="text-xs text-slate-600 dark:text-slate-300 pt-1"><i class="fas fa-envelope-open-text mr-1 text-rose-400"></i>{{ filled($quote->kit['to'] ?? null) ? 'Para ' . $quote->kit['to'] . ': ' : '' }}“{{ $quote->kit['message'] }}”{{ filled($quote->kit['from'] ?? null) ? ' De: ' . $quote->kit['from'] : '' }}</p>
                     @endif

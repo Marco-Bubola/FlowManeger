@@ -9,6 +9,9 @@
             <button type="button" class="rm" @click="setProduct(x.p, 0)" aria-label="Tirar do kit"><i class="fas fa-xmark"></i></button>
         </li>
     </template>
+    <template x-for="(x, i) in pickedOpts" :key="'lo' + i">
+        <li><span class="ic"><i x-show="x.c.color" :style="`display:block;width:18px;height:18px;border-radius:50%;background:${x.c.color}`"></i><span x-show="!x.c.color">🎨</span></span><span class="nm" x-text="x.g.name + ': ' + x.c.label"></span><span class="vl" x-text="x.c.price > 0 ? money(x.c.price) : 'Incluso'"></span></li>
+    </template>
     <template x-for="x in chosenList" :key="'le' + x.e.id">
         <li>
             <span class="ic"><template x-if="x.e.img"><img :src="x.e.img" alt=""></template><template x-if="!x.e.img"><span x-text="groupEmoji(x.e.group)"></span></template></span>

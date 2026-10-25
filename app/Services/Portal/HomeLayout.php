@@ -96,6 +96,75 @@ class HomeLayout
             'notice' => ['LIQUIDAÇÃO: preços baixos enquanto durar o estoque', 'QUEIMA DE ESTOQUE: peças com preço de fábrica'], 'featured' => 'Últimas peças'],
     ];
 
+    /**
+     * Estilo do site (Vitrine › Página inicial): cada parte tem as suas escolhas [nome, ícone bootstrap].
+     * Viram classes no <body> do catálogo (lk-{parte}-{escolha}); o primeiro de cada é o padrão.
+     */
+    public const LOOKS = [
+        'header'  => ['Topo do site', [
+            'degrade' => ['Degradê', 'bi-rainbow'], 'solido' => ['Cor única', 'bi-square-fill'], 'vidro' => ['Vidro', 'bi-window'],
+            'claro' => ['Claro', 'bi-sun'], 'escuro' => ['Escuro', 'bi-moon-stars-fill'],
+        ]],
+        'cards'   => ['Cards dos produtos', [
+            'sombra' => ['Sombra leve', 'bi-card-heading'], 'elevado' => ['Flutuando', 'bi-layers-fill'], 'borda' => ['Com borda', 'bi-bounding-box'],
+            'contorno' => ['Borda colorida', 'bi-bounding-box-circles'], 'plano' => ['Sem borda', 'bi-square'],
+        ]],
+        'pattern' => ['Desenho no fundo', [
+            'nenhum' => ['Nenhum', 'bi-slash-circle'], 'pontos' => ['Bolinhas', 'bi-dot'], 'coracoes' => ['Corações', 'bi-heart-fill'],
+            'estrelas' => ['Estrelas', 'bi-stars'], 'confete' => ['Confete', 'bi-balloon-fill'], 'neve' => ['Neve', 'bi-snow'],
+            'listras' => ['Listras', 'bi-slash-lg'], 'ondas' => ['Ondas', 'bi-water'],
+        ]],
+        'buttons' => ['Botões', [
+            'arredondado' => ['Arredondado', 'bi-app'], 'pilula' => ['Pílula', 'bi-capsule'], 'reto' => ['Reto', 'bi-square'],
+        ]],
+        'density' => ['Espaço entre os produtos', [
+            'normal' => ['Normal', 'bi-grid'], 'compacto' => ['Mais produtos', 'bi-grid-3x3-gap-fill'], 'espacoso' => ['Mais espaço', 'bi-grid-1x2'],
+        ]],
+        'photo'   => ['Fotos dos produtos', [
+            'quadrado' => ['Quadrada inteira', 'bi-square'], 'cheia' => ['Quadrada cheia', 'bi-image-fill'], 'retrato' => ['Em pé', 'bi-phone'],
+        ]],
+        'text'    => ['Fonte do texto', [
+            'padrao' => ['Padrão (Inter)', 'bi-fonts'], 'titulos' => ['A mesma dos títulos', 'bi-type-h1'],
+        ]],
+        'anim'    => ['Animações', [
+            'sim' => ['Com animação', 'bi-magic'], 'nao' => ['Sem animação', 'bi-pause-circle'],
+        ]],
+    ];
+
+    /** O que cada tema já traz de estilo (o resto fica no padrão). */
+    public const THEME_LOOKS = [
+        'black'      => ['header' => 'escuro', 'cards' => 'borda', 'buttons' => 'reto'],
+        'natal'      => ['pattern' => 'neve', 'cards' => 'elevado'],
+        'maes'       => ['pattern' => 'coracoes', 'buttons' => 'pilula', 'cards' => 'elevado'],
+        'namorados'  => ['pattern' => 'coracoes', 'buttons' => 'pilula', 'cards' => 'elevado'],
+        'pais'       => ['header' => 'solido', 'cards' => 'borda'],
+        'criancas'   => ['pattern' => 'confete', 'buttons' => 'pilula'],
+        'consumidor' => ['cards' => 'contorno'],
+        'cliente'    => ['pattern' => 'estrelas', 'header' => 'vidro'],
+        'pascoa'     => ['pattern' => 'pontos', 'buttons' => 'pilula'],
+        'liquida'    => ['pattern' => 'listras', 'cards' => 'contorno', 'buttons' => 'reto'],
+    ];
+
+    /** Estilo completo: padrão, por cima o do tema e por cima o que a loja escolheu. */
+    public static function look(string $theme, $saved = null): array
+    {
+        $out = array_map(fn ($l) => array_key_first($l[1]), self::LOOKS);
+        $out = array_merge($out, self::THEME_LOOKS[$theme] ?? []);
+        foreach ((array) $saved as $k => $v) {
+            if (isset(self::LOOKS[$k][1][$v])) {
+                $out[$k] = $v;
+            }
+        }
+
+        return $out;
+    }
+
+    /** Classes do <body> do catálogo para o estilo. */
+    public static function lookClasses(?array $look): string
+    {
+        return collect($look ?? [])->map(fn ($v, $k) => "lk-{$k}-{$v}")->implode(' ');
+    }
+
     public static function ready(): bool
     {
         return Schema::hasTable('portal_settings') && Schema::hasColumn('portal_settings', 'home');
@@ -135,10 +204,10 @@ class HomeLayout
     /** Montagem salva, completa (blocos novos entram no fim). Na prévia de tema, a do tema. */
     public static function get(?PortalSetting $s): array
     {
-        $h = ($s?->home ?? []) + ['theme' => 'padrao', 'order' => [], 'off' => [], 'colors' => null, 'style' => 'padrao', 'surface' => null];
+        $h = ($s?->home ?? []) + ['theme' => 'padrao', 'order' => [], 'off' => [], 'colors' => null, 'style' => 'padrao', 'surface' => null, 'look' => null];
         if ($pv = self::previewing($s?->user_id ? (int) $s->user_id : null)) {
             $t = self::THEMES[$pv[0]];
-            $h = ['theme' => $pv[0], 'order' => $t['order'], 'off' => [], 'colors' => $t['colors'], 'style' => $t['style'], 'surface' => self::SURFACES[$pv[0]] ?? null];
+            $h = ['theme' => $pv[0], 'order' => $t['order'], 'off' => [], 'colors' => $t['colors'], 'style' => $t['style'], 'surface' => self::SURFACES[$pv[0]] ?? null, 'look' => null];
         }
         $order = array_values(array_intersect((array) $h['order'], array_keys(self::SECTIONS)));
         // Bloco novo entra logo depois do que vem antes dele na ordem padrão.
@@ -161,13 +230,14 @@ class HomeLayout
             'colors'  => $colors,
             'style'   => isset(self::STYLES[$h['style']]) ? $h['style'] : 'padrao',
             'surface' => $surface,
+            'look'    => self::look($theme, $h['look']),
         ];
     }
 
     public static function save(int $ownerId, array $layout): void
     {
         $s = PortalSetting::for($ownerId);
-        $s->home = array_merge($s->home ?? [], array_intersect_key($layout, array_flip(['theme', 'order', 'off', 'colors', 'style', 'surface'])));
+        $s->home = array_merge($s->home ?? [], array_intersect_key($layout, array_flip(['theme', 'order', 'off', 'colors', 'style', 'surface', 'look'])));
         $s->save();
     }
 
@@ -179,7 +249,7 @@ class HomeLayout
         }
         $s = PortalSetting::where('user_id', $ownerId)->first();
         $preview = self::previewing($ownerId);
-        if (! $preview && (! $s || empty($s->home['colors']) && empty($s->home['surface']) && ($s->home['style'] ?? 'padrao') === 'padrao' && ($s->home['theme'] ?? 'padrao') === 'padrao')) {
+        if (! $preview && (! $s || empty($s->home['colors']) && empty($s->home['surface']) && empty($s->home['look']) && ($s->home['style'] ?? 'padrao') === 'padrao' && ($s->home['theme'] ?? 'padrao') === 'padrao')) {
             return null;
         }
         $h = self::get($s ?? new PortalSetting(['user_id' => $ownerId]));
@@ -197,6 +267,8 @@ class HomeLayout
             'soft'   => self::shade($p, 0.88),
             'meta'   => $a,
             'radius' => self::STYLES[$h['style']][1],
+            'a'      => $a,
+            'look'   => $h['look'],
         ], self::surfaceVars($h['surface'], $p));
     }
 
@@ -244,7 +316,7 @@ class HomeLayout
     {
         $t = self::THEMES[$key] ?? self::THEMES['padrao'];
         $s = PortalSetting::for($ownerId);
-        $s->home = array_merge($s->home ?? [], ['theme' => $key, 'order' => $t['order'], 'off' => [], 'colors' => $t['colors'], 'style' => $t['style'], 'surface' => self::SURFACES[$key] ?? null]);
+        $s->home = array_merge($s->home ?? [], ['theme' => $key, 'order' => $t['order'], 'off' => [], 'colors' => $t['colors'], 'style' => $t['style'], 'surface' => self::SURFACES[$key] ?? null, 'look' => null]);
         if ($t['featured']) {
             $s->featured_title = $t['featured'];
         } elseif ($key === 'padrao') {

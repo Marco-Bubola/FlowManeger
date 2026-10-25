@@ -812,6 +812,7 @@ class ClientPortalController extends Controller
             'id' => $t->id, 'name' => $t->name, 'desc' => (string) $t->description, 'style' => $t->style,
             'look' => $K::style($t->style), 'img' => $K::imageUrl($t->image), 'base' => (float) $t->base_price,
             'min' => (int) $t->min_items, 'max' => (int) $t->max_items, 'cats' => array_map('intval', (array) ($t->category_ids ?? [])),
+            'options' => $K::options($t), 'photos' => (int) $t->setting('photos', 0), 'date' => (bool) $t->setting('date', true),
         ])->values();
         $extras = $K::extras($userId)->map(fn ($e) => [
             'id' => $e->id, 'name' => $e->name, 'group' => $e->group, 'desc' => (string) $e->description,
@@ -840,7 +841,7 @@ class ClientPortalController extends Controller
 
         return view('portal.kit-builder', [
             'ownerId' => $userId, 'store' => $store, 'types' => $types, 'extras' => $extras, 'products' => $products, 'cats' => $cats,
-            'groups' => $K::GROUPS, 'checkout' => $checkout, 'client' => $own ? $client : null, 'otherStore' => $client && ! $own,
+            'groups' => $K::GROUPS, 'cards' => $K::CARD_STYLES, 'occasions' => $K::OCCASIONS, 'checkout' => $checkout, 'client' => $own ? $client : null, 'otherStore' => $client && ! $own,
             'start' => ['tipo' => $request->integer('tipo') ?: null, 'produto' => $request->integer('produto') ?: null],
         ]);
     }
@@ -861,11 +862,26 @@ class ClientPortalController extends Controller
             'kit.message' => ['nullable', 'string', 'max:300'],
             'kit.to' => ['nullable', 'string', 'max:60'],
             'kit.from' => ['nullable', 'string', 'max:60'],
+            'kit.options' => ['nullable', 'array'],
+            'kit.options.*' => ['nullable', 'integer', 'min:0', 'max:20'],
+            'kit.card' => ['nullable', 'string', 'max:20'],
+            'kit.occasion' => ['nullable', 'string', 'max:20'],
+            'kit.date' => ['nullable', 'date'],
+            'kit.recipient' => ['nullable', 'string', 'max:80'],
+            'kit.gift' => ['nullable', 'boolean'],
+            'photos' => ['nullable', 'array', 'max:6'],
+            'photos.*' => ['image', 'max:8192'],
+        ], [
+            'photos.*.image' => 'Envie só fotos (JPG, PNG ou WEBP).',
+            'photos.*.max' => 'Cada foto pode ter até 8 MB.',
         ]);
         $built = \App\Services\Portal\KitService::build($userId, $in['kit']);
         if (! $built['ok']) {
             return back()->withErrors(['kit' => $built['message']]);
         }
+        $allowed = (int) (\App\Models\PortalKitType::find($built['kit']['type_id'] ?? 0)?->setting('photos', 0) ?? 0);
+        $built['kit']['photos'] = collect($request->file('photos', []))->take($allowed)
+            ->map(fn ($f) => $f->store('portal-kits/fotos/' . $userId, 'public'))->values()->all();
         $request->merge(['items' => array_map(fn ($i) => ['product_id' => $i['product_id'], 'quantity' => $i['quantity'], 'notes' => $i['notes']], $built['items']), 'extra_items' => null, 'coupon_code' => null]);
         $this->pendingKit = $built['kit'];
 

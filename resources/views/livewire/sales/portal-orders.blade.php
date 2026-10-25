@@ -181,7 +181,7 @@
                                 </li>
                             @endforeach
                             @foreach (\App\Services\Portal\KitService::lines($q->kit) as [$kName, $kQty, $kVal])
-                                <li data-testid="order-kit-line"><span class="po-thumb is-sm">{{ mb_substr($kName, 0, 1) }}</span><div class="min-w-0 flex-1"><p class="po-item-name">{{ trim(mb_substr($kName, 1)) }}</p><p class="po-dim">{{ $loop->first ? 'base do kit' : 'enfeite · ' . $kQty . 'x' }}</p></div><strong class="po-item-total">{{ $orders->money($kVal) }}</strong></li>
+                                <li data-testid="order-kit-line"><span class="po-thumb is-sm">{{ mb_substr($kName, 0, 1) }}</span><div class="min-w-0 flex-1"><p class="po-item-name">{{ trim(mb_substr($kName, 1)) }}</p><p class="po-dim">{{ $loop->first ? 'base do kit' : (str_starts_with($kName, '🎨') ? 'opção escolhida' : 'enfeite · ' . $kQty . 'x') }}</p></div><strong class="po-item-total">{{ $orders->money($kVal) }}</strong></li>
                             @endforeach
                             @foreach ($q->extra_items ?? [] as $extra)
                                 <li><span class="po-thumb is-sm"><i class="bi bi-plus-lg"></i></span><div class="min-w-0 flex-1"><p class="po-item-name">{{ $extra['description'] ?? 'Item extra' }}</p><p class="po-dim">pedido à parte · {{ $extra['quantity'] ?? 1 }}x</p></div></li>
@@ -189,6 +189,12 @@
                         </ul>
                         @if ($q->delivery_method === 'entrega' && filled($q->shipping_address['text'] ?? null))
                             <p class="po-note"><i class="bi bi-geo-alt-fill text-violet-500"></i><span>{{ $q->shipping_address['text'] }}</span></p>
+                        @endif
+                        @foreach (\App\Services\Portal\KitService::details($q->kit) as [$dIc, $dTx])
+                            <p class="po-note" data-testid="order-kit-detail"><span>{{ $dIc }}</span><span>{{ $dTx }}</span></p>
+                        @endforeach
+                        @if ($kPh = \App\Services\Portal\KitService::photoUrls($q->kit))
+                            <div class="flex flex-wrap items-center gap-2 mt-2" data-testid="order-kit-photos"><span class="po-dim">📷 Fotos do cliente:</span>@foreach ($kPh as $ph)<a href="{{ $ph }}" target="_blank" rel="noopener" download><img src="{{ $ph }}" alt="" class="w-14 h-14 rounded-lg object-cover border border-slate-200 dark:border-slate-700"></a>@endforeach</div>
                         @endif
                         @if (filled($q->kit['message'] ?? null) || filled($q->kit['to'] ?? null))
                             <p class="po-note is-amber"><i class="bi bi-envelope-heart-fill"></i><span><b>Cartão do kit:</b> {{ filled($q->kit['to'] ?? null) ? 'Para ' . $q->kit['to'] . '. ' : '' }}{{ $q->kit['message'] ?? '' }}{{ filled($q->kit['from'] ?? null) ? ' De: ' . $q->kit['from'] : '' }}</span></p>
