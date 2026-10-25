@@ -17,7 +17,7 @@
 
 <div class="w-full px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-28 lg:pb-10 space-y-4" style="--ml-radius: 14px; --ml-blue: #3483fa">
     @include('portal.partials.storefront-styles')
-    <x-page-header :title="$colId ? 'Editar coleção' : 'Nova coleção'" icon="bi-collection" section="produtos" back-route="promotions.storefront"
+    <x-page-header :title="$colId ? 'Editar coleção' : 'Nova coleção'" icon="bi-collection" section="produtos" :back-route="route('promotions.storefront', ['tab' => 'colecoes'])"
                    subtitle="Uma fileira na página inicial do catálogo e uma página só dela">
         <x-slot:actions>
             <div class="hidden lg:flex items-center gap-2">

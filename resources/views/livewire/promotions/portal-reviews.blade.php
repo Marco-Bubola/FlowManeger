@@ -11,12 +11,14 @@
     <style>
         .rv-st { --v: 0; display: inline-block; letter-spacing: 1px; line-height: 1; background: linear-gradient(90deg, #f5b301 calc(var(--v) / 5 * 100%), #d4d4d8 0); -webkit-background-clip: text; background-clip: text; color: transparent; }
     </style>
-    <x-page-header title="Avaliações" icon="bi-star-half" section="produtos" back-route="promotions.index"
+    <x-page-header title="Avaliações" icon="bi-star-half" section="produtos" back-route="promotions.storefront"
                    subtitle="O que os clientes acharam dos produtos no catálogo">
         <x-slot:actions>
             <a href="{{ $catalogUrl }}" target="_blank" rel="noopener" class="{{ $phBtn }}"><i class="bi bi-box-arrow-up-right text-violet-500"></i><span class="hidden sm:inline">Ver catálogo</span></a>
         </x-slot:actions>
     </x-page-header>
+
+    <x-portal-settings-nav current="avaliacoes">
 
     <div class="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <div class="{{ $card }} p-4"><small class="block text-xs font-semibold text-slate-500">Nota média</small><b class="text-2xl font-black text-slate-900 dark:text-white">{{ $total ? number_format($avg, 1, ',', '') : '–' }}</b> <span class="text-lg">{!! $stars($avg) !!}</span></div>
@@ -74,4 +76,5 @@
             @endforeach
         </div>
     @endif
+    </x-portal-settings-nav>
 </div>

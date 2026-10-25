@@ -29,6 +29,10 @@
         $crumb = ['Início', 'bi-house', 'dashboard'];
     }
     $headerIcon = str_contains($icon, ' ') ? $icon : 'bi ' . $icon;
+    // Aceita nome de rota ("promotions.index") além de URL.
+    if ($backRoute && ! str_contains($backRoute, '/') && \Illuminate\Support\Facades\Route::has($backRoute)) {
+        $backRoute = route($backRoute);
+    }
 @endphp
 
 <div {{ $attributes->merge(['class' => "app-ph relative mb-4 sm:mb-6 rounded-[28px] border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(238,242,255,0.9),rgba(245,243,255,0.94))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl shadow-[0_20px_60px_rgba(15,23,42,0.12)]"]) }}>

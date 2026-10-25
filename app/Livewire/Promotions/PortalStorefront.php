@@ -52,6 +52,9 @@ class PortalStorefront extends Component
     // Escolher produtos (destaques, coleção ou link do banner)
     public string $pickFor = '';
     public string $pickSearch = '';
+    /** Filtro da janela: todos, vendidos, ofertas, novos, estoque */
+    public string $pickFilter = 'todos';
+    public int $pickCat = 0;
 
     protected $queryString = ['tab' => ['except' => 'inicio']];
 
@@ -222,24 +225,73 @@ class PortalStorefront extends Component
 
     /* ---------- Destaques ---------- */
 
+    /** O catálogo mostra até este tanto na fileira. */
+    public const FEATURED_MAX = 15;
+
+    /** Mudou a lista: já fica salva (sem botão de salvar). */
+    private function persistFeatured(bool $quiet = true): void
+    {
+        $this->featuredIds = array_values(array_unique(array_map('intval', $this->featuredIds)));
+        $s = PortalSetting::for(Auth::id());
+        $s->featured_ids = $this->featuredIds;
+        $s->save();
+        if (! $quiet) {
+            $this->dispatch('notify', type: 'success', message: 'Destaques salvos.');
+        }
+    }
+
     public function saveFeatured(): void
     {
         $this->validate(['featured_title' => ['nullable', 'string', 'max:60']], [], ['featured_title' => 'título']);
         $s = PortalSetting::for(Auth::id());
         $s->featured_title = trim($this->featured_title) ?: null;
-        $s->featured_ids = array_values(array_unique(array_map('intval', $this->featuredIds)));
         $s->save();
-        $this->dispatch('notify', type: 'success', message: 'Destaques salvos.');
+        $this->persistFeatured(false);
+    }
+
+    public function updatedFeaturedTitle(): void
+    {
+        $this->validate(['featured_title' => ['nullable', 'string', 'max:60']], [], ['featured_title' => 'título']);
+        $s = PortalSetting::for(Auth::id());
+        $s->featured_title = trim($this->featured_title) ?: null;
+        $s->save();
     }
 
     public function moveFeatured(int $index, int $dir): void
     {
         $this->featuredIds = $this->moved($this->featuredIds, $index, $dir);
+        $this->persistFeatured();
     }
 
     public function removeFeatured(int $id): void
     {
         $this->featuredIds = array_values(array_filter($this->featuredIds, fn ($v) => (int) $v !== $id));
+        $this->persistFeatured();
+    }
+
+    public function clearFeatured(): void
+    {
+        $this->featuredIds = [];
+        $this->persistFeatured(false);
+    }
+
+    /** Completa a fileira com os mais vendidos, as promoções ou os novos (sem repetir). */
+    public function fillFeatured(string $src): void
+    {
+        if (! in_array($src, ['vendidos', 'ofertas', 'novos'], true)) {
+            return;
+        }
+        $room = self::FEATURED_MAX - count($this->featuredIds);
+        $add = array_values(array_diff(StorefrontService::ruleRoots(Auth::id(), $src, [], self::FEATURED_MAX * 2), $this->featuredIds));
+        if ($room <= 0 || ! $add) {
+            $this->dispatch('notify', type: 'info', message: $room <= 0 ? 'A fileira já está cheia (' . self::FEATURED_MAX . ' produtos).' : 'Nenhum produto novo para colocar.');
+
+            return;
+        }
+        $add = array_slice($add, 0, $room);
+        $this->featuredIds = array_merge($this->featuredIds, $add);
+        $this->persistFeatured();
+        $this->dispatch('notify', type: 'success', message: count($add) === 1 ? '1 produto colocado nos destaques.' : count($add) . ' produtos colocados nos destaques.');
     }
 
     /* ---------- Coleções ---------- */
@@ -291,6 +343,8 @@ class PortalStorefront extends Component
     {
         $this->pickFor = $for === 'featured' ? $for : '';
         $this->pickSearch = '';
+        $this->pickFilter = 'todos';
+        $this->pickCat = 0;
     }
 
     public function closePicker(): void
@@ -304,11 +358,17 @@ class PortalStorefront extends Component
         if (! $root) {
             return;
         }
-        $prop = 'featuredIds';
-        $list = array_map('intval', $this->{$prop});
-        $this->{$prop} = in_array($root, $list, true)
-            ? array_values(array_filter($list, fn ($v) => $v !== $root))
-            : array_merge($list, [$root]);
+        $list = array_map('intval', $this->featuredIds);
+        if (in_array($root, $list, true)) {
+            $this->featuredIds = array_values(array_filter($list, fn ($v) => $v !== $root));
+        } elseif (count($list) >= self::FEATURED_MAX) {
+            $this->dispatch('notify', type: 'warning', message: 'O catálogo mostra até ' . self::FEATURED_MAX . ' destaques. Tire um para colocar outro.');
+
+            return;
+        } else {
+            $this->featuredIds = array_merge($list, [$root]);
+        }
+        $this->persistFeatured();
     }
 
     /* ---------- Apoio ---------- */
@@ -370,7 +430,7 @@ class PortalStorefront extends Component
         if (! $ids) {
             return collect();
         }
-        $found = Product::where('user_id', Auth::id())->whereIn('id', $ids)->get()->keyBy('id');
+        $found = Product::where('user_id', Auth::id())->whereIn('id', $ids)->with('activePromotion')->get()->keyBy('id');
         // Estoque somado da família, para avisar o que está esgotado (e não aparece no catálogo).
         $stock = Product::where('user_id', Auth::id())
             ->where(fn ($q) => $q->whereIn('parent_id', $ids)->orWhereIn('id', $ids))
@@ -402,13 +462,21 @@ class PortalStorefront extends Component
         $results = collect();
         if ($this->pickFor !== '') {
             $term = trim($this->pickSearch);
+            $ruled = in_array($this->pickFilter, ['vendidos', 'ofertas', 'novos'], true)
+                ? StorefrontService::ruleRoots($uid, $this->pickFilter, [], 60) : null;
             $results = Product::where('user_id', $uid)
                 ->whereNull('parent_id')
                 ->whereIn('status', ['active', 'ativo'])
+                ->with('activePromotion')
                 ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->where('name', 'like', "%{$term}%")->orWhere('product_code', 'like', "%{$term}%")))
-                ->orderByRaw('CASE WHEN stock_quantity > 0 OR made_to_order = 1 THEN 0 ELSE 1 END')
-                ->orderBy('name')
-                ->limit(30)->get();
+                ->when($ruled !== null, fn ($q) => $q->whereIn('id', $ruled ?: [0]))
+                ->when($this->pickFilter === 'estoque', fn ($q) => $q->where(fn ($w) => $w->where('stock_quantity', '>', 0)->orWhere('made_to_order', true)))
+                ->when($this->pickCat > 0, fn ($q) => $q->where('category_id', $this->pickCat))
+                ->when($ruled === null, fn ($q) => $q->orderByRaw('CASE WHEN stock_quantity > 0 OR made_to_order = 1 THEN 0 ELSE 1 END')->orderBy('name'))
+                ->limit(40)->get();
+            if ($ruled) {
+                $results = $results->sortBy(fn ($p) => array_search($p->id, $ruled, true))->values();
+            }
         }
         $picked = match ($this->pickFor) {
             'featured'   => array_map('intval', $this->featuredIds),
@@ -434,10 +502,29 @@ class PortalStorefront extends Component
             'featured'      => $this->productsById($this->featuredIds),
             'results'       => $results,
             'picked'        => $picked,
+            'pickCats'      => $this->pickFor !== '' ? \App\Models\Category::where('user_id', $uid)->whereIn('id_category', StorefrontService::categoryCounts($uid)->keys())->orderBy('name')->get(['id_category', 'name']) : collect(),
             'catalogUrl'    => route('portal.catalog', ['userId' => $uid]),
             'themes'        => $this->tab === 'inicio' ? HomeLayout::themes($this->kind) : [],
             'secInfo'       => $this->tab === 'inicio' ? $this->sectionInfo($uid, $banners, $collections) : [],
+            'navInfo'       => $this->navInfo($banners, $collections),
         ]);
+    }
+
+    /** Situação de cada parte no menu das configurações. */
+    private function navInfo($banners, $collections): array
+    {
+        $today = now()->startOfDay();
+        $live = $banners->flatten()->filter(fn ($b) => $b->active && (! $b->ends_at || $today->lte($b->ends_at)) && (! $b->starts_at || $today->gte($b->starts_at)))->count();
+        $n = fn ($v, $one, $many) => $v === 1 ? "1 {$one}" : "{$v} {$many}";
+        $theme = HomeLayout::THEMES[$this->home_theme]['name'] ?? null;
+
+        return [
+            'inicio'    => $theme ? 'Tema: ' . $theme : null,
+            'banners'   => $n($live, 'banner no ar', 'banners no ar'),
+            'destaques' => $n(count($this->featuredIds), 'produto escolhido', 'produtos escolhidos'),
+            'colecoes'  => $n($collections->where('active', true)->count(), 'coleção ligada', 'coleções ligadas'),
+            'aviso'     => $this->notice_active && trim($this->notice_text) !== '' ? 'Ligado' : 'Desligado',
+        ];
     }
 
     /** Uma linha de cada bloco: quanto tem e onde muda. */

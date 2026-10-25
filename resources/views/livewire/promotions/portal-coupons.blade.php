@@ -14,7 +14,7 @@
 @endphp
 
 <div class="w-full px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-24 space-y-4">
-    <x-page-header title="Cupons do catálogo" icon="bi-ticket-perforated" section="produtos" back-route="promotions.index"
+    <x-page-header title="Cupons do catálogo" icon="bi-ticket-perforated" section="produtos" back-route="promotions.storefront"
                    subtitle="Códigos de desconto que o cliente digita no carrinho do catálogo">
         <x-slot:meta>
             <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $tones['emerald'] }}"><i class="bi bi-check2-circle"></i>{{ $valid }} valendo</span>
@@ -28,6 +28,8 @@
                     class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 shadow-md shadow-rose-500/25 transition whitespace-nowrap"><i class="bi bi-plus-lg"></i><span class="hidden sm:inline">Novo cupom</span></button>
         </x-slot:actions>
     </x-page-header>
+
+    <x-portal-settings-nav current="cupons">
 
     @if($coupons->isEmpty())
         <x-empty-state icon="bi-ticket-perforated" tone="rose" title="Nenhum cupom ainda"
@@ -156,4 +158,5 @@
             </form>
         </div>
     @endif
+    </x-portal-settings-nav>
 </div>

@@ -44,20 +44,13 @@
 <div class="w-full px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-24 space-y-4" style="--ml-radius: 14px; --ml-blue: #3483fa">
     @include('portal.partials.storefront-styles')
     <x-page-header title="Vitrine do catálogo" icon="bi-shop-window" section="produtos" back-route="promotions.index"
-                   subtitle="Banners, produtos em destaque e coleções da página inicial do seu catálogo">
+                   subtitle="Tudo do seu catálogo online: aparência, vendas e clientes">
         <x-slot:actions>
             <a href="{{ $catalogUrl }}" target="_blank" rel="noopener" title="Abrir o catálogo" class="{{ $phBtn }}" data-testid="open-catalog"><i class="bi bi-box-arrow-up-right text-violet-500"></i><span class="hidden sm:inline">Ver catálogo</span></a>
         </x-slot:actions>
     </x-page-header>
 
-    <nav class="flex gap-1 overflow-x-auto rounded-2xl bg-slate-100 dark:bg-slate-800/70 p-1 [scrollbar-width:none]" aria-label="Partes da vitrine">
-        @foreach($tabs as $key => [$name, $ico])
-            <button type="button" wire:click="$set('tab', '{{ $key }}')" data-testid="tab-{{ $key }}"
-                    class="flex-1 min-w-max inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition {{ $tab === $key ? 'bg-white dark:bg-slate-900 shadow text-violet-600 dark:text-violet-300' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }}">
-                <i class="bi {{ $ico }}"></i>{{ $name }}
-            </button>
-        @endforeach
-    </nav>
+    <x-portal-settings-nav :current="$tab" :wire="true" :info="$navInfo">
 
     {{-- ===================== Página inicial ===================== --}}
     @if($tab === 'inicio')
@@ -279,24 +272,84 @@
 
     {{-- ===================== Destaques ===================== --}}
     @if($tab === 'destaques')
+        @php $fmax = \App\Livewire\Promotions\PortalStorefront::FEATURED_MAX; $fcount = $featured->count(); @endphp
         <section class="{{ $card }} p-4 sm:p-5 space-y-4" data-testid="featured-panel">
-            <div class="flex items-start gap-3 flex-wrap">
-                <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-amber-50 dark:bg-amber-500/15 text-amber-500 text-lg"><i class="bi bi-star-fill"></i></div>
-                <div class="min-w-0 flex-1">
-                    <h2 class="font-bold text-slate-900 dark:text-white">Produtos em destaque</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Uma fileira logo abaixo das categorias, na ordem que você montar. Produto esgotado some sozinho e volta quando tiver estoque.</p>
+            <div class="flex flex-col sm:flex-row sm:items-start gap-3">
+                <div class="flex items-start gap-3 min-w-0 flex-1">
+                    <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-amber-50 dark:bg-amber-500/15 text-amber-500 text-lg"><i class="bi bi-star-fill"></i></div>
+                    <div class="min-w-0">
+                        <h2 class="font-bold text-slate-900 dark:text-white">Produtos em destaque</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Uma fileira na página inicial, na ordem que você montar (até {{ $fmax }}). Esgotado some sozinho e volta quando tiver estoque. Tudo que você muda aqui já fica salvo.</p>
+                    </div>
                 </div>
-                <button type="button" wire:click="openPicker('featured')" class="{{ $phBtn }}" data-testid="featured-pick"><i class="bi bi-plus-lg text-violet-500"></i>Escolher produtos</button>
+                <button type="button" wire:click="openPicker('featured')" class="{{ $primary }} w-full sm:w-auto" data-testid="featured-pick"><i class="bi bi-plus-lg"></i>Escolher produtos</button>
             </div>
-            <div class="max-w-md">
-                <label class="{{ $label }}" for="sf-ft">Título da fileira</label>
-                <input id="sf-ft" type="text" wire:model="featured_title" maxlength="60" placeholder="Destaques da loja" class="{{ $input }}">
-                @error('featured_title')<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
+
+            <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                <div>
+                    <label class="{{ $label }}" for="sf-ft">Título da fileira</label>
+                    <input id="sf-ft" type="text" wire:model.blur="featured_title" maxlength="60" placeholder="Destaques da loja" class="{{ $input }}">
+                    @error('featured_title')<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
+                </div>
+                <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 sm:pb-2.5">
+                    <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 {{ $fcount >= $fmax ? $tones['amber'] : $tones['slate'] }}">{{ $fcount }} de {{ $fmax }}</span>
+                    <span wire:loading.flex wire:target="pick,moveFeatured,removeFeatured,fillFeatured,clearFeatured,featured_title" class="items-center gap-1 text-violet-500"><i class="bi bi-arrow-repeat animate-spin"></i>Salvando</span>
+                    <span wire:loading.remove wire:target="pick,moveFeatured,removeFeatured,fillFeatured,clearFeatured,featured_title" class="inline-flex items-center gap-1 text-emerald-600"><i class="bi bi-cloud-check"></i>Salvo</span>
+                </div>
             </div>
-            @include('livewire.promotions.partials.storefront-picked', ['items' => $featured, 'move' => 'moveFeatured', 'remove' => 'removeFeatured', 'empty' => 'Nenhum produto em destaque. Toque em Escolher produtos.'])
-            <div class="flex justify-end">
-                <button type="button" wire:click="saveFeatured" class="{{ $primary }}" data-testid="featured-save"><i class="bi bi-check2"></i><span wire:loading.remove wire:target="saveFeatured">Salvar destaques</span><span wire:loading wire:target="saveFeatured">Salvando…</span></button>
+
+            <div class="flex gap-2 overflow-x-auto -mx-1 px-1 pb-1 [scrollbar-width:none]">
+                <span class="shrink-0 self-center text-xs font-semibold text-slate-500">Completar com:</span>
+                @foreach(['vendidos' => ['Mais vendidos', 'bi-fire'], 'ofertas' => ['Em promoção', 'bi-percent'], 'novos' => ['Novidades', 'bi-stars']] as $src => [$sname, $sico])
+                    <button type="button" wire:click="fillFeatured('{{ $src }}')" class="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-violet-400 hover:text-violet-600" data-testid="featured-fill-{{ $src }}"><i class="bi {{ $sico }} text-violet-500"></i>{{ $sname }}</button>
+                @endforeach
+                @if($fcount)
+                    <button type="button" wire:click="clearFeatured" wire:confirm="Tirar todos os produtos dos destaques?" class="shrink-0 ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10"><i class="bi bi-trash3"></i>Limpar</button>
+                @endif
             </div>
+
+            @if($featured->isEmpty())
+                <button type="button" wire:click="openPicker('featured')" class="w-full rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-8 text-center hover:border-violet-300 transition">
+                    <i class="bi bi-star text-3xl text-amber-400"></i>
+                    <b class="block mt-2 text-slate-800 dark:text-slate-100">Nenhum produto em destaque</b>
+                    <small class="block text-slate-500">Toque para escolher, ou use "Completar com" acima.</small>
+                </button>
+            @else
+                <ol class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2.5 sm:gap-3" data-testid="featured-list">
+                    @foreach($featured as $p)
+                        @php $promo = $p->livePromotion(); @endphp
+                        <li wire:key="ft-{{ $p->id }}" class="min-w-0 relative flex flex-col rounded-2xl border {{ $p->sf_available ? 'border-slate-200 dark:border-slate-700' : 'border-amber-300 dark:border-amber-500/40' }} bg-white dark:bg-slate-900 overflow-hidden" data-testid="featured-item">
+                            <div class="relative aspect-square bg-slate-50 dark:bg-slate-800">
+                                <img src="{{ $p->image_url }}" alt="" class="w-full h-full object-contain {{ $p->sf_available ? '' : 'opacity-50 grayscale' }}" loading="lazy">
+                                <span class="absolute left-2 top-2 min-w-[26px] h-[26px] px-1.5 rounded-full bg-slate-900/80 text-white text-xs font-bold flex items-center justify-center">{{ $loop->iteration }}</span>
+                                <button type="button" wire:click="removeFeatured({{ $p->id }})" class="absolute right-2 top-2 w-8 h-8 rounded-full bg-white/95 dark:bg-slate-900/90 shadow text-rose-500 hover:bg-rose-50" title="Tirar dos destaques" data-testid="featured-remove"><i class="bi bi-x-lg"></i></button>
+                                @if($promo)
+                                    <span class="absolute left-2 bottom-2 rounded-md bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0.5">PROMOÇÃO</span>
+                                @endif
+                                @unless($p->sf_available)
+                                    <span class="absolute inset-x-2 bottom-2 rounded-md bg-amber-500 text-white text-[10px] font-bold px-1.5 py-1 text-center">Esgotado: não aparece agora</span>
+                                @endunless
+                            </div>
+                            <div class="p-2.5 flex-1 flex flex-col">
+                                <b class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 line-clamp-2 leading-snug">{{ $p->name }}</b>
+                                <span class="mt-1 text-sm font-bold text-slate-900 dark:text-white">
+                                    @if($promo)<s class="text-[11px] font-normal text-slate-400 mr-1">{{ $money($p->price_sale) }}</s>{{ $money($promo->promo_price) }}@else{{ $money($p->price_sale) }}@endif
+                                </span>
+                                <span class="text-[11px] text-slate-400 truncate">{{ $p->product_code }}</span>
+                                <div class="mt-auto pt-2 flex items-center gap-1">
+                                    <button type="button" wire:click="moveFeatured({{ $loop->index }}, -1)" @disabled($loop->first) class="flex-1 h-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-25" title="Mover para antes"><i class="bi bi-arrow-left"></i></button>
+                                    <button type="button" wire:click="moveFeatured({{ $loop->index }}, 1)" @disabled($loop->last) class="flex-1 h-8 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-25" title="Mover para depois"><i class="bi bi-arrow-right"></i></button>
+                                </div>
+                            </div>
+                        </li>
+                    @endforeach
+                    @if($fcount < $fmax)
+                        <li class="min-w-0">
+                            <button type="button" wire:click="openPicker('featured')" class="w-full h-full min-h-[180px] rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-400 hover:border-violet-300 hover:text-violet-500 flex flex-col items-center justify-center gap-1 transition"><i class="bi bi-plus-circle text-2xl"></i><span class="text-xs font-semibold">Adicionar</span></button>
+                        </li>
+                    @endif
+                </ol>
+            @endif
         </section>
     @endif
 
@@ -387,6 +440,8 @@
             </div>
         </section>
     @endif
+
+    </x-portal-settings-nav>
 
     @include('livewire.promotions.partials.storefront-picker')
 </div>

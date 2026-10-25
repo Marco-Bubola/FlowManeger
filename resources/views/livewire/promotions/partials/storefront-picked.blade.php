@@ -2,9 +2,9 @@
 @if($items->isEmpty())
     <p class="text-sm text-slate-500 dark:text-slate-400 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 p-4 text-center">{{ $empty }}</p>
 @else
-    <ol class="grid gap-2 {{ $cols ?? 'sm:grid-cols-2 2xl:grid-cols-3' }}" data-testid="picked-list">
+    <ol class="grid grid-cols-1 gap-2 {{ $cols ?? 'sm:grid-cols-2 2xl:grid-cols-3' }}" data-testid="picked-list">
         @foreach($items as $p)
-            <li wire:key="pd-{{ $move }}-{{ $p->id }}" class="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2">
+            <li wire:key="pd-{{ $move }}-{{ $p->id }}" class="min-w-0 flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2">
                 <span class="w-6 text-center text-xs font-bold text-slate-400">{{ $loop->iteration }}</span>
                 <img src="{{ $p->image_url }}" alt="" class="w-11 h-11 rounded-lg object-cover bg-slate-100 shrink-0" loading="lazy">
                 <span class="min-w-0 flex-1">

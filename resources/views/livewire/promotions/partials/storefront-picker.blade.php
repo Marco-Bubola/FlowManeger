@@ -13,6 +13,21 @@
                     <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                     <input type="search" wire:model.live.debounce.300ms="pickSearch" placeholder="Buscar por nome ou código" class="{{ $input }} pl-9" autofocus data-testid="picker-search">
                 </div>
+                @isset($pickCats)
+                    {{-- Filtros rápidos: o que mais vende, promoções, novos, com estoque e por categoria --}}
+                    <div class="flex gap-1.5 overflow-x-auto -mx-1 px-1 [scrollbar-width:none]">
+                        @foreach(['todos' => ['Todos', 'bi-grid'], 'vendidos' => ['Mais vendidos', 'bi-fire'], 'ofertas' => ['Em promoção', 'bi-percent'], 'novos' => ['Novidades', 'bi-stars'], 'estoque' => ['Com estoque', 'bi-box-seam']] as $fk => [$fname, $fico])
+                            <button type="button" wire:click="$set('pickFilter', '{{ $fk }}')" data-testid="picker-filter-{{ $fk }}"
+                                    class="shrink-0 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold border transition {{ $pickFilter === $fk ? 'bg-violet-500 border-violet-500 text-white' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-violet-300' }}"><i class="bi {{ $fico }}"></i>{{ $fname }}</button>
+                        @endforeach
+                    </div>
+                    @if($pickCats->count() > 1)
+                        <select wire:model.live="pickCat" class="{{ $input }} !py-2" aria-label="Categoria">
+                            <option value="0">Todas as categorias</option>
+                            @foreach($pickCats as $pc)<option value="{{ $pc->id_category }}">{{ $pc->name }}</option>@endforeach
+                        </select>
+                    @endif
+                @endisset
             </div>
             <ul class="flex-1 overflow-y-auto overscroll-contain p-2 sm:p-3 grid gap-1">
                 @forelse($results as $p)
@@ -22,7 +37,15 @@
                             <img src="{{ $p->image_url }}" alt="" class="w-12 h-12 rounded-lg object-cover bg-slate-100 shrink-0" loading="lazy">
                             <span class="min-w-0 flex-1">
                                 <span class="block text-sm font-semibold text-slate-800 dark:text-slate-100 line-clamp-2">{{ $p->name }}</span>
-                                <span class="block text-xs text-slate-500">{{ $p->product_code }} · {{ $money($p->price_sale) }}</span>
+                                @php
+                                    $pp = $p->relationLoaded('activePromotion') ? $p->livePromotion() : null;
+                                    $out = ! $p->made_to_order && (int) $p->stock_quantity <= 0;
+                                @endphp
+                                <span class="flex flex-wrap items-center gap-x-1.5 text-xs text-slate-500">
+                                    <span>{{ $p->product_code }}</span>·
+                                    @if($pp)<s class="text-slate-400">{{ $money($p->price_sale) }}</s><b class="text-emerald-600">{{ $money($pp->promo_price) }}</b>@else<span>{{ $money($p->price_sale) }}</span>@endif
+                                    @if($out)<span class="font-semibold text-amber-600">· sem estoque</span>@elseif($p->made_to_order)<span class="text-sky-600">· sob encomenda</span>@else<span>· {{ (int) $p->stock_quantity }} em estoque</span>@endif
+                                </span>
                             </span>
                             <span class="shrink-0 w-7 h-7 rounded-full flex items-center justify-center {{ $on ? 'bg-violet-500 text-white' : 'border border-slate-300 dark:border-slate-600 text-transparent' }}"><i class="bi bi-check-lg"></i></span>
                         </button>
