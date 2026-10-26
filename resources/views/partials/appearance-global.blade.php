@@ -17,6 +17,10 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
     outline-color: var(--s-accent, #9333ea);
 }
 
+/* Fonte escolhida em Aparência */
+html.fm-custom-font { --default-font-family: var(--fm-font); --font-sans: var(--fm-font); }
+html.fm-custom-font, html.fm-custom-font body { font-family: var(--fm-font) !important; }
+
 /* Reduzir animações */
 html.no-animations *,
 html.no-animations *::before,

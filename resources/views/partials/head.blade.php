@@ -101,9 +101,20 @@
         var on = function (key) { var v = localStorage.getItem(key); return v === '1' || v === 'true'; };
         if (on('flowmanager:compact')) root.classList.add('compact-mode');
         if (on('flowmanager:no-animations')) root.classList.add('no-animations');
+        // Fonte escolhida em Aparência (carregada do mesmo serviço da fonte padrão)
+        var FONTS = { inter: ['inter:400,500,600,700', 'Inter'], poppins: ['poppins:400,500,600,700', 'Poppins'], nunito: ['nunito:400,600,700', 'Nunito'], roboto: ['roboto:400,500,700', 'Roboto'] };
+        var font = FONTS[localStorage.getItem('flowmanager:font')];
+        if (font) {
+            var link = document.createElement('link');
+            link.rel = 'stylesheet'; link.href = 'https://fonts.bunny.net/css?family=' + font[0];
+            document.head.appendChild(link);
+            root.style.setProperty('--fm-font', "'" + font[1] + "', ui-sans-serif, system-ui, sans-serif");
+            root.classList.add('fm-custom-font');
+        }
     } catch(e) {}
 })();
 </script>
+@include('partials.app-palette')
 
 <!-- Critical CSS: sidebar oculta no mobile ANTES do body renderizar (evita flash no F5) -->
 <style>

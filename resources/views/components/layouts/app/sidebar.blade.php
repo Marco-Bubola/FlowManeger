@@ -845,6 +845,14 @@
                                         <div class="{{ request()->routeIs('settings.profile') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
                                     </a>
 
+<a href="{{ route('settings.appearance') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('settings.appearance') ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 dark:from-fuchsia-500/20 dark:to-violet-500/20 text-fuchsia-600 dark:text-fuchsia-400 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('settings.appearance') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/30' : '' }}">
+                                            <i class="bi bi-palette2 text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Aparência do app</span>
+                                        <div class="{{ request()->routeIs('settings.appearance') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
+                                    </a>
+
                                     <a href="{{ route('access.center') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('access.center') ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 dark:from-fuchsia-500/20 dark:to-violet-500/20 text-fuchsia-600 dark:text-fuchsia-400 font-semibold' : '' }}" wire:navigate.hover>
                                         <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('access.center') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/30' : '' }}">
                                             <i class="bi bi-person-lock text-base"></i>
@@ -1567,6 +1575,20 @@
                             <span class="more-sheet-account-copy">
                                 <strong>Meu acesso</strong>
                                 <small>Credenciais e uso</small>
+                            </span>
+                        </a>
+                        <a href="{{ route('settings.appearance') }}" class="more-sheet-account-link" wire:navigate.hover onclick="closeMoreSheet()">
+                            <span class="more-sheet-account-icon is-pink"><i class="bi bi-palette2"></i></span>
+                            <span class="more-sheet-account-copy">
+                                <strong>Aparência</strong>
+                                <small>Cores e fonte do app</small>
+                            </span>
+                        </a>
+                        <a href="{{ route('settings.plan') }}" class="more-sheet-account-link" wire:navigate.hover onclick="closeMoreSheet()">
+                            <span class="more-sheet-account-icon is-violet"><i class="bi bi-credit-card"></i></span>
+                            <span class="more-sheet-account-copy">
+                                <strong>Meu plano</strong>
+                                <small>Uso e assinatura</small>
                             </span>
                         </a>
                         <a href="{{ route('settings.team') }}" class="more-sheet-account-link" wire:navigate.hover onclick="closeMoreSheet()">

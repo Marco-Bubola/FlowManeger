@@ -86,300 +86,386 @@ new class extends Component {
     }
 }; ?>
 
+@php
+    $au = Auth::user();
+    $auVerified = $au->hasVerifiedEmail();
+    $auGoogle = ! empty($au->google_id);
+    $auPlan = null;
+    try { $auPlan = $au->plan(); } catch (\Throwable $e) { $auPlan = null; }
+    $auSince = $au->created_at ? ucfirst($au->created_at->locale('pt_BR')->translatedFormat('F \d\e Y')) : '—';
+    $auDays = $au->created_at ? (int) $au->created_at->diffInDays(now()) : 0;
+    $photoUrl = ($profile_picture && is_object($profile_picture) && method_exists($profile_picture, 'temporaryUrl'))
+        ? rescue(fn () => $profile_picture->temporaryUrl(), null, false)
+        : ($au->profile_picture ? asset('storage/' . $au->profile_picture) : null);
+
+    // O que falta para o perfil ficar completo (cada item leva ao campo)
+    $checks = [
+        ['Foto de perfil', ! empty($au->profile_picture), 'acc-photo', 'bi-camera'],
+        ['E-mail confirmado', $auVerified, 'acc-contato', 'bi-envelope-check'],
+        ['Telefone', ! empty($au->phone), 'acc-contato', 'bi-telephone'],
+        ['Cidade', ! empty($au->location), 'acc-contato', 'bi-geo-alt'],
+        ['Sobre você', ! empty($au->about_me), 'acc-dados', 'bi-chat-quote'],
+        ['Aniversário', ! empty($au->birth_date), 'acc-dados', 'bi-cake2'],
+        ['Site ou rede social', ! empty($au->website) || ! empty($au->instagram) || ! empty($au->linkedin) || ! empty($au->twitter), 'acc-redes', 'bi-share'],
+    ];
+    $done = collect($checks)->where(1, true)->count();
+    $pct = (int) round($done / count($checks) * 100);
+
+    $shortcuts = [
+        ['settings.password', 'Senha e login', 'Trocar senha e entrar com Google', 'bi-key', 'from-amber-500 to-orange-500'],
+        ['settings.security', 'Segurança', 'Verificação em duas etapas', 'bi-shield-lock', 'from-emerald-500 to-teal-500'],
+        ['settings.devices', 'Dispositivos', 'Onde sua conta está aberta', 'bi-laptop', 'from-sky-500 to-blue-600'],
+        ['settings.team', 'Equipe', 'Quem mais usa a loja', 'bi-people', 'from-indigo-500 to-purple-500'],
+        ['settings.plan', 'Meu plano', $auPlan?->name ? 'Plano ' . $auPlan->name : 'Uso e assinatura', 'bi-credit-card', 'from-purple-500 to-pink-500'],
+        ['settings.appearance', 'Aparência do app', 'Cores, fonte e modo escuro', 'bi-palette2', 'from-pink-500 to-rose-500'],
+    ];
+@endphp
+
 <section class="settings-profile-page w-full mobile-393-base">
-
     <x-settings.layout :heading="''">
-        <div class="s-pg-grid">
-        <div class="s-col-main">
 
-        {{-- ── CARD DE PERFIL ── --}}
-        <div class="settings-card">
+    <div class="acc-page">
 
-            {{-- Cabeçalho do card --}}
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 7.5a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 19.5a8.25 8.25 0 0 1 15 0"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">{{ __('Perfil') }}</p>
-                        <p class="settings-card-desc">{{ __('Informações pessoais e foto de perfil') }}</p>
-                    </div>
-                </div>
-                <span class="s-badge s-badge-accent">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.75rem;height:0.75rem"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0"/></svg>
-                    Conta pessoal
-                </span>
+        {{-- Capa com foto, nome e progresso --}}
+        <div class="acc-hero" id="acc-photo">
+            <div class="acc-cover bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">
+                <span class="acc-cover-glow"></span>
             </div>
-
-            {{-- Barra de completude --}}
-            <div class="settings-completion-wrap">
-                <div style="width:2.2rem;height:2.2rem;border-radius:50%;background:rgba(var(--s-accent-rgb),0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--s-accent)">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                </div>
-                <div class="settings-completion-text">
-                    <div class="settings-completion-label">
-                        Completude do perfil
-                        <span class="settings-completion-pct" id="completionPct">—</span>
-                    </div>
-                    <div class="settings-completion-bar">
-                        <div class="settings-completion-fill" id="completionFill" style="width:0%"></div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Avatar --}}
-            <form wire:submit="updateProfileInformation">
-                <div class="settings-avatar-row">
-                    <div class="settings-avatar-wrap" onclick="document.querySelector('[data-avatar-input]').click()">
-                        @if(auth()->user()->profile_picture)
-                            <img id="avatarPreviewImg"
-                                 src="{{ asset('storage/' . auth()->user()->profile_picture) }}"
-                                 alt="Foto de perfil"
-                                 class="settings-avatar-img">
-                        @else
-                            <div class="settings-avatar-placeholder" id="avatarPlaceholder">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:2.5rem;height:2.5rem">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 7.5a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 19.5a8.25 8.25 0 0 1 15 0"/>
-                                </svg>
-                            </div>
-                            <img id="avatarPreviewImg" src="" alt="Foto de perfil" class="settings-avatar-img hidden">
+            <div class="acc-hero-body">
+                <label class="acc-avatar" title="Trocar foto">
+                    @if($photoUrl)
+                        <img src="{{ $photoUrl }}" alt="Foto de perfil">
+                    @else
+                        <span class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">{{ $au->initials() }}</span>
+                    @endif
+                    <i class="bi bi-camera-fill"></i>
+                    <input type="file" wire:model="profile_picture" data-avatar-input accept="image/*" class="hidden">
+                    <em wire:loading wire:target="profile_picture"><i class="bi bi-arrow-repeat animate-spin"></i></em>
+                </label>
+                <div class="acc-id">
+                    <h2>{{ $au->name }}
+                        @if($auVerified)<i class="bi bi-patch-check-fill text-emerald-500" title="E-mail confirmado"></i>@endif
+                    </h2>
+                    <p>{{ $au->email }}</p>
+                    <div class="acc-chips">
+                        <span class="bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="bi bi-patch-check"></i> Plano {{ $auPlan?->name ?? 'Grátis' }}</span>
+                        <span class="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"><i class="bi bi-calendar-heart"></i> Desde {{ $auSince }}</span>
+                        @if($auGoogle)
+                            <span class="bg-sky-50 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300"><i class="bi bi-google"></i> Google vinculado</span>
                         @endif
-                        <div class="settings-avatar-overlay">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.25rem;height:1.25rem">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"/>
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div class="settings-avatar-info">
-                        <h3>{{ auth()->user()->name }}</h3>
-                        <p>{{ auth()->user()->email }}</p>
-                        <div>
-                            <label style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 0.9rem;border-radius:0.6rem;font-size:0.8rem;font-weight:600;cursor:pointer;background:rgba(var(--s-accent-rgb),0.1);color:var(--s-accent);border:1.5px solid rgba(var(--s-accent-rgb),0.15);transition:all 0.18s">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.9rem;height:0.9rem"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/></svg>
-                                Trocar foto
-                                <input type="file" wire:model="profile_picture" data-avatar-input accept="image/*" style="display:none">
-                            </label>
-                        </div>
-                        <p class="settings-avatar-tips">JPG, PNG ou WebP · Máx 2MB</p>
-                        @error('profile_picture') <p style="color:#ef4444;font-size:0.75rem;margin-top:0.25rem">{{ $message }}</p> @enderror
-                    </div>
-                </div>
-
-                <hr class="settings-divider">
-
-                {{-- Dados do perfil --}}
-                <div class="settings-form-grid">
-                    {{-- Nome --}}
-                    <div>
-                        <label class="settings-field-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 7.5a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
-                            {{ __('Nome completo') }} <span style="color:#ef4444">*</span>
-                        </label>
-                        <flux:input wire:model="name" type="text" required autofocus autocomplete="name" placeholder="Seu nome completo"/>
-                        @error('name') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
-                    </div>
-
-                    {{-- Email --}}
-                    <div>
-                        <label class="settings-field-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
-                            {{ __('E-mail') }} <span style="color:#ef4444">*</span>
-                        </label>
-                        <flux:input wire:model="email" type="email" required autocomplete="email" placeholder="seu@email.com"/>
-                        @error('email') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
-                    </div>
-
-                    {{-- Telefone --}}
-                    <div>
-                        <label class="settings-field-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"/></svg>
-                            {{ __('Telefone') }}
-                        </label>
-                        <flux:input wire:model="phone" type="text" autocomplete="tel" id="phoneInput"
-                            inputmode="tel" placeholder="+55 (11) 99999-9999"/>
-                        @error('phone') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
-                    </div>
-
-                    {{-- Localização --}}
-                    <div>
-                        <label class="settings-field-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
-                            {{ __('Localização') }}
-                        </label>
-                        <flux:input wire:model="location" type="text" placeholder="Cidade, Estado"/>
-                        @error('location') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
-                    </div>
-
-                    {{-- Sobre mim (full) --}}
-                    <div class="settings-form-full">
-                        <label class="settings-field-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"/></svg>
-                            {{ __('Sobre mim') }}
-                        </label>
-                        <flux:textarea wire:model="about_me" rows="3" placeholder="Conte um pouco sobre você..."/>
-                        @error('about_me') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
-                    </div>
-
-                    {{-- Google ID (full) --}}
-                    <div class="settings-form-full">
-                        <label class="settings-field-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/></svg>
-                            {{ __('Google ID') }}
-                            <span class="s-badge s-badge-accent" style="margin-left:0.35rem">Opcional</span>
-                        </label>
-                        <flux:input wire:model="google_id" type="text" placeholder="ID Google vinculado"/>
-                        @error('google_id') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
-                    </div>
-
-                    {{-- Data de nascimento --}}
-                    <div>
-                        <label class="settings-field-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5A2.25 2.25 0 0 0 12.75 4.5h-1.5A2.25 2.25 0 0 0 9 6.75v1.5m3 13.5V21m-3-3h6m-6 0a1.5 1.5 0 0 1-1.5-1.5V15a1.5 1.5 0 0 1 1.5-1.5h6a1.5 1.5 0 0 1 1.5 1.5v.375a1.5 1.5 0 0 1-1.5 1.5H9Z"/></svg>
-                            {{ __('Data de nascimento') }}
-                        </label>
-                        <flux:input wire:model="birth_date" type="date" placeholder="dd/mm/aaaa"/>
-                        @error('birth_date') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
-                    </div>
-                </div>
-
-                <hr class="settings-divider">
-
-                {{-- Redes Sociais --}}
-                <div style="margin-bottom:1rem">
-                    <p class="settings-sect-label">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.9rem;height:0.9rem;color:var(--s-accent)"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/></svg>
-                        Presenca Online
-                    </p>
-                    <div class="settings-form-grid">
-                        {{-- Website --}}
-                        <div>
-                            <label class="settings-field-label">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253M3 12c0 .778.099 1.533.284 2.253"/></svg>
-                                Website
-                            </label>
-                            <flux:input wire:model="website" type="url" placeholder="https://seusite.com"/>
-                            @error('website') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
-                        </div>
-
-                        {{-- LinkedIn --}}
-                        <div>
-                            <label class="settings-field-label">
-                                <svg viewBox="0 0 24 24" fill="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6;color:#0077b5"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                                LinkedIn
-                            </label>
-                            <flux:input wire:model="linkedin" type="text" placeholder="usuario-linkedin"/>
-                            @error('linkedin') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
-                        </div>
-
-                        {{-- Instagram --}}
-                        <div>
-                            <label class="settings-field-label">
-                                <svg viewBox="0 0 24 24" fill="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6;color:#e1306c"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
-                                Instagram
-                            </label>
-                            <flux:input wire:model="instagram" type="text" placeholder="@seuperfil"/>
-                            @error('instagram') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
-                        </div>
-
-                        {{-- Twitter/X --}}
-                        <div>
-                            <label class="settings-field-label">
-                                <svg viewBox="0 0 24 24" fill="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.258 5.63L18.244 2.25Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                                Twitter / X
-                            </label>
-                            <flux:input wire:model="twitter" type="text" placeholder="@seuusername"/>
-                            @error('twitter') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Email não verificado --}}
-                @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !auth()->user()->hasVerifiedEmail())
-                <div style="padding:0.875rem 1rem;background:#fefce8;border:1px solid #fde68a;border-radius:0.75rem;margin-top:1rem;font-size:0.83rem;color:#92400e;display:flex;gap:0.75rem;align-items:flex-start">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.1rem;height:1.1rem;flex-shrink:0;margin-top:0.1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
-                    <div>
-                        {{ __('Seu e-mail não está verificado.') }}
-                        <button type="button" wire:click.prevent="resendVerificationNotification" style="text-decoration:underline;cursor:pointer;background:none;border:none;color:#d97706;font-weight:600;font-size:0.83rem;padding:0">
-                            {{ __('Reenviar e-mail de verificação') }}
-                        </button>
-                        @if (session('status') === 'verification-link-sent')
-                            <p style="color:#15803d;font-weight:600;margin-top:0.25rem">{{ __('Link enviado! Verifique sua caixa de entrada.') }}</p>
+                        @if($au->location)
+                            <span class="bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"><i class="bi bi-geo-alt"></i> {{ $au->location }}</span>
                         @endif
                     </div>
+                    @error('profile_picture') <p class="acc-err">{{ $message }}</p> @enderror
+                    @if($profile_picture && is_object($profile_picture))
+                        <p class="acc-hint text-amber-600 dark:text-amber-400"><i class="bi bi-info-circle"></i> Foto nova escolhida. Toque em Salvar para guardar.</p>
+                    @else
+                        <p class="acc-hint">Toque na foto para trocar. JPG, PNG ou WebP até 2 MB.</p>
+                    @endif
                 </div>
-                @endif
-
-                <hr class="settings-divider">
-
-                {{-- Botão salvar --}}
-                <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
-                    <button data-mobile-save type="submit" class="settings-save-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                        {{ __('Salvar alterações') }}
-                    </button>
-                    <x-action-message on="profile-updated">
-                        <span style="display:inline-flex;align-items:center;gap:0.35rem;color:#059669;font-size:0.83rem;font-weight:600">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                            {{ __('Salvo com sucesso!') }}
-                        </span>
-                    </x-action-message>
-                </div>
-            </form>
-        </div>
-
-        </div>{{-- /s-col-main --}}
-
-        <div class="s-col-side">
-
-        {{-- CARD: Informações da conta --}}
-        @php
-            $au = Auth::user();
-            $auVerified = $au->hasVerifiedEmail();
-            $auGoogle   = !empty($au->google_id);
-            $auDays     = $au->created_at ? (int)$au->created_at->diffInDays(now()) : 0;
-            $auMonths   = $au->created_at ? (int) floor($au->created_at->diffInMonths(now())) : 0;
-        @endphp
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon" style="background:rgba(99,102,241,.1);color:#6366f1">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
-                    </div>
+                <div class="acc-progress" style="--pct: {{ $pct }}">
+                    <div class="acc-ring"><b>{{ $pct }}%</b></div>
                     <div>
-                        <p class="settings-card-title">Informações da conta</p>
-                        <p class="settings-card-desc">Detalhes e status da sua conta FlowManager</p>
+                        <p>{{ $pct === 100 ? 'Perfil completo' : 'Complete seu perfil' }}</p>
+                        <small>{{ $done }} de {{ count($checks) }} itens</small>
                     </div>
                 </div>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;padding:0 1.25rem 1.25rem">
-                @foreach([
-                    ['Membro desde',$au->created_at ? $au->created_at->format('d/m/Y') : '—','rgba(16,185,129,.08)','#10b981'],
-                    ['Tempo de conta',$auMonths > 0 ? $auMonths.($auMonths === 1 ? ' mês' : ' meses') : $auDays.($auDays === 1 ? ' dia' : ' dias'),'rgba(245,158,11,.08)','#f59e0b'],
-                    ['E-mail',$auVerified ? 'Verificado ✓' : 'Não verificado',$auVerified ? 'rgba(16,185,129,.08)' : 'rgba(239,68,68,.08)',$auVerified ? '#10b981' : '#ef4444'],
-                    ['Login Google',$auGoogle ? 'Vinculado ✓' : 'Não vinculado',$auGoogle ? 'rgba(66,133,244,.08)' : 'rgba(148,163,184,.08)',$auGoogle ? '#4285F4' : '#94a3b8'],
-                    ['Última atualização',$au->updated_at ? $au->updated_at->locale('pt_BR')->diffForHumans() : '—','rgba(var(--s-accent-rgb),.06)','var(--s-accent)'],
-                ] as [$lbl,$val,$bg,$col])
-                <div class="settings-info-tile" style="background:{{ $bg }};border-color:transparent">
-                    <p class="settings-info-tile-label">{{ $lbl }}</p>
-                    <p class="settings-info-tile-val" style="color:{{ $col }}">{{ $val }}</p>
-                </div>
+            <div class="acc-checks">
+                @foreach($checks as [$lbl, $ok, $anchor, $icon])
+                    <a href="#{{ $anchor }}" class="acc-check {{ $ok ? 'is-ok' : '' }}">
+                        <i class="bi {{ $ok ? 'bi-check-circle-fill' : $icon }}"></i> {{ $lbl }}
+                    </a>
                 @endforeach
             </div>
         </div>
 
-        </div>{{-- /s-col-side --}}
+        <div class="acc-grid">
+            <form wire:submit="updateProfileInformation" class="acc-main">
+                {{-- Dados pessoais --}}
+                <div class="ap-card" id="acc-dados">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-indigo-500 to-purple-500"><i class="bi bi-person-vcard"></i></span>
+                        <div class="min-w-0">
+                            <h2>Dados pessoais</h2>
+                            <p>Como você aparece no app, nos recibos e para a sua equipe.</p>
+                        </div>
+                    </div>
+                    <div class="acc-fields">
+                        <div class="acc-field acc-span2">
+                            <label for="acc-name">Nome completo <b>*</b></label>
+                            <div class="acc-input"><i class="bi bi-person"></i><input id="acc-name" wire:model="name" type="text" required autocomplete="name" placeholder="Seu nome completo"></div>
+                            @error('name') <p class="acc-err">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="acc-field">
+                            <label for="acc-birth">Data de nascimento</label>
+                            <div class="acc-input"><i class="bi bi-cake2"></i><input id="acc-birth" wire:model="birth_date" type="date"></div>
+                            @error('birth_date') <p class="acc-err">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="acc-field acc-span3">
+                            <label for="acc-about">Sobre você</label>
+                            <div class="acc-input acc-textarea"><textarea id="acc-about" wire:model="about_me" rows="3" maxlength="1000" placeholder="Conte um pouco sobre você ou sobre a sua loja"></textarea></div>
+                            @error('about_me') <p class="acc-err">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                </div>
 
-        <div class="s-col-full">
-        {{-- EXCLUIR CONTA --}}
-        <livewire:settings.delete-user-form />
-        </div>{{-- /s-col-full --}}
+                {{-- Contato --}}
+                <div class="ap-card" id="acc-contato">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-sky-500 to-blue-600"><i class="bi bi-envelope-paper"></i></span>
+                        <div class="min-w-0">
+                            <h2>Contato</h2>
+                            <p>Usado para entrar no app, recuperar a senha e receber avisos.</p>
+                        </div>
+                    </div>
+                    <div class="acc-fields">
+                        <div class="acc-field acc-span2">
+                            <label for="acc-email">E-mail <b>*</b></label>
+                            <div class="acc-input"><i class="bi bi-envelope"></i><input id="acc-email" wire:model="email" type="email" required autocomplete="email" placeholder="seu@email.com">
+                                @if($auVerified)
+                                    <span class="acc-tag text-emerald-700 bg-emerald-50 dark:bg-emerald-500/15 dark:text-emerald-300"><i class="bi bi-check2"></i> Confirmado</span>
+                                @else
+                                    <span class="acc-tag text-amber-700 bg-amber-50 dark:bg-amber-500/15 dark:text-amber-300">Não confirmado</span>
+                                @endif
+                            </div>
+                            @error('email') <p class="acc-err">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="acc-field">
+                            <label for="phoneInput">Telefone / WhatsApp</label>
+                            <div class="acc-input"><i class="bi bi-whatsapp"></i><input wire:model="phone" type="text" autocomplete="tel" id="phoneInput" inputmode="tel" placeholder="+55 (11) 99999-9999"></div>
+                            @error('phone') <p class="acc-err">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="acc-field acc-span3">
+                            <label for="acc-loc">Cidade</label>
+                            <div class="acc-input"><i class="bi bi-geo-alt"></i><input id="acc-loc" wire:model="location" type="text" placeholder="Cidade, Estado"></div>
+                            @error('location') <p class="acc-err">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                    @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $auVerified)
+                        <div class="acc-alert">
+                            <i class="bi bi-envelope-exclamation"></i>
+                            <div>
+                                <b>Confirme seu e-mail</b>
+                                <span>Enviamos um link para {{ $au->email }}. Não chegou?</span>
+                                @if (session('status') === 'verification-link-sent')
+                                    <span class="text-emerald-700 dark:text-emerald-300 font-semibold">Link enviado! Olhe sua caixa de entrada.</span>
+                                @endif
+                            </div>
+                            <button type="button" wire:click.prevent="resendVerificationNotification">Reenviar link</button>
+                        </div>
+                    @endif
+                </div>
 
-        </div>{{-- /s-pg-grid --}}
+                {{-- Redes --}}
+                <div class="ap-card" id="acc-redes">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-pink-500 to-orange-400"><i class="bi bi-share"></i></span>
+                        <div class="min-w-0">
+                            <h2>Site e redes sociais</h2>
+                            <p>Onde seus clientes encontram você. Tudo opcional.</p>
+                        </div>
+                    </div>
+                    <div class="acc-fields acc-fields-2">
+                        <div class="acc-field">
+                            <label for="acc-site">Site</label>
+                            <div class="acc-input"><i class="bi bi-globe2"></i><input id="acc-site" wire:model="website" type="url" placeholder="https://seusite.com.br"></div>
+                            @error('website') <p class="acc-err">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="acc-field">
+                            <label for="acc-ig">Instagram</label>
+                            <div class="acc-input"><i class="bi bi-instagram"></i><input id="acc-ig" wire:model="instagram" type="text" placeholder="@sualoja"></div>
+                            @error('instagram') <p class="acc-err">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="acc-field">
+                            <label for="acc-in">LinkedIn</label>
+                            <div class="acc-input"><i class="bi bi-linkedin"></i><input id="acc-in" wire:model="linkedin" type="text" placeholder="seu-perfil"></div>
+                            @error('linkedin') <p class="acc-err">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="acc-field">
+                            <label for="acc-x">X (Twitter)</label>
+                            <div class="acc-input"><i class="bi bi-twitter-x"></i><input id="acc-x" wire:model="twitter" type="text" placeholder="@seuusuario"></div>
+                            @error('twitter') <p class="acc-err">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Barra de salvar: fica presa embaixo e acende quando algo mudou --}}
+                <div class="acc-savebar" wire:dirty.class="is-dirty">
+                    <span class="acc-savebar-msg">
+                        <span wire:dirty.remove><i class="bi bi-cloud-check"></i> Tudo salvo</span>
+                        <span wire:dirty><i class="bi bi-pencil-square"></i> Você tem alterações não salvas</span>
+                    </span>
+                    <x-action-message on="profile-updated" class="acc-saved-msg"><i class="bi bi-check-circle-fill"></i> Salvo!</x-action-message>
+                    <button data-mobile-save type="submit" class="acc-save bg-gradient-to-r from-indigo-600 to-purple-600" wire:loading.attr="disabled" wire:target="updateProfileInformation">
+                        <i class="bi bi-check2-circle" wire:loading.remove wire:target="updateProfileInformation"></i>
+                        <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="updateProfileInformation"></i>
+                        Salvar alterações
+                    </button>
+                </div>
+            </form>
+
+            <aside class="acc-side">
+                {{-- Atalhos da conta --}}
+                <div class="ap-card">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-slate-600 to-slate-900"><i class="bi bi-grid"></i></span>
+                        <div class="min-w-0">
+                            <h2>Sua conta</h2>
+                            <p>Tudo da conta em um lugar.</p>
+                        </div>
+                    </div>
+                    <div class="acc-links">
+                        @foreach($shortcuts as [$route, $title, $desc, $icon, $grad])
+                            @if(\Illuminate\Support\Facades\Route::has($route))
+                                <a href="{{ route($route) }}" wire:navigate class="acc-link">
+                                    <span class="acc-link-ico bg-gradient-to-br {{ $grad }}"><i class="bi {{ $icon }}"></i></span>
+                                    <span class="min-w-0"><b>{{ $title }}</b><small>{{ $desc }}</small></span>
+                                    <i class="bi bi-chevron-right acc-link-go"></i>
+                                </a>
+                            @endif
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Resumo --}}
+                <div class="ap-card">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-emerald-500 to-teal-500"><i class="bi bi-info-circle"></i></span>
+                        <div class="min-w-0">
+                            <h2>Resumo</h2>
+                            <p>Situação da conta hoje.</p>
+                        </div>
+                    </div>
+                    <div class="acc-facts">
+                        <div><span>Tempo de conta</span><b>{{ $auDays }} {{ $auDays === 1 ? 'dia' : 'dias' }}</b></div>
+                        <div><span>E-mail</span><b class="{{ $auVerified ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400' }}">{{ $auVerified ? 'Confirmado' : 'Falta confirmar' }}</b></div>
+                        <div><span>Entrar com Google</span><b>{{ $auGoogle ? 'Vinculado' : 'Não vinculado' }}</b></div>
+                        <div><span>Última alteração</span><b>{{ $au->updated_at ? $au->updated_at->locale('pt_BR')->diffForHumans() : '—' }}</b></div>
+                    </div>
+                </div>
+
+                <livewire:settings.delete-user-form />
+            </aside>
+        </div>
+    </div>
+
+    <style>
+        .acc-page { display: flex; flex-direction: column; gap: 1rem; }
+        .acc-hero { position: relative; border-radius: 1.5rem; background: #fff; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 16px 40px -24px rgba(15, 23, 42, .35); }
+        .dark .acc-hero { background: #0f172a; border-color: #1e293b; }
+        .acc-cover { position: relative; height: 7.5rem; overflow: hidden; }
+        .acc-cover-glow { position: absolute; inset: 0; background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, .35), transparent 40%), radial-gradient(circle at 85% 80%, rgba(255, 255, 255, .2), transparent 35%); }
+        .acc-hero-body { display: flex; align-items: flex-end; gap: 1.1rem; padding: 0 1.4rem 1rem; margin-top: -3rem; position: relative; }
+        .acc-avatar { position: relative; flex: none; width: 7rem; height: 7rem; border-radius: 1.75rem; border: 4px solid #fff; background: #fff; box-shadow: 0 12px 30px -12px rgba(15, 23, 42, .5); cursor: pointer; overflow: hidden; }
+        .dark .acc-avatar { border-color: #0f172a; background: #0f172a; }
+        .acc-avatar img, .acc-avatar > span { width: 100%; height: 100%; object-fit: cover; display: grid; place-items: center; color: #fff; font-size: 2rem; font-weight: 800; }
+        .acc-avatar > i { position: absolute; right: .35rem; bottom: .35rem; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 999px; background: rgba(15, 23, 42, .75); color: #fff; font-size: .85rem; }
+        .acc-avatar em { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(15, 23, 42, .55); color: #fff; font-size: 1.5rem; }
+        .acc-id { flex: 1; min-width: 0; padding-top: 3.4rem; padding-bottom: .2rem; }
+        .acc-id h2 { display: flex; align-items: center; gap: .4rem; font-size: 1.45rem; font-weight: 800; color: #0f172a; line-height: 1.2; }
+        .dark .acc-id h2 { color: #f8fafc; }
+        .acc-id > p { font-size: .85rem; color: #64748b; }
+        .acc-chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
+        .acc-chips span { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; font-weight: 700; padding: .25rem .6rem; border-radius: 999px; }
+        .acc-hint { margin-top: .45rem; font-size: .72rem; color: #94a3b8; }
+        .acc-err { margin-top: .3rem; font-size: .74rem; color: #ef4444; font-weight: 600; }
+        .acc-progress { flex: none; display: flex; align-items: center; gap: .7rem; padding: .7rem .9rem; border-radius: 1.1rem; background: #f8fafc; border: 1px solid #e2e8f0; }
+        .dark .acc-progress { background: #111827; border-color: #1f2937; }
+        .acc-progress p { font-size: .82rem; font-weight: 800; color: #0f172a; }
+        .acc-progress small { font-size: .72rem; color: #64748b; }
+        .dark .acc-progress p { color: #f1f5f9; }
+        .acc-ring { position: relative; width: 3.4rem; height: 3.4rem; border-radius: 999px; background: conic-gradient(var(--color-indigo-600) calc(var(--pct) * 1%), #e2e8f0 0); display: grid; place-items: center; }
+        .dark .acc-ring { background: conic-gradient(var(--color-indigo-400) calc(var(--pct) * 1%), #1f2937 0); }
+        .acc-ring::before { content: ''; position: absolute; inset: .35rem; border-radius: 999px; background: #f8fafc; }
+        .dark .acc-ring::before { background: #111827; }
+        .acc-ring b { position: relative; font-size: .78rem; font-weight: 800; color: #0f172a; }
+        .dark .acc-ring b { color: #f1f5f9; }
+        .acc-checks { display: flex; flex-wrap: wrap; gap: .4rem; padding: .85rem 1.4rem 1.1rem; border-top: 1px dashed #e2e8f0; }
+        .dark .acc-checks { border-color: #1e293b; }
+        .acc-check { display: inline-flex; align-items: center; gap: .35rem; font-size: .74rem; font-weight: 700; padding: .35rem .7rem; border-radius: 999px; color: #b45309; background: #fffbeb; border: 1px dashed #fcd34d; }
+        .acc-check.is-ok { color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0; }
+        .dark .acc-check { color: #fcd34d; background: rgba(245, 158, 11, .1); border-color: rgba(245, 158, 11, .35); }
+        .dark .acc-check.is-ok { color: #6ee7b7; background: rgba(16, 185, 129, .1); border-color: rgba(16, 185, 129, .3); }
+
+        .acc-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 1rem; align-items: start; }
+        .acc-main, .acc-side { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+        .acc-main .ap-card { scroll-margin-top: 1rem; }
+        .acc-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .85rem 1rem; }
+        .acc-fields-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .acc-span2 { grid-column: span 2; }
+        .acc-span3 { grid-column: 1 / -1; }
+        .acc-field label { display: block; font-size: .76rem; font-weight: 700; color: #334155; margin-bottom: .35rem; }
+        .acc-field label b { color: #ef4444; }
+        .dark .acc-field label { color: #cbd5e1; }
+        .acc-input { display: flex; align-items: center; gap: .55rem; padding: 0 .8rem; min-height: 2.85rem; border-radius: .9rem; border: 1.5px solid #e2e8f0; background: #f8fafc; transition: border-color .15s, box-shadow .15s, background .15s; }
+        .acc-input:focus-within { border-color: var(--color-indigo-500); background: #fff; box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-indigo-500) 15%, transparent); }
+        .dark .acc-input { background: #111827; border-color: #1f2937; }
+        .dark .acc-input:focus-within { background: #0b1220; border-color: var(--color-indigo-400); }
+        .acc-input > i { color: #94a3b8; font-size: .95rem; }
+        .acc-input input, .acc-input textarea { flex: 1; min-width: 0; border: 0 !important; outline: none !important; box-shadow: none !important; background: transparent !important; font-size: .9rem; color: #0f172a; padding: .6rem 0; }
+        .dark .acc-input input, .dark .acc-input textarea { color: #f1f5f9; color-scheme: dark; }
+        .acc-textarea { align-items: stretch; padding: 0 .8rem; }
+        .acc-textarea textarea { resize: vertical; min-height: 5rem; }
+        .acc-tag { flex: none; display: inline-flex; align-items: center; gap: .2rem; font-size: .66rem; font-weight: 800; padding: .2rem .5rem; border-radius: 999px; }
+        .acc-alert { display: flex; align-items: center; gap: .75rem; margin-top: 1rem; padding: .8rem .9rem; border-radius: 1rem; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+        .acc-alert > i { font-size: 1.3rem; }
+        .acc-alert div { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: .78rem; }
+        .acc-alert button { flex: none; font-size: .76rem; font-weight: 800; padding: .45rem .8rem; border-radius: .7rem; background: #f59e0b; color: #fff; }
+        .dark .acc-alert { background: rgba(245, 158, 11, .1); border-color: rgba(245, 158, 11, .3); color: #fcd34d; }
+
+        .acc-savebar { position: sticky; bottom: 1rem; z-index: 5; display: flex; align-items: center; gap: .75rem; padding: .65rem .7rem .65rem 1rem; border-radius: 1.1rem; background: rgba(255, 255, 255, .92); backdrop-filter: blur(12px); border: 1px solid #e2e8f0; box-shadow: 0 14px 30px -18px rgba(15, 23, 42, .45); }
+        .dark .acc-savebar { background: rgba(15, 23, 42, .92); border-color: #1e293b; }
+        .acc-savebar.is-dirty { border-color: var(--color-indigo-400); box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-indigo-500) 14%, transparent), 0 14px 30px -18px rgba(15, 23, 42, .45); }
+        .acc-savebar-msg { flex: 1; min-width: 0; font-size: .78rem; font-weight: 700; color: #64748b; }
+        .acc-savebar.is-dirty .acc-savebar-msg { color: var(--color-indigo-700); }
+        .dark .acc-savebar.is-dirty .acc-savebar-msg { color: var(--color-indigo-300); }
+        .acc-saved-msg { font-size: .78rem; font-weight: 800; color: #059669; }
+        .acc-save { display: inline-flex; align-items: center; gap: .4rem; color: #fff; font-size: .85rem; font-weight: 800; padding: .65rem 1.15rem; border-radius: .9rem; box-shadow: 0 10px 20px -10px color-mix(in oklab, var(--color-indigo-600) 70%, transparent); }
+        .acc-save:disabled { opacity: .7; }
+
+        .acc-links { display: flex; flex-direction: column; gap: .3rem; }
+        .acc-link { display: flex; align-items: center; gap: .7rem; padding: .55rem .6rem; border-radius: .9rem; transition: background .15s; }
+        .acc-link:hover { background: #f8fafc; }
+        .dark .acc-link:hover { background: #111827; }
+        .acc-link-ico { flex: none; display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: .75rem; color: #fff; }
+        .acc-link b { display: block; font-size: .83rem; color: #0f172a; }
+        .acc-link small { display: block; font-size: .7rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dark .acc-link b { color: #f1f5f9; }
+        .dark .acc-link small { color: #94a3b8; }
+        .acc-link-go { margin-left: auto; color: #cbd5e1; }
+        .acc-facts { display: flex; flex-direction: column; }
+        .acc-facts div { display: flex; justify-content: space-between; gap: .75rem; padding: .55rem 0; border-top: 1px dashed #e2e8f0; font-size: .8rem; }
+        .acc-facts div:first-child { border-top: 0; }
+        .dark .acc-facts div { border-color: #1e293b; }
+        .acc-facts span { color: #64748b; }
+        .acc-facts b { color: #0f172a; text-align: right; }
+        .dark .acc-facts b { color: #f1f5f9; }
+        .acc-side .settings-card { margin: 0 !important; border-radius: 1.25rem; }
+
+        @media (max-width: 1279px) { .acc-grid { grid-template-columns: minmax(0, 1fr) 320px; } }
+        @media (max-width: 1023px) {
+            .acc-grid { grid-template-columns: minmax(0, 1fr); }
+            .acc-side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .acc-side > :last-child { grid-column: 1 / -1; }
+            .acc-hero-body { flex-wrap: wrap; }
+            .acc-progress { width: 100%; }
+        }
+        @media (max-width: 767px) {
+            .acc-cover { height: 5.5rem; }
+            .acc-hero-body { padding: 0 1rem .9rem; margin-top: -2.6rem; gap: .8rem; }
+            .acc-avatar { width: 5.5rem; height: 5.5rem; border-radius: 1.4rem; }
+            .acc-id { flex-basis: 100%; padding-top: 0; }
+            .acc-id h2 { font-size: 1.15rem; }
+            .acc-checks { padding: .75rem 1rem 1rem; }
+            .acc-fields, .acc-fields-2 { grid-template-columns: minmax(0, 1fr); }
+            .acc-span2 { grid-column: auto; }
+            .acc-side { display: flex; }
+            .acc-savebar { bottom: calc(env(safe-area-inset-bottom) + 84px); }
+            .acc-savebar-msg { font-size: .72rem; }
+        }
+    </style>
     </x-settings.layout>
 </section>
 
