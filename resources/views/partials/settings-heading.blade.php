@@ -42,7 +42,13 @@
         $hTabs[] = ['admin.plans.users', 'Usuários (admin)', 'bi-person-gear'];
     }
     $hTabs = array_values(array_filter($hTabs, fn ($t) => \Illuminate\Support\Facades\Route::has($t[0])));
-    $hCurrent = collect($hTabs)->first(fn ($t) => request()->routeIs($t[0] . '*'));
+    // Em ações do Livewire a requisição é /livewire/update; usa a URL da página para manter a aba ativa.
+    $hRouteName = request()->route()?->getName();
+    if (\Livewire\Livewire::isLivewireRequest()) {
+        try { $hRouteName = app('router')->getRoutes()->match(\Illuminate\Http\Request::create(\Livewire\Livewire::originalUrl()))->getName(); } catch (\Throwable $e) {}
+    }
+    $hIsRoute = fn ($r) => $hRouteName && \Illuminate\Support\Str::is($r . '*', $hRouteName);
+    $hCurrent = collect($hTabs)->first(fn ($t) => $hIsRoute($t[0]));
     $hCurrentTitle = $hCurrent[1] ?? 'Configurações';
 @endphp
 
@@ -95,7 +101,7 @@
         <div class="app-ph-tabs mt-4 -mx-1 overflow-x-auto">
             <nav class="flex min-w-max items-center gap-1 px-1 pb-1" aria-label="Configurações">
                 @foreach($hTabs as [$hRoute, $hLabel, $hIcon])
-                    @php $hIsActive = request()->routeIs($hRoute . '*'); @endphp
+                    @php $hIsActive = $hIsRoute($hRoute); @endphp
                     <a href="{{ route($hRoute) }}" @if(str_starts_with($hRoute, 'settings.')) wire:navigate @endif
                        class="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-semibold transition
                               {{ $hIsActive

@@ -1,288 +1,263 @@
 <?php
-use Livewire\Volt\Component;
+
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
+use Livewire\Volt\Component;
 
 new class extends Component {
-    //
+    public ?string $flash = null;
+
+    /** As sessões só ficam guardadas no banco quando o driver de sessão é "database". */
+    public function sessionsAvailable(): bool
+    {
+        return config('session.driver') === 'database' && rescue(fn () => Schema::hasTable(config('session.table', 'sessions')), false, false);
+    }
+
+    public function endSession(string $id): void
+    {
+        if (! $this->sessionsAvailable() || $id === session()->getId()) return;
+        DB::table(config('session.table', 'sessions'))->where('user_id', Auth::id())->where('id', $id)->delete();
+        $this->flash = 'Sessão encerrada. Aquele aparelho vai pedir login de novo.';
+    }
+
+    public function endOtherSessions(): void
+    {
+        if (! $this->sessionsAvailable()) return;
+        DB::table(config('session.table', 'sessions'))->where('user_id', Auth::id())->where('id', '!=', session()->getId())->delete();
+        // Quem marcou "lembrar de mim" em outro aparelho também precisa entrar de novo
+        $user = Auth::user();
+        $user->setRememberToken(Str::random(60));
+        $user->save();
+        $this->flash = 'Pronto: só este aparelho continua conectado.';
+    }
 }; ?>
+
+@php
+    $describe = function (?string $ua) {
+        $ua = (string) $ua;
+        $l = strtolower($ua);
+        $type = (str_contains($l, 'ipad') || str_contains($l, 'tablet')) ? 'tablet'
+            : ((str_contains($l, 'mobile') || str_contains($l, 'iphone') || str_contains($l, 'android')) ? 'phone' : 'desktop');
+        $browser = 'Navegador';
+        if (str_contains($ua, 'Edg')) $browser = 'Edge';
+        elseif (str_contains($ua, 'OPR') || str_contains($ua, 'Opera')) $browser = 'Opera';
+        elseif (str_contains($ua, 'Firefox')) $browser = 'Firefox';
+        elseif (str_contains($ua, 'Chrome') || str_contains($ua, 'CriOS')) $browser = 'Chrome';
+        elseif (str_contains($ua, 'Safari')) $browser = 'Safari';
+        $os = 'Sistema desconhecido';
+        if (str_contains($ua, 'iPhone')) $os = 'iPhone';
+        elseif (str_contains($ua, 'iPad')) $os = 'iPad';
+        elseif (str_contains($ua, 'Android')) $os = 'Android';
+        elseif (str_contains($ua, 'Windows')) $os = 'Windows';
+        elseif (str_contains($ua, 'Macintosh')) $os = 'Mac';
+        elseif (str_contains($ua, 'Linux')) $os = 'Linux';
+        $icon = ['phone' => 'bi-phone', 'tablet' => 'bi-tablet', 'desktop' => 'bi-laptop'][$type];
+        $label = ['phone' => 'Celular', 'tablet' => 'Tablet', 'desktop' => 'Computador'][$type];
+        return compact('type', 'browser', 'os', 'icon', 'label');
+    };
+
+    $current = $describe(request()->userAgent());
+    $currentId = session()->getId();
+    $available = $this->sessionsAvailable();
+    $sessions = collect();
+    if ($available) {
+        $sessions = DB::table(config('session.table', 'sessions'))
+            ->where('user_id', Auth::id())
+            ->orderByDesc('last_activity')
+            ->limit(20)
+            ->get()
+            ->map(function ($s) use ($describe, $currentId) {
+                $d = $describe($s->user_agent);
+                $d['id'] = $s->id;
+                $d['ip'] = $s->ip_address;
+                $d['last'] = \Illuminate\Support\Carbon::createFromTimestamp($s->last_activity);
+                $d['current'] = $s->id === $currentId;
+                $d['online'] = $d['last']->gt(now()->subMinutes(5));
+                return $d;
+            });
+    }
+    $others = $sessions->where('current', false)->count();
+@endphp
 
 <section class="settings-devices-page w-full mobile-393-base">
     <x-settings.layout :heading="''">
 
-        @php
-            $user       = Auth::user();
-            $ip         = request()->ip();
-            $ua         = request()->userAgent() ?? '';
-            $isMobile   = str_contains(strtolower($ua), 'mobile') || str_contains(strtolower($ua), 'android');
-            $isTablet   = str_contains(strtolower($ua), 'ipad') || str_contains(strtolower($ua), 'tablet');
-            $deviceType = $isMobile ? 'Smartphone' : ($isTablet ? 'Tablet' : 'Computador');
-            $deviceIcon = $isMobile ? 'M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3' :
-                         ($isTablet ? 'M10.5 19.5H3m7.5 0H21m0 0V2.25A2.25 2.25 0 0 0 18.75 0H5.25A2.25 2.25 0 0 0 3 2.25V19.5m18 0v1.5a.75.75 0 0 1-.75.75H3.75a.75.75 0 0 1-.75-.75V19.5' :
-                         'M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0H3');
-            $browser = 'Navegador desconhecido';
-            if (str_contains($ua, 'Chrome') && !str_contains($ua, 'Edg')) $browser = 'Google Chrome';
-            elseif (str_contains($ua, 'Firefox')) $browser = 'Mozilla Firefox';
-            elseif (str_contains($ua, 'Safari') && !str_contains($ua, 'Chrome')) $browser = 'Safari';
-            elseif (str_contains($ua, 'Edg')) $browser = 'Microsoft Edge';
-            elseif (str_contains($ua, 'Opera') || str_contains($ua, 'OPR')) $browser = 'Opera';
-            $os = 'SO desconhecido';
-            if (str_contains($ua, 'Windows NT')) $os = 'Windows';
-            elseif (str_contains($ua, 'Macintosh')) $os = 'macOS';
-            elseif (str_contains($ua, 'Linux') && !str_contains($ua, 'Android')) $os = 'Linux';
-            elseif (str_contains($ua, 'Android')) $os = 'Android';
-            elseif (str_contains($ua, 'iPhone') || str_contains($ua, 'iPad')) $os = 'iOS';
-        @endphp
+    <div class="dv-page">
+        @if($flash)
+            <div class="pl-flash"><i class="bi bi-check-circle"></i> {{ $flash }}</div>
+        @endif
 
-        <div class="s-pg-grid">
-        <div class="s-col-main">
-
-        {{-- CARD: Sessão atual --}}
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon" style="background:rgba(16,185,129,0.1);color:#10b981">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $deviceIcon }}"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Dispositivo atual</p>
-                        <p class="settings-card-desc">Sessão autenticada neste momento</p>
-                    </div>
-                </div>
-                <span class="s-badge s-badge-success" style="display:flex;align-items:center;gap:0.3rem">
-                    <svg viewBox="0 0 6 6" fill="currentColor" style="width:0.45rem;height:0.45rem"><circle cx="3" cy="3" r="3"/></svg>
-                    Online agora
-                </span>
+        <div class="dv-hero bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500">
+            <span class="dv-hero-glow"></span>
+            <div class="dv-hero-ico"><i class="bi {{ $current['icon'] }}"></i></div>
+            <div class="dv-hero-txt">
+                <span class="pl-kicker"><i class="bi bi-circle-fill dv-live"></i> Você está usando agora</span>
+                <h2>{{ $current['label'] }} · {{ $current['os'] }}</h2>
+                <p>{{ $current['browser'] }} · IP {{ request()->ip() }} · desde {{ now()->format('H:i') }}</p>
             </div>
-
-            <div style="padding:0 1.25rem 1.5rem">
-                <div class="sh-dev-active-card">
-                    <div class="sh-dev-icon-wrap" style="background:rgba(16,185,129,0.1);color:#10b981">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor" style="width:1.6rem;height:1.6rem"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $deviceIcon }}"/></svg>
-                    </div>
-                    <div class="sh-dev-main-info">
-                        <h3 style="font-size:1rem;font-weight:700;color:#1e293b;margin:0 0 .2rem">{{ $deviceType }} · {{ $os }}</h3>
-                        <p style="font-size:.82rem;color:#64748b;margin:0 0 .6rem">{{ $browser }}</p>
-                        <div style="display:flex;flex-wrap:wrap;gap:.5rem">
-                            <span class="sh-dev-chip sh-dev-chip--green">
-                                <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:.7rem;height:.7rem"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
-                                {{ $ip }}
-                            </span>
-                            <span class="sh-dev-chip">
-                                <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:.7rem;height:.7rem"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                                Agora · {{ now()->format('H:i') }}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="sh-dev-this-badge" style="text-align:right;flex-shrink:0">
-                        <span class="s-badge" style="background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0">Este dispositivo</span>
-                    </div>
-                </div>
+            <div class="dv-hero-count">
+                <b>{{ max(1, $sessions->count()) }}</b>
+                <small>{{ max(1, $sessions->count()) === 1 ? 'aparelho conectado' : 'aparelhos conectados' }}</small>
             </div>
         </div>
 
-        {{-- CARD: Info do dispositivo atual --}}
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+        <div class="pl-grid">
+            <div class="pl-main">
+                <div class="ap-card">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-sky-500 to-blue-600"><i class="bi bi-pc-display-horizontal"></i></span>
+                        <div class="min-w-0">
+                            <h2>Onde sua conta está aberta</h2>
+                            <p>Se aparecer um aparelho que você não conhece, encerre a sessão e troque a senha.</p>
+                        </div>
                     </div>
-                    <div>
-                        <p class="settings-card-title">Detalhes do acesso atual</p>
-                        <p class="settings-card-desc">Informações técnicas da sessão em andamento</p>
-                    </div>
+
+                    @if(! $available || $sessions->isEmpty())
+                        <div class="dv-row is-current">
+                            <span class="dv-ico"><i class="bi {{ $current['icon'] }}"></i></span>
+                            <div class="min-w-0">
+                                <b>{{ $current['label'] }} · {{ $current['os'] }}</b>
+                                <small>{{ $current['browser'] }} · {{ request()->ip() }}</small>
+                            </div>
+                            <span class="dv-badge">Este aparelho</span>
+                        </div>
+                        @unless($available)
+                            <p class="dv-note"><i class="bi bi-info-circle"></i> A lista dos outros aparelhos aparece quando as sessões ficam guardadas no banco de dados.</p>
+                        @endunless
+                    @else
+                        <div class="dv-list">
+                            @foreach($sessions as $s)
+                                <div class="dv-row {{ $s['current'] ? 'is-current' : '' }}" wire:key="sess-{{ $s['id'] }}">
+                                    <span class="dv-ico"><i class="bi {{ $s['icon'] }}"></i>@if($s['online'])<em></em>@endif</span>
+                                    <div class="min-w-0">
+                                        <b>{{ $s['label'] }} · {{ $s['os'] }}</b>
+                                        <small>{{ $s['browser'] }} · {{ $s['ip'] ?: 'IP desconhecido' }} · {{ $s['current'] ? 'agora' : ($s['online'] ? 'ativo agora' : 'visto ' . $s['last']->locale('pt_BR')->diffForHumans()) }}</small>
+                                    </div>
+                                    @if($s['current'])
+                                        <span class="dv-badge">Este aparelho</span>
+                                    @else
+                                        <button type="button" class="dv-end" wire:click="endSession('{{ $s['id'] }}')" wire:confirm="Encerrar a sessão deste aparelho?">
+                                            <i class="bi bi-box-arrow-right"></i> <span>Encerrar</span>
+                                        </button>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                        @if($others > 0)
+                            <div class="dv-actions">
+                                <button type="button" class="dv-end-all" wire:click="endOtherSessions" wire:confirm="Sair da conta em todos os outros aparelhos? Este continua conectado.">
+                                    <i class="bi bi-shield-x"></i> Sair de todos os outros aparelhos ({{ $others }})
+                                </button>
+                            </div>
+                        @endif
+                    @endif
                 </div>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem;padding:0 1.25rem 1.25rem">
-                @foreach([
-                    ['Tipo de dispositivo',$deviceType],
-                    ['Sistema operacional',$os],
-                    ['Navegador',$browser],
-                    ['Endereço IP',$ip],
-                    ['Protocolo','HTTPS'],
-                    ['Horário da sessão',now()->format('d/m/Y H:i')],
-                ] as [$lbl,$val])
-                <div class="settings-info-tile">
-                    <p class="settings-info-tile-label">{{ $lbl }}</p>
-                    <p class="settings-info-tile-val">{{ $val }}</p>
+
+            <aside class="pl-side">
+                <div class="ap-card">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-emerald-500 to-teal-500"><i class="bi bi-shield-check"></i></span>
+                        <div class="min-w-0">
+                            <h2>Deixe a conta mais segura</h2>
+                            <p>Três passos rápidos.</p>
+                        </div>
+                    </div>
+                    <div class="acc-links">
+                        <a href="{{ route('settings.password') }}" wire:navigate class="acc-link">
+                            <span class="acc-link-ico bg-gradient-to-br from-amber-500 to-orange-500"><i class="bi bi-key"></i></span>
+                            <span class="min-w-0"><b>Trocar a senha</b><small>Use uma senha que você não usa em outro lugar</small></span>
+                            <i class="bi bi-chevron-right acc-link-go"></i>
+                        </a>
+                        <a href="{{ route('settings.security') }}" wire:navigate class="acc-link">
+                            <span class="acc-link-ico bg-gradient-to-br from-emerald-500 to-teal-500"><i class="bi bi-shield-lock"></i></span>
+                            <span class="min-w-0"><b>Segurança da conta</b><small>Verificação e alertas</small></span>
+                            <i class="bi bi-chevron-right acc-link-go"></i>
+                        </a>
+                        <a href="{{ route('settings.profile') }}#acc-contato" wire:navigate class="acc-link">
+                            <span class="acc-link-ico bg-gradient-to-br from-sky-500 to-blue-600"><i class="bi bi-envelope-check"></i></span>
+                            <span class="min-w-0"><b>Confirmar o e-mail</b><small>Para recuperar a conta se perder a senha</small></span>
+                            <i class="bi bi-chevron-right acc-link-go"></i>
+                        </a>
+                    </div>
                 </div>
-                @endforeach
-            </div>
+                <div class="ap-card dv-tip">
+                    <i class="bi bi-lightbulb"></i>
+                    <p>Usou o app no computador de outra pessoa? Encerre aquela sessão aqui mesmo, sem precisar voltar lá.</p>
+                </div>
+            </aside>
         </div>
+    </div>
 
-        </div>{{-- /s-col-main --}}
-
-        <div class="s-col-side">
-
-        {{-- CARD: Configurações de segurança de dispositivo --}}
-        @php $dbDevices = auth()->user()?->preferences['devices'] ?? null; @endphp
-        <div class="settings-card" x-data="{
-            trust_known: true,
-            notify_new: true,
-            auto_lock: false,
-            saved: false,
-            save() {
-                const payload = {trust_known:this.trust_known,notify_new:this.notify_new,auto_lock:this.auto_lock};
-                localStorage.setItem('flowmanager:devices', JSON.stringify(payload));
-                const csrf = document.querySelector('meta[name=csrf-token]')?.content ?? '';
-                fetch('/settings/preferences/devices',{
-                    method:'POST',
-                    headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},
-                    body:JSON.stringify({data:payload})
-                }).catch(()=>{});
-                this.saved = true; setTimeout(()=>this.saved=false, 2000);
-            }
-        }" x-init="
-            const dbDev = @json($dbDevices ?? null);
-            if(dbDev) {
-                trust_known=dbDev.trust_known??true;
-                notify_new=dbDev.notify_new??true;
-                auto_lock=dbDev.auto_lock??false;
-            } else {
-                try{const s=JSON.parse(localStorage.getItem('flowmanager:devices')||'null');
-                if(s){trust_known=s.trust_known??true;notify_new=s.notify_new??true;auto_lock=s.auto_lock??false;}
-                }catch(e){}
-            }
-        ">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon" style="background:rgba(99,102,241,0.1);color:#6366f1">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Configurações de segurança</p>
-                        <p class="settings-card-desc">Como o sistema gerencia o reconhecimento de dispositivos</p>
-                    </div>
-                </div>
-                <div x-show="saved" x-transition style="display:none;padding:.4rem .8rem;border-radius:.5rem;background:var(--s-accent);color:#fff;font-size:.75rem;font-weight:700">Salvo ✓</div>
-            </div>
-
-            <div class="settings-notif-list">
-                <label class="settings-notif-row">
-                    <div class="settings-notif-info">
-                        <div class="settings-notif-icon" style="background:rgba(16,185,129,0.1);color:#10b981">
-                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:.9rem;height:.9rem"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                        </div>
-                        <div>
-                            <p class="settings-notif-title">Dispositivos confiáveis</p>
-                            <p class="settings-notif-desc">Não pedir verificação em dispositivos já autorizados</p>
-                        </div>
-                    </div>
-                    <div class="settings-toggle-switch" :class="trust_known?'active':''" @click="trust_known=!trust_known;save()">
-                        <div class="settings-toggle-track"></div>
-                        <div class="settings-toggle-thumb"></div>
-                    </div>
-                </label>
-                <label class="settings-notif-row">
-                    <div class="settings-notif-info">
-                        <div class="settings-notif-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b">
-                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:.9rem;height:.9rem"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
-                        </div>
-                        <div>
-                            <p class="settings-notif-title">Alerta por e-mail em novo login</p>
-                            <p class="settings-notif-desc">Receba um e-mail ao acessar de um dispositivo novo</p>
-                        </div>
-                    </div>
-                    <div class="settings-toggle-switch" :class="notify_new?'active':''" @click="notify_new=!notify_new;save()">
-                        <div class="settings-toggle-track"></div>
-                        <div class="settings-toggle-thumb"></div>
-                    </div>
-                </label>
-                <label class="settings-notif-row">
-                    <div class="settings-notif-info">
-                        <div class="settings-notif-icon" style="background:rgba(99,102,241,0.1);color:#6366f1">
-                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:.9rem;height:.9rem"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75A4.5 4.5 0 0 0 7.5 6.75v3.75m9 0a2.25 2.25 0 0 1 2.25 2.25v6A2.25 2.25 0 0 1 16.5 21H7.5a2.25 2.25 0 0 1-2.25-2.25v-6a2.25 2.25 0 0 1 2.25-2.25m9 0h-9"/></svg>
-                        </div>
-                        <div>
-                            <p class="settings-notif-title">Bloqueio automático (30 min)</p>
-                            <p class="settings-notif-desc">Encerra a sessão após 30 minutos de inatividade</p>
-                        </div>
-                    </div>
-                    <div class="settings-toggle-switch" :class="auto_lock?'active':''" @click="auto_lock=!auto_lock;save()">
-                        <div class="settings-toggle-track"></div>
-                        <div class="settings-toggle-thumb"></div>
-                    </div>
-                </label>
-            </div>
-        </div>
-
-        @php
-            $deviceFingerprint = strtoupper(substr(md5(($ua ?: 'unknown') . '|' . $ip), 0, 12));
-            $trustScore = ($os !== 'SO desconhecido' ? 35 : 15) + ($browser !== 'Navegador desconhecido' ? 35 : 15) + ($isMobile || $isTablet ? 15 : 25);
-            $trustLabel = $trustScore >= 80 ? 'Alta confiança' : ($trustScore >= 60 ? 'Confiável' : 'Revisar');
-            $trustColor = $trustScore >= 80 ? '#10b981' : ($trustScore >= 60 ? '#f59e0b' : '#ef4444');
-            $trustToneClass = $trustScore >= 80 ? 'settings-tone-good' : ($trustScore >= 60 ? 'settings-tone-warn' : 'settings-tone-danger');
-            $trustTextClass = $trustScore >= 80 ? 'settings-text-good' : ($trustScore >= 60 ? 'settings-text-warn' : 'settings-text-danger');
-            $practiceCards = [
-                ['Ative alerta por novo login', 'Receba aviso imediato sempre que um novo dispositivo acessar sua conta.', 'settings-advice-card--good', 'settings-advice-title--good'],
-                ['Use bloqueio automático', 'Ideal para notebooks compartilhados ou acesso em lojas e escritórios.', 'settings-advice-card--info', 'settings-advice-title--info'],
-                ['Revogue sessões antigas', 'Mantenha apenas dispositivos que você realmente reconhece.', 'settings-advice-card--warn', 'settings-advice-title--warn'],
-            ];
-        @endphp
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-top:1rem">
-            <div class="settings-card" style="padding:1.25rem;background:linear-gradient(135deg,rgba(var(--s-accent-rgb),0.07),transparent)">
-                <div class="settings-card-header" style="margin-bottom:.9rem">
-                    <div class="settings-card-title-row">
-                        <div class="settings-card-icon {{ $trustToneClass }}">
-                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
-                        </div>
-                        <div>
-                            <p class="settings-card-title">Nível de confiança</p>
-                            <p class="settings-card-desc">Avaliação rápida deste dispositivo e sessão atual</p>
-                        </div>
-                    </div>
-                    <span class="s-badge {{ $trustToneClass }}">{{ $trustLabel }}</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:1rem;margin-bottom:.9rem">
-                    <div style="position:relative;width:4.6rem;height:4.6rem;flex-shrink:0">
-                        <svg width="74" height="74" viewBox="0 0 74 74">
-                            <circle cx="37" cy="37" r="30" fill="none" stroke="#e2e8f0" stroke-width="7" />
-                            <circle cx="37" cy="37" r="30" fill="none" stroke="{{ $trustColor }}" stroke-width="7" stroke-linecap="round"
-                                stroke-dasharray="{{ round(2 * M_PI * 30 * $trustScore / 100) }} {{ round(2 * M_PI * 30) }}" transform="rotate(-90 37 37)" />
-                        </svg>
-                        <div class="{{ $trustTextClass }}" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800">{{ $trustScore }}%</div>
-                    </div>
-                    <div style="display:flex;flex-direction:column;gap:.35rem">
-                        <p style="font-size:.78rem;color:#64748b;margin:0">A confiança leva em conta navegador identificado, sistema operacional e consistência da sessão.</p>
-                        <div style="display:flex;flex-wrap:wrap;gap:.45rem">
-                            <span class="s-badge s-badge-success">{{ $browser }}</span>
-                            <span class="s-badge s-badge-accent">{{ $os }}</span>
-                            <span class="s-badge">{{ $deviceType }}</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="settings-info-tile" style="background:rgba(15,23,42,.04)">
-                    <p class="settings-info-tile-label">Fingerprint</p>
-                    <p class="settings-info-tile-val" style="letter-spacing:.12em">{{ $deviceFingerprint }}</p>
-                </div>
-            </div>
-
-            <div class="settings-card" style="padding:1.25rem">
-                <div class="settings-card-header" style="margin-bottom:.9rem">
-                    <div class="settings-card-title-row">
-                        <div class="settings-card-icon" style="background:rgba(59,130,246,.12);color:#2563eb">
-                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.674 1.216-.832l5.06-1.686a.75.75 0 0 0 .45-.95l-1.686-5.06a1.875 1.875 0 0 0-2.372-1.185L11.528 4.11a2.25 2.25 0 0 0-.832 1.216l-1.686 5.06a.75.75 0 0 0 .45.95l5.06 1.686c.476.158.899.448 1.216.832l3.03 2.496M6.75 7.5h.008v.008H6.75V7.5Z"/></svg>
-                        </div>
-                        <div>
-                            <p class="settings-card-title">Boas práticas para este acesso</p>
-                            <p class="settings-card-desc">Ajustes simples para reduzir risco operacional</p>
-                        </div>
-                    </div>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:.6rem">
-                    @foreach($practiceCards as [$title, $desc, $cardClass, $titleClass])
-                    <div class="{{ $cardClass }}" style="padding:.8rem .9rem;border-radius:.8rem">
-                        <p class="{{ $titleClass }}" style="font-size:.8rem;font-weight:700;margin:0">{{ $title }}</p>
-                        <p style="font-size:.74rem;color:#64748b;margin:.18rem 0 0">{{ $desc }}</p>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-
-        </div>{{-- /s-col-side --}}
-        </div>{{-- /s-pg-grid --}}
-
+    <style>
+        .dv-page { display: flex; flex-direction: column; gap: 1rem; }
+        .pl-flash { display: flex; align-items: center; gap: .5rem; padding: .8rem 1rem; border-radius: 1rem; font-size: .84rem; font-weight: 600; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+        .pl-kicker { display: inline-flex; align-items: center; gap: .35rem; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .9; }
+        .pl-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 1rem; align-items: start; }
+        .pl-main, .pl-side { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+        .dv-hero { position: relative; overflow: hidden; display: flex; align-items: center; gap: 1.1rem; padding: 1.4rem 1.6rem; border-radius: 1.6rem; color: #fff; box-shadow: 0 24px 50px -28px rgba(15, 23, 42, .6); }
+        .dv-hero-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 10% 0%, rgba(255, 255, 255, .3), transparent 40%); }
+        .dv-hero-ico { position: relative; flex: none; display: grid; place-items: center; width: 4rem; height: 4rem; border-radius: 1.2rem; background: rgba(255, 255, 255, .18); font-size: 1.8rem; border: 1px solid rgba(255, 255, 255, .3); }
+        .dv-hero-txt { position: relative; flex: 1; min-width: 0; }
+        .dv-hero-txt h2 { font-size: 1.5rem; font-weight: 900; line-height: 1.15; margin-top: .2rem; }
+        .dv-hero-txt p { font-size: .82rem; opacity: .9; }
+        .dv-live { font-size: .5rem; color: #4ade80; filter: drop-shadow(0 0 4px #4ade80); }
+        .dv-hero-count { position: relative; flex: none; text-align: center; padding: .7rem 1.1rem; border-radius: 1.1rem; background: rgba(255, 255, 255, .15); border: 1px solid rgba(255, 255, 255, .25); }
+        .dv-hero-count b { display: block; font-size: 1.8rem; font-weight: 900; line-height: 1; }
+        .dv-hero-count small { font-size: .7rem; opacity: .9; }
+        .dv-list { display: flex; flex-direction: column; gap: .45rem; }
+        .dv-row { display: flex; align-items: center; gap: .75rem; padding: .7rem .8rem; border-radius: 1rem; background: #f8fafc; border: 1px solid #eef2f7; }
+        .dv-row.is-current { background: #ecfdf5; border-color: #a7f3d0; }
+        .dark .dv-row { background: #111827; border-color: #1f2937; }
+        .dark .dv-row.is-current { background: rgba(16, 185, 129, .08); border-color: rgba(16, 185, 129, .3); }
+        .dv-ico { position: relative; flex: none; display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: .9rem; background: #e2e8f0; color: #475569; font-size: 1.15rem; }
+        .dv-row.is-current .dv-ico { background: #10b981; color: #fff; }
+        .dark .dv-ico { background: #1f2937; color: #cbd5e1; }
+        .dv-ico em { position: absolute; right: -.1rem; top: -.1rem; width: .7rem; height: .7rem; border-radius: 999px; background: #22c55e; border: 2px solid #fff; }
+        .dv-row b { display: block; font-size: .86rem; color: #0f172a; }
+        .dv-row small { display: block; font-size: .72rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dark .dv-row b { color: #f1f5f9; }
+        .dark .dv-row small { color: #94a3b8; }
+        .dv-row > div { flex: 1; }
+        .dv-badge { flex: none; font-size: .68rem; font-weight: 800; color: #047857; background: #fff; border: 1px solid #a7f3d0; padding: .25rem .6rem; border-radius: 999px; }
+        .dark .dv-badge { background: transparent; color: #6ee7b7; border-color: rgba(16, 185, 129, .35); }
+        .dv-end { flex: none; display: inline-flex; align-items: center; gap: .3rem; font-size: .74rem; font-weight: 800; color: #dc2626; background: #fff; border: 1px solid #fecaca; padding: .4rem .7rem; border-radius: .75rem; }
+        .dv-end:hover { background: #fef2f2; }
+        .dark .dv-end { background: transparent; border-color: rgba(239, 68, 68, .35); color: #fca5a5; }
+        .dv-actions { display: flex; justify-content: flex-end; margin-top: .9rem; padding-top: .9rem; border-top: 1px dashed #e2e8f0; }
+        .dark .dv-actions { border-color: #1e293b; }
+        .dv-end-all { display: inline-flex; align-items: center; gap: .4rem; font-size: .8rem; font-weight: 800; color: #fff; background: #ef4444; padding: .6rem 1rem; border-radius: .9rem; box-shadow: 0 10px 20px -12px rgba(239, 68, 68, .8); }
+        .dv-note { margin-top: .75rem; font-size: .76rem; color: #64748b; }
+        .dv-tip { display: flex; gap: .7rem; align-items: flex-start; background: #fffbeb !important; border-color: #fde68a !important; }
+        .dv-tip i { font-size: 1.2rem; color: #d97706; }
+        .dv-tip p { font-size: .8rem; color: #92400e; }
+        .dark .dv-tip { background: rgba(245, 158, 11, .08) !important; border-color: rgba(245, 158, 11, .3) !important; }
+        .dark .dv-tip p { color: #fcd34d; }
+        .acc-links { display: flex; flex-direction: column; gap: .3rem; }
+        .acc-link { display: flex; align-items: center; gap: .7rem; padding: .55rem .6rem; border-radius: .9rem; transition: background .15s; }
+        .acc-link:hover { background: #f8fafc; }
+        .dark .acc-link:hover { background: #111827; }
+        .acc-link-ico { flex: none; display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: .75rem; color: #fff; }
+        .acc-link b { display: block; font-size: .83rem; color: #0f172a; }
+        .acc-link small { display: block; font-size: .7rem; color: #64748b; }
+        .dark .acc-link b { color: #f1f5f9; }
+        .dark .acc-link small { color: #94a3b8; }
+        .acc-link-go { margin-left: auto; color: #cbd5e1; }
+        @media (max-width: 1279px) { .pl-grid { grid-template-columns: minmax(0, 1fr) 320px; } }
+        @media (max-width: 1023px) { .pl-grid { grid-template-columns: minmax(0, 1fr); } .pl-side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 767px) {
+            .dv-hero { flex-wrap: wrap; padding: 1.1rem; border-radius: 1.3rem; }
+            .dv-hero-ico { width: 3.2rem; height: 3.2rem; font-size: 1.4rem; }
+            .dv-hero-txt { flex-basis: calc(100% - 4.5rem); }
+            .dv-hero-txt h2 { font-size: 1.2rem; }
+            .dv-hero-count { width: 100%; display: flex; align-items: baseline; justify-content: center; gap: .4rem; padding: .5rem; }
+            .dv-hero-count b { font-size: 1.2rem; }
+            .dv-end span { display: none; }
+            .pl-side { display: flex; }
+            .dv-end-all { width: 100%; justify-content: center; }
+        }
+    </style>
     </x-settings.layout>
 </section>
