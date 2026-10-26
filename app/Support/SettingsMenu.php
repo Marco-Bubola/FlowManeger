@@ -31,8 +31,7 @@ class SettingsMenu
             ]],
             'preferencias' => ['Preferências', 'bi-sliders', [
                 ['settings.appearance', 'Aparência', 'bi-palette', 'Tema, cores, fonte e modo escuro', 'from-fuchsia-500 to-pink-500'],
-                ['settings.system', 'Sistema e região', 'bi-globe2', 'Idioma, fuso, moeda e formatos', 'from-cyan-500 to-sky-600'],
-                ['settings.notifications', 'Notificações', 'bi-bell', 'Avisos por e-mail e no app', 'from-orange-500 to-red-500'],
+                ['settings.notifications', 'Notificações', 'bi-bell', 'O que aparece no sino', 'from-orange-500 to-red-500'],
             ]],
             'loja' => ['Loja e vendas', 'bi-shop', [
                 ['settings.products', 'Produtos', 'bi-box-seam', 'Custo, variações e importação', 'from-lime-500 to-green-600'],

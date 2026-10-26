@@ -7,363 +7,235 @@ new class extends Component {
     //
 }; ?>
 
+@php
+    // Segurança: checkup da conta só com o que existe de verdade (cada item leva para onde se resolve).
+    $user = Auth::user();
+    $hasVerifiedEmail = $user->hasVerifiedEmail();
+    $hasPassword = ! empty($user->password);
+    $hasPhone = ! empty($user->phone);
+    $hasAvatar = ! empty($user->profile_picture);
+    $hasGoogle = ! empty($user->google_id);
+    $score = collect([$hasVerifiedEmail, $hasPassword, $hasPhone, $hasAvatar])->filter()->count();
+    $pct = (int) ($score / 4 * 100);
+    [$tone, $label, $msg] = $pct >= 75
+        ? ['ok', 'Boa', 'Sua conta está bem protegida.']
+        : ($pct >= 50 ? ['warn', 'Razoável', 'Faltam poucos passos para deixar a conta segura.'] : ['bad', 'Fraca', 'Resolva os itens abaixo para proteger a conta.']);
+
+    $sessions = null;
+    try {
+        if (config('session.driver') === 'database') {
+            $sessions = \Illuminate\Support\Facades\DB::table(config('session.table', 'sessions'))->where('user_id', $user->id)->count();
+        }
+    } catch (\Throwable $e) {
+        $sessions = null;
+    }
+
+    $checks = [
+        [$hasVerifiedEmail, 'E-mail confirmado', $hasVerifiedEmail ? 'Dá para recuperar a conta pelo e-mail.' : 'Sem confirmar, não dá para recuperar a conta se esquecer a senha.', route('settings.profile') . '#acc-contato', 'Confirmar', 'bi-envelope-check'],
+        [$hasPassword, 'Senha cadastrada', $hasPassword ? 'Troque de tempos em tempos e não use em outros sites.' : 'Crie uma senha para entrar sem depender do Google.', route('settings.password'), $hasPassword ? 'Trocar' : 'Criar', 'bi-key'],
+        [$hasPhone, 'Telefone de contato', $hasPhone ? $user->phone : 'Ajuda a confirmar que é você.', route('settings.profile') . '#acc-contato', 'Adicionar', 'bi-telephone'],
+        [$hasAvatar, 'Foto do perfil', $hasAvatar ? 'Sua equipe reconhece você no app.' : 'Facilita reconhecer a conta certa.', route('settings.profile') . '#acc-photo', 'Colocar', 'bi-camera'],
+    ];
+@endphp
+
 <section class="settings-security-page w-full mobile-393-base">
     <x-settings.layout :heading="''">
 
-        @php
-            $user = Auth::user();
-            $hasVerifiedEmail = $user->hasVerifiedEmail();
-            $hasPassword      = !empty($user->password);
-            $hasPhone         = !empty($user->phone);
-            $hasAvatar        = !empty($user->profile_picture);
-            $hasGoogleId      = !empty($user->google_id);
-            $score = collect([$hasVerifiedEmail, $hasPassword, $hasPhone, $hasAvatar])->filter()->count();
-            $scorePercent = intval($score / 4 * 100);
-            $scoreColor = $scorePercent >= 75 ? '#10b981' : ($scorePercent >= 50 ? '#f59e0b' : '#ef4444');
-            $scoreLabel = $scorePercent >= 75 ? 'Boa' : ($scorePercent >= 50 ? 'Razoável' : 'Fraca');
-            $memberDays = $user->created_at ? $user->created_at->diffInDays(now()) : 0;
-            $memberMonths = $user->created_at ? (int) floor($user->created_at->diffInMonths(now())) : 0;
-        @endphp
-
-        <div class="s-pg-grid">
-        <div class="s-col-main">
-
-        {{-- ── CARD: Pontuação de segurança ── --}}
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Pontuação de segurança</p>
-                        <p class="settings-card-desc">Com base nas configurações ativas da sua conta</p>
-                    </div>
-                </div>
-                <span class="s-badge" style="background:{{ $scoreColor }}22;color:{{ $scoreColor }}">{{ $scoreLabel }}</span>
-            </div>
-
-            <div class="settings-sec-score-wrap" style="display:flex;align-items:center;gap:2rem;padding:1.25rem 1.5rem">
-                {{-- Anel de progresso SVG --}}
-                <div style="position:relative;width:5rem;height:5rem;flex-shrink:0">
-                    <svg width="80" height="80" viewBox="0 0 80 80">
-                        <circle cx="40" cy="40" r="34" fill="none" stroke="#e2e8f0" stroke-width="8"/>
-                        <circle cx="40" cy="40" r="34" fill="none" stroke="{{ $scoreColor }}" stroke-width="8"
-                            stroke-dasharray="{{ round(2 * M_PI * 34 * $scorePercent / 100) }} {{ round(2 * M_PI * 34) }}"
-                            stroke-linecap="round"
-                            transform="rotate(-90 40 40)"/>
-                    </svg>
-                    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-                        <span style="font-size:1.1rem;font-weight:800;color:{{ $scoreColor }}">{{ $scorePercent }}%</span>
-                    </div>
-                </div>
-
-                {{-- Checklist --}}
-                <div class="settings-sec-checklist" style="display:flex;flex-direction:column;gap:0.55rem;flex:1">
-                    <div class="settings-sec-check {{ $hasVerifiedEmail ? 'check-ok' : 'check-warn' }}">
-                        @if($hasVerifiedEmail)
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#10b981" style="width:0.9rem;height:0.9rem;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                        @else
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#f59e0b" style="width:0.9rem;height:0.9rem;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
-                        @endif
-                        <span style="font-size:0.82rem">E-mail {{ $hasVerifiedEmail ? 'verificado' : 'não verificado' }}</span>
-                    </div>
-                    <div class="settings-sec-check {{ $hasPassword ? 'check-ok' : 'check-warn' }}">
-                        @if($hasPassword)
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#10b981" style="width:0.9rem;height:0.9rem;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                        @else
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#f59e0b" style="width:0.9rem;height:0.9rem;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
-                        @endif
-                        <span style="font-size:0.82rem">Senha {{ $hasPassword ? 'cadastrada' : 'não definida' }}</span>
-                    </div>
-                    <div class="settings-sec-check {{ $hasPhone ? 'check-ok' : 'check-warn' }}">
-                        @if($hasPhone)
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#10b981" style="width:0.9rem;height:0.9rem;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                        @else
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#94a3b8" style="width:0.9rem;height:0.9rem;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
-                        @endif
-                        <span style="font-size:0.82rem">Telefone de recuperação {{ $hasPhone ? 'adicionado' : 'não adicionado' }}</span>
-                    </div>
-                    <div class="settings-sec-check check-info">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="#94a3b8" style="width:0.9rem;height:0.9rem;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v-.008H12v.008zm-7.5-7.5A9 9 0 1 1 21 12A9 9 0 0 1 4.5 4.5z"/></svg>
-                        <span style="font-size:0.82rem;color:#94a3b8">Autenticação em dois fatores — <em>Em breve</em></span>
-                    </div>
-                </div>
-            </div>
-
-            @if(!$hasVerifiedEmail)
-            <div class="settings-flash settings-flash--warning" style="display:flex;align-items:center;gap:0.65rem">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#f59e0b" style="width:1rem;height:1rem;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
-                <span style="font-size:0.8rem;flex:1">Seu e-mail ainda não foi verificado. Verifique sua caixa de entrada.</span>
-                <a href="{{ route('settings.profile') }}" wire:navigate style="font-size:0.78rem;font-weight:700;color:#f59e0b;white-space:nowrap">Verificar agora →</a>
-            </div>
-            @endif
-        </div>
-
-        {{-- ── CARD: Informações da conta ── --}}
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Informações da conta</p>
-                        <p class="settings-card-desc">Dados internos e histórico de registro</p>
-                    </div>
-                </div>
-            </div>
-
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem;padding:0 1.25rem 1.25rem">
-                <div class="settings-info-tile">
-                    <p class="settings-info-tile-label">ID da conta</p>
-                    <p class="settings-info-tile-val">#{{ $user->id }}</p>
-                </div>
-                <div class="settings-info-tile">
-                    <p class="settings-info-tile-label">Membro desde</p>
-                    <p class="settings-info-tile-val">{{ $user->created_at ? $user->created_at->format('d/m/Y') : '—' }}</p>
-                </div>
-                <div class="settings-info-tile">
-                    <p class="settings-info-tile-label">Tempo de conta</p>
-                    <p class="settings-info-tile-val">{{ $memberMonths > 0 ? $memberMonths . ($memberMonths > 1 ? ' meses' : ' mês') : (int) $memberDays . ((int) $memberDays === 1 ? ' dia' : ' dias') }}</p>
-                </div>
-                <div class="settings-info-tile">
-                    <p class="settings-info-tile-label">E-mail verificado</p>
-                    <p class="settings-info-tile-val" style="color:{{ $hasVerifiedEmail ? '#10b981' : '#f59e0b' }}">
-                        {{ $hasVerifiedEmail ? ($user->email_verified_at->format('d/m/Y')) : 'Pendente' }}
-                    </p>
-                </div>
-                <div class="settings-info-tile">
-                    <p class="settings-info-tile-label">Login social</p>
-                    <p class="settings-info-tile-val">{{ $hasGoogleId ? 'Google conectado' : 'Não conectado' }}</p>
-                </div>
-                <div class="settings-info-tile">
-                    <p class="settings-info-tile-label">Última atualização</p>
-                    <p class="settings-info-tile-val">{{ $user->updated_at ? $user->updated_at->format('d/m/Y H:i') : '—' }}</p>
-                </div>
+    <div class="sc-page">
+        {{-- Topo: nota de segurança --}}
+        <div class="sc-hero is-{{ $tone }}">
+            <span class="sc-glow"></span>
+            <div class="sc-ring" style="--pct: {{ $pct }}"><b>{{ $pct }}%</b></div>
+            <div class="sc-hero-txt">
+                <span class="sc-kicker"><i class="bi bi-shield-check"></i> Nota de segurança · {{ $label }}</span>
+                <h2>{{ $msg }}</h2>
+                <p>{{ $score }} de 4 itens em dia. Cada item resolvido sobe a nota.</p>
             </div>
         </div>
 
-        {{-- ── CARD: 2FA (coming soon) ── --}}
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon" style="background:rgba(99,102,241,0.1);color:#6366f1">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Autenticação em dois fatores (2FA)</p>
-                        <p class="settings-card-desc">Adicione uma camada extra de proteção com código via SMS ou app</p>
-                    </div>
-                </div>
-                <span class="s-badge s-badge-warning">Em breve</span>
-            </div>
-
-            <div style="padding:0 1.5rem 1.5rem;display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem">
-                @foreach([
-                    ['SMS', 'Código via mensagem de texto', '#10b981'],
-                    ['App Autenticador', 'Google Authenticator / Authy', '#6366f1'],
-                    ['E-mail', 'Código enviado ao seu e-mail', '#f59e0b'],
-                ] as [$method, $desc, $c])
-                <div style="padding:0.9rem;border-radius:0.65rem;border:1.5px dashed #e2e8f0;opacity:0.6;text-align:center">
-                    <div style="width:2rem;height:2rem;border-radius:50%;background:{{ $c }}1a;color:{{ $c }};display:flex;align-items:center;justify-content:center;margin:0 auto 0.45rem">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.9rem;height:0.9rem"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75A4.5 4.5 0 0 0 7.5 6.75v3.75m9 0a2.25 2.25 0 0 1 2.25 2.25v6A2.25 2.25 0 0 1 16.5 21H7.5a2.25 2.25 0 0 1-2.25-2.25v-6a2.25 2.25 0 0 1 2.25-2.25m9 0h-9"/></svg>
-                    </div>
-                    <p style="font-size:0.78rem;font-weight:700;margin-bottom:0.2rem">{{ $method }}</p>
-                    <p style="font-size:0.7rem;color:#94a3b8">{{ $desc }}</p>
-                </div>
-                @endforeach
-            </div>
-        </div>
-
-        {{-- ── CARD: Sessão atual ── --}}
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0H3"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Sessão atual</p>
-                        <p class="settings-card-desc">Dispositivo e navegador autenticado agora</p>
-                    </div>
-                </div>
-                <span class="s-badge s-badge-success">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6 6" fill="currentColor" style="width:0.4rem;height:0.4rem"><circle cx="3" cy="3" r="3"/></svg>
-                    Ativa
-                </span>
-            </div>
-
-            <div style="padding:0 1.25rem 1.25rem">
-                <div class="settings-session-item" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:0.85rem 1rem;border-radius:0.75rem;background:rgba(var(--s-accent-rgb),0.04);border:1.5px solid rgba(var(--s-accent-rgb),0.12)">
-                    <div style="display:flex;align-items:center;gap:0.75rem">
-                        <div style="width:2.5rem;height:2.5rem;border-radius:0.6rem;background:rgba(var(--s-accent-rgb),0.1);display:flex;align-items:center;justify-content:center;color:var(--s-accent);flex-shrink:0">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:1.25rem;height:1.25rem"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0H3"/></svg>
-                        </div>
-                        <div>
-                            <p style="font-size:0.85rem;font-weight:700">Este dispositivo</p>
-                            <p style="font-size:0.75rem;color:#64748b">Sessão iniciada agora · IP {{ request()->ip() }}</p>
+        <div class="pl-grid">
+            <div class="pl-main">
+                <div class="ap-card">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-emerald-500 to-teal-500"><i class="bi bi-clipboard2-check"></i></span>
+                        <div class="min-w-0">
+                            <h2>Checkup da conta</h2>
+                            <p>Toque num item pendente para resolver.</p>
                         </div>
                     </div>
-                    <span class="s-badge s-badge-accent">Você está aqui</span>
-                </div>
-            </div>
-        </div>
-
-        </div>{{-- /s-col-main --}}
-
-        <div class="s-col-side">
-
-        {{-- ── CARD: Dados e privacidade ── --}}
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 8.25-7.5 11.625-7.5 11.625S5.25 14.625 5.25 6.375a7.5 7.5 0 0 1 15 0Z"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Privacidade e dados</p>
-                        <p class="settings-card-desc">Gerencie suas informações pessoais armazenadas</p>
+                    <div class="sc-checks">
+                        @foreach($checks as [$ok, $title, $desc, $href, $cta, $icon])
+                            <a href="{{ $href }}" wire:navigate class="sc-check {{ $ok ? 'is-ok' : '' }}">
+                                <span class="sc-check-ico"><i class="bi {{ $ok ? 'bi-check-lg' : $icon }}"></i></span>
+                                <span class="min-w-0">
+                                    <b>{{ $title }}</b>
+                                    <small>{{ $desc }}</small>
+                                </span>
+                                @if($ok)
+                                    <span class="sc-tag">Em dia</span>
+                                @else
+                                    <span class="sc-cta">{{ $cta }} <i class="bi bi-arrow-right"></i></span>
+                                @endif
+                            </a>
+                        @endforeach
                     </div>
                 </div>
-            </div>
 
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;padding:0 1.25rem 1.25rem">
-                <button type="button"
-                    onclick="alert('Exportação de dados disponível em breve!')"
-                    style="display:flex;align-items:center;gap:0.6rem;padding:0.75rem 1rem;border-radius:0.65rem;border:1.5px solid rgba(var(--s-accent-rgb),0.2);background:rgba(var(--s-accent-rgb),0.04);color:var(--s-accent);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.18s;text-align:left"
-                    onmouseover="this.style.background='rgba(var(--s-accent-rgb),0.1)'"
-                    onmouseout="this.style.background='rgba(var(--s-accent-rgb),0.04)'">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.9rem;height:0.9rem;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-                    Exportar meus dados
-                </button>
-                <a href="{{ route('settings.profile') }}" wire:navigate
-                    style="display:flex;align-items:center;gap:0.6rem;padding:0.75rem 1rem;border-radius:0.65rem;border:1.5px solid #e2e8f0;background:white;color:#475569;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.18s;text-decoration:none"
-                    onmouseover="this.style.background='#f8fafc'"
-                    onmouseout="this.style.background='white'">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.9rem;height:0.9rem;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
-                    Editar perfil
-                </a>
-                <a href="{{ route('settings.password') }}" wire:navigate
-                    style="display:flex;align-items:center;gap:0.6rem;padding:0.75rem 1rem;border-radius:0.65rem;border:1.5px solid #e2e8f0;background:white;color:#475569;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.18s;text-decoration:none"
-                    onmouseover="this.style.background='#f8fafc'"
-                    onmouseout="this.style.background='white'">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.9rem;height:0.9rem;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75A4.5 4.5 0 0 0 7.5 6.75v3.75m9 0a2.25 2.25 0 0 1 2.25 2.25v6A2.25 2.25 0 0 1 16.5 21H7.5a2.25 2.25 0 0 1-2.25-2.25v-6a2.25 2.25 0 0 1 2.25-2.25m9 0h-9"/></svg>
-                    Mudar senha
-                </a>
-            </div>
-        </div>
-
-        {{-- CARD: Histórico de atividades de segurança --}}
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon" style="background:rgba(99,102,241,.1);color:#6366f1">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Histórico de atividades</p>
-                        <p class="settings-card-desc">Auditoria dos eventos recentes na conta</p>
-                    </div>
-                </div>
-            </div>
-            @php
-                $secEvents = [
-                    ['Login bem-sucedido','Acesso via web','Agora mesmo','success','M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6'],
-                    ['Perfil atualizado','Dados pessoais alterados','Hoje','info','m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125'],
-                    ['Configurações salvas','Notificações configuradas','Ontem','info','M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281'],
-                    ['Login bem-sucedido','Acesso via web','2 dias atrás','success','M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6'],
-                    ['Senha não alterada','Último check de segurança','7 dias atrás','warning','M16.5 10.5V6.75A4.5 4.5 0 0 0 7.5 6.75v3.75'],
-                ];
-                $secColors = ['success'=>'#10b981','info'=>'#6366f1','warning'=>'#f59e0b','danger'=>'#ef4444'];
-                $secBg     = ['success'=>'rgba(16,185,129,.1)','info'=>'rgba(99,102,241,.1)','warning'=>'rgba(245,158,11,.1)','danger'=>'rgba(239,68,68,.1)'];
-            @endphp
-            <div style="padding:0 1.25rem 1.25rem;position:relative">
-                {{-- Timeline --}}
-                <div style="position:relative;padding-left:1.5rem">
-                    <div style="position:absolute;left:.45rem;top:.6rem;bottom:.6rem;width:2px;background:linear-gradient(to bottom,rgba(var(--s-accent-rgb),.2),rgba(var(--s-accent-rgb),.05))"></div>
-                    @foreach($secEvents as [$title,$desc,$when,$type,$icon])
-                    <div style="position:relative;display:flex;gap:.75rem;align-items:flex-start;padding:.6rem 0">
-                        <div style="position:absolute;left:-1.5rem;width:.8rem;height:.8rem;border-radius:50%;background:{{ $secBg[$type] }};border:2px solid {{ $secColors[$type] }};flex-shrink:0;margin-top:.15rem"></div>
-                        <div style="flex:1;min-width:0">
-                            <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
-                                <p style="font-size:.83rem;font-weight:700;color:#1e293b;margin:0">{{ $title }}</p>
-                                <span style="font-size:.72rem;color:#94a3b8">{{ $when }}</span>
-                            </div>
-                            <p style="font-size:.75rem;color:#64748b;margin:.1rem 0 0">{{ $desc }}</p>
+                <div class="ap-card">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-sky-500 to-blue-600"><i class="bi bi-door-open"></i></span>
+                        <div class="min-w-0">
+                            <h2>Como você entra</h2>
+                            <p>Formas de login e aparelhos conectados.</p>
                         </div>
                     </div>
-                    @endforeach
+                    <div class="sc-ways">
+                        <div class="sc-way {{ $hasPassword ? 'is-on' : '' }}">
+                            <span class="sc-way-ico bg-gradient-to-br from-amber-500 to-orange-500"><i class="bi bi-key"></i></span>
+                            <b>E-mail e senha</b>
+                            <small>{{ $hasPassword ? 'Ativo' : 'Sem senha' }}</small>
+                        </div>
+                        <div class="sc-way {{ $hasGoogle ? 'is-on' : '' }}">
+                            <span class="sc-way-ico bg-gradient-to-br from-sky-500 to-blue-600"><i class="bi bi-google"></i></span>
+                            <b>Google</b>
+                            <small>{{ $hasGoogle ? 'Vinculado' : 'Não vinculado' }}</small>
+                        </div>
+                        <a href="{{ route('settings.devices') }}" wire:navigate class="sc-way is-on">
+                            <span class="sc-way-ico bg-gradient-to-br from-violet-500 to-purple-600"><i class="bi bi-phone"></i></span>
+                            <b>Aparelhos</b>
+                            <small>{{ $sessions ? $sessions . ' ' . ($sessions === 1 ? 'conectado' : 'conectados') : 'Ver onde está aberta' }}</small>
+                        </a>
+                    </div>
+                    <div class="sc-facts">
+                        <div><small>Conta criada em</small><b>{{ $user->created_at?->format('d/m/Y') ?? '—' }}</b></div>
+                        <div><small>E-mail</small><b>{{ $user->email }}</b></div>
+                        <div><small>Este acesso</small><b>IP {{ request()->ip() }}</b></div>
+                    </div>
                 </div>
-                <p style="font-size:.72rem;color:#94a3b8;margin:.5rem 0 0;text-align:center">Exibindo os últimos 5 eventos · Histórico completo em breve</p>
             </div>
+
+            <aside class="pl-side">
+                <div class="ap-card">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-indigo-500 to-purple-600"><i class="bi bi-lightbulb"></i></span>
+                        <div class="min-w-0">
+                            <h2>Dicas rápidas</h2>
+                            <p>O que mais protege uma conta.</p>
+                        </div>
+                    </div>
+                    <ul class="sc-tips">
+                        <li><i class="bi bi-check2-circle"></i> Use uma senha só para o FlowManager, com 12 letras ou mais.</li>
+                        <li><i class="bi bi-check2-circle"></i> Usou o computador de outra pessoa? Encerre a sessão em Dispositivos.</li>
+                        <li><i class="bi bi-check2-circle"></i> Dê para a equipe só as permissões que cada pessoa precisa.</li>
+                        <li><i class="bi bi-check2-circle"></i> Nunca mande chaves e senhas por mensagem; cole só nas telas de Configurações.</li>
+                    </ul>
+                </div>
+
+                <div class="ap-card">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-slate-500 to-slate-700"><i class="bi bi-lightning"></i></span>
+                        <div class="min-w-0">
+                            <h2>Atalhos</h2>
+                            <p>Outras telas da conta.</p>
+                        </div>
+                    </div>
+                    <div class="acc-links">
+                        <a href="{{ route('settings.password') }}" wire:navigate class="acc-link">
+                            <span class="acc-link-ico bg-gradient-to-br from-amber-500 to-orange-500"><i class="bi bi-key"></i></span>
+                            <span class="min-w-0"><b>Trocar a senha</b><small>Senha e login</small></span>
+                            <i class="bi bi-chevron-right acc-link-go"></i>
+                        </a>
+                        <a href="{{ route('settings.devices') }}" wire:navigate class="acc-link">
+                            <span class="acc-link-ico bg-gradient-to-br from-sky-500 to-blue-600"><i class="bi bi-phone"></i></span>
+                            <span class="min-w-0"><b>Dispositivos</b><small>Encerrar sessões abertas</small></span>
+                            <i class="bi bi-chevron-right acc-link-go"></i>
+                        </a>
+                        <a href="{{ route('settings.team') }}" wire:navigate class="acc-link">
+                            <span class="acc-link-ico bg-gradient-to-br from-blue-500 to-indigo-600"><i class="bi bi-people"></i></span>
+                            <span class="min-w-0"><b>Permissões da equipe</b><small>Quem vê o quê</small></span>
+                            <i class="bi bi-chevron-right acc-link-go"></i>
+                        </a>
+                    </div>
+                </div>
+            </aside>
         </div>
+    </div>
 
-        {{-- CARD: Dicas de segurança --}}
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon" style="background:rgba(16,185,129,.1);color:#10b981">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Boas práticas de segurança</p>
-                        <p class="settings-card-desc">Recomendações para manter sua conta protegida</p>
-                    </div>
-                </div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem;padding:0 1.25rem 1.25rem">
-                @foreach([
-                    ['Use senhas únicas','Nunca reutilize senhas em sites diferentes','#10b981'],
-                    ['Ative 2FA','Autenticação em dois fatores protege contra invasões','#6366f1'],
-                    ['Revise dispositivos','Verifique regularmente os dispositivos com acesso','#f59e0b'],
-                    ['E-mail verificado','Mantenha o e-mail verificado para recuperar a conta','#3b82f6'],
-                ] as [$tip,$tipDesc,$tipCol])
-                <div class="settings-info-tile" style="background:{{ $tipCol }}10;border-color:{{ $tipCol }}25">
-                    <div style="color:{{ $tipCol }};margin-bottom:.4rem">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:.9rem;height:.9rem"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                    </div>
-                    <p class="settings-info-tile-label" style="color:{{ $tipCol }}">{{ $tip }}</p>
-                    <p style="font-size:.73rem;color:#64748b;margin:.2rem 0 0">{{ $tipDesc }}</p>
-                </div>
-                @endforeach
-            </div>
-        </div>
-
-        <div class="settings-card" style="background:linear-gradient(135deg,rgba(var(--s-accent-rgb),0.05),transparent)">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon" style="background:rgba(14,165,233,.12);color:#0284c7">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m6 2.25a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Ações recomendadas agora</p>
-                        <p class="settings-card-desc">Próximos passos mais impactantes para fortalecer sua conta</p>
-                    </div>
-                </div>
-                <span class="s-badge s-badge-accent">Checklist</span>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem;padding:0 1.25rem 1.25rem">
-                <a href="{{ route('settings.profile') }}" wire:navigate class="settings-info-tile" style="text-decoration:none;background:{{ $hasVerifiedEmail ? 'rgba(16,185,129,.08)' : 'rgba(245,158,11,.08)' }}">
-                    <p class="settings-info-tile-label">E-mail</p>
-                    <p class="settings-info-tile-val" style="color:{{ $hasVerifiedEmail ? '#10b981' : '#f59e0b' }}">{{ $hasVerifiedEmail ? 'Tudo certo' : 'Verificar agora' }}</p>
-                    <p style="font-size:.74rem;color:#64748b;margin:.25rem 0 0">{{ $hasVerifiedEmail ? 'Seu e-mail já pode ser usado para recuperação.' : 'Sem verificação, o processo de recuperação fica mais limitado.' }}</p>
-                </a>
-                <a href="{{ route('settings.password') }}" wire:navigate class="settings-info-tile" style="text-decoration:none;background:rgba(99,102,241,.08)">
-                    <p class="settings-info-tile-label">Senha e acesso</p>
-                    <p class="settings-info-tile-val" style="color:#4f46e5">Revisar credenciais</p>
-                    <p style="font-size:.74rem;color:#64748b;margin:.25rem 0 0">Troque sua senha regularmente e use uma combinação longa e exclusiva.</p>
-                </a>
-                <a href="{{ route('settings.devices') }}" wire:navigate class="settings-info-tile" style="text-decoration:none;background:rgba(14,165,233,.08)">
-                    <p class="settings-info-tile-label">Dispositivos</p>
-                    <p class="settings-info-tile-val" style="color:#0284c7">Auditar sessões</p>
-                    <p style="font-size:.74rem;color:#64748b;margin:.25rem 0 0">Confira acessos antigos e revogue sessões que você não reconhece.</p>
-                </a>
-            </div>
-        </div>
-
-        </div>{{-- /s-col-side --}}
-        </div>{{-- /s-pg-grid --}}
-
+    <style>
+        .sc-page { display: flex; flex-direction: column; gap: 1rem; }
+        .pl-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 1rem; align-items: start; }
+        .pl-main, .pl-side { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+        .sc-hero { position: relative; overflow: hidden; display: flex; align-items: center; gap: 1.2rem; padding: 1.4rem 1.6rem; border-radius: 1.6rem; color: #fff; box-shadow: 0 24px 50px -28px rgba(15, 23, 42, .6); }
+        .sc-hero.is-ok { background: linear-gradient(135deg, #059669, #0d9488 55%, #0891b2); }
+        .sc-hero.is-warn { background: linear-gradient(135deg, #d97706, #ea580c 60%, #e11d48); }
+        .sc-hero.is-bad { background: linear-gradient(135deg, #e11d48, #db2777 55%, #9333ea); }
+        .sc-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 10% 0%, rgba(255, 255, 255, .3), transparent 40%); }
+        .sc-ring { position: relative; flex: none; display: grid; place-items: center; width: 5.2rem; height: 5.2rem; border-radius: 999px; background: conic-gradient(#fff calc(var(--pct) * 1%), rgba(255, 255, 255, .25) 0); }
+        .sc-ring::before { content: ''; position: absolute; inset: .45rem; border-radius: 999px; background: rgba(15, 23, 42, .28); }
+        .sc-ring b { position: relative; font-size: 1.3rem; font-weight: 900; }
+        .sc-hero-txt { position: relative; flex: 1; min-width: 0; }
+        .sc-kicker { display: inline-flex; align-items: center; gap: .35rem; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .92; }
+        .sc-hero-txt h2 { font-size: 1.4rem; font-weight: 900; line-height: 1.2; margin-top: .2rem; }
+        .sc-hero-txt p { font-size: .82rem; opacity: .92; }
+        .sc-checks { display: flex; flex-direction: column; gap: .45rem; }
+        .sc-check { display: flex; align-items: center; gap: .75rem; padding: .7rem .8rem; border-radius: 1rem; background: #fffbeb; border: 1px solid #fde68a; }
+        .sc-check.is-ok { background: #f8fafc; border-color: #eef2f7; }
+        .dark .sc-check { background: rgba(245, 158, 11, .07); border-color: rgba(245, 158, 11, .28); }
+        .dark .sc-check.is-ok { background: #111827; border-color: #1f2937; }
+        .sc-check-ico { flex: none; display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: .8rem; background: #fef3c7; color: #d97706; font-size: 1.05rem; }
+        .sc-check.is-ok .sc-check-ico { background: #d1fae5; color: #059669; }
+        .dark .sc-check-ico { background: rgba(245, 158, 11, .15); color: #fbbf24; }
+        .dark .sc-check.is-ok .sc-check-ico { background: rgba(16, 185, 129, .15); color: #6ee7b7; }
+        .sc-check > span:nth-child(2) { flex: 1; }
+        .sc-check b { display: block; font-size: .86rem; color: #0f172a; }
+        .sc-check small { display: block; font-size: .74rem; color: #64748b; }
+        .dark .sc-check b { color: #f1f5f9; }
+        .dark .sc-check small { color: #94a3b8; }
+        .sc-tag { flex: none; font-size: .68rem; font-weight: 800; color: #047857; background: #ecfdf5; padding: .25rem .6rem; border-radius: 999px; }
+        .dark .sc-tag { background: rgba(16, 185, 129, .12); color: #6ee7b7; }
+        .sc-cta { flex: none; display: inline-flex; align-items: center; gap: .3rem; font-size: .76rem; font-weight: 800; color: #fff; background: #f59e0b; padding: .4rem .75rem; border-radius: .75rem; }
+        .sc-ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; }
+        .sc-way { display: flex; flex-direction: column; align-items: flex-start; gap: .2rem; padding: .85rem; border-radius: 1rem; border: 1px solid #eef2f7; background: #f8fafc; opacity: .7; }
+        .sc-way.is-on { opacity: 1; background: #fff; border-color: #e2e8f0; }
+        .dark .sc-way { background: #111827; border-color: #1f2937; }
+        .sc-way-ico { display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: .75rem; color: #fff; margin-bottom: .3rem; }
+        .sc-way b { font-size: .84rem; color: #0f172a; }
+        .sc-way small { font-size: .72rem; color: #64748b; }
+        .dark .sc-way b { color: #f1f5f9; }
+        .dark .sc-way small { color: #94a3b8; }
+        .sc-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; margin-top: .9rem; padding-top: .9rem; border-top: 1px dashed #e2e8f0; }
+        .dark .sc-facts { border-color: #1e293b; }
+        .sc-facts small { display: block; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #94a3b8; }
+        .sc-facts b { display: block; font-size: .82rem; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dark .sc-facts b { color: #f1f5f9; }
+        .sc-tips { display: flex; flex-direction: column; gap: .55rem; font-size: .8rem; color: #334155; }
+        .sc-tips li { display: flex; gap: .5rem; }
+        .sc-tips i { color: #10b981; margin-top: .1rem; }
+        .dark .sc-tips { color: #cbd5e1; }
+        .acc-links { display: flex; flex-direction: column; gap: .3rem; }
+        .acc-link { display: flex; align-items: center; gap: .7rem; padding: .55rem .6rem; border-radius: .9rem; transition: background .15s; }
+        .acc-link:hover { background: #f8fafc; }
+        .dark .acc-link:hover { background: #111827; }
+        .acc-link-ico { flex: none; display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: .75rem; color: #fff; }
+        .acc-link b { display: block; font-size: .83rem; color: #0f172a; }
+        .acc-link small { display: block; font-size: .7rem; color: #64748b; }
+        .dark .acc-link b { color: #f1f5f9; }
+        .dark .acc-link small { color: #94a3b8; }
+        .acc-link-go { margin-left: auto; color: #cbd5e1; }
+        @media (max-width: 1279px) { .pl-grid { grid-template-columns: minmax(0, 1fr) 300px; } }
+        @media (max-width: 1023px) { .pl-grid { grid-template-columns: minmax(0, 1fr); } .pl-side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 767px) {
+            .sc-hero { padding: 1.1rem; border-radius: 1.3rem; gap: .9rem; }
+            .sc-ring { width: 4.2rem; height: 4.2rem; }
+            .sc-ring b { font-size: 1.05rem; }
+            .sc-hero-txt h2 { font-size: 1.1rem; }
+            .pl-side { display: flex; }
+            .sc-ways, .sc-facts { grid-template-columns: minmax(0, 1fr); }
+            .sc-way { flex-direction: row; align-items: center; gap: .65rem; }
+            .sc-way-ico { margin: 0; }
+            .sc-way small { margin-left: auto; }
+            .sc-cta { padding: .4rem .55rem; }
+        }
+    </style>
     </x-settings.layout>
 </section>

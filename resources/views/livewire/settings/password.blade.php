@@ -221,8 +221,8 @@ new class extends Component {
                                 <svg fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:.8rem;height:.8rem;display:inline;vertical-align:-.1em;margin-right:.25rem"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
                                 Gerar
                             </button>
-                            <button type="button" @click="copy()" style="flex:1;padding:.45rem .6rem;border-radius:.5rem;font-size:.76rem;font-weight:700;cursor:pointer;transition:all .2s"
-                                :style="copied ? 'background:#10b981;color:#fff;border:1.5px solid #10b981' : 'background:rgba(16,185,129,.1);color:#059669;border:1.5px solid rgba(16,185,129,.2)'">
+                            <button type="button" @click="copy()" style="flex:1;padding:.45rem .6rem;border-radius:.5rem;font-size:.76rem;font-weight:700;cursor:pointer;transition:all .2s;border:1.5px solid rgba(16,185,129,.2)"
+                                :style="copied ? { background: '#10b981', color: '#fff', borderColor: '#10b981' } : { background: 'rgba(16,185,129,.1)', color: '#059669', borderColor: 'rgba(16,185,129,.2)' }">
                                 <span x-show="!copied">
                                     <svg fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:.8rem;height:.8rem;display:inline;vertical-align:-.1em;margin-right:.25rem"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184"/></svg>
                                     Copiar
@@ -251,15 +251,17 @@ new class extends Component {
                     </ul>
                 </div>
 
-                <div class="settings-card" style="background:linear-gradient(135deg,rgba(var(--s-accent-rgb),0.06),transparent)">
-                    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.75rem">
-                        <div style="width:1.8rem;height:1.8rem;border-radius:0.45rem;background:rgba(var(--s-accent-rgb),0.1);display:flex;align-items:center;justify-content:center;color:var(--s-accent);flex-shrink:0">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.9rem;height:0.9rem"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+                <div class="settings-card">
+                    <div class="settings-card-header" style="margin-bottom:.75rem">
+                        <div class="settings-card-title-row">
+                            <div class="settings-card-icon" style="background:rgba(14,165,233,.12);color:#0284c7"><i class="bi bi-phone"></i></div>
+                            <div>
+                                <p class="settings-card-title">Trocou a senha?</p>
+                                <p class="settings-card-desc">Saia da conta nos aparelhos que você não usa mais.</p>
+                            </div>
                         </div>
-                        <p class="settings-card-subtitle">Autenticação 2FA</p>
                     </div>
-                    <p style="font-size:0.78rem;color:#64748b;line-height:1.5" class="dark:text-slate-400">Ative a autenticação em dois fatores para uma camada extra de segurança na sua conta.</p>
-                    <p style="font-size:0.72rem;color:#94a3b8;margin-top:0.5rem">Em breve disponível</p>
+                    <a href="{{ route('settings.devices') }}" wire:navigate class="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-bold text-sky-700 bg-sky-50 border border-sky-100 dark:text-sky-300 dark:bg-sky-500/10 dark:border-sky-500/30"><i class="bi bi-box-arrow-right"></i> Ver aparelhos conectados</a>
                 </div>
             </div>
         </div>
