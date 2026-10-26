@@ -1,6 +1,6 @@
 @props([
     // Parte aberta agora (inicio, banners, destaques, colecoes, aviso, automacoes, kits, cupons, pagamentos, pedidos, avaliacoes)
-    'current' => 'inicio',
+    'current' => 'geral',
     // Na Vitrine as partes dela trocam sem recarregar (wire:click); nas outras telas viram links.
     'wire' => false,
     // Uma linha de situação por parte (ex.: "3 banners no ar"), quando a tela tiver.
@@ -10,34 +10,37 @@
 @php
     // Todas as configurações do catálogo online num lugar só, separadas em grupos.
     $groups = [
+        'Comece aqui' => [
+            'geral' => ['Visão geral', 'bi-speedometer2', 'O que está pronto e o que falta', 'tab', 'resumo checklist pronto falta inicio'],
+        ],
         'Aparência da loja' => [
-            'identidade' => ['Identidade da loja', 'bi-person-badge', 'Logo, nome, contatos e páginas', 'tab'],
-            'inicio' => ['Página inicial', 'bi-house', 'Tema, cores e ordem dos blocos', 'tab'],
-            'banners' => ['Banners', 'bi-images', 'Carrossel, faixas e laterais', 'tab'],
-            'destaques' => ['Destaques', 'bi-star', 'Produtos da fileira de destaque', 'tab'],
-            'colecoes' => ['Coleções', 'bi-collection', 'Grupos de produtos com capa', 'tab'],
-            'aviso' => ['Aviso no topo', 'bi-megaphone', 'Uma linha em todas as páginas', 'tab'],
+            'identidade' => ['Identidade da loja', 'bi-person-badge', 'Logo, nome, contatos e páginas', 'tab', 'logo whatsapp instagram facebook tiktok fonte rodape sobre trocas entrega contato endereco horario nome'],
+            'inicio' => ['Página inicial', 'bi-house', 'Tema, cores e ordem dos blocos', 'tab', 'tema cores estilo fundo desenho cards botoes blocos ordem largura titulos natal black'],
+            'banners' => ['Banners', 'bi-images', 'Carrossel, faixas e laterais', 'tab', 'carrossel faixa lateral imagem foto modelo'],
+            'destaques' => ['Destaques', 'bi-star', 'Produtos da fileira de destaque', 'tab', 'fileira produtos estrela'],
+            'colecoes' => ['Coleções', 'bi-collection', 'Grupos de produtos com capa', 'tab', 'categoria grupo capa'],
+            'aviso' => ['Aviso no topo', 'bi-megaphone', 'Uma linha em todas as páginas', 'tab', 'frete gratis mensagem topo faixa'],
         ],
         'Automático' => [
-            'automacoes' => ['Automações', 'bi-robot', 'O site se arruma sozinho', 'tab'],
+            'automacoes' => ['Automações', 'bi-robot', 'O site se arruma sozinho', 'tab', 'automatico sozinho data selo novidade ordem lista'],
         ],
         'Vendas pelo catálogo' => [
-            'kits' => ['Monte seu kit', 'bi-gift', 'Cestas, caixas e enfeites', 'promotions.kits'],
-            'cupons' => ['Cupons', 'bi-ticket-perforated', 'Códigos de desconto', 'promotions.coupons'],
-            'pagamentos' => ['Pagamento e frete', 'bi-credit-card', 'Pix, cartão, boleto e entrega', 'settings.payments'],
-            'pedidos' => ['Pedidos do portal', 'bi-bag-check', 'Pedidos que chegaram', 'sales.portal-orders'],
+            'kits' => ['Monte seu kit', 'bi-gift', 'Cestas, caixas e enfeites', 'promotions.kits', 'cesta caixa presente balao doces cartao'],
+            'cupons' => ['Cupons', 'bi-ticket-perforated', 'Códigos de desconto', 'promotions.coupons', 'desconto codigo cupom'],
+            'pagamentos' => ['Pagamento e frete', 'bi-credit-card', 'Pix, cartão, boleto e entrega', 'settings.payments', 'pix cartao boleto mercado pago frete cep retirada entrega'],
+            'pedidos' => ['Pedidos do portal', 'bi-bag-check', 'Pedidos que chegaram', 'sales.portal-orders', 'orcamento pedido'],
         ],
         'Clientes' => [
-            'avaliacoes' => ['Avaliações', 'bi-star-half', 'Notas e comentários', 'promotions.reviews'],
+            'avaliacoes' => ['Avaliações', 'bi-star-half', 'Notas e comentários', 'promotions.reviews', 'estrelas comentario nota'],
         ],
     ];
-    $now = collect($groups)->flatMap(fn ($g) => $g)->get($current) ?? $groups['Aparência da loja']['inicio'];
+    $now = collect($groups)->flatMap(fn ($g) => $g)->get($current) ?? $groups['Comece aqui']['geral'];
     $href = fn ($key, $item) => $item[3] === 'tab'
-        ? route('promotions.storefront', $key === 'inicio' ? [] : ['tab' => $key])
+        ? route('promotions.storefront', $key === 'geral' ? [] : ['tab' => $key])
         : route($item[3]);
 @endphp
 
-<div class="lg:grid lg:grid-cols-[250px_minmax(0,1fr)] 2xl:grid-cols-[270px_minmax(0,1fr)] lg:gap-5 lg:items-start" x-data="{ menu: false }" data-testid="portal-settings">
+<div class="lg:grid lg:grid-cols-[250px_minmax(0,1fr)] 2xl:grid-cols-[270px_minmax(0,1fr)] lg:gap-5 lg:items-start" x-data="{ menu: false, q: '', has(t) { return this.q.trim() === '' || t.includes(this.q.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')); } }" data-testid="portal-settings">
     {{-- Celular e iPad: um botão com a parte aberta, que abre a lista de todas --}}
     <button type="button" @click="menu = true" data-testid="portal-nav-open"
             class="lg:hidden w-full mb-4 flex items-center gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900 shadow-sm p-3 text-left">
@@ -58,8 +61,14 @@
             <b class="text-base text-slate-900 dark:text-white">Configurar o catálogo</b>
             <button type="button" @click="menu = false" class="w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
         </div>
+        <label class="relative block px-1 pt-1 pb-1.5">
+            <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400"></i>
+            <input type="search" x-model="q" placeholder="Buscar configuração" aria-label="Buscar configuração" data-testid="portal-nav-search"
+                   class="w-full rounded-xl border-0 bg-slate-100 dark:bg-slate-800 pl-9 pr-3 py-2 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-violet-300">
+        </label>
         @foreach($groups as $gname => $items)
-            <p class="px-2.5 pt-2.5 pb-1 text-[11px] font-bold uppercase tracking-wide text-slate-400">{{ $gname }}</p>
+            @php $gWords = \Illuminate\Support\Str::lower(\Illuminate\Support\Str::ascii(collect($items)->map(fn ($i) => $i[0] . ' ' . $i[2] . ' ' . ($i[4] ?? ''))->join(' '))); @endphp
+            <p class="px-2.5 pt-2.5 pb-1 text-[11px] font-bold uppercase tracking-wide text-slate-400" x-show="has(@js($gWords))">{{ $gname }}</p>
             <ul class="grid gap-0.5">
                 @foreach($items as $key => $item)
                     @php
@@ -67,7 +76,7 @@
                         $cls = 'w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition ' . ($on ? 'bg-violet-50 dark:bg-violet-500/15 ring-1 ring-violet-200 dark:ring-violet-500/30' : 'hover:bg-slate-50 dark:hover:bg-slate-800/70');
                         $sub = $info[$key] ?? $item[2];
                     @endphp
-                    <li>
+                    <li x-show="has(@js(\Illuminate\Support\Str::lower(\Illuminate\Support\Str::ascii($item[0] . ' ' . $item[2] . ' ' . ($item[4] ?? '')))))">
                         @if($wire && $item[3] === 'tab')
                             <button type="button" wire:click="$set('tab', '{{ $key }}')" @click="menu = false" class="{{ $cls }}" data-testid="nav-{{ $key }}">
                         @else

@@ -53,6 +53,89 @@
     <x-portal-settings-nav :current="$tab" :wire="true" :info="$navInfo">
 
     {{-- ===================== Identidade da loja ===================== --}}
+    @if($tab === 'geral')
+        @php
+            $all = collect($overview)->flatten(1);
+            $req = $all->where(7, false);
+            $doneReq = $req->where(4, true)->count();
+            $pct = $req->count() ? (int) round($doneReq / $req->count() * 100) : 100;
+            $next = $all->first(fn ($i) => ! $i[4] && ! $i[7]) ?? $all->first(fn ($i) => ! $i[4]);
+            $go = fn ($i) => $i[6][0] === 'tab' ? 'wire:click="$set(\'tab\', \'' . $i[6][1] . '\')"' : 'href="' . e($i[6][1]) . '" wire:navigate';
+            $ring = 2 * M_PI * 34;
+        @endphp
+        <div class="space-y-4" data-testid="overview">
+            {{-- Topo: quanto falta e o link da loja --}}
+            <section class="relative overflow-hidden rounded-3xl p-5 sm:p-6 text-white shadow-lg bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-500">
+                <div class="absolute -right-10 -top-14 w-56 h-56 rounded-full bg-white/10"></div>
+                <div class="absolute right-24 -bottom-16 w-40 h-40 rounded-full bg-white/10"></div>
+                <div class="relative flex flex-col sm:flex-row sm:items-center gap-5">
+                    <div class="relative shrink-0 w-24 h-24">
+                        <svg viewBox="0 0 80 80" class="w-24 h-24 -rotate-90"><circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="8"/><circle cx="40" cy="40" r="34" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-dasharray="{{ $ring }}" stroke-dashoffset="{{ $ring * (1 - $pct / 100) }}"/></svg>
+                        <b class="absolute inset-0 flex items-center justify-center text-2xl font-black" data-testid="overview-pct">{{ $pct }}%</b>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-bold uppercase tracking-widest text-white/75">Sua loja online</p>
+                        <h2 class="text-xl sm:text-2xl font-black leading-tight">{{ $pct >= 100 ? 'Tudo pronto para vender!' : ($pct >= 60 ? 'Falta pouco para ficar completa' : 'Vamos deixar a sua loja pronta') }}</h2>
+                        <p class="text-sm text-white/85 mt-1">{{ $doneReq }} de {{ $req->count() }} passos principais prontos.@if($next) Próximo: <b>{{ $next[2] }}</b>.@endif</p>
+                        <div class="flex flex-wrap gap-2 mt-3" x-data="{ copied: false }">
+                            @if($next)<button type="button" {!! $go($next) !!} class="inline-flex items-center gap-1.5 rounded-xl bg-white text-violet-700 px-4 py-2 text-sm font-bold shadow hover:bg-violet-50" data-testid="overview-next"><i class="bi bi-arrow-right-circle-fill"></i>{{ $next[5] }}</button>@endif
+                            <a href="{{ $catalogUrl }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/30 px-4 py-2 text-sm font-semibold"><i class="bi bi-box-arrow-up-right"></i>Abrir o site</a>
+                            <button type="button" @click="navigator.clipboard?.writeText(@js($catalogUrl)); copied = true; setTimeout(() => copied = false, 1800)" class="inline-flex items-center gap-1.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/30 px-4 py-2 text-sm font-semibold" data-testid="overview-copy"><i class="bi" :class="copied ? 'bi-check2' : 'bi-link-45deg'"></i><span x-text="copied ? 'Link copiado' : 'Copiar link'">Copiar link</span></button>
+                            <a href="https://wa.me/?text={{ rawurlencode('Conheça a minha loja: ' . $catalogUrl) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/30 px-4 py-2 text-sm font-semibold"><i class="bi bi-whatsapp"></i>Mandar no WhatsApp</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {{-- Atalhos --}}
+            <section class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2" data-testid="overview-quick">
+                @foreach([
+                    ['bi-palette', 'Trocar o tema', ['tab', 'inicio'], 'from-violet-500 to-fuchsia-500'],
+                    ['bi-image', 'Novo banner', ['route', route('promotions.storefront.banner.create')], 'from-rose-500 to-orange-400'],
+                    ['bi-star', 'Destaques', ['tab', 'destaques'], 'from-amber-500 to-yellow-400'],
+                    ['bi-collection', 'Nova coleção', ['route', route('promotions.storefront.collection.create')], 'from-sky-500 to-cyan-400'],
+                    ['bi-ticket-perforated', 'Novo cupom', ['route', route('promotions.coupons')], 'from-emerald-500 to-teal-400'],
+                    ['bi-robot', 'Automações', ['tab', 'automacoes'], 'from-slate-700 to-slate-500'],
+                ] as [$qi, $qn, $qt, $qg])
+                    <a {!! $qt[0] === 'tab' ? 'href="#" wire:click.prevent="$set(\'tab\', \'' . $qt[1] . '\')"' : 'href="' . e($qt[1]) . '" wire:navigate' !!} class="{{ $card }} group p-3 flex items-center gap-2.5 hover:-translate-y-0.5 hover:shadow-md transition">
+                        <span class="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white bg-gradient-to-br {{ $qg }} shadow-sm"><i class="bi {{ $qi }}"></i></span>
+                        <b class="text-sm text-slate-700 dark:text-slate-200 leading-tight">{{ $qn }}</b>
+                    </a>
+                @endforeach
+            </section>
+
+            {{-- Passo a passo por grupo --}}
+            <div class="grid gap-4 xl:grid-cols-2">
+                @foreach($overview as $gname => $items)
+                    @php $gDone = collect($items)->where(4, true)->count(); @endphp
+                    <section class="{{ $card }} p-4 sm:p-5" data-testid="overview-group">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <h3 class="font-bold text-slate-900 dark:text-white">{{ $gname }}</h3>
+                            <span class="shrink-0 text-xs font-semibold rounded-full px-2.5 py-1 {{ $gDone === count($items) ? $tones['emerald'] : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300' }}">{{ $gDone }}/{{ count($items) }}</span>
+                        </div>
+                        <div class="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 mb-3 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-500" style="width: {{ count($items) ? round($gDone / count($items) * 100) : 0 }}%"></div></div>
+                        <ul class="divide-y divide-slate-100 dark:divide-slate-800">
+                            @foreach($items as [$ik, $iicon, $ititle, $itext, $idone, $ibtn, $itarget, $iopt])
+                                <li class="flex items-center gap-3 py-2.5" data-testid="overview-item-{{ $ik }}">
+                                    <span class="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center {{ $idone ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' }}"><i class="bi {{ $idone ? 'bi-check-lg' : $iicon }}"></i></span>
+                                    <span class="min-w-0 flex-1">
+                                        <b class="block text-sm text-slate-800 dark:text-slate-100">{{ $ititle }}@if($iopt && ! $idone)<span class="ml-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">opcional</span>@endif</b>
+                                        <small class="block text-xs text-slate-500 dark:text-slate-400">{{ $itext }}</small>
+                                    </span>
+                                    @if($itarget[0] === 'tab')
+                                        <button type="button" wire:click="$set('tab', '{{ $itarget[1] }}')" class="shrink-0 rounded-xl px-3 py-1.5 text-xs font-semibold transition {{ $idone ? 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800' : 'bg-violet-500 text-white hover:bg-violet-600 shadow-sm' }}">{{ $idone ? 'Mudar' : $ibtn }}</button>
+                                    @else
+                                        <a href="{{ $itarget[1] }}" wire:navigate class="shrink-0 rounded-xl px-3 py-1.5 text-xs font-semibold transition {{ $idone ? 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800' : 'bg-violet-500 text-white hover:bg-violet-600 shadow-sm' }}">{{ $idone ? 'Mudar' : $ibtn }}</a>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    </section>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     @if($tab === 'identidade')
         @php
             $SI = \App\Services\Portal\StoreIdentity::class;
@@ -230,9 +313,15 @@
     @if($tab === 'inicio')
         @php $home = \App\Services\Portal\HomeLayout::class; $cur = $themes[$home_theme] ?? null; @endphp
         <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] items-start" data-testid="home-builder">
-            <div class="space-y-4 min-w-0">
+            <div class="space-y-4 min-w-0" x-data="{ sec: 'tema', go(id) { this.sec = id; document.getElementById('pi-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }">
+                {{-- Atalhos para as partes da página (fica preso no alto ao rolar) --}}
+                <div class="sticky top-2 z-20 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/90 backdrop-blur shadow-sm p-1 grid grid-cols-4 gap-1" data-testid="home-subnav">
+                    @foreach(['tema' => ['Tema', 'bi-palette'], 'cores' => ['Cores', 'bi-droplet-half'], 'estilo' => ['Estilo', 'bi-palette2'], 'blocos' => ['Blocos', 'bi-list-ol']] as $sk => [$sn, $si])
+                        <button type="button" @click="go('{{ $sk }}')" :class="sec === '{{ $sk }}' ? 'bg-violet-500 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'" class="rounded-xl py-2 text-xs sm:text-sm font-semibold transition inline-flex items-center justify-center gap-1.5"><i class="bi {{ $si }}"></i>{{ $sn }}</button>
+                    @endforeach
+                </div>
                 {{-- 1. Tema --}}
-                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-themes">
+                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-themes" id="pi-tema" style="scroll-margin-top: 80px">
                     <div class="flex items-start gap-3">
                         <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-lg"><i class="bi bi-palette"></i></div>
                         <div class="min-w-0">
@@ -285,7 +374,7 @@
                 </section>
 
                 {{-- 2. Cores e cantos --}}
-                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-colors">
+                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-colors" id="pi-cores" style="scroll-margin-top: 80px">
                     <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-droplet-half text-violet-500"></i>Cores e cantos</h2>
                     <div class="grid grid-cols-1 min-[480px]:grid-cols-3 gap-2">
                         @foreach(['Topo, começo', 'Topo, fim', 'Botões e links'] as $i => $cname)
@@ -313,7 +402,7 @@
                 </section>
 
                 {{-- 2b. Estilo do site --}}
-                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-look">
+                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-look" id="pi-estilo" style="scroll-margin-top: 80px">
                     <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0">
                             <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-palette2 text-violet-500"></i>Estilo do site</h2>
@@ -324,12 +413,14 @@
                     @foreach($home::LOOKS as $part => [$pname, $choices])
                         <div>
                             <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">{{ $pname }}</p>
-                            <div class="flex flex-wrap gap-1.5">
+                            <div class="grid grid-cols-3 min-[520px]:grid-cols-4 2xl:grid-cols-5 gap-1.5">
                                 @foreach($choices as $k => [$n, $ico])
                                     @php $on = ($home_look[$part] ?? null) === $k; @endphp
-                                    <button type="button" wire:click="setLook('{{ $part }}', '{{ $k }}')" data-testid="look-{{ $part }}-{{ $k }}"
-                                        class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition {{ $on ? 'border-violet-500 bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-200 ring-1 ring-violet-500' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-violet-300' }}">
-                                        <i class="bi {{ $ico }}"></i>{{ $n }}
+                                    <button type="button" wire:click="setLook('{{ $part }}', '{{ $k }}')" data-testid="look-{{ $part }}-{{ $k }}" aria-pressed="{{ $on ? 'true' : 'false' }}"
+                                        class="relative text-left rounded-xl border p-1.5 transition {{ $on ? 'border-violet-500 ring-2 ring-violet-200 dark:ring-violet-500/30 bg-violet-50/60 dark:bg-violet-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300 hover:-translate-y-0.5' }}">
+                                        @include('livewire.promotions.partials.look-thumb', ['part' => $part, 'k' => $k, 'c' => $home_colors])
+                                        <span class="block mt-1 text-[11px] font-semibold truncate {{ $on ? 'text-violet-700 dark:text-violet-200' : 'text-slate-600 dark:text-slate-300' }}">{{ $n }}</span>
+                                        @if($on)<i class="bi bi-check-circle-fill absolute -top-1.5 -right-1.5 text-violet-500 bg-white dark:bg-slate-900 rounded-full"></i>@endif
                                     </button>
                                 @endforeach
                             </div>
@@ -338,7 +429,7 @@
                 </section>
 
                 {{-- 3. Blocos --}}
-                <section class="{{ $card }} p-4 sm:p-5 space-y-2" data-testid="home-sections">
+                <section class="{{ $card }} p-4 sm:p-5 space-y-2" data-testid="home-sections" id="pi-blocos" style="scroll-margin-top: 80px">
                     <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-list-ol text-violet-500"></i>O que aparece e em que ordem</h2>
                     <p class="text-xs text-slate-500 dark:text-slate-400">De cima para baixo, como o cliente vê. O aviso fica sempre no alto e a lista de todos os produtos sempre no fim.</p>
                     <ol class="space-y-1.5">
@@ -395,7 +486,7 @@
                 <div class="-mx-4 sm:-mx-5 px-4 sm:px-5 scroll-px-4 sm:scroll-px-5 mt-3 flex gap-3 overflow-x-auto pb-2 snap-x [scrollbar-width:thin] items-start">
                     @foreach($front::templatesIn($galleryGroup, $kind) as $key => $t)
                         @php
-                            $tp = array_slice($t['src'] !== 'manual' ? ($auto[$t['src']] ?? []) : $samples, 0, $front::picsFor($key, $t['fmt'] ?? null));
+                            $tp = array_slice($t['src'] !== 'manual' ? ($autoPhotos[$t['src']] ?? []) : $samples, 0, $front::picsFor($key, $t['fmt'] ?? null));
                             $td = $t['date'] ? \App\Services\Promotions\CommercialCalendar::next($t['date']) : null;
                         @endphp
                         <a href="{{ route('promotions.storefront.banner.create', ['modelo' => $key]) }}" wire:key="tplrow-{{ $key }}" data-testid="tplrow-{{ $key }}"
@@ -759,7 +850,7 @@
 
     </x-portal-settings-nav>
 
-    @if(in_array($tab, ['identidade', 'banners', 'destaques', 'colecoes', 'aviso', 'automacoes'], true))
+    @if(in_array($tab, ['geral', 'identidade', 'banners', 'destaques', 'colecoes', 'aviso', 'automacoes'], true))
         @include('livewire.promotions.partials.storefront-preview', ['inline' => false])
     @endif
 

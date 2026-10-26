@@ -23,7 +23,7 @@ class PortalStorefront extends Component
 {
     use WithFileUploads;
 
-    public string $tab = 'inicio';
+    public string $tab = 'geral';
 
     // Página inicial (montagem): ordem dos blocos, escondidos, cores [topo 1, topo 2, principal], cantos e tema
     public array $home_order = [];
@@ -66,7 +66,7 @@ class PortalStorefront extends Component
     public string $pickFilter = 'todos';
     public int $pickCat = 0;
 
-    protected $queryString = ['tab' => ['except' => 'inicio']];
+    protected $queryString = ['tab' => ['except' => 'geral']];
 
     public function mount()
     {
@@ -629,16 +629,16 @@ class PortalStorefront extends Component
 
         // Fotos de exemplo para a fileira de modelos prontos.
         $samples = $this->tab === 'banners' ? PortalBanner::photoUrls($uid, $this->samplePhotos(3)) : [];
-        $auto = [];
+        $autoPhotos = [];
         if ($this->tab === 'banners') {
             foreach (['novos', 'vendidos', 'ofertas'] as $src) {
-                $auto[$src] = PortalBanner::autoPhotoUrls($uid, $src, 3);
+                $autoPhotos[$src] = PortalBanner::autoPhotoUrls($uid, $src, 3);
             }
         }
 
         return view('livewire.promotions.portal-storefront', [
             'samples'       => $samples,
-            'auto'          => $auto,
+            'autoPhotos'    => $autoPhotos,
             'banners'       => $banners,
             'collections'   => $collections,
             'counts'        => $counts,
@@ -652,7 +652,55 @@ class PortalStorefront extends Component
             'dateThemes'    => $this->tab === 'automacoes' ? HomeLayout::dateThemes($this->kind) : [],
             'secInfo'       => $this->tab === 'inicio' ? $this->sectionInfo($uid, $banners, $collections) : [],
             'navInfo'       => $this->navInfo($banners, $collections),
+            'overview'      => $this->tab === 'geral' ? $this->overview($uid, $banners, $collections) : [],
         ]);
+    }
+
+    /**
+     * Visão geral: o que já está pronto na loja online e o que falta, cada um com o botão que leva lá.
+     * Cada item: key, ícone, título, texto, pronto, botão, destino (aba da Vitrine ou rota), opcional.
+     */
+    private function overview(int $uid, $banners, $collections): array
+    {
+        $today = now()->startOfDay();
+        $liveHero = ($banners['hero'] ?? collect())->filter(fn ($b) => $b->active && (! $b->ends_at || $today->lte($b->ends_at)) && (! $b->starts_at || $today->gte($b->starts_at)))->count();
+        $pay = \App\Models\PaymentSetting::for($uid);
+        $zones = \Illuminate\Support\Facades\Schema::hasTable('portal_shipping_zones') ? \App\Models\PortalShippingZone::where('user_id', $uid)->count() : 0;
+        $coupons = \Illuminate\Support\Facades\Schema::hasTable('portal_coupons') ? \App\Models\PortalCoupon::where('user_id', $uid)->where('active', true)->count() : 0;
+        $reviews = \Illuminate\Support\Facades\Schema::hasTable('portal_reviews') ? \App\Models\PortalReview::where('user_id', $uid)->count() : 0;
+        $id = $this->identity;
+        $contacts = collect(['whatsapp', 'instagram', 'phone', 'email'])->filter(fn ($k) => filled($id[$k] ?? null))->count();
+        $pages = collect($this->pages)->filter(fn ($v) => trim($v) !== '')->count();
+        $autoOn = collect(['theme', 'featured', 'newbadge', 'sort', 'cats'])->filter(fn ($k) => ! empty($this->auto[$k]))->count();
+        $styled = $this->home_theme !== 'padrao' || HomeLayout::look('padrao', $this->home_look) !== HomeLayout::look('padrao');
+        $n = fn ($v, $one, $many) => $v === 1 ? "1 {$one}" : "{$v} {$many}";
+        $tab = fn ($t) => ['tab', $t];
+        $route = fn ($r) => ['route', route($r)];
+
+        return [
+            'Deixe a loja com a sua cara' => [
+                ['logo', 'bi-image', 'Logo e nome da loja', ($id['logo'] ?? null) ? 'Sua logo aparece no topo do site.' : 'Coloque a sua logo e o nome no topo do site.', (bool) ($id['logo'] ?? null), 'Colocar logo', $tab('identidade'), false],
+                ['contatos', 'bi-whatsapp', 'WhatsApp e redes', $contacts ? $n($contacts, 'contato', 'contatos') . ' no rodapé do site.' : 'O cliente acha você pelo WhatsApp e pelas redes no rodapé.', $contacts > 0, 'Pôr contatos', $tab('identidade'), false],
+                ['tema', 'bi-palette', 'Tema e estilo', $styled ? 'Tema: ' . (HomeLayout::THEMES[$this->home_theme]['name'] ?? 'Cores da loja') . '.' : 'Escolha um dos 30 temas ou monte o seu estilo.', $styled, 'Escolher tema', $tab('inicio'), false],
+                ['paginas', 'bi-file-earmark-text', 'Sobre, trocas e entrega', $pages ? $pages . ' de 3 páginas escritas.' : 'Páginas que passam confiança para quem compra a primeira vez.', $pages > 0, 'Escrever', $tab('identidade'), true],
+            ],
+            'Monte a vitrine' => [
+                ['banner', 'bi-images', 'Banner no topo', $liveHero ? $n($liveHero, 'banner', 'banners') . ' no ar no carrossel.' : 'O carrossel do topo é a primeira coisa que o cliente vê.', $liveHero > 0, 'Criar banner', $tab('banners'), false],
+                ['destaques', 'bi-star', 'Produtos em destaque', count($this->featuredIds) || ! empty($this->auto['featured']) ? (count($this->featuredIds) ? count($this->featuredIds) . ' escolhidos' : 'Completando sozinho') . '.' : 'Uma fileira com o que você mais quer vender.', count($this->featuredIds) > 0 || ! empty($this->auto['featured']), 'Escolher', $tab('destaques'), false],
+                ['colecoes', 'bi-collection', 'Coleções', ($c = $collections->where('active', true)->count()) ? $n($c, 'coleção ligada', 'coleções ligadas') . '.' : 'Grupos de produtos com capa, como Presentes ou Mais vendidos.', $c > 0, 'Criar coleção', $tab('colecoes'), false],
+                ['aviso', 'bi-megaphone', 'Aviso no topo', $this->notice_active && trim($this->notice_text) !== '' ? '“' . \Illuminate\Support\Str::limit($this->notice_text, 40) . '”' : 'Uma linha em todas as páginas, como frete grátis.', $this->notice_active && trim($this->notice_text) !== '', 'Escrever aviso', $tab('aviso'), true],
+            ],
+            'Venda pelo site' => [
+                ['pagamento', 'bi-credit-card', 'Pagamento online', $pay && $pay->enabled ? 'Pix e cartão ligados pelo Mercado Pago.' : 'Receba no Pix e no cartão direto pelo site.', (bool) ($pay && $pay->enabled), 'Ligar pagamento', $route('settings.payments'), false],
+                ['entrega', 'bi-truck', 'Entrega e retirada', $pay && ($pay->delivery_enabled || $pay->pickup_enabled) ? trim(($pay->delivery_enabled ? 'Entrega' . ($zones ? ' (' . $n($zones, 'região de frete', 'regiões de frete') . ')' : '') : '') . ($pay->delivery_enabled && $pay->pickup_enabled ? ' e ' : '') . ($pay->pickup_enabled ? 'retirada' : '')) . '.' : 'Diga se entrega, quanto custa o frete e se pode retirar.', (bool) ($pay && ($pay->delivery_enabled || $pay->pickup_enabled)), 'Configurar', $route('settings.payments'), false],
+                ['cupom', 'bi-ticket-perforated', 'Cupom de desconto', $coupons ? $n($coupons, 'cupom ativo', 'cupons ativos') . '.' : 'Um código como BEMVINDO10 ajuda a fechar a primeira compra.', $coupons > 0, 'Criar cupom', $route('promotions.coupons'), true],
+                ['kit', 'bi-gift', 'Monte seu kit', \App\Services\Portal\KitService::enabled($uid) ? 'Ligado: o cliente monta cestas e caixas.' : 'O cliente monta cestas e caixas de presente.', \App\Services\Portal\KitService::enabled($uid), 'Criar kits', $route('promotions.kits'), true],
+            ],
+            'Deixe no automático' => [
+                ['automacoes', 'bi-robot', 'Automações', $autoOn ? $n($autoOn, 'ligada', 'ligadas') . '.' : 'Tema das datas, destaques e selo de novidade sozinhos.', $autoOn > 0, 'Ligar', $tab('automacoes'), false],
+                ['avaliacoes', 'bi-star-half', 'Avaliações', $reviews ? $n($reviews, 'avaliação', 'avaliações') . ' dos clientes.' : 'Quem compra pode deixar estrelas e comentário.', $reviews > 0, 'Ver', $route('promotions.reviews'), true],
+            ],
+        ];
     }
 
     /** Situação de cada parte no menu das configurações. */
@@ -664,6 +712,7 @@ class PortalStorefront extends Component
         $theme = HomeLayout::THEMES[$this->home_theme]['name'] ?? null;
 
         return [
+            'geral'     => null,
             'identidade' => ($this->identity['logo'] ?? null) ? 'Com a sua logo' : 'Logo, nome, contatos e páginas',
             'inicio'    => $theme ? 'Tema: ' . $theme : null,
             'banners'   => $n($live, 'banner no ar', 'banners no ar'),
