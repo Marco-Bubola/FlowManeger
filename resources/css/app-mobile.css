@@ -641,3 +641,17 @@ html.dark body .s-conn-btn:not(.s-conn-btn--primary):not(.s-conn-btn--orange):no
 .ap-seg button.is-on { background: #fff; color: #0f172a; box-shadow: 0 2px 8px -2px rgba(15, 23, 42, .25); }
 .dark .ap-seg button.is-on { background: #1e293b; color: #f1f5f9; }
 @media (max-width: 767px) { .ap-card { padding: .95rem .9rem 1rem; border-radius: 1.1rem; } }
+
+/* ───────────── Configurações: cards antigos no mesmo estilo dos novos (.ap-card) ─────────────
+ * settings.css entra depois (dentro da página), por isso o seletor leva .settings-content-area. */
+.settings-content-area .settings-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 1.15rem 1.2rem 1.25rem; box-shadow: 0 10px 30px -18px rgba(15, 23, 42, .25); transform: none; }
+.settings-content-area .settings-card:hover { transform: none; border-color: #e2e8f0; box-shadow: 0 10px 30px -18px rgba(15, 23, 42, .25); }
+.dark .settings-content-area .settings-card,
+.dark .settings-content-area .settings-card:hover { background: #0f172a; border-color: #1e293b; box-shadow: none; }
+.settings-content-area .settings-card-header { align-items: flex-start; margin-bottom: 1rem; }
+.settings-content-area .settings-card-title-row { align-items: flex-start; gap: .75rem; }
+.settings-content-area .settings-card-icon { width: 2.3rem !important; height: 2.3rem !important; border-radius: .8rem !important; font-size: 1.05rem; }
+.settings-content-area .settings-card-icon svg { width: 1.1rem !important; height: 1.1rem !important; }
+.settings-content-area .settings-card-title { font-size: .98rem; font-weight: 800; line-height: 1.25; }
+.settings-content-area .settings-card-desc { font-size: .78rem; margin-top: .15rem; }
+@media (max-width: 767px) { .settings-content-area .settings-card { padding: .95rem .9rem 1rem; border-radius: 1.1rem; } }

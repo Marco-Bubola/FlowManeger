@@ -424,7 +424,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/bancos-conectados', 'settings.bank-connections')->name('settings.bank-connections');
 
     // --- Outras Rotas ---
-    Route::redirect('settings', 'settings/profile');
+    Volt::route('settings', 'settings.index')->name('settings.index');
     // Route::get('user-management', [InfoUserController::class, 'index'])->name('user-management');
     // Route::get('/user-management/create', [InfoUserController::class, 'create'])->name('user.create');
     // Route::post('/user-management/create', [InfoUserController::class, 'store'])->name('user.store');

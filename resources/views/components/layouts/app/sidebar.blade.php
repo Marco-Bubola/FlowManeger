@@ -837,6 +837,14 @@
                                 class="mt-2"
                             >
                                 <nav class="space-y-1">
+                                    <a href="{{ route('settings.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('settings.index') ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 dark:from-fuchsia-500/20 dark:to-violet-500/20 text-fuchsia-600 dark:text-fuchsia-400 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('settings.index') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/30' : '' }}">
+                                            <i class="bi bi-grid-3x3-gap text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Todas as configurações</span>
+                                        <div class="{{ request()->routeIs('settings.index') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
+                                    </a>
+
                                     <a href="{{ route('settings.profile') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('settings.profile') ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 dark:from-fuchsia-500/20 dark:to-violet-500/20 text-fuchsia-600 dark:text-fuchsia-400 font-semibold' : '' }}" wire:navigate.hover>
                                         <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('settings.profile') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/30' : '' }}">
                                             <i class="bi bi-person-circle text-base"></i>
@@ -1549,7 +1557,7 @@
                             @endif
                         </div>
                     </div>
-                    <a href="{{ route('settings.profile') }}" class="more-sheet-settings-btn" wire:navigate.hover onclick="closeMoreSheet()" title="Configurações de perfil">
+                    <a href="{{ route('settings.index') }}" class="more-sheet-settings-btn" wire:navigate.hover onclick="closeMoreSheet()" title="Todas as configurações">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
