@@ -237,12 +237,17 @@
                         <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white text-lg"><i class="bi bi-palette"></i></div>
                         <div class="min-w-0">
                             <h2 class="font-bold text-slate-900 dark:text-white">Tema da loja</h2>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Escolha um evento e a página inteira muda de uma vez: cores do topo, cantos, ordem dos blocos, banner do evento e aviso. Depois você ajusta o que quiser.</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Escolha um estilo ou uma data e a página inteira muda de uma vez: cores do topo, cantos, ordem dos blocos, banner do evento e aviso. Depois você ajusta o que quiser.</p>
                         </div>
                         @if($cur)<span class="ml-auto shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $tones['emerald'] }}" data-testid="theme-current">{{ $cur['emoji'] }} {{ $cur['name'] }}</span>@endif
                     </div>
-                    <div class="grid grid-cols-2 min-[520px]:grid-cols-3 xl:grid-cols-4 gap-2">
-                        @foreach($themes as $k => $t)
+                    @foreach(['estilo' => ['Estilos para qualquer época', 'Use o ano todo. Mudam cores, fundo, cards e o jeito do site.'], 'data' => ['Datas e campanhas', 'Para cada data, com banner e aviso prontos. Em Automações dá para trocar sozinho.']] as $grp => [$gName, $gHint])
+                    <div class="pt-1">
+                        <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ $gName }}</p>
+                        <p class="text-[11px] text-slate-400 mb-1.5">{{ $gHint }}</p>
+                    </div>
+                    <div class="grid grid-cols-2 min-[520px]:grid-cols-3 xl:grid-cols-4 gap-2" data-testid="themes-{{ $grp }}">
+                        @foreach(collect($themes)->filter(fn ($t, $k) => ($grp === 'estilo') === ($k === 'padrao' || ($t['group'] ?? '') === 'estilo')) as $k => $t)
                             <button type="button" wire:click="pickTheme('{{ $k }}')" wire:key="th-{{ $k }}" data-testid="theme-{{ $k }}"
                                     class="relative text-left rounded-xl border p-2 transition {{ $pendingTheme === $k ? 'border-violet-500 ring-2 ring-violet-200 dark:ring-violet-500/30' : ($home_theme === $k ? 'border-emerald-400' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300') }}">
                                 <span class="block h-9 rounded-lg mb-1.5 relative overflow-hidden" style="background: linear-gradient(90deg, {{ $t['colors'][0] }}, {{ $t['colors'][1] }})">
@@ -254,11 +259,12 @@
                                     <span class="flex-1 h-3 rounded-sm" style="background: {{ $sf[1] }}"></span><span class="flex-1 h-3 rounded-sm" style="background: {{ $sf[1] }}"></span><span class="flex-1 h-3 rounded-sm" style="background: {{ $sf[1] }}"></span>
                                 </span>
                                 <b class="block text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{{ $t['name'] }}</b>
-                                <small class="block text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ $t['when'] ? ($t['when']['now'] ? 'Agora, até ' . $t['when']['end']->format('d/m') : 'De ' . $t['when']['start']->format('d/m') . ' a ' . $t['when']['end']->format('d/m')) : ($k === 'padrao' ? 'O dia a dia' : 'Quando quiser') }}</small>
+                                <small class="block text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ $t['when'] ? ($t['when']['now'] ? 'Agora, até ' . $t['when']['end']->format('d/m') : 'De ' . $t['when']['start']->format('d/m') . ' a ' . $t['when']['end']->format('d/m')) : ($k === 'padrao' ? 'O dia a dia' : ($t['desc'] ?? 'Quando quiser')) }}</small>
                                 @if($home_theme === $k)<i class="bi bi-check-circle-fill absolute top-1 right-1 text-emerald-500 bg-white rounded-full"></i>@endif
                             </button>
                         @endforeach
                     </div>
+                    @endforeach
                     @if($pendingTheme !== '' && isset($themes[$pendingTheme]))
                         @php $pt = $themes[$pendingTheme]; @endphp
                         <div class="rounded-xl bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 p-3 space-y-2" data-testid="theme-apply-box">
@@ -638,9 +644,122 @@
         </section>
     @endif
 
+    @if($tab === 'automacoes')
+        @php
+            $H = \App\Services\Portal\HomeLayout::class;
+            $skip = (array) ($auto['skip'] ?? []);
+            $nowDate = collect($dateThemes)->first(fn ($w, $k) => $w['now'] && ! in_array($H::THEMES[$k]['date'], $skip, true));
+            $nowKey = $nowDate ? collect($dateThemes)->search($nowDate) : null;
+            $nextKey = collect($dateThemes)->keys()->first(fn ($k) => ! $dateThemes[$k]['now'] && ! in_array($H::THEMES[$k]['date'], $skip, true));
+            $sw = fn ($on) => 'relative inline-flex shrink-0 w-11 h-6 rounded-full transition ' . ($on ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600');
+            $knob = fn ($on) => 'absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ' . ($on ? 'left-[22px]' : 'left-0.5');
+            $sel = 'w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:ring-violet-400 focus:border-violet-400';
+        @endphp
+        <div class="space-y-4" data-testid="auto-tab">
+            <section class="{{ $card }} p-4 sm:p-5">
+                <div class="flex items-start gap-3">
+                    <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-500 text-white text-lg"><i class="bi bi-robot"></i></div>
+                    <div class="min-w-0">
+                        <h2 class="font-bold text-slate-900 dark:text-white">O site se arruma sozinho</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Ligue o que quiser. Tudo vale na hora em que o cliente abre o catálogo, sem você lembrar de nada. Quando a data acaba, o site volta para o seu tema.</p>
+                    </div>
+                </div>
+            </section>
+
+            {{-- 1. Tema das datas --}}
+            <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="auto-theme">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-calendar-heart text-rose-500"></i>Trocar o tema nas datas</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Black Friday, Natal, Dia das Mães… o site veste o tema da data no período dela e depois volta sozinho.</p>
+                    </div>
+                    <button type="button" wire:click="setAuto('theme', {{ $auto['theme'] ? 'false' : 'true' }})" class="{{ $sw($auto['theme']) }}" role="switch" aria-checked="{{ $auto['theme'] ? 'true' : 'false' }}" data-testid="auto-theme-switch"><span class="{{ $knob($auto['theme']) }}"></span></button>
+                </div>
+                @if($auto['theme'])
+                    <p class="rounded-xl px-3 py-2 text-sm {{ $nowKey ? $tones['emerald'] : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }}" data-testid="auto-theme-status">
+                        @if($nowKey)
+                            {{ $H::THEMES[$nowKey]['emoji'] }} <b>Agora o site está com o tema {{ $H::THEMES[$nowKey]['name'] }}</b>, até {{ $dateThemes[$nowKey]['end']->format('d/m') }}.
+                        @elseif($nextKey)
+                            Próxima troca: {{ $H::THEMES[$nextKey]['emoji'] }} <b>{{ $H::THEMES[$nextKey]['name'] }}</b>, de {{ $dateThemes[$nextKey]['start']->format('d/m') }} a {{ $dateThemes[$nextKey]['end']->format('d/m') }}.
+                        @else
+                            Nenhuma data ligada.
+                        @endif
+                    </p>
+                    <div class="grid sm:grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200"><input type="checkbox" wire:model.live="auto.banner" class="rounded text-violet-500 focus:ring-violet-400"> Mostrar o banner da data no começo do carrossel</label>
+                        <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200"><input type="checkbox" wire:model.live="auto.notice" class="rounded text-violet-500 focus:ring-violet-400"> Trocar o aviso do topo pelo da data</label>
+                    </div>
+                    <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Quais datas (toque para tirar)</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        @foreach($dateThemes as $k => $w)
+                            @php $off = in_array($H::THEMES[$k]['date'], $skip, true); @endphp
+                            <button type="button" wire:click="toggleAutoDate('{{ $H::THEMES[$k]['date'] }}')" data-testid="auto-date-{{ $k }}"
+                                class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition {{ $off ? 'border-slate-200 dark:border-slate-700 text-slate-400 line-through' : 'border-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' }}">
+                                {{ $H::THEMES[$k]['emoji'] }} {{ $H::THEMES[$k]['name'] }} <span class="font-normal opacity-75">{{ $w['start']->format('d/m') }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
+            </section>
+
+            <div class="grid gap-4 xl:grid-cols-2">
+                {{-- 2. Destaques --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-2" data-testid="auto-featured">
+                    <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-stars text-amber-500"></i>Completar os destaques sozinho</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Os que você escolheu ficam primeiro; o resto da fileira (até 15) se enche e se atualiza ao longo do dia.</p>
+                    <select wire:model.live="auto.featured" class="{{ $sel }}" data-testid="auto-featured-select">
+                        @foreach($H::AUTO_FEATURED as $k => $n)<option value="{{ $k }}">{{ $n }}</option>@endforeach
+                    </select>
+                </section>
+
+                {{-- 3. Selo novidade --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-2" data-testid="auto-new">
+                    <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-patch-check-fill text-violet-500"></i>Selo “Novidade” nos produtos novos</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Produto que você cadastrar aparece com o selo pelo tempo escolhido, depois o selo sai sozinho.</p>
+                    <div class="grid grid-cols-4 gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+                        @foreach($H::AUTO_NEW as $d => $n)
+                            <button type="button" wire:click="setAuto('newbadge', {{ $d }})" data-testid="auto-new-{{ $d }}" class="rounded-lg py-2 text-xs font-semibold {{ (int) $auto['newbadge'] === $d ? 'bg-white dark:bg-slate-700 shadow text-violet-600 dark:text-violet-300' : 'text-slate-500' }}">{{ $n }}</button>
+                        @endforeach
+                    </div>
+                </section>
+
+                {{-- 4. Ordem --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-2" data-testid="auto-sort">
+                    <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-sort-down text-sky-500"></i>Ordem da lista de produtos</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Como a lista de todos os produtos abre para o cliente. Ele ainda pode trocar.</p>
+                    <select wire:model.live="auto.sort" class="{{ $sel }}" data-testid="auto-sort-select">
+                        @foreach($H::AUTO_SORT as $k => $n)<option value="{{ $k }}">{{ $n }}</option>@endforeach
+                    </select>
+                </section>
+
+                {{-- 5. Coleções --}}
+                <section class="{{ $card }} p-4 sm:p-5" data-testid="auto-cats">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-collection text-fuchsia-500"></i>Coleção para cada categoria nova</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Criou uma categoria e colocou produtos nela? A coleção com capa aparece sozinha no site.</p>
+                        </div>
+                        <button type="button" wire:click="setAuto('cats', {{ $auto['cats'] ? 'false' : 'true' }})" class="{{ $sw($auto['cats']) }}" role="switch" aria-checked="{{ $auto['cats'] ? 'true' : 'false' }}" data-testid="auto-cats-switch"><span class="{{ $knob($auto['cats']) }}"></span></button>
+                    </div>
+                </section>
+            </div>
+
+            <section class="{{ $card }} p-4 sm:p-5 space-y-1.5">
+                <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-check2-all text-emerald-500"></i>Já funciona sozinho, sem ligar nada</h3>
+                <ul class="text-xs text-slate-600 dark:text-slate-300 space-y-1 list-disc pl-5">
+                    <li>Produto sem estoque some do site e volta quando entra estoque.</li>
+                    <li>Banner com data de fim sai do ar sozinho no dia.</li>
+                    <li>Promoção agendada entra e sai na hora certa, com o preço de oferta e o “-%” no card.</li>
+                    <li>Quem pediu “avise-me” recebe aviso quando o produto volta.</li>
+                    <li>Coleções por regra (mais vendidos, ofertas, novos, faixa de preço) se atualizam sozinhas.</li>
+                </ul>
+            </section>
+        </div>
+    @endif
+
     </x-portal-settings-nav>
 
-    @if(in_array($tab, ['identidade', 'banners', 'destaques', 'colecoes', 'aviso'], true))
+    @if(in_array($tab, ['identidade', 'banners', 'destaques', 'colecoes', 'aviso', 'automacoes'], true))
         @include('livewire.promotions.partials.storefront-preview', ['inline' => false])
     @endif
 

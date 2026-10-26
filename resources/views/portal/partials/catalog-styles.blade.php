@@ -61,6 +61,8 @@
     .ml-card-img img { width: 100%; height: 100%; object-fit: contain; padding: 8px; transition: transform .3s; }
     @media (hover: hover) { .ml-card:hover .ml-card-img img { transform: scale(1.05); } }
     .ml-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 34px; color: #d6d6d6; background: linear-gradient(135deg, #fafafa, #f0f0f0); }
+    .ml-new-flag { position: absolute; top: 8px; left: 8px; z-index: 2; background: var(--ml-blue); color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .03em; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+    .ml-new-flag.low { top: 32px; }
     .ml-off-flag { position: absolute; top: 8px; left: 8px; background: var(--ml-green); color: #fff; font-size: 11px; font-weight: 800; padding: 3px 7px; border-radius: 4px; }
     .ml-add { position: absolute; right: 8px; bottom: 8px; width: 36px; height: 36px; border-radius: 50%; border: 0; background: #fff; color: var(--ml-blue); box-shadow: 0 2px 8px rgba(0,0,0,.18); display: flex; align-items: center; justify-content: center; font-size: 15px; cursor: pointer; transition: transform .15s, background .15s; }
     .ml-add:active { transform: scale(.9); }

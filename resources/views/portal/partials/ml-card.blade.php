@@ -13,6 +13,9 @@
         @if($d['pct'])
             <span class="ml-off-flag">-{{ $d['pct'] }}%</span>
         @endif
+        @if(! empty($d['new']))
+            <span class="ml-new-flag {{ $d['pct'] ? 'low' : '' }}" data-testid="new-flag">Novidade</span>
+        @endif
         @if(count($d['imgs']) > 1)
             <span class="ml-imgs"><i class="fas fa-images"></i> {{ count($d['imgs']) }}</span>
             <span class="hp-dots" data-hp-dots aria-hidden="true">@for($k = 0; $k < min(count($d['imgs']), 5); $k++)<i class="{{ $k === 0 ? 'on' : '' }}"></i>@endfor</span>

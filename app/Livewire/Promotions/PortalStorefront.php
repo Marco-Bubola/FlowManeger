@@ -33,6 +33,8 @@ class PortalStorefront extends Component
     public array $home_surface = [];
     public string $home_style = 'padrao';
     public array $home_look = [];
+    /** Vitrine › Automações (HomeLayout::AUTO_DEFAULT). */
+    public array $auto = [];
     public string $home_theme = 'padrao';
     public string $pendingTheme = '';
     public bool $withBanner = true;
@@ -80,6 +82,7 @@ class PortalStorefront extends Component
         $this->notice_link = (string) $s->notice_link;
         $this->notice_active = (bool) $s->notice_active;
         $this->loadHome($s);
+        $this->auto = HomeLayout::auto($s);
         $this->loadIdentity($s);
         // Uma coleção pronta para cada categoria, criada uma vez; as categorias novas pelo botão.
         if (\Illuminate\Support\Facades\Schema::hasColumn('portal_settings', 'home') && empty(($s->home ?? [])['cats_done'])) {
@@ -148,6 +151,44 @@ class PortalStorefront extends Component
             $this->home_style = $style;
             $this->saveHome();
         }
+    }
+
+    /* ---------- Automações ---------- */
+
+    public function updatedAuto(): void
+    {
+        $this->saveAuto();
+    }
+
+    public function setAuto(string $key, $value): void
+    {
+        if (array_key_exists($key, HomeLayout::AUTO_DEFAULT) && $key !== 'skip') {
+            $this->auto[$key] = $value;
+            $this->saveAuto();
+        }
+    }
+
+    /** Liga ou desliga uma data na troca de tema automática. */
+    public function toggleAutoDate(string $date): void
+    {
+        $skip = (array) ($this->auto['skip'] ?? []);
+        $this->auto['skip'] = in_array($date, $skip, true) ? array_values(array_diff($skip, [$date])) : array_merge($skip, [$date]);
+        $this->saveAuto();
+    }
+
+    private function saveAuto(): void
+    {
+        if (! HomeLayout::ready()) {
+            return;
+        }
+        $this->auto = HomeLayout::auto(new PortalSetting(['home' => ['auto' => $this->auto]]));
+        HomeLayout::save(Auth::id(), ['auto' => $this->auto]);
+        foreach (array_keys(HomeLayout::AUTO_FEATURED) as $src) {
+            \Illuminate\Support\Facades\Cache::forget('portal-featured-' . Auth::id() . '-' . $src);
+        }
+        \Illuminate\Support\Facades\Cache::forget('portal-cats-auto-' . Auth::id());
+        $this->previewKey++;
+        $this->dispatch('notify', type: 'success', message: 'Automação salva.');
     }
 
     /** Estilo do site: uma escolha de cada parte (topo, cards, fundo…). */
@@ -608,6 +649,7 @@ class PortalStorefront extends Component
             'pickCats'      => $this->pickFor !== '' ? \App\Models\Category::where('user_id', $uid)->whereIn('id_category', StorefrontService::categoryCounts($uid)->keys())->orderBy('name')->get(['id_category', 'name']) : collect(),
             'catalogUrl'    => route('portal.catalog', ['userId' => $uid]),
             'themes'        => $this->tab === 'inicio' ? HomeLayout::themes($this->kind) : [],
+            'dateThemes'    => $this->tab === 'automacoes' ? HomeLayout::dateThemes($this->kind) : [],
             'secInfo'       => $this->tab === 'inicio' ? $this->sectionInfo($uid, $banners, $collections) : [],
             'navInfo'       => $this->navInfo($banners, $collections),
         ]);
@@ -628,6 +670,8 @@ class PortalStorefront extends Component
             'destaques' => $n(count($this->featuredIds), 'produto escolhido', 'produtos escolhidos'),
             'colecoes'  => $n($collections->where('active', true)->count(), 'coleção ligada', 'coleções ligadas'),
             'aviso'     => $this->notice_active && trim($this->notice_text) !== '' ? 'Ligado' : 'Desligado',
+            'automacoes'=> ($on = collect(['theme', 'featured', 'newbadge', 'sort', 'cats'])->filter(fn ($k) => ! empty($this->auto[$k]))->count())
+                ? ($on === 1 ? '1 ligada' : $on . ' ligadas') : 'Nenhuma ligada',
         ];
     }
 

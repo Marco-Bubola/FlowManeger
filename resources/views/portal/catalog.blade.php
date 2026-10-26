@@ -22,7 +22,7 @@
     $heroBanners = $isHome ? ($banners['hero'] ?? collect()) : collect();
     $strips = $isHome ? ($banners['strip'] ?? collect())->values() : collect();
     $sides = ($banners['side'] ?? collect())->values();
-    $homeLayout = \App\Services\Portal\HomeLayout::get($settings);
+    $homeLayout = \App\Services\Portal\HomeLayout::get($settings ?? new \App\Models\PortalSetting(['user_id' => $ownerId]), true);
     $homeOrder = $homeLayout['order'];
     $homeOff = $isHome ? $homeLayout['off'] : [];
     $notice = $settings && $settings->notice_active && trim((string) $settings->notice_text) !== '' ? $settings : null;
@@ -102,7 +102,7 @@
             @if($featured->isNotEmpty())
                 <section class="ml-box ml-offers" data-testid="featured">
                     <div class="ml-sec-head">
-                        <h2><i class="fas fa-star sf-star"></i> {{ $settings->featured_title ?: 'Destaques da loja' }}</h2>
+                        <h2><i class="fas fa-star sf-star"></i> {{ $settings?->featured_title ?: 'Destaques da loja' }}</h2>
                     </div>
                     <div class="ml-rail">
                         @foreach($featured as $p)

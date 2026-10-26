@@ -642,6 +642,10 @@ class ClientPortalController extends Controller
         $sort = in_array($request->query('ordem'), ['menor', 'maior', 'novos', 'nome', 'vendidos'], true)
             ? $request->query('ordem')
             : '';
+        // Automação: a ordem que a loja escolheu para a lista (a coleção mantém a dela).
+        if ($sort === '' && ! $collection && ! $request->has('ordem')) {
+            $sort = \App\Services\Portal\HomeLayout::autoFor($ownerId)['sort'];
+        }
 
         match ($sort) {
             'menor' => $query->orderBy('price_sale'),
@@ -692,8 +696,8 @@ class ClientPortalController extends Controller
         $front = \App\Services\Portal\StorefrontService::class;
         $banners = $front::banners($ownerId);
         $settings = $front::settings($ownerId);
-        // Prévia de tema (o dono vendo pela Vitrine, sem aplicar): banner, aviso e título do tema.
-        if ($pv = \App\Services\Portal\HomeLayout::previewing($ownerId)) {
+        // Prévia de tema (o dono vendo pela Vitrine, sem aplicar) ou a data da automação: banner, aviso e título do tema.
+        if ($pv = \App\Services\Portal\HomeLayout::override($ownerId)) {
             $theme = \App\Services\Portal\HomeLayout::THEMES[$pv[0]];
             $kind = \App\Services\Promotions\StoreKind::for($ownerId);
             $settings = $settings ? clone $settings : new \App\Models\PortalSetting(['user_id' => $ownerId]);
@@ -712,7 +716,19 @@ class ClientPortalController extends Controller
             }
         }
         $isHome = $products->currentPage() === 1 && ! $search && ! $category && ! $onlyOffers && ! $collection;
-        $featured = $isHome && $settings ? $front::productsFor($ownerId, $settings->featured_ids ?? [], 15) : collect();
+        $auto = \App\Services\Portal\HomeLayout::autoFor($ownerId);
+        $featuredIds = (array) ($settings?->featured_ids ?? []);
+        // Automação: a fileira de destaques se completa sozinha (guardado por 3 horas).
+        if ($isHome && $auto['featured'] !== '' && count($featuredIds) < 15) {
+            $fill = \Illuminate\Support\Facades\Cache::remember("portal-featured-{$ownerId}-{$auto['featured']}", now()->addHours(3),
+                fn () => $front::ruleRoots($ownerId, $auto['featured'], [], 30));
+            $featuredIds = array_slice(array_values(array_unique(array_merge(array_map('intval', $featuredIds), $fill))), 0, 15);
+        }
+        // Automação: categoria nova ganha a sua coleção (confere a cada 6 horas).
+        if ($isHome && $auto['cats']) {
+            \Illuminate\Support\Facades\Cache::remember("portal-cats-auto-{$ownerId}", now()->addHours(6), fn () => $front::createCategoryCollections($ownerId) + 1);
+        }
+        $featured = $isHome && ($settings || $featuredIds) ? $front::productsFor($ownerId, $featuredIds, 15) : collect();
         $collections = $isHome ? $front::collections($ownerId) : collect();
 
         return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers', 'sort', 'store', 'stockMap', 'countByCategory',
@@ -1066,6 +1082,7 @@ class ClientPortalController extends Controller
             'brand'   => $p->brand,
             'model'   => $p->model,
             'code'    => $p->product_code,
+            'new'     => \App\Services\Portal\HomeLayout::isNew($p),
             'rate'    => ($r = \App\Services\Portal\ReviewService::summary((int) $p->user_id, (int) ($p->parent_id ?: $p->id))) ? $r['avg'] : null,
             'rates'   => $r['n'] ?? 0,
             'specs'   => collect($p->specs ?? [])->filter(fn ($s) => ($s['n'] ?? '') !== '' && ($s['v'] ?? '') !== '')->values()->all(),

@@ -51,6 +51,26 @@ class HomeLayout
         'cliente'    => ['#efeaff', '#ffffff'],
         'pascoa'     => ['#f5eee2', '#fffcf6'],
         'liquida'    => ['#fff0dc', '#ffffff'],
+        'ano_novo'   => ['#f7f3ea', '#ffffff'],
+        'volta_aulas'=> ['#eef4ff', '#ffffff'],
+        'carnaval'   => ['#fbf0ff', '#ffffff'],
+        'mulher'     => ['#faf0ff', '#ffffff'],
+        'junina'     => ['#fff3e0', '#fffaf2'],
+        'minimalista'=> ['#fafafa', '#ffffff'],
+        'luxo'       => ['#0c0a09', '#1c1917'],
+        'natural'    => ['#f4efe6', '#fffdf8'],
+        'pastel'     => ['#fdf4ff', '#ffffff'],
+        'neon'       => ['#0f0a1e', '#1a1230'],
+        'oceano'     => ['#ecfeff', '#ffffff'],
+        'floral'     => ['#fff1f5', '#ffffff'],
+        'rustico'    => ['#f5efe6', '#fffaf3'],
+        'escandinavo'=> ['#f5f5f4', '#ffffff'],
+        'vintage'    => ['#f7f0e1', '#fffbf0'],
+        'tropical'   => ['#f0fdf4', '#ffffff'],
+        'noite'      => ['#0b1020', '#151a2e'],
+        'cafe'       => ['#f3ebe3', '#fffaf5'],
+        'lavanda'    => ['#f5f3ff', '#ffffff'],
+        'esportivo'  => ['#f3f4f6', '#ffffff'],
     ];
 
     /** Cores da logo do app: o tema "Cores da loja". */
@@ -94,6 +114,51 @@ class HomeLayout
         'liquida'    => ['name' => 'Liquidação', 'emoji' => '🔥', 'colors' => ['#f97316', '#dc2626', '#dc2626'], 'style' => 'reto',
             'order' => ['hero', 'offers', 'collections', 'featured', 'cats', 'recent'], 'tpl' => 'liquida', 'date' => null,
             'notice' => ['LIQUIDAÇÃO: preços baixos enquanto durar o estoque', 'QUEIMA DE ESTOQUE: peças com preço de fábrica'], 'featured' => 'Últimas peças'],
+        'ano_novo'   => ['name' => 'Ano Novo', 'emoji' => '🥂', 'colors' => ['#111827', '#a16207', '#ca8a04'], 'style' => 'suave',
+            'order' => ['hero', 'featured', 'offers', 'collections', 'cats', 'recent'], 'tpl' => 'ano_novo', 'date' => 'ano_novo',
+            'notice' => ['Ofertas de Ano Novo: comece o ano se cuidando', 'Casa nova para o Ano Novo: peças com entrega rápida'], 'featured' => 'Para brilhar no Ano Novo'],
+        'volta_aulas'=> ['name' => 'Volta às aulas', 'emoji' => '📚', 'colors' => ['#2563eb', '#f59e0b', '#2563eb'], 'style' => 'suave',
+            'order' => ['hero', 'offers', 'featured', 'collections', 'cats', 'recent'], 'tpl' => 'volta_aulas', 'date' => 'volta_aulas',
+            'notice' => ['Volta às aulas com preço bom', 'Volta às aulas: o cantinho de estudos'], 'featured' => 'Para a volta às aulas'],
+        'carnaval'   => ['name' => 'Carnaval', 'emoji' => '🎭', 'colors' => ['#7c3aed', '#db2777', '#f59e0b'], 'style' => 'suave',
+            'order' => ['hero', 'offers', 'featured', 'collections', 'cats', 'recent'], 'tpl' => 'carnaval', 'date' => 'carnaval',
+            'notice' => ['Carnaval: maquiagem e brilho para curtir a folia', 'Ofertas de Carnaval'], 'featured' => 'Para a folia'],
+        'mulher'     => ['name' => 'Dia da Mulher', 'emoji' => '🌷', 'colors' => ['#a855f7', '#ec4899', '#9333ea'], 'style' => 'suave',
+            'order' => ['hero', 'featured', 'collections', 'offers', 'cats', 'recent'], 'tpl' => 'mulher', 'date' => 'mulher',
+            'notice' => ['Dia da Mulher: presentes para quem você admira', 'Dia da Mulher: uma casa do jeito dela'], 'featured' => 'Para elas'],
+        'junina'     => ['name' => 'Festa Junina', 'emoji' => '🌽', 'colors' => ['#c2410c', '#a16207', '#ea580c'], 'style' => 'suave',
+            'order' => ['hero', 'offers', 'featured', 'collections', 'cats', 'recent'], 'tpl' => 'junina', 'date' => 'junina',
+            'notice' => ['Arraiá de ofertas: só em junho', 'Arraiá de ofertas: só em junho'], 'featured' => 'Ofertas do arraiá'],
+        'minimalista' => ['name' => 'Minimalista', 'emoji' => '◻️', 'colors' => ['#111827', '#374151', '#111827'], 'style' => 'reto', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Branco, preto e nada sobrando'],
+        'luxo' => ['name' => 'Luxo', 'emoji' => '👑', 'colors' => ['#0c0a09', '#292524', '#d4a017'], 'style' => 'reto', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Preto com dourado, ar de boutique'],
+        'natural' => ['name' => 'Natural', 'emoji' => '🌿', 'colors' => ['#4d7c0f', '#a16207', '#4d7c0f'], 'style' => 'suave', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Verde e bege, folhas no fundo'],
+        'pastel' => ['name' => 'Pastel', 'emoji' => '🧁', 'colors' => ['#f472b6', '#818cf8', '#ec4899'], 'style' => 'suave', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Rosa e lilás clarinhos, fofo'],
+        'neon' => ['name' => 'Neon', 'emoji' => '⚡', 'colors' => ['#7c3aed', '#db2777', '#22d3ee'], 'style' => 'padrao', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Escuro com brilho, bem moderno'],
+        'oceano' => ['name' => 'Oceano', 'emoji' => '🌊', 'colors' => ['#0369a1', '#0d9488', '#0284c7'], 'style' => 'suave', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Azul e verde-água com ondas'],
+        'floral' => ['name' => 'Floral', 'emoji' => '🌸', 'colors' => ['#db2777', '#9333ea', '#db2777'], 'style' => 'suave', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Flores no fundo, romântico'],
+        'rustico' => ['name' => 'Rústico', 'emoji' => '🪵', 'colors' => ['#78350f', '#44403c', '#b45309'], 'style' => 'reto', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Madeira e ferro, combina com móveis'],
+        'escandinavo' => ['name' => 'Escandinavo', 'emoji' => '🛋️', 'colors' => ['#a8a29e', '#78716c', '#57534e'], 'style' => 'suave', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Claro, neutro e aconchegante'],
+        'vintage' => ['name' => 'Vintage', 'emoji' => '📻', 'colors' => ['#9a3412', '#854d0e', '#9a3412'], 'style' => 'suave', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Tons de antigamente, títulos clássicos'],
+        'tropical' => ['name' => 'Tropical', 'emoji' => '🌴', 'colors' => ['#16a34a', '#f59e0b', '#ea580c'], 'style' => 'suave', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Verde e laranja, cheio de energia'],
+        'noite' => ['name' => 'Noite elegante', 'emoji' => '🌙', 'colors' => ['#1e1b4b', '#312e81', '#818cf8'], 'style' => 'suave', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Azul bem escuro com estrelas'],
+        'cafe' => ['name' => 'Café', 'emoji' => '☕', 'colors' => ['#6f4e37', '#3e2723', '#8d6e63'], 'style' => 'suave', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Marrom e creme, quentinho'],
+        'lavanda' => ['name' => 'Lavanda', 'emoji' => '💜', 'colors' => ['#8b5cf6', '#c084fc', '#7c3aed'], 'style' => 'suave', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Lilás com flores, delicado'],
+        'esportivo' => ['name' => 'Esportivo', 'emoji' => '🏁', 'colors' => ['#dc2626', '#111827', '#dc2626'], 'style' => 'reto', 'order' => self::DEFAULT_ORDER,
+            'tpl' => null, 'date' => null, 'notice' => null, 'featured' => null, 'group' => 'estilo', 'desc' => 'Vermelho e preto, forte'],
     ];
 
     /**
@@ -112,7 +177,8 @@ class HomeLayout
         'pattern' => ['Desenho no fundo', [
             'nenhum' => ['Nenhum', 'bi-slash-circle'], 'pontos' => ['Bolinhas', 'bi-dot'], 'coracoes' => ['Corações', 'bi-heart-fill'],
             'estrelas' => ['Estrelas', 'bi-stars'], 'confete' => ['Confete', 'bi-balloon-fill'], 'neve' => ['Neve', 'bi-snow'],
-            'listras' => ['Listras', 'bi-slash-lg'], 'ondas' => ['Ondas', 'bi-water'],
+            'listras' => ['Listras', 'bi-slash-lg'], 'ondas' => ['Ondas', 'bi-water'], 'flores' => ['Flores', 'bi-flower1'],
+            'folhas' => ['Folhas', 'bi-tree-fill'],
         ]],
         'buttons' => ['Botões', [
             'arredondado' => ['Arredondado', 'bi-app'], 'pilula' => ['Pílula', 'bi-capsule'], 'reto' => ['Reto', 'bi-square'],
@@ -125,6 +191,13 @@ class HomeLayout
         ]],
         'text'    => ['Fonte do texto', [
             'padrao' => ['Padrão (Inter)', 'bi-fonts'], 'titulos' => ['A mesma dos títulos', 'bi-type-h1'],
+        ]],
+        'titles'  => ['Títulos das seções', [
+            'normal' => ['Normal', 'bi-type'], 'maiusculas' => ['MAIÚSCULAS', 'bi-alphabet-uppercase'], 'linha' => ['Com risco embaixo', 'bi-type-underline'],
+            'centro' => ['No meio', 'bi-text-center'],
+        ]],
+        'width'   => ['Largura do site no computador', [
+            'normal' => ['Normal', 'bi-aspect-ratio'], 'larga' => ['Mais larga', 'bi-arrows'], 'cheia' => ['Tela toda', 'bi-arrows-fullscreen'],
         ]],
         'anim'    => ['Animações', [
             'sim' => ['Com animação', 'bi-magic'], 'nao' => ['Sem animação', 'bi-pause-circle'],
@@ -143,7 +216,116 @@ class HomeLayout
         'cliente'    => ['pattern' => 'estrelas', 'header' => 'vidro'],
         'pascoa'     => ['pattern' => 'pontos', 'buttons' => 'pilula'],
         'liquida'    => ['pattern' => 'listras', 'cards' => 'contorno', 'buttons' => 'reto'],
+        'ano_novo'   => ['pattern' => 'estrelas', 'header' => 'escuro', 'text' => 'titulos'],
+        'volta_aulas'=> ['pattern' => 'pontos', 'buttons' => 'pilula'],
+        'carnaval'   => ['pattern' => 'confete', 'buttons' => 'pilula', 'cards' => 'elevado'],
+        'mulher'     => ['pattern' => 'flores', 'buttons' => 'pilula', 'cards' => 'elevado'],
+        'junina'     => ['pattern' => 'listras', 'cards' => 'borda'],
+        'minimalista'=> ['header' => 'claro', 'cards' => 'borda', 'buttons' => 'reto', 'titles' => 'maiusculas', 'photo' => 'cheia'],
+        'luxo'       => ['header' => 'escuro', 'cards' => 'contorno', 'text' => 'titulos', 'titles' => 'centro', 'buttons' => 'reto'],
+        'natural'    => ['pattern' => 'folhas', 'cards' => 'plano', 'buttons' => 'pilula'],
+        'pastel'     => ['pattern' => 'pontos', 'buttons' => 'pilula', 'cards' => 'elevado'],
+        'neon'       => ['header' => 'vidro', 'cards' => 'contorno', 'pattern' => 'estrelas'],
+        'oceano'     => ['pattern' => 'ondas', 'cards' => 'elevado'],
+        'floral'     => ['pattern' => 'flores', 'buttons' => 'pilula', 'cards' => 'elevado', 'text' => 'titulos'],
+        'rustico'    => ['cards' => 'borda', 'photo' => 'cheia', 'text' => 'titulos', 'titles' => 'linha'],
+        'escandinavo'=> ['header' => 'claro', 'cards' => 'plano', 'buttons' => 'pilula', 'density' => 'espacoso', 'photo' => 'cheia'],
+        'vintage'    => ['pattern' => 'listras', 'text' => 'titulos', 'titles' => 'linha', 'cards' => 'borda'],
+        'tropical'   => ['pattern' => 'folhas', 'buttons' => 'pilula', 'cards' => 'elevado'],
+        'noite'      => ['header' => 'escuro', 'cards' => 'borda', 'pattern' => 'estrelas', 'text' => 'titulos'],
+        'cafe'       => ['cards' => 'elevado', 'titles' => 'linha', 'pattern' => 'pontos'],
+        'lavanda'    => ['pattern' => 'flores', 'buttons' => 'pilula', 'cards' => 'elevado'],
+        'esportivo'  => ['header' => 'escuro', 'cards' => 'contorno', 'buttons' => 'reto', 'titles' => 'maiusculas', 'pattern' => 'listras'],
     ];
+
+    /**
+     * Automações (Vitrine › Automações), em portal_settings.home.auto. Nada roda escondido:
+     * tudo é decidido na hora em que o cliente abre o catálogo, então não depende do cron.
+     * theme: troca para o tema da data comercial enquanto ela dura (banner e aviso juntos, se ligados);
+     * skip: datas que ficam de fora; featured: completa a fileira de destaques (vendidos|ofertas|novos);
+     * newbadge: selo "Novidade" nos produtos cadastrados há até N dias; sort: ordem da lista de produtos;
+     * cats: cria sozinha a coleção de cada categoria nova.
+     */
+    public const AUTO_DEFAULT = ['theme' => false, 'banner' => true, 'notice' => true, 'skip' => [], 'featured' => '', 'newbadge' => 0, 'sort' => '', 'cats' => false];
+
+    public const AUTO_FEATURED = ['' => 'Não, só os que eu escolher', 'vendidos' => 'Com os mais vendidos', 'ofertas' => 'Com os produtos em oferta', 'novos' => 'Com os mais novos'];
+
+    public const AUTO_SORT = ['' => 'Os atualizados por último', 'vendidos' => 'Mais vendidos primeiro', 'novos' => 'Mais novos primeiro', 'menor' => 'Menor preço primeiro', 'nome' => 'Por nome (A a Z)'];
+
+    public const AUTO_NEW = [0 => 'Desligado', 7 => '7 dias', 15 => '15 dias', 30 => '30 dias'];
+
+    /** Automações da loja, completas. */
+    public static function auto(?PortalSetting $s): array
+    {
+        $a = array_merge(self::AUTO_DEFAULT, (array) (($s?->home ?? [])['auto'] ?? []));
+
+        return [
+            'theme'    => (bool) $a['theme'],
+            'banner'   => (bool) $a['banner'],
+            'notice'   => (bool) $a['notice'],
+            'skip'     => array_values(array_intersect((array) $a['skip'], array_keys(CommercialCalendar::DATES))),
+            'featured' => isset(self::AUTO_FEATURED[$a['featured']]) ? (string) $a['featured'] : '',
+            'newbadge' => isset(self::AUTO_NEW[(int) $a['newbadge']]) ? (int) $a['newbadge'] : 0,
+            'sort'     => isset(self::AUTO_SORT[$a['sort']]) ? (string) $a['sort'] : '',
+            'cats'     => (bool) $a['cats'],
+        ];
+    }
+
+    private static array $autoMemo = [];
+
+    /** Automações já lidas do banco, uma vez por pedido. */
+    public static function autoFor(int $ownerId): array
+    {
+        return self::$autoMemo[$ownerId] ??= self::auto(self::ready() ? PortalSetting::where('user_id', $ownerId)->first() : null);
+    }
+
+    /** Temas de data (que existem e cabem na loja) com o período deles: [key => próxima ocorrência]. */
+    public static function dateThemes(?string $kind = null): array
+    {
+        $hidden = CommercialCalendar::HIDDEN[$kind] ?? [];
+        $out = [];
+        foreach (self::THEMES as $key => $t) {
+            if ($t['date'] && ! in_array($t['date'], $hidden, true) && ($n = CommercialCalendar::next($t['date']))) {
+                $out[$key] = $n;
+            }
+        }
+        uasort($out, fn ($a, $b) => $a['start'] <=> $b['start']);
+
+        return $out;
+    }
+
+    /** Tema de data que a automação está usando agora: [tema, com banner, com aviso] ou null. */
+    public static function autoTheme(?int $ownerId): ?array
+    {
+        if (! $ownerId || ! self::ready()) {
+            return null;
+        }
+        $a = self::autoFor($ownerId);
+        if (! $a['theme']) {
+            return null;
+        }
+        foreach (self::dateThemes(\App\Services\Promotions\StoreKind::for($ownerId)) as $key => $when) {
+            if ($when['now'] && ! in_array(self::THEMES[$key]['date'], $a['skip'], true)) {
+                return [$key, $a['banner'], $a['notice']];
+            }
+        }
+
+        return null;
+    }
+
+    /** O que o catálogo mostra no lugar do tema salvo: a prévia do dono ou a data da automação. */
+    public static function override(?int $ownerId): ?array
+    {
+        return self::previewing($ownerId) ?? self::autoTheme($ownerId);
+    }
+
+    /** Selo "Novidade": produto cadastrado há até N dias (automação). */
+    public static function isNew(\App\Models\Product $p): bool
+    {
+        $days = self::autoFor((int) $p->user_id)['newbadge'];
+
+        return $days > 0 && $p->created_at && $p->created_at->gte(now()->subDays($days));
+    }
 
     /** Estilo completo: padrão, por cima o do tema e por cima o que a loja escolheu. */
     public static function look(string $theme, $saved = null): array
@@ -202,10 +384,11 @@ class HomeLayout
     }
 
     /** Montagem salva, completa (blocos novos entram no fim). Na prévia de tema, a do tema. */
-    public static function get(?PortalSetting $s): array
+    public static function get(?PortalSetting $s, bool $live = false): array
     {
         $h = ($s?->home ?? []) + ['theme' => 'padrao', 'order' => [], 'off' => [], 'colors' => null, 'style' => 'padrao', 'surface' => null, 'look' => null];
-        if ($pv = self::previewing($s?->user_id ? (int) $s->user_id : null)) {
+        $owner = $s?->user_id ? (int) $s->user_id : null;
+        if ($pv = $live ? self::override($owner) : self::previewing($owner)) {
             $t = self::THEMES[$pv[0]];
             $h = ['theme' => $pv[0], 'order' => $t['order'], 'off' => [], 'colors' => $t['colors'], 'style' => $t['style'], 'surface' => self::SURFACES[$pv[0]] ?? null, 'look' => null];
         }
@@ -237,7 +420,7 @@ class HomeLayout
     public static function save(int $ownerId, array $layout): void
     {
         $s = PortalSetting::for($ownerId);
-        $s->home = array_merge($s->home ?? [], array_intersect_key($layout, array_flip(['theme', 'order', 'off', 'colors', 'style', 'surface', 'look'])));
+        $s->home = array_merge($s->home ?? [], array_intersect_key($layout, array_flip(['theme', 'order', 'off', 'colors', 'style', 'surface', 'look', 'auto'])));
         $s->save();
     }
 
@@ -248,11 +431,11 @@ class HomeLayout
             return null;
         }
         $s = PortalSetting::where('user_id', $ownerId)->first();
-        $preview = self::previewing($ownerId);
+        $preview = self::override($ownerId);
         if (! $preview && (! $s || empty($s->home['colors']) && empty($s->home['surface']) && empty($s->home['look']) && ($s->home['style'] ?? 'padrao') === 'padrao' && ($s->home['theme'] ?? 'padrao') === 'padrao')) {
             return null;
         }
-        $h = self::get($s ?? new PortalSetting(['user_id' => $ownerId]));
+        $h = self::get($s ?? new PortalSetting(['user_id' => $ownerId]), true);
         [$a, $b, $p] = $h['colors'];
         // Cards escuros com botões escuros somem: os links e botões ficam dourados.
         if (self::isDark($h['surface'][1]) && self::isDark($p)) {
