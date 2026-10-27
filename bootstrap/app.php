@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Middleware global para desabilitar cache de Blade views em produção
         $middleware->append(\App\Http\Middleware\NoCacheViews::class);
 
+        // Telas que o plano da pessoa não inclui (só com a chave ligada em Admin › Planos)
+        $middleware->appendToGroup('web', \App\Http\Middleware\PlanFeature::class);
+
         // Aliases de middleware personalizados
         $middleware->alias([
             'admin'        => \App\Http\Middleware\EnsureAdmin::class,

@@ -3,6 +3,8 @@
      o script tira os grupos que ficaram vazios. --}}
 @auth
     <style id="fm-menu-prefs">{!! \App\Support\AppMenu::css() !!}</style>
+    {{-- Cadeado nas telas que o plano não inclui (só com o bloqueio ligado) --}}
+    <style id="fm-plan-locks">{!! \App\Support\PlanGate::menuCss() !!}</style>
     <script>
     (function () {
         function off(el) { return getComputedStyle(el).display === 'none'; }

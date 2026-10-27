@@ -40,6 +40,21 @@
         .btn-success { background: rgba(16,185,129,.12); color: #34d399; border: 1px solid rgba(16,185,129,.2); }
 
         .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: .75rem; margin-bottom: 1.25rem; }
+        .pg-card { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; padding: 1rem 1.1rem; margin-bottom: 1rem; border-radius: 1.1rem; background: #fff; border: 1.5px dashed #cbd5e1; }
+        .pg-card.is-on { border-style: solid; border-color: color-mix(in oklab, var(--color-indigo-500) 40%, transparent); background: color-mix(in oklab, var(--color-indigo-50) 70%, #fff); }
+        .dark .pg-card { background: #0f172a; border-color: #334155; }
+        .dark .pg-card.is-on { background: color-mix(in oklab, var(--color-indigo-500) 12%, #0f172a); }
+        .pg-ico { flex: none; display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: .9rem; background: #f1f5f9; color: #475569; font-size: 1.15rem; }
+        .pg-card.is-on .pg-ico { background: linear-gradient(135deg, var(--color-indigo-500), var(--color-purple-500)); color: #fff; }
+        .dark .pg-ico { background: #1e293b; color: #cbd5e1; }
+        .pg-txt { flex: 1; min-width: 14rem; }
+        .pg-txt b { font-size: .95rem; font-weight: 800; color: #0f172a; }
+        .dark .pg-txt b { color: #f1f5f9; }
+        .pg-txt p { margin-top: .2rem; font-size: .8rem; color: #64748b; line-height: 1.45; }
+        .dark .pg-txt p { color: #94a3b8; }
+        .pg-warn { display: block; margin-top: .3rem; font-weight: 700; color: #b45309; }
+        .dark .pg-warn { color: #fbbf24; }
+        .pg-form { flex: none; }
         .stat-card { background: white; border: 1.5px solid #f1f5f9; border-radius: 1rem; padding: .95rem 1.1rem; box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.03); }
         .dark .stat-card { background: #1e293b; border-color: #334155; }
         .stat-card-label { font-size: .72rem; color: #64748b; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; margin-bottom: .4rem; }
@@ -130,6 +145,31 @@
             <a href="{{ route('admin.plans.create') }}" class="btn btn-primary">
                 ＋ Novo Plano
             </a>
+        </div>
+
+        {{-- Bloqueio pelo plano (App\Support\PlanGate) --}}
+        <div class="pg-card {{ $gateOn ? 'is-on' : '' }}">
+            <span class="pg-ico"><i class="bi {{ $gateOn ? 'bi-lock-fill' : 'bi-unlock' }}"></i></span>
+            <div class="pg-txt">
+                <b>Bloqueio pelo plano: {{ $gateOn ? 'ligado' : 'desligado' }}</b>
+                <p>
+                    @if($gateOn)
+                        Cada conta só abre o que o plano dela inclui (Mercado Livre, Shopee, financeiro, relatórios, exportar, Lançar por print). O resto aparece com cadeado. Admin abre tudo.
+                    @else
+                        Hoje todas as contas abrem tudo. Antes de ligar, dê o plano certo para as suas contas em <a href="{{ route('admin.plans.users') }}" class="font-bold underline">Usuários</a>.
+                    @endif
+                    @if($withoutPlan > 0)
+                        <span class="pg-warn"><i class="bi bi-exclamation-triangle"></i> {{ $withoutPlan }} {{ $withoutPlan === 1 ? 'conta sem assinatura fica' : 'contas sem assinatura ficam' }} no plano Grátis.</span>
+                    @endif
+                </p>
+            </div>
+            <form method="POST" action="{{ route('admin.plans.gate') }}" class="pg-form" @if(! $gateOn) onsubmit="return confirm('Ligar o bloqueio? Contas sem o recurso no plano deixam de abrir essas telas.')" @endif>
+                @csrf
+                <input type="hidden" name="on" value="{{ $gateOn ? 0 : 1 }}">
+                <button type="submit" class="btn {{ $gateOn ? 'btn-ghost' : 'btn-primary' }}">
+                    <i class="bi {{ $gateOn ? 'bi-unlock' : 'bi-lock' }}"></i> {{ $gateOn ? 'Desligar' : 'Ligar bloqueio' }}
+                </button>
+            </form>
         </div>
 
         <!-- Stats -->

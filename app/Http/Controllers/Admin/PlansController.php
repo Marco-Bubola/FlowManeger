@@ -29,7 +29,22 @@ class PlansController extends Controller
             'trialing'            => Subscription::where('status', 'trialing')->count(),
         ];
 
-        return view('admin.plans.index', compact('plans', 'stats'));
+        $gateOn = \App\Support\PlanGate::enabled();
+        $withoutPlan = \App\Models\User::query()->where('is_admin', false)
+            ->whereDoesntHave('activeSubscription')->count();
+
+        return view('admin.plans.index', compact('plans', 'stats', 'gateOn', 'withoutPlan'));
+    }
+
+    /** Liga ou desliga o bloqueio dos recursos pelo plano (vale para todas as contas que não são admin). */
+    public function toggleGate(Request $request)
+    {
+        $on = $request->boolean('on');
+        \App\Support\PlanGate::setEnabled($on);
+
+        return back()->with('success', $on
+            ? 'Bloqueio pelo plano ligado: cada conta só abre o que o plano dela inclui.'
+            : 'Bloqueio pelo plano desligado: todas as contas abrem tudo.');
     }
 
     public function create()

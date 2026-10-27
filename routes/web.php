@@ -649,6 +649,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('plans-users', [AdminPlansController::class, 'users'])->name('plans.users');
     Route::post('plans/grant', [AdminPlansController::class, 'grantAccess'])->name('plans.grant');
     Route::post('users/toggle-admin', [AdminPlansController::class, 'toggleAdmin'])->name('users.toggle-admin');
+    Route::post('plans/gate', [AdminPlansController::class, 'toggleGate'])->name('plans.gate');
 
     // Subscriptions management
     Route::get('subscriptions', [AdminPlansController::class, 'subscriptions'])->name('subscriptions.index');
