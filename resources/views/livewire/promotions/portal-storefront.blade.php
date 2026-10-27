@@ -312,13 +312,14 @@
     {{-- ===================== Página inicial ===================== --}}
     @if($tab === 'inicio')
         @php $home = \App\Services\Portal\HomeLayout::class; $cur = $themes[$home_theme] ?? null; @endphp
-        <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] items-start" data-testid="home-builder">
+        <div class="min-w-0" data-testid="home-builder">
             <div class="space-y-4 min-w-0" x-data="{ sec: 'tema', go(id) { this.sec = id; document.getElementById('pi-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }">
                 {{-- Atalhos para as partes da página (fica preso no alto ao rolar) --}}
-                <div class="sticky top-2 z-20 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/90 backdrop-blur shadow-sm p-1 grid grid-cols-4 gap-1" data-testid="home-subnav">
+                <div class="sticky top-2 z-20 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/90 backdrop-blur shadow-sm p-1 grid grid-cols-5 gap-1" data-testid="home-subnav">
                     @foreach(['tema' => ['Tema', 'bi-palette'], 'cores' => ['Cores', 'bi-droplet-half'], 'estilo' => ['Estilo', 'bi-palette2'], 'blocos' => ['Blocos', 'bi-list-ol']] as $sk => [$sn, $si])
-                        <button type="button" @click="go('{{ $sk }}')" :class="sec === '{{ $sk }}' ? 'bg-violet-500 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'" class="rounded-xl py-2 text-xs sm:text-sm font-semibold transition inline-flex items-center justify-center gap-1.5"><i class="bi {{ $si }}"></i>{{ $sn }}</button>
+                        <button type="button" @click="go('{{ $sk }}')" :class="sec === '{{ $sk }}' ? 'bg-violet-500 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'" class="rounded-xl py-2 text-xs sm:text-sm font-semibold transition inline-flex flex-col min-[480px]:flex-row items-center justify-center gap-0.5 min-[480px]:gap-1.5"><i class="bi {{ $si }}"></i>{{ $sn }}</button>
                     @endforeach
+                    <button type="button" @click="$dispatch('open-site-preview')" class="rounded-xl py-2 text-xs sm:text-sm font-semibold transition inline-flex flex-col min-[480px]:flex-row items-center justify-center gap-0.5 min-[480px]:gap-1.5 text-violet-600 dark:text-violet-300 bg-violet-50 dark:bg-violet-500/15 hover:bg-violet-100" data-testid="subnav-preview"><i class="bi bi-eye"></i>Prévia</button>
                 </div>
                 {{-- 1. Tema --}}
                 <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-themes" id="pi-tema" style="scroll-margin-top: 80px">
@@ -335,7 +336,7 @@
                         <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ $gName }}</p>
                         <p class="text-[11px] text-slate-400 mb-1.5">{{ $gHint }}</p>
                     </div>
-                    <div class="grid grid-cols-2 min-[520px]:grid-cols-3 xl:grid-cols-4 gap-2" data-testid="themes-{{ $grp }}">
+                    <div class="grid grid-cols-2 min-[520px]:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 min-[2200px]:grid-cols-8 gap-2" data-testid="themes-{{ $grp }}">
                         @foreach(collect($themes)->filter(fn ($t, $k) => ($grp === 'estilo') === ($k === 'padrao' || ($t['group'] ?? '') === 'estilo')) as $k => $t)
                             <button type="button" wire:click="pickTheme('{{ $k }}')" wire:key="th-{{ $k }}" data-testid="theme-{{ $k }}"
                                     class="relative text-left rounded-xl border p-2 transition {{ $pendingTheme === $k ? 'border-violet-500 ring-2 ring-violet-200 dark:ring-violet-500/30' : ($home_theme === $k ? 'border-emerald-400' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300') }}">
@@ -358,14 +359,15 @@
                         @php $pt = $themes[$pendingTheme]; @endphp
                         <div class="rounded-xl bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 p-3 space-y-2" data-testid="theme-apply-box">
                             <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ $pt['emoji'] }} Usar o tema {{ $pt['name'] }}?</p>
-                            <p class="text-xs text-slate-600 dark:text-slate-300"><b>A prévia ao lado já mostra o site com este tema.</b> Troca as cores do topo, do fundo, dos cards e das áreas, os cantos e a ordem dos blocos ({{ collect($pt['order'])->map(fn ($k) => $home::SECTIONS[$k][0])->take(3)->join(', ') }}…).</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-300">Troca as cores do topo, do fundo, dos cards e das áreas, os cantos e a ordem dos blocos ({{ collect($pt['order'])->map(fn ($k) => $home::SECTIONS[$k][0])->take(3)->join(', ') }}…).</p>
                             @if($pt['tpl'])
                                 <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200"><input type="checkbox" wire:model.live="withBanner" class="rounded text-violet-500 focus:ring-violet-400" data-testid="theme-with-banner"> Criar o banner do evento no começo do carrossel{{ $pt['when'] ? ' (sai do ar em ' . $pt['when']['end']->format('d/m') . ')' : ' (por 7 dias)' }}</label>
                             @endif
                             @if($pt['notice'])
                                 <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200"><input type="checkbox" wire:model.live="withNotice" class="rounded text-violet-500 focus:ring-violet-400"> Trocar o aviso do topo por “{{ $pt['notice'][$kind === 'moveis' ? 1 : 0] }}”</label>
                             @endif
-                            <div class="flex gap-2 pt-1">
+                            <div class="flex flex-wrap gap-2 pt-1">
+                                <button type="button" @click="$dispatch('open-site-preview')" class="{{ $phBtn }}" data-testid="theme-preview"><i class="bi bi-eye text-violet-500"></i>Ver como fica</button>
                                 <button type="button" wire:click="applyTheme" wire:loading.attr="disabled" class="{{ $primary }}" data-testid="theme-apply"><i class="bi bi-magic"></i>Aplicar tema</button>
                                 <button type="button" wire:click="pickTheme('{{ $pendingTheme }}')" class="{{ $phBtn }}">Cancelar</button>
                             </div>
@@ -375,7 +377,31 @@
 
                 {{-- 2. Cores e cantos --}}
                 <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-colors" id="pi-cores" style="scroll-margin-top: 80px">
-                    <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-droplet-half text-violet-500"></i>Cores e cantos</h2>
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-droplet-half text-violet-500"></i>Cores e cantos</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Comece por uma paleta pronta e ajuste cada cor se quiser.</p>
+                        </div>
+                        <button type="button" @click="$dispatch('open-site-preview')" class="shrink-0 text-xs font-semibold text-violet-600 dark:text-violet-300 hover:underline"><i class="bi bi-eye"></i> Ver como fica</button>
+                    </div>
+                    <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Paletas prontas</p>
+                    <div class="grid grid-cols-3 min-[520px]:grid-cols-4 md:grid-cols-6 xl:grid-cols-9 gap-1.5" data-testid="palettes">
+                        @foreach($home::PALETTES as $pi => [$pn, $p1, $p2, $p3, $p4, $p5])
+                            @php $pon = array_values($home_colors) === [$p1, $p2, $p3] && array_values($home_surface) === [$p4, $p5]; @endphp
+                            <button type="button" wire:click="applyPalette({{ $pi }})" data-testid="palette-{{ $pi }}" aria-pressed="{{ $pon ? 'true' : 'false' }}"
+                                    class="relative text-left rounded-xl border p-1.5 transition {{ $pon ? 'border-violet-500 ring-2 ring-violet-200 dark:ring-violet-500/30' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300 hover:-translate-y-0.5' }}">
+                                <span class="block h-10 rounded-lg overflow-hidden relative" style="background: {{ $p4 }}">
+                                    <span class="absolute inset-x-0 top-0 h-3" style="background: linear-gradient(90deg, {{ $p1 }}, {{ $p2 }})"></span>
+                                    <span class="absolute left-1.5 bottom-1.5 w-5 h-4 rounded-[3px] shadow-sm" style="background: {{ $p5 }}"></span>
+                                    <span class="absolute left-7 bottom-1.5 w-5 h-4 rounded-[3px] shadow-sm" style="background: {{ $p5 }}"></span>
+                                    <span class="absolute right-1.5 bottom-1.5 w-4 h-4 rounded-full border-2 border-white" style="background: {{ $p3 }}"></span>
+                                </span>
+                                <span class="block mt-1 text-[11px] font-semibold truncate text-slate-600 dark:text-slate-300">{{ $pn }}</span>
+                                @if($pon)<i class="bi bi-check-circle-fill absolute -top-1.5 -right-1.5 text-violet-500 bg-white dark:bg-slate-900 rounded-full"></i>@endif
+                            </button>
+                        @endforeach
+                    </div>
+                    <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 pt-1">Cores principais</p>
                     <div class="grid grid-cols-1 min-[480px]:grid-cols-3 gap-2">
                         @foreach(['Topo, começo', 'Topo, fim', 'Botões e links'] as $i => $cname)
                             <label class="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-2.5 py-2 cursor-pointer">
@@ -406,26 +432,56 @@
                     <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0">
                             <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-palette2 text-violet-500"></i>Estilo do site</h2>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">O jeito do topo, dos cards, dos botões e um desenho no fundo. A prévia mostra na hora.</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">O jeito e as cores dos cards, o fundo com desenho, o topo e os botões. Cada mudança já fica salva; veja em “Prévia”.</p>
                         </div>
                         <button type="button" wire:click="resetLook" class="shrink-0 text-xs font-semibold text-violet-600 dark:text-violet-300 hover:underline" data-testid="look-reset">Voltar ao do tema</button>
                     </div>
-                    @foreach($home::LOOKS as $part => [$pname, $choices])
-                        <div>
-                            <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">{{ $pname }}</p>
-                            <div class="grid grid-cols-3 min-[520px]:grid-cols-4 2xl:grid-cols-5 gap-1.5">
-                                @foreach($choices as $k => [$n, $ico])
-                                    @php $on = ($home_look[$part] ?? null) === $k; @endphp
-                                    <button type="button" wire:click="setLook('{{ $part }}', '{{ $k }}')" data-testid="look-{{ $part }}-{{ $k }}" aria-pressed="{{ $on ? 'true' : 'false' }}"
-                                        class="relative text-left rounded-xl border p-1.5 transition {{ $on ? 'border-violet-500 ring-2 ring-violet-200 dark:ring-violet-500/30 bg-violet-50/60 dark:bg-violet-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300 hover:-translate-y-0.5' }}">
-                                        @include('livewire.promotions.partials.look-thumb', ['part' => $part, 'k' => $k, 'c' => $home_colors])
-                                        <span class="block mt-1 text-[11px] font-semibold truncate {{ $on ? 'text-violet-700 dark:text-violet-200' : 'text-slate-600 dark:text-slate-300' }}">{{ $n }}</span>
-                                        @if($on)<i class="bi bi-check-circle-fill absolute -top-1.5 -right-1.5 text-violet-500 bg-white dark:bg-slate-900 rounded-full"></i>@endif
-                                    </button>
+                    <div x-data="{ g: 'cards' }" class="space-y-3">
+                        <div class="flex gap-1 overflow-x-auto [scrollbar-width:none] rounded-xl bg-slate-100 dark:bg-slate-800 p-1" role="tablist" data-testid="look-groups">
+                            @foreach($home::LOOK_GROUPS as $gk => [$gn, $gi])
+                                <button type="button" role="tab" @click="g = '{{ $gk }}'" :aria-selected="g === '{{ $gk }}'" data-testid="look-group-{{ $gk }}"
+                                        :class="g === '{{ $gk }}' ? 'bg-white dark:bg-slate-700 shadow text-violet-600 dark:text-violet-300' : 'text-slate-500 dark:text-slate-400'"
+                                        class="shrink-0 flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold inline-flex items-center justify-center gap-1.5"><i class="bi {{ $gi }}"></i>{{ $gn }}</button>
+                            @endforeach
+                        </div>
+                        @foreach($home::LOOK_GROUPS as $gk => [$gn, $gi, $parts])
+                            <div x-show="g === '{{ $gk }}'" @if(! $loop->first) x-cloak @endif class="space-y-3" data-testid="look-panel-{{ $gk }}">
+                                @php $gPaints = collect($home::PAINTS)->filter(fn ($p) => $p[1] === $gk); @endphp
+                                @if($gPaints->isNotEmpty())
+                                    <div>
+                                        <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">Cores {{ $gk === 'cards' ? 'dos cards' : 'do fundo' }}</p>
+                                        <div class="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-4 gap-2">
+                                            @foreach($gPaints as $pk => [$pn])
+                                                @php $pv = $home_paint[$pk] ?? null; $pshow = $pv ?? match ($pk) { 'photo' => '#ffffff', 'deal' => '#00a650', 'bg2' => $home_colors[0] ?? '#ec4899', default => $home_colors[2] ?? '#8b5cf6' }; @endphp
+                                                <div class="flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 px-2.5 py-2 min-w-0" wire:key="paint-{{ $pk }}-{{ $pv }}">
+                                                    <input type="color" value="{{ $pshow }}" x-on:change="$wire.setPaint('{{ $pk }}', $event.target.value)" class="shrink-0 w-9 h-9 rounded-lg border-0 bg-transparent p-0 cursor-pointer" data-testid="paint-{{ $pk }}" aria-label="{{ $pn }}">
+                                                    <span class="min-w-0 flex-1"><b class="block text-xs text-slate-700 dark:text-slate-200 truncate">{{ $pn }}</b><small class="block text-[11px] {{ $pv ? 'text-slate-400 uppercase' : 'text-emerald-600' }}">{{ $pv ?: 'Automática' }}</small></span>
+                                                    @if($pv)<button type="button" wire:click="setPaint('{{ $pk }}')" class="shrink-0 text-[11px] font-semibold text-violet-600 dark:text-violet-300 hover:underline" title="Voltar à cor automática">Auto</button>@endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+                                @foreach($parts as $part)
+                                    @php [$pname, $choices] = $home::LOOKS[$part]; @endphp
+                                    <div>
+                                        <p class="text-[11px] font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">{{ $pname }}</p>
+                                        <div class="grid grid-cols-3 min-[520px]:grid-cols-4 md:grid-cols-5 xl:grid-cols-7 2xl:grid-cols-10 gap-1.5">
+                                            @foreach($choices as $k => [$n, $ico])
+                                                @php $on = ($home_look[$part] ?? null) === $k; @endphp
+                                                <button type="button" wire:click="setLook('{{ $part }}', '{{ $k }}')" data-testid="look-{{ $part }}-{{ $k }}" aria-pressed="{{ $on ? 'true' : 'false' }}"
+                                                    class="relative text-left rounded-xl border p-1.5 transition {{ $on ? 'border-violet-500 ring-2 ring-violet-200 dark:ring-violet-500/30 bg-violet-50/60 dark:bg-violet-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300 hover:-translate-y-0.5' }}">
+                                                    @include('livewire.promotions.partials.look-thumb', ['part' => $part, 'k' => $k, 'c' => $home_colors])
+                                                    <span class="block mt-1 text-[11px] font-semibold truncate {{ $on ? 'text-violet-700 dark:text-violet-200' : 'text-slate-600 dark:text-slate-300' }}">{{ $n }}</span>
+                                                    @if($on)<i class="bi bi-check-circle-fill absolute -top-1.5 -right-1.5 text-violet-500 bg-white dark:bg-slate-900 rounded-full"></i>@endif
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
                                 @endforeach
                             </div>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
                 </section>
 
                 {{-- 3. Blocos --}}
@@ -452,8 +508,6 @@
                 </section>
             </div>
 
-            {{-- Prévia ao vivo do catálogo --}}
-            @include('livewire.promotions.partials.storefront-preview', ['inline' => true])
         </div>
     @endif
 
@@ -951,8 +1005,8 @@
 
     </x-portal-settings-nav>
 
-    @if(in_array($tab, ['geral', 'identidade', 'banners', 'destaques', 'colecoes', 'aviso', 'automacoes'], true))
-        @include('livewire.promotions.partials.storefront-preview', ['inline' => false])
+    @if(in_array($tab, ['geral', 'identidade', 'inicio', 'banners', 'destaques', 'colecoes', 'aviso', 'automacoes', 'leis'], true))
+        @include('livewire.promotions.partials.storefront-preview')
     @endif
 
     @include('livewire.promotions.partials.storefront-picker')

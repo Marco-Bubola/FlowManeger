@@ -33,6 +33,7 @@ class PortalStorefront extends Component
     public array $home_surface = [];
     public string $home_style = 'padrao';
     public array $home_look = [];
+    public array $home_paint = [];
     /** Vitrine › Automações (HomeLayout::AUTO_DEFAULT). */
     public array $auto = [];
     public string $home_theme = 'padrao';
@@ -106,6 +107,7 @@ class PortalStorefront extends Component
         $this->home_surface = $h['surface'];
         $this->home_style = $h['style'];
         $this->home_look = $h['look'];
+        $this->home_paint = $h['paint'];
         $this->home_theme = $h['theme'];
     }
 
@@ -118,6 +120,7 @@ class PortalStorefront extends Component
             'theme' => $this->home_theme, 'order' => array_values($this->home_order), 'off' => array_values($this->home_off),
             'colors' => $this->home_colors, 'style' => $this->home_style, 'surface' => $this->home_surface,
             'look' => HomeLayout::look($this->home_theme, $this->home_look),
+            'paint' => HomeLayout::paint($this->home_paint),
         ]);
         $this->loadHome();
         $this->previewKey++;
@@ -205,6 +208,32 @@ class PortalStorefront extends Component
     {
         $this->home_look = HomeLayout::look($this->home_theme);
         $this->saveHome();
+    }
+
+    /** Cor de uma parte (preço, selo, botão do carrinho…); vazio volta ao automático. */
+    public function setPaint(string $key, ?string $color = null): void
+    {
+        if (! isset(HomeLayout::PAINTS[$key])) {
+            return;
+        }
+        if ($color && preg_match('/^#[0-9a-fA-F]{6}$/', $color)) {
+            $this->home_paint[$key] = strtolower($color);
+        } else {
+            unset($this->home_paint[$key]);
+        }
+        $this->saveHome();
+    }
+
+    /** Paleta pronta: troca as cores do topo, dos botões, do fundo e dos cards de uma vez. */
+    public function applyPalette(int $i): void
+    {
+        if (! $p = HomeLayout::PALETTES[$i] ?? null) {
+            return;
+        }
+        $this->home_colors = [$p[1], $p[2], $p[3]];
+        $this->home_surface = [$p[4], $p[5]];
+        $this->saveHome();
+        $this->dispatch('notify', type: 'success', message: 'Paleta ' . $p[0] . ' aplicada.');
     }
 
     public function updatedHomeColors(): void

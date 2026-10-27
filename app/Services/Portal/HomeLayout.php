@@ -41,36 +41,36 @@ class HomeLayout
      */
     public const SURFACES = [
         'padrao'     => ['#f0f0f3', '#ffffff'],
-        'black'      => ['#0b0b0d', '#1c1c21'],
-        'natal'      => ['#f6efe3', '#fffdf8'],
-        'maes'       => ['#fcecf3', '#fffafc'],
+        'black'      => ['badge' => 'canto', 'addbtn' => 'cheio', '#0b0b0d', '#1c1c21'],
+        'natal'      => ['cardbg' => 'faixa', 'bgtype' => 'topo', '#f6efe3', '#fffdf8'],
+        'maes'       => ['cardbg' => 'suave', 'badge' => 'pilula', '#fcecf3', '#fffafc'],
         'namorados'  => ['#fde8ec', '#fffafb'],
         'pais'       => ['#e8edf3', '#ffffff'],
-        'criancas'   => ['#fff6d6', '#ffffff'],
+        'criancas'   => ['cardbg' => 'cores', 'badge' => 'circulo', '#fff6d6', '#ffffff'],
         'consumidor' => ['#e8f0ff', '#ffffff'],
         'cliente'    => ['#efeaff', '#ffffff'],
         'pascoa'     => ['#f5eee2', '#fffcf6'],
-        'liquida'    => ['#fff0dc', '#ffffff'],
+        'liquida'    => ['badge' => 'circulo', 'price' => 'cor', '#fff0dc', '#ffffff'],
         'ano_novo'   => ['#f7f3ea', '#ffffff'],
         'volta_aulas'=> ['#eef4ff', '#ffffff'],
         'carnaval'   => ['#fbf0ff', '#ffffff'],
         'mulher'     => ['#faf0ff', '#ffffff'],
         'junina'     => ['#fff3e0', '#fffaf2'],
         'minimalista'=> ['#fafafa', '#ffffff'],
-        'luxo'       => ['#0c0a09', '#1c1917'],
+        'luxo'       => ['price' => 'cor', 'addbtn' => 'cheio', '#0c0a09', '#1c1917'],
         'natural'    => ['#f4efe6', '#fffdf8'],
-        'pastel'     => ['#fdf4ff', '#ffffff'],
-        'neon'       => ['#0f0a1e', '#1a1230'],
-        'oceano'     => ['#ecfeff', '#ffffff'],
+        'pastel'     => ['cardbg' => 'cores', 'bgtype' => 'malha', '#fdf4ff', '#ffffff'],
+        'neon'       => ['cards' => 'brilho', 'bgtype' => 'brilho', '#0f0a1e', '#1a1230'],
+        'oceano'     => ['bgtype' => 'degrade', 'cardbg' => 'degrade', '#ecfeff', '#ffffff'],
         'floral'     => ['#fff1f5', '#ffffff'],
-        'rustico'    => ['#f5efe6', '#fffaf3'],
+        'rustico'    => ['pattern' => 'madeira', 'patternop' => 'suave', '#f5efe6', '#fffaf3'],
         'escandinavo'=> ['#f5f5f4', '#ffffff'],
         'vintage'    => ['#f7f0e1', '#fffbf0'],
-        'tropical'   => ['#f0fdf4', '#ffffff'],
+        'tropical'   => ['cardbg' => 'colorido', 'addbtn' => 'barra', '#f0fdf4', '#ffffff'],
         'noite'      => ['#0b1020', '#151a2e'],
         'cafe'       => ['#f3ebe3', '#fffaf5'],
         'lavanda'    => ['#f5f3ff', '#ffffff'],
-        'esportivo'  => ['#f3f4f6', '#ffffff'],
+        'esportivo'  => ['badge' => 'canto', 'price' => 'grande', '#f3f4f6', '#ffffff'],
     ];
 
     /** Cores da logo do app: o tema "Cores da loja". */
@@ -172,6 +172,16 @@ class HomeLayout
         'ondas' => ['url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'32\' fill=\'none\' stroke=\'%23000\' stroke-width=\'2.5\'%3E%3Cpath d=\'M0 16c10 0 10-10 20-10s10 10 20 10 10-10 20-10 10 10 20 10\'/%3E%3C/svg%3E")', '80px 32px', null],
         'flores' => ['url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'110\' height=\'110\'%3E%3Cg transform=\'translate%2830 30%29\'%3E%3Ccircle cy=\'-9\' r=\'6\'/%3E%3Ccircle cx=\'8.5\' cy=\'-3\' r=\'6\'/%3E%3Ccircle cx=\'5.3\' cy=\'7.5\' r=\'6\'/%3E%3Ccircle cx=\'-5.3\' cy=\'7.5\' r=\'6\'/%3E%3Ccircle cx=\'-8.5\' cy=\'-3\' r=\'6\'/%3E%3C/g%3E%3Cg transform=\'translate%2882 80%29 scale%28.6%29\'%3E%3Ccircle cy=\'-9\' r=\'6\'/%3E%3Ccircle cx=\'8.5\' cy=\'-3\' r=\'6\'/%3E%3Ccircle cx=\'5.3\' cy=\'7.5\' r=\'6\'/%3E%3Ccircle cx=\'-5.3\' cy=\'7.5\' r=\'6\'/%3E%3Ccircle cx=\'-8.5\' cy=\'-3\' r=\'6\'/%3E%3C/g%3E%3Ccircle cx=\'86\' cy=\'22\' r=\'2.5\'/%3E%3Ccircle cx=\'22\' cy=\'88\' r=\'2\'/%3E%3C/svg%3E")', '110px 110px', null],
         'folhas' => ['url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'120\'%3E%3Cpath d=\'M20 50C20 26 40 14 58 12 58 34 44 52 20 50z\'/%3E%3Cpath transform=\'translate%2870 66%29 rotate%2840%29 scale%28.7%29\' d=\'M0 30C0 8 18-4 36-6 36 16 22 32 0 30z\'/%3E%3Ccircle cx=\'100\' cy=\'24\' r=\'2.5\'/%3E%3Ccircle cx=\'30\' cy=\'100\' r=\'2\'/%3E%3C/svg%3E")', '120px 120px', null],
+        'xadrez' => ['repeating-conic-gradient(#000 0 25%, transparent 0 50%)', '36px 36px', '.05'],
+        'losangos' => ['url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'48\' height=\'48\' fill=\'none\' stroke=\'%23000\' stroke-width=\'2\'%3E%3Cpath d=\'M24 4 44 24 24 44 4 24z\'/%3E%3C/svg%3E")', '48px 48px', null],
+        'hexagonos' => ['url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'56\' height=\'98\' fill=\'none\' stroke=\'%23000\' stroke-width=\'2\'%3E%3Cpath d=\'M28 66 0 50V17L28 1l28 16v33L28 66zM28 66v33\'/%3E%3C/svg%3E")', '56px 98px', null],
+        'triangulos' => ['url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'%3E%3Cpath d=\'M20 10 32 30H8z\'/%3E%3Cpath d=\'M60 50 70 66H50z\'/%3E%3Ccircle cx=\'64\' cy=\'16\' r=\'2.5\'/%3E%3Ccircle cx=\'16\' cy=\'62\' r=\'2\'/%3E%3C/svg%3E")', '80px 80px', null],
+        'bolhas' => ['url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'140\' height=\'140\'%3E%3Ccircle cx=\'30\' cy=\'34\' r=\'18\'/%3E%3Ccircle cx=\'98\' cy=\'88\' r=\'28\'/%3E%3Ccircle cx=\'110\' cy=\'22\' r=\'8\'/%3E%3Ccircle cx=\'34\' cy=\'112\' r=\'10\'/%3E%3C/svg%3E")', '140px 140px', '.06'],
+        'grade' => ['linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', '28px 28px', '.07'],
+        'rabiscos' => ['url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'120\' fill=\'none\' stroke=\'%23000\' stroke-width=\'2.5\' stroke-linecap=\'round\'%3E%3Cpath d=\'M10 30c8-10 16 10 24 0s16 10 24 0\'/%3E%3Cpath d=\'M64 86c8-10 16 10 24 0s16 10 24 0\'/%3E%3Ccircle cx=\'96\' cy=\'28\' r=\'6\'/%3E%3Cpath d=\'M22 90l10 10M32 90 22 100\'/%3E%3C/svg%3E")', '120px 120px', null],
+        'presentes' => ['url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'120\'%3E%3Cpath d=\'M14 30h28v24H14zM10 22h36v8H10z\'/%3E%3Cpath d=\'M28 22c-6-10-14-6-10 0zM28 22c6-10 14-6 10 0z\'/%3E%3Cpath transform=\'translate(62 60) scale(.7)\' d=\'M14 30h28v24H14zM10 22h36v8H10z\'/%3E%3Ccircle cx=\'96\' cy=\'24\' r=\'2.5\'/%3E%3Ccircle cx=\'24\' cy=\'98\' r=\'2\'/%3E%3C/svg%3E")', '120px 120px', null],
+        'madeira' => ['url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'60\' fill=\'none\' stroke=\'%23000\' stroke-width=\'1.6\'%3E%3Cpath d=\'M0 12c40-8 80 8 120 0s60-6 80 0\'/%3E%3Cpath d=\'M0 30c30 6 70-6 110 2s70 2 90-2\'/%3E%3Cpath d=\'M0 48c50-6 90 6 130-2s50 0 70 2\'/%3E%3Cellipse cx=\'150\' cy=\'30\' rx=\'10\' ry=\'4\'/%3E%3C/svg%3E")', '200px 60px', '.08'],
+        'diamantes' => ['url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Cpath d=\'M25 10l10 14-10 14-10-14z\'/%3E%3Cpath d=\'M75 60l7 10-7 10-7-10z\'/%3E%3Ccircle cx=\'78\' cy=\'20\' r=\'2\'/%3E%3Ccircle cx=\'20\' cy=\'78\' r=\'2.5\'/%3E%3C/svg%3E")', '100px 100px', null],
     ];
 
     /**
@@ -186,12 +196,43 @@ class HomeLayout
         'cards'   => ['Cards dos produtos', [
             'sombra' => ['Sombra leve', 'bi-card-heading'], 'elevado' => ['Flutuando', 'bi-layers-fill'], 'borda' => ['Com borda', 'bi-bounding-box'],
             'contorno' => ['Borda colorida', 'bi-bounding-box-circles'], 'plano' => ['Sem borda', 'bi-square'],
+            'brilho' => ['Sombra colorida', 'bi-stars'],
         ]],
         'pattern' => ['Desenho no fundo', [
             'nenhum' => ['Nenhum', 'bi-slash-circle'], 'pontos' => ['Bolinhas', 'bi-dot'], 'coracoes' => ['Corações', 'bi-heart-fill'],
             'estrelas' => ['Estrelas', 'bi-stars'], 'confete' => ['Confete', 'bi-balloon-fill'], 'neve' => ['Neve', 'bi-snow'],
             'listras' => ['Listras', 'bi-slash-lg'], 'ondas' => ['Ondas', 'bi-water'], 'flores' => ['Flores', 'bi-flower1'],
-            'folhas' => ['Folhas', 'bi-tree-fill'],
+            'folhas' => ['Folhas', 'bi-tree-fill'], 'xadrez' => ['Xadrez', 'bi-grid-3x3'], 'losangos' => ['Losangos', 'bi-diamond'],
+            'hexagonos' => ['Colmeia', 'bi-hexagon'], 'triangulos' => ['Triângulos', 'bi-triangle'], 'bolhas' => ['Bolhas', 'bi-circle'],
+            'grade' => ['Quadriculado', 'bi-border-all'], 'rabiscos' => ['Rabiscos', 'bi-pencil'], 'presentes' => ['Presentes', 'bi-gift'],
+            'madeira' => ['Madeira', 'bi-tree'], 'diamantes' => ['Brilhos', 'bi-gem'],
+        ]],
+        'patternsize' => ['Tamanho do desenho', [
+            'normal' => ['Normal', 'bi-circle'], 'pequeno' => ['Pequeno', 'bi-dot'], 'grande' => ['Grande', 'bi-circle-fill'],
+        ]],
+        'patternop' => ['Força do desenho', [
+            'normal' => ['Normal', 'bi-circle-half'], 'suave' => ['Bem leve', 'bi-circle'], 'forte' => ['Mais forte', 'bi-circle-fill'],
+        ]],
+        'bgtype' => ['Fundo da página', [
+            'cor' => ['Cor única', 'bi-square-fill'], 'degrade' => ['Degradê', 'bi-rainbow'], 'brilho' => ['Luzes de cor', 'bi-brightness-high'],
+            'malha' => ['Colorido suave', 'bi-palette'], 'topo' => ['Cor no alto', 'bi-align-top'],
+        ]],
+        'cardbg' => ['Cor dos cards', [
+            'liso' => ['Uma cor só', 'bi-square'], 'suave' => ['Toque de cor', 'bi-droplet'], 'degrade' => ['Degradê', 'bi-rainbow'],
+            'colorido' => ['Parte de baixo colorida', 'bi-layout-text-window-reverse'], 'faixa' => ['Faixa no alto', 'bi-dash-lg'],
+            'cores' => ['Cada um de uma cor', 'bi-palette2'], 'vidro' => ['Vidro', 'bi-window'],
+        ]],
+        'price' => ['Preço', [
+            'normal' => ['Normal', 'bi-currency-dollar'], 'cor' => ['Colorido', 'bi-palette-fill'], 'etiqueta' => ['Etiqueta', 'bi-tag-fill'],
+            'grande' => ['Grande', 'bi-type-bold'],
+        ]],
+        'badge' => ['Selo de desconto', [
+            'etiqueta' => ['Etiqueta', 'bi-tag'], 'pilula' => ['Pílula', 'bi-capsule'], 'circulo' => ['Círculo', 'bi-circle-fill'],
+            'canto' => ['Faixa no canto', 'bi-bookmark-fill'],
+        ]],
+        'addbtn' => ['Botão do carrinho nos cards', [
+            'redondo' => ['Redondo branco', 'bi-circle'], 'cheio' => ['Redondo colorido', 'bi-circle-fill'], 'quadrado' => ['Quadrado', 'bi-square-fill'],
+            'barra' => ['Faixa "Adicionar"', 'bi-cart-plus'],
         ]],
         'buttons' => ['Botões', [
             'arredondado' => ['Arredondado', 'bi-app'], 'pilula' => ['Pílula', 'bi-capsule'], 'reto' => ['Reto', 'bi-square'],
@@ -215,6 +256,46 @@ class HomeLayout
         'anim'    => ['Animações', [
             'sim' => ['Com animação', 'bi-magic'], 'nao' => ['Sem animação', 'bi-pause-circle'],
         ]],
+    ];
+
+    /** Partes do Estilo do site em abas, para não virar uma lista enorme. */
+    public const LOOK_GROUPS = [
+        'cards' => ['Cards dos produtos', 'bi-card-heading', ['cardbg', 'cards', 'price', 'badge', 'addbtn', 'photo', 'density']],
+        'fundo' => ['Fundo', 'bi-image', ['bgtype', 'pattern', 'patternsize', 'patternop']],
+        'topo'  => ['Topo e largura', 'bi-window-desktop', ['header', 'width']],
+        'texto' => ['Botões e textos', 'bi-fonts', ['buttons', 'text', 'titles', 'anim']],
+    ];
+
+    /** Cores de cada parte (vazio = sai das cores da loja). Ficam em portal_settings.home.paint. */
+    public const PAINTS = [
+        'price'   => ['Preço', 'cards'],
+        'deal'    => ['Selo de desconto e "Oferta"', 'cards'],
+        'add'     => ['Botão do carrinho', 'cards'],
+        'photo'   => ['Fundo das fotos', 'cards'],
+        'bg2'     => ['Segunda cor do fundo', 'fundo'],
+        'pattern' => ['Cor do desenho', 'fundo'],
+    ];
+
+    /** Paletas prontas: [nome, topo início, topo fim, botões, fundo da página, cards]. */
+    public const PALETTES = [
+        ['Rosa chiclete', '#ec4899', '#f472b6', '#db2777', '#fdf2f8', '#ffffff'],
+        ['Algodão doce', '#f9a8d4', '#a5b4fc', '#ec4899', '#fdf4ff', '#ffffff'],
+        ['Pêssego', '#fb923c', '#fda4af', '#ea580c', '#fff7ed', '#ffffff'],
+        ['Pôr do sol', '#f97316', '#db2777', '#e11d48', '#fff7ed', '#ffffff'],
+        ['Vinho', '#7f1d1d', '#9f1239', '#be123c', '#fff1f2', '#ffffff'],
+        ['Lilás', '#7c3aed', '#a78bfa', '#6d28d9', '#f5f3ff', '#ffffff'],
+        ['Azul oceano', '#0369a1', '#0ea5e9', '#0284c7', '#f0f9ff', '#ffffff'],
+        ['Turquesa', '#0d9488', '#06b6d4', '#0f766e', '#f0fdfa', '#ffffff'],
+        ['Verde menta', '#059669', '#34d399', '#047857', '#ecfdf5', '#ffffff'],
+        ['Floresta', '#14532d', '#166534', '#15803d', '#f0fdf4', '#ffffff'],
+        ['Madeira', '#78350f', '#92400e', '#b45309', '#f5efe6', '#fffbf5'],
+        ['Café com leite', '#6f4e37', '#a47148', '#8d6e63', '#f7f1ea', '#fffdf9'],
+        ['Terracota', '#9a3412', '#c2410c', '#b45309', '#fdf6ee', '#fffaf5'],
+        ['Areia', '#a8a29e', '#d6d3d1', '#78716c', '#f5f5f4', '#ffffff'],
+        ['Grafite', '#18181b', '#3f3f46', '#18181b', '#f4f4f5', '#ffffff'],
+        ['Dourado', '#1c1917', '#44403c', '#ca8a04', '#fafaf9', '#ffffff'],
+        ['Noite azul', '#0f172a', '#1e293b', '#38bdf8', '#020617', '#0f172a'],
+        ['Preto e dourado', '#0a0a0a', '#262626', '#eab308', '#0a0a0a', '#171717'],
     ];
 
     /** O que cada tema já traz de estilo (o resto fica no padrão). */
@@ -399,11 +480,11 @@ class HomeLayout
     /** Montagem salva, completa (blocos novos entram no fim). Na prévia de tema, a do tema. */
     public static function get(?PortalSetting $s, bool $live = false): array
     {
-        $h = ($s?->home ?? []) + ['theme' => 'padrao', 'order' => [], 'off' => [], 'colors' => null, 'style' => 'padrao', 'surface' => null, 'look' => null];
+        $h = ($s?->home ?? []) + ['theme' => 'padrao', 'order' => [], 'off' => [], 'colors' => null, 'style' => 'padrao', 'surface' => null, 'look' => null, 'paint' => null];
         $owner = $s?->user_id ? (int) $s->user_id : null;
         if ($pv = $live ? self::override($owner) : self::previewing($owner)) {
             $t = self::THEMES[$pv[0]];
-            $h = ['theme' => $pv[0], 'order' => $t['order'], 'off' => [], 'colors' => $t['colors'], 'style' => $t['style'], 'surface' => self::SURFACES[$pv[0]] ?? null, 'look' => null];
+            $h = ['theme' => $pv[0], 'order' => $t['order'], 'off' => [], 'colors' => $t['colors'], 'style' => $t['style'], 'surface' => self::SURFACES[$pv[0]] ?? null, 'look' => null, 'paint' => null];
         }
         $order = array_values(array_intersect((array) $h['order'], array_keys(self::SECTIONS)));
         // Bloco novo entra logo depois do que vem antes dele na ordem padrão.
@@ -427,13 +508,27 @@ class HomeLayout
             'style'   => isset(self::STYLES[$h['style']]) ? $h['style'] : 'padrao',
             'surface' => $surface,
             'look'    => self::look($theme, $h['look']),
+            'paint'   => self::paint($h['paint']),
         ];
+    }
+
+    /** Só as cores de parte válidas; o resto fica de fora (= automático). */
+    public static function paint($saved): array
+    {
+        $out = [];
+        foreach ((array) $saved as $k => $v) {
+            if (isset(self::PAINTS[$k]) && preg_match('/^#[0-9a-fA-F]{6}$/', (string) $v)) {
+                $out[$k] = strtolower($v);
+            }
+        }
+
+        return $out;
     }
 
     public static function save(int $ownerId, array $layout): void
     {
         $s = PortalSetting::for($ownerId);
-        $s->home = array_merge($s->home ?? [], array_intersect_key($layout, array_flip(['theme', 'order', 'off', 'colors', 'style', 'surface', 'look', 'auto'])));
+        $s->home = array_merge($s->home ?? [], array_intersect_key($layout, array_flip(['theme', 'order', 'off', 'colors', 'style', 'surface', 'look', 'paint', 'auto'])));
         $s->save();
     }
 
@@ -445,7 +540,7 @@ class HomeLayout
         }
         $s = PortalSetting::where('user_id', $ownerId)->first();
         $preview = self::override($ownerId);
-        if (! $preview && (! $s || empty($s->home['colors']) && empty($s->home['surface']) && empty($s->home['look']) && ($s->home['style'] ?? 'padrao') === 'padrao' && ($s->home['theme'] ?? 'padrao') === 'padrao')) {
+        if (! $preview && (! $s || empty($s->home['colors']) && empty($s->home['surface']) && empty($s->home['look']) && empty($s->home['paint']) && ($s->home['style'] ?? 'padrao') === 'padrao' && ($s->home['theme'] ?? 'padrao') === 'padrao')) {
             return null;
         }
         $h = self::get($s ?? new PortalSetting(['user_id' => $ownerId]), true);
@@ -465,6 +560,8 @@ class HomeLayout
             'radius' => self::STYLES[$h['style']][1],
             'a'      => $a,
             'look'   => $h['look'],
+            'b'      => $b,
+            'paint'  => $h['paint'],
         ], self::surfaceVars($h['surface'], $p));
     }
 
@@ -512,7 +609,7 @@ class HomeLayout
     {
         $t = self::THEMES[$key] ?? self::THEMES['padrao'];
         $s = PortalSetting::for($ownerId);
-        $s->home = array_merge($s->home ?? [], ['theme' => $key, 'order' => $t['order'], 'off' => [], 'colors' => $t['colors'], 'style' => $t['style'], 'surface' => self::SURFACES[$key] ?? null, 'look' => null]);
+        $s->home = array_merge($s->home ?? [], ['theme' => $key, 'order' => $t['order'], 'off' => [], 'colors' => $t['colors'], 'style' => $t['style'], 'surface' => self::SURFACES[$key] ?? null, 'look' => null, 'paint' => null]);
         if ($t['featured']) {
             $s->featured_title = $t['featured'];
         } elseif ($key === 'padrao') {

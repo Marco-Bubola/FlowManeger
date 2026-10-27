@@ -72,6 +72,9 @@
             --sf-font: {!! $identity['font_css'] !!};
             --ml-shadow: 0 1px 2px rgba(0,0,0,.12);
             --ml-a: {{ $theme['a'] ?? '#ec4899' }};
+            --ml-b: {{ $theme['b'] ?? '#3b82f6' }};
+            @foreach(($theme['paint'] ?? []) as $pk => $pv)--pt-{{ $pk }}: {{ $pv }};
+            @endforeach
         }
         *, *::before, *::after { box-sizing: border-box; }
         html { -webkit-text-size-adjust: 100%; }
@@ -168,13 +171,63 @@
         .lk-photo-cheia .ml-card-img img, .lk-photo-retrato .ml-card-img img { object-fit: cover; padding: 0; }
         .lk-text-titulos { font-family: var(--sf-font); }
         .lk-anim-nao *, .lk-anim-nao *::before, .lk-anim-nao *::after { animation: none !important; transition: none !important; }
-        /* Desenho no fundo: uma camada fixa atrás de tudo, na cor dos botões, bem clarinha */
-        body[class*="lk-pattern-"]:not(.lk-pattern-nenhum)::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--ml-blue); opacity: .09; -webkit-mask-repeat: repeat; mask-repeat: repeat; }
-        body.ml-dark[class*="lk-pattern-"]::before { opacity: .14; }
+        /* Desenho no fundo: uma camada fixa atrás de tudo, na cor dos botões (ou a escolhida), bem clarinha.
+           --pop = força do desenho, --pm = Força do desenho escolhida, --ps = tamanho. */
+        body { --pop: .09; --pm: 1; --ps: 1; }
+        body.ml-dark { --pop: .14; }
+        body.lk-patternop-suave { --pm: .5; }
+        body.lk-patternop-forte { --pm: 1.9; }
+        body.lk-patternsize-pequeno { --ps: .6; }
+        body.lk-patternsize-grande { --ps: 1.7; }
+        body[class*="lk-pattern-"]:not(.lk-pattern-nenhum)::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--pt-pattern, var(--ml-blue)); opacity: min(.5, calc(var(--pop) * var(--pm))); -webkit-mask-repeat: repeat; mask-repeat: repeat; }
         @foreach(\App\Services\Portal\HomeLayout::PATTERNS as $pk => [$pImg, $pSize, $pOp])
-        .lk-pattern-{{ $pk }}::before { -webkit-mask-image: {!! $pImg !!}; mask-image: {!! $pImg !!};@if($pSize) -webkit-mask-size: {{ $pSize }}; mask-size: {{ $pSize }};@endif @if($pOp) opacity: {{ $pOp }} !important;@endif }
+        @php $pSz = $pSize ? collect(explode(' ', $pSize))->map(fn ($v) => 'calc(' . $v . ' * var(--ps))')->implode(' ') : null; @endphp
+        body.lk-pattern-{{ $pk }} { @if($pOp)--pop: {{ $pOp }};@endif }
+        .lk-pattern-{{ $pk }}::before { -webkit-mask-image: {!! $pImg !!}; mask-image: {!! $pImg !!};@if($pSz) -webkit-mask-size: {{ $pSz }}; mask-size: {{ $pSz }};@endif }
         @endforeach
-        body.ml-dark.lk-pattern-neve::before { background: #fff; }
+        body.ml-dark.lk-pattern-neve::before { background: var(--pt-pattern, #fff); }
+        /* Fundo da página: outra camada fixa, atrás do desenho */
+        body[class*="lk-bgtype-"]:not(.lk-bgtype-cor)::after { content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none; }
+        .lk-bgtype-degrade::after { background: linear-gradient(180deg, var(--ml-bg) 0%, var(--pt-bg2, color-mix(in srgb, var(--ml-blue) 18%, var(--ml-bg))) 100%); }
+        .lk-bgtype-brilho::after { background: radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--ml-blue) 22%, transparent), transparent 42%), radial-gradient(circle at 88% 38%, color-mix(in srgb, var(--pt-bg2, var(--ml-a)) 20%, transparent), transparent 46%), radial-gradient(circle at 30% 92%, color-mix(in srgb, var(--ml-b) 16%, transparent), transparent 44%), var(--ml-bg); }
+        .lk-bgtype-malha::after { background: linear-gradient(135deg, color-mix(in srgb, var(--ml-a) 14%, var(--ml-bg)) 0%, var(--ml-bg) 40%, color-mix(in srgb, var(--pt-bg2, var(--ml-b)) 16%, var(--ml-bg)) 100%); }
+        .lk-bgtype-topo::after { background: linear-gradient(180deg, color-mix(in srgb, var(--pt-bg2, var(--ml-a)) 26%, var(--ml-bg)) 0, var(--ml-bg) 520px); }
+        /* Cor dos cards */
+        .lk-cardbg-suave .ml-card { background: color-mix(in srgb, var(--ml-blue) 7%, var(--ml-card)); }
+        .lk-cardbg-degrade .ml-card { background: linear-gradient(180deg, var(--ml-card) 50%, color-mix(in srgb, var(--ml-blue) 18%, var(--ml-card)) 100%); }
+        .lk-cardbg-colorido .ml-card-body { background: color-mix(in srgb, var(--ml-blue) 13%, var(--ml-card)); }
+        .lk-cardbg-faixa .ml-card { border-top: 4px solid var(--ml-blue); }
+        .lk-cardbg-vidro .ml-card { background: color-mix(in srgb, var(--ml-card) 70%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+        .lk-cardbg-cores .ml-card:nth-child(4n+1) { background: color-mix(in srgb, var(--ml-a) 11%, var(--ml-card)); }
+        .lk-cardbg-cores .ml-card:nth-child(4n+2) { background: color-mix(in srgb, var(--ml-b) 11%, var(--ml-card)); }
+        .lk-cardbg-cores .ml-card:nth-child(4n+3) { background: color-mix(in srgb, var(--ml-blue) 11%, var(--ml-card)); }
+        .lk-cardbg-cores .ml-card:nth-child(4n+4) { background: color-mix(in srgb, #f59e0b 11%, var(--ml-card)); }
+        .lk-cards-brilho { --ml-shadow: 0 10px 26px -12px color-mix(in srgb, var(--ml-blue) 65%, transparent), 0 0 0 1px color-mix(in srgb, var(--ml-blue) 18%, transparent); }
+        body .ml-card-img { background: var(--pt-photo, #fff); }
+        /* Preço */
+        body .ml-price { color: var(--pt-price, var(--ml-text)); }
+        .lk-price-cor .ml-price { color: var(--pt-price, var(--ml-blue)); font-weight: 700; }
+        .lk-price-etiqueta .ml-price { background: color-mix(in srgb, var(--pt-price, var(--ml-blue)) 14%, transparent); color: var(--pt-price, var(--ml-blue-dark)); padding: 3px 9px; border-radius: 8px; font-weight: 700; }
+        .lk-price-grande .ml-price { font-size: 25px; font-weight: 800; }
+        .lk-price-grande .ml-rail .ml-price { font-size: 21px; }
+        /* Selo de desconto */
+        body .ml-off-flag { background: var(--pt-deal, var(--ml-green)); }
+        body .ml-deal { background: var(--pt-deal, var(--ml-blue)); }
+        body .ml-pct { color: var(--pt-deal, var(--ml-green)); }
+        .lk-badge-pilula .ml-off-flag, .lk-badge-pilula .ml-deal { border-radius: 999px; padding-left: 9px; padding-right: 9px; }
+        .lk-badge-circulo .ml-off-flag { width: 46px; height: 46px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 12.5px; box-shadow: 0 3px 8px rgba(0,0,0,.18); }
+        .lk-badge-circulo .ml-new-flag.low { top: 60px; }
+        .lk-badge-canto .ml-off-flag { top: 14px; left: -34px; width: 120px; padding: 5px 0; text-align: center; border-radius: 0; transform: rotate(-45deg); box-shadow: 0 2px 6px rgba(0,0,0,.2); z-index: 2; }
+        .lk-badge-canto .ml-new-flag.low { top: 8px; left: auto; right: 50px; }
+        /* Botão do carrinho nos cards */
+        body .ml-add { color: var(--pt-add, var(--ml-blue)); }
+        body .ml-add.in { background: var(--pt-add, var(--ml-blue)); color: #fff; }
+        .lk-addbtn-cheio .ml-add, .lk-addbtn-quadrado .ml-add { background: var(--pt-add, var(--ml-blue)); color: #fff; }
+        .lk-addbtn-quadrado .ml-add { border-radius: 10px; }
+        .lk-addbtn-barra .ml-add { left: 8px; right: 8px; width: auto; height: 34px; border-radius: 999px; gap: 6px; font-size: 13px; font-weight: 700; background: var(--pt-add, var(--ml-blue)); color: #fff; }
+        .lk-addbtn-barra .ml-add::after { content: 'Adicionar'; font-family: 'Inter', system-ui, sans-serif; }
+        .lk-addbtn-barra .ml-add.in::after { content: 'No carrinho'; }
+        .lk-addbtn-barra .ml-imgs, .lk-addbtn-barra .hp-dots { display: none; }
         /* Títulos das seções */
         .lk-titles-maiusculas .ml-sec-head h2 { text-transform: uppercase; letter-spacing: .06em; font-size: 16px; }
         .lk-titles-linha .ml-sec-head h2 { position: relative; padding-bottom: 8px; }

@@ -1,5 +1,6 @@
-{{-- Prévia do catálogo inteiro (iframe em escala). $inline: na coluna da Página inicial; senão, botão flutuante que abre em tela cheia.
-     Com um tema escolhido e ainda não aplicado, mostra o site já com o tema (só o dono vê). --}}
+{{-- Prévia do catálogo inteiro numa janela (iframe em escala): botão flutuante "Prévia do site" e o evento
+     open-site-preview (botões "Ver como fica" das abas). Com um tema escolhido e ainda não aplicado, mostra o
+     site já com o tema (só o dono vê). data-src muda a cada mudança salva, então a prévia abre sempre atualizada. --}}
 @php
     $pvTheme = $pendingTheme !== '' && isset(\App\Services\Portal\HomeLayout::THEMES[$pendingTheme]) ? $pendingTheme : null;
     $pvQuery = ['previa' => $previewKey];
@@ -8,45 +9,39 @@
     }
     $pvSrc = $catalogUrl . (str_contains($catalogUrl, '?') ? '&' : '?') . http_build_query($pvQuery);
     $pvName = $pvTheme ? \App\Services\Portal\HomeLayout::THEMES[$pvTheme]['emoji'] . ' ' . \App\Services\Portal\HomeLayout::THEMES[$pvTheme]['name'] : null;
-    $pvFrame = "(() => { const iw = dev === 'pc' ? 1280 : 390; const sc = Math.min(1, w / iw); const left = Math.max(0, (w - iw * sc) / 2); return `width:\${iw}px;height:\${Math.round(\$refs.box.clientHeight / sc)}px;transform:scale(\${sc});left:\${left}px`; })()";
+    $pvDevices = ['pc' => ['Computador', 'bi-display', 1280], 'tab' => ['Tablet', 'bi-tablet', 820], 'cel' => ['Celular', 'bi-phone', 390]];
 @endphp
 
-@if($inline)
-    <aside class="min-w-0 lg:sticky lg:top-4 {{ $card }} p-3 space-y-2" x-data="{ dev: 'pc', w: 0 }" x-init="w = $refs.box.clientWidth; new ResizeObserver(() => w = $refs.box.clientWidth).observe($refs.box)" data-testid="home-preview">
-        <div class="flex items-center gap-2 flex-wrap">
-            <span class="text-sm font-bold text-slate-800 dark:text-slate-100"><i class="bi bi-eye text-violet-500"></i> Como fica</span>
-            @if($pvName)<span class="rounded-full px-2 py-0.5 text-[11px] font-semibold bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-200" data-testid="preview-theme">Prévia: {{ $pvName }} (ainda não aplicado)</span>@endif
-            <div class="ml-auto inline-flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 text-xs font-semibold">
-                <button type="button" @click="dev = 'pc'" :class="dev === 'pc' ? 'bg-white dark:bg-slate-700 shadow text-violet-600' : 'text-slate-500'" class="rounded-md px-2.5 py-1"><i class="bi bi-display"></i> Computador</button>
-                <button type="button" @click="dev = 'cel'" :class="dev === 'cel' ? 'bg-white dark:bg-slate-700 shadow text-violet-600' : 'text-slate-500'" class="rounded-md px-2.5 py-1"><i class="bi bi-phone"></i> Celular</button>
+<div data-pv-src="{{ $pvSrc }}" data-pv-name="{{ $pvName }}"
+     x-data="{
+        open: false, dev: window.innerWidth < 768 ? 'cel' : (window.innerWidth < 1100 ? 'tab' : 'pc'), w: 0, h: 0, src: '', name: '', sizes: { pc: 1280, tab: 820, cel: 390 },
+        show() { this.src = this.$root.dataset.pvSrc; this.name = this.$root.dataset.pvName; this.open = true; document.documentElement.style.overflow = 'hidden'; this.$nextTick(() => this.measure()); },
+        hide() { this.open = false; this.src = ''; document.documentElement.style.overflow = ''; },
+        measure() { if (this.$refs.box) { this.w = this.$refs.box.clientWidth; this.h = this.$refs.box.clientHeight; } },
+        frame() { const iw = this.sizes[this.dev]; const sc = Math.min(1, this.w / iw); const left = Math.max(0, (this.w - iw * sc) / 2); return `width:${iw}px;height:${Math.round(this.h / sc)}px;transform:scale(${sc});left:${left}px`; },
+     }"
+     x-init="new ResizeObserver(() => measure()).observe($refs.box)"
+     @open-site-preview.window="show()" @keydown.escape.window="open && hide()">
+    <button type="button" @click="show()" data-testid="preview-open"
+            class="fixed z-[60] right-4 bottom-24 lg:bottom-6 inline-flex items-center gap-2 rounded-full px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30 hover:-translate-y-0.5 transition">
+        <i class="bi bi-eye"></i>Prévia do site
+    </button>
+    <div x-cloak x-show="open" x-transition.opacity class="fixed inset-0 z-[98] bg-slate-900/75 backdrop-blur-sm flex flex-col p-2 sm:p-4" data-testid="preview-sheet" role="dialog" aria-modal="true" aria-label="Prévia do site">
+        <div class="flex items-center gap-2 pb-2 text-white flex-wrap">
+            <b class="text-sm"><i class="bi bi-eye"></i> Como o cliente vê</b>
+            <span x-show="name" class="rounded-full px-2 py-0.5 text-[11px] font-semibold bg-white/20" data-testid="preview-theme">Tema <span x-text="name"></span> (ainda não aplicado)</span>
+            <div class="ml-auto inline-flex rounded-lg bg-white/15 p-0.5 text-xs font-semibold">
+                @foreach($pvDevices as $dk => [$dn, $di])
+                    <button type="button" @click="dev = '{{ $dk }}'" :class="dev === '{{ $dk }}' ? 'bg-white text-violet-700' : 'text-white'" class="rounded-md px-2.5 py-1 {{ $dk === 'tab' ? 'hidden sm:inline-block' : '' }}" data-testid="preview-dev-{{ $dk }}"><i class="bi {{ $di }}"></i><span class="hidden min-[420px]:inline"> {{ $dn }}</span></button>
+                @endforeach
             </div>
+            <a :href="src.replace(/[?&]previa=\d+/, '')" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 inline-flex items-center justify-center" title="Abrir em outra aba"><i class="bi bi-box-arrow-up-right"></i></a>
+            <button type="button" @click="hide()" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25" aria-label="Fechar" data-testid="preview-close"><i class="bi bi-x-lg"></i></button>
         </div>
-        <div x-ref="box" class="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 h-[560px] lg:h-[calc(100vh-150px)] lg:max-h-[820px]">
-            <iframe wire:key="pv-{{ md5($pvSrc) }}" src="{{ $pvSrc }}" title="Prévia do catálogo" loading="lazy" data-testid="home-preview-frame"
-                    class="absolute top-0 border-0 bg-white origin-top-left" :style="{{ $pvFrame }}"></iframe>
-        </div>
-        <a href="{{ $catalogUrl }}" target="_blank" rel="noopener" class="{{ $phBtn }} w-full justify-center"><i class="bi bi-box-arrow-up-right text-violet-500"></i>Abrir o catálogo</a>
-    </aside>
-@else
-    <div x-data="{ open: false, dev: window.innerWidth < 768 ? 'cel' : 'pc', w: 0 }" @keydown.escape.window="open = false">
-        <button type="button" @click="open = true; $nextTick(() => { w = $refs.box.clientWidth })" data-testid="preview-open"
-                class="fixed z-[60] right-4 bottom-24 lg:bottom-6 inline-flex items-center gap-2 rounded-full px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30">
-            <i class="bi bi-eye"></i>Prévia do site
-        </button>
-        <div x-cloak x-show="open" x-transition.opacity class="fixed inset-0 z-[98] bg-slate-900/70 backdrop-blur-sm flex flex-col p-2 sm:p-4" data-testid="preview-sheet">
-            <div class="flex items-center gap-2 pb-2 text-white">
-                <b class="text-sm"><i class="bi bi-eye"></i> Como o site está agora</b>
-                <div class="ml-auto inline-flex rounded-lg bg-white/15 p-0.5 text-xs font-semibold">
-                    <button type="button" @click="dev = 'pc'" :class="dev === 'pc' ? 'bg-white text-violet-700' : 'text-white'" class="rounded-md px-2.5 py-1"><i class="bi bi-display"></i> Computador</button>
-                    <button type="button" @click="dev = 'cel'" :class="dev === 'cel' ? 'bg-white text-violet-700' : 'text-white'" class="rounded-md px-2.5 py-1"><i class="bi bi-phone"></i> Celular</button>
-                </div>
-                <button type="button" @click="open = false" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
-            </div>
-            <div x-ref="box" class="relative flex-1 overflow-hidden rounded-2xl bg-white" x-init="new ResizeObserver(() => w = $refs.box.clientWidth).observe($refs.box)">
-                <template x-if="open">
-                    <iframe src="{{ $pvSrc }}" title="Prévia do catálogo" class="absolute top-0 border-0 bg-white origin-top-left" :style="{{ $pvFrame }}"></iframe>
-                </template>
-            </div>
+        <div x-ref="box" class="relative flex-1 overflow-hidden rounded-2xl bg-white">
+            <template x-if="open && src">
+                <iframe :src="src" title="Prévia do catálogo" class="absolute top-0 border-0 bg-white origin-top-left" :style="frame()" data-testid="home-preview-frame"></iframe>
+            </template>
         </div>
     </div>
-@endif
+</div>
