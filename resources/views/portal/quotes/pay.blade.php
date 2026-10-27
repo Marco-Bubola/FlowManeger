@@ -89,6 +89,13 @@
                 <div class="po-card-body px-center">
                     <div class="po-total-lbl">Valor {{ $method === 'pix' ? 'do Pix' : ($method === 'boleto' ? 'do boleto' : 'a pagar') }}</div>
                     <div class="px-amount">{{ $orders->money($payment ? (float) $payment->amount : $amount) }}</div>
+                    @if($pixOff > 0)
+                        @if($method === 'pix')
+                            <p class="po-hint" style="color:var(--ml-green);font-weight:600" data-testid="pay-pix-off">Com {{ $orders->money($pixOff) }} de desconto por pagar no Pix.</p>
+                        @else
+                            <p class="po-hint" data-testid="pay-pix-tip">No Pix sai {{ $orders->money($pixOff) }} mais barato.</p>
+                        @endif
+                    @endif
 
                     <template x-if="state === 'approved'">
                         <div style="margin-top:14px">

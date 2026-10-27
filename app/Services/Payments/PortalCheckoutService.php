@@ -63,11 +63,17 @@ class PortalCheckoutService
     public function amount(ClientQuoteRequest $quote): float
     {
         $sum = collect($quote->items ?? [])->sum(fn ($i) => (float) ($i['price_ref'] ?? 0) * max(1, (int) ($i['quantity'] ?? 1)));
-        $sum = max(0, $sum - (float) ($quote->discount ?? 0));
+        $sum = max(0, $sum - (float) ($quote->discount ?? 0) - (float) ($quote->points_discount ?? 0));
         // Kit montado: base + enfeites.
         $sum += \App\Services\Portal\KitService::total($quote);
 
         return round($sum + (float) ($quote->delivery_fee ?? 0), 2);
+    }
+
+    /** Valor no Pix: com o desconto do Pix da loja sobre os produtos (o frete não entra). */
+    public function pixAmount(ClientQuoteRequest $quote): float
+    {
+        return round(max(0, $this->amount($quote) - \App\Services\Portal\Rewards::quotePixOff($quote)), 2);
     }
 
     /** Produtos sem estoque suficiente para o pedido (nome => disponível). */
@@ -172,7 +178,8 @@ class PortalCheckoutService
         if ($open = $this->openPix($quote)) {
             return $open;
         }
-        $amount = $this->guard($quote);
+        $this->guard($quote);
+        $amount = $this->pixAmount($quote);
         $expires = now()->addMinutes(max(10, min(1440, (int) ($settings->pix_minutes ?: 30))));
         $payment = $this->newPayment($quote, 'pix', $amount, $expires);
 
@@ -507,6 +514,12 @@ class PortalCheckoutService
             'payment_date'   => ($payment->approved_at ?? now())->toDateString(),
         ]);
         $payment->update(['sale_payment_id' => $sp->id]);
+        // A loja já tinha confirmado a venda pelo valor cheio: o desconto do Pix sai do total.
+        $quote = $payment->quote;
+        if ($payment->method === 'pix' && $quote && ($off = \App\Services\Portal\Rewards::quotePixOff($quote)) > 0
+            && (float) $payment->amount + 0.009 < (float) $sale->total_price && (float) $sale->total_paid <= (float) $payment->amount + 0.009) {
+            $sale->update(['total_price' => round(max((float) $payment->amount, (float) $sale->total_price - $off), 2)]);
+        }
         $paid = (float) $sale->fresh()->total_paid;
         $sale->update(['amount_paid' => $paid] + ($paid + 0.009 >= (float) $sale->total_price ? ['status' => 'pago'] : []));
         $sale->applyStockIfPaid();

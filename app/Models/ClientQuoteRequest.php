@@ -18,6 +18,7 @@ class ClientQuoteRequest extends Model
         'responded_at', 'client_seen_status', 'client_notified_at',
         'coupon_code', 'discount', 'kit',
         'delivery_stage', 'delivery_events', 'tracking_code', 'tracking_carrier', 'delivery_eta',
+        'points_used', 'points_discount', 'pix_pct',
     ];
 
     protected $casts = [
@@ -35,7 +36,26 @@ class ClientQuoteRequest extends Model
         'kit'              => 'array',
         'delivery_events'  => 'array',
         'delivery_eta'     => 'date',
+        'points_used'      => 'integer',
+        'points_discount'  => 'decimal:2',
+        'pix_pct'          => 'decimal:2',
     ];
+
+    /** Pontos de fidelidade: virou venda, ganha; recusado ou apagado, devolve o que usou e tira o que ganhou. */
+    protected static function booted(): void
+    {
+        static::updated(function (self $q) {
+            if (! $q->wasChanged('status')) {
+                return;
+            }
+            if ($q->status === 'approved') {
+                \App\Services\Portal\Rewards::earn($q);
+            } elseif ($q->status === 'rejected') {
+                \App\Services\Portal\Rewards::undo($q);
+            }
+        });
+        static::deleted(fn (self $q) => \App\Services\Portal\Rewards::undo($q));
+    }
 
     /** Status em que a loja já deu uma resposta que o cliente precisa ver. */
     public const CLIENT_UPDATE_STATUSES = ['quoted', 'approved', 'rejected'];

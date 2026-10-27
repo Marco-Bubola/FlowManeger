@@ -27,9 +27,13 @@
         'Vendas pelo catálogo' => [
             'kits' => ['Monte seu kit', 'bi-gift', 'Cestas, caixas e enfeites', 'promotions.kits', 'cesta caixa presente balao doces cartao'],
             'cupons' => ['Cupons', 'bi-ticket-perforated', 'Códigos de desconto', 'promotions.coupons', 'desconto codigo cupom'],
+            'pixpontos' => ['Pix e pontos', 'bi-stars', 'Desconto no Pix e fidelidade', 'promotions.rewards', 'pix desconto pontos fidelidade cashback programa clientes premio'],
             'pagamentos' => ['Pagamento e frete', 'bi-credit-card', 'Pix, cartão, boleto e entrega', 'settings.payments', 'pix cartao boleto mercado pago frete cep retirada entrega'],
             'pedidos' => ['Pedidos do portal', 'bi-bag-check', 'Pedidos que chegaram', 'sales.portal-orders', 'orcamento pedido entrega rastreio envio'],
             'carrinhos' => ['Carrinhos abandonados', 'bi-cart-x', 'Lembrar quem não fechou o pedido', 'promotions.carts', 'carrinho abandonado esquecido lembrete lembranca whatsapp recuperar'],
+        ],
+        'Divulgar' => [
+            'google' => ['Google e Instagram', 'bi-google', 'Aparecer na busca e no Shopping', 'promotions.marketing', 'google shopping instagram facebook meta busca sitemap merchant feed lista produtos divulgar seo'],
         ],
         'Resultados' => [
             'relatorio' => ['Relatório do site', 'bi-graph-up-arrow', 'Visitas, mais vistos e pedidos', 'promotions.site-report', 'visitas acessos relatorio mais vistos conversao origem instagram'],

@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Disallow: /portal/painel
+Disallow: /portal/orcamentos
+Disallow: /portal/perfil
+Disallow: /portal/favoritos
+
+Sitemap: https://flowmaneger.com/sitemap.xml

@@ -200,6 +200,45 @@
         </div>
     </form>
 
+    {{-- Pontos de fidelidade (quando a loja ligou) --}}
+    @php $R = \App\Services\Portal\Rewards::class; $rwOwner = (int) $client->user_id; @endphp
+    @if($R::on($rwOwner))
+        @php $ptsBal = $R::balance($client); $rwc = $R::for($rwOwner); $ptsHist = $R::history($client, 10); @endphp
+        <section class="po-card" id="pontos" data-testid="points-card" style="margin-top:14px">
+            <div class="pa-sec-head"><h2>Meus pontos</h2></div>
+            <div class="po-card-body pf-pts">
+                <div class="pf-pts-top">
+                    <span class="pf-pts-ico"><i class="fas fa-star"></i></span>
+                    <div style="min-width:0">
+                        <b class="pf-pts-n" data-testid="points-balance">{{ number_format($ptsBal, 0, ',', '.') }} pontos</b>
+                        <small>Valem R$ {{ number_format($R::money($rwOwner, $ptsBal), 2, ',', '.') }} de desconto{{ $rwc['min_use'] > 1 ? ' (a partir de ' . number_format($rwc['min_use'], 0, ',', '.') . ' pontos)' : '' }}.</small>
+                    </div>
+                </div>
+                <p class="po-hint" style="margin:10px 0 0">Ganhe {{ rtrim(rtrim(number_format($rwc['earn'], 2, ',', ''), '0'), ',') }} {{ $rwc['earn'] == 1 ? 'ponto' : 'pontos' }} a cada R$ 1,00 comprado. Cada 100 pontos valem R$ {{ number_format($rwc['worth'], 2, ',', '.') }}. Use no carrinho, marcando “Usar meus pontos”.@if($rwc['expire']) Os pontos vencem depois de {{ mb_strtolower($R::EXPIRE[$rwc['expire']]) }}.@endif</p>
+                @if($ptsHist->isNotEmpty())
+                    <ul class="pf-pts-list">
+                        @foreach($ptsHist as $h)
+                            @php [$kn, $ki] = $R::KINDS[$h->kind] ?? [$h->kind, 'bi-dot']; @endphp
+                            <li><span>{{ $kn }}<small>{{ $h->created_at->format('d/m/Y') }}@if($h->note) · {{ $h->note }}@endif</small></span><b class="{{ $h->points >= 0 ? 'pos' : 'neg' }}">{{ $h->points >= 0 ? '+' : '' }}{{ number_format($h->points, 0, ',', '.') }}</b></li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+        </section>
+        <style>
+            .pf-pts-top { display: flex; align-items: center; gap: 12px; }
+            .pf-pts-ico { flex-shrink: 0; width: 46px; height: 46px; border-radius: 14px; background: #fff6d6; color: #e0a000; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+            .pf-pts-n { display: block; font-size: 20px; font-weight: 900; color: var(--ml-text); }
+            .pf-pts-top small { display: block; font-size: 13px; color: var(--ml-muted); }
+            .pf-pts-list { list-style: none; margin: 12px 0 0; padding: 0; border-top: 1px solid var(--ml-line); }
+            .pf-pts-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--ml-line); font-size: 13px; color: var(--ml-text); }
+            .pf-pts-list li span { min-width: 0; }
+            .pf-pts-list small { display: block; font-size: 11.5px; color: var(--ml-muted); }
+            .pf-pts-list b.pos { color: var(--ml-green); }
+            .pf-pts-list b.neg { color: #dc2626; }
+        </style>
+    @endif
+
     {{-- LGPD: ver os dados e encerrar a conta do site --}}
     <section class="po-card" data-testid="privacy-card" x-data="{ closing: false }" style="margin-top:14px">
         <div class="pa-sec-head"><h2>Seus dados e privacidade</h2></div>

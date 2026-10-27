@@ -46,6 +46,9 @@
                 <span class="ml-price"><span class="cur">R$</span>{{ $int }}@if($cents !== '00')<sup>{{ $cents }}</sup>@endif</span>
                 @if($d['pct'])<span class="ml-pct">{{ $d['pct'] }}% OFF</span>@endif
             </div>
+            @if(! empty($d['pix']))
+                <span class="ml-pix" data-testid="card-pix">ou R$ {{ number_format($d['pix'], 2, ',', '.') }} no Pix</span>
+            @endif
         @else
             <span class="ml-ask">Preço sob consulta</span>
         @endif

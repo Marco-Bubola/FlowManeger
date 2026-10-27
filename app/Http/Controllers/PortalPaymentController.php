@@ -69,7 +69,9 @@ class PortalPaymentController extends Controller
         return view('portal.quotes.pay', [
             'quote' => $quote, 'client' => $client, 'store' => $store, 'payment' => $payment,
             'error' => $error, 'settings' => $settings, 'orders' => app(\App\Services\Portal\PortalOrderService::class),
-            'method' => $method, 'methods' => $methods, 'amount' => $this->checkout->amount($quote),
+            'method' => $method, 'methods' => $methods,
+            'amount' => $method === 'pix' ? $this->checkout->pixAmount($quote) : $this->checkout->amount($quote),
+            'pixOff' => \App\Services\Portal\Rewards::quotePixOff($quote),
         ]);
     }
 

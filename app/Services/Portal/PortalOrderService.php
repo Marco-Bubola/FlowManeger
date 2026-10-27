@@ -343,7 +343,10 @@ class PortalOrderService
 
         // Cupom do catálogo sai do valor dos produtos.
         // Kit montado: a base e os enfeites somam ao valor.
-        return max(0, $sum - (float) ($quote->discount ?? 0)) + KitService::total($quote);
+        // Pontos de fidelidade usados também; e o desconto do Pix, quando o cliente escolheu pagar no Pix.
+        $total = max(0, $sum - (float) ($quote->discount ?? 0) - (float) ($quote->points_discount ?? 0)) + KitService::total($quote);
+
+        return $quote->payment_preference === 'pix' ? round($total - Rewards::quotePixOff($quote), 2) : $total;
     }
 
     public function isPaid(Sale $sale): bool

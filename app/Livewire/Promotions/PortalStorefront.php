@@ -778,6 +778,9 @@ class PortalStorefront extends Component
                 ['cupom', 'bi-ticket-perforated', 'Cupom de desconto', $coupons ? $n($coupons, 'cupom ativo', 'cupons ativos') . '.' : 'Um código como BEMVINDO10 ajuda a fechar a primeira compra.', $coupons > 0, 'Criar cupom', $route('promotions.coupons'), true],
                 ['kit', 'bi-gift', 'Monte seu kit', \App\Services\Portal\KitService::enabled($uid) ? 'Ligado: o cliente monta cestas e caixas.' : 'O cliente monta cestas e caixas de presente.', \App\Services\Portal\KitService::enabled($uid), 'Criar kits', $route('promotions.kits'), true],
             ],
+            'Divulgue' => [
+                ['google', 'bi-google', 'Google e Instagram', \App\Services\Portal\ProductFeed::settingsFor($uid)['gverify'] ? 'Loja verificada no Google.' : 'Mande os produtos para o Google Shopping e a loja do Instagram.', (bool) \App\Services\Portal\ProductFeed::settingsFor($uid)['gverify'], 'Configurar', $route('promotions.marketing'), true],
+            ],
             'Dentro da lei' => [
                 ['leis', 'bi-shield-check', 'Site dentro da lei', ($lf = collect($this->legalChecks($uid))->where(4, 'falta')->count()) ? $n($lf, 'ponto', 'pontos') . ' para arrumar (dados da loja, trocas, privacidade).' : 'Dados da loja, privacidade, termos e trocas em dia.', $lf === 0, 'Arrumar', $tab('leis'), false],
             ],

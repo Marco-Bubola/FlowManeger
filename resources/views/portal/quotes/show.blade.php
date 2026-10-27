@@ -207,7 +207,21 @@
                             <tr><td>Kit (base e enfeites)</td><td>{{ $orders->money($kitTotal) }}</td></tr>
                         @endif
                         @if($itemsTotal > 0 && abs($adjust) > 0.009)
-                            <tr><td>{{ $adjust < 0 ? ($quote->coupon_code ? 'Cupom ' . $quote->coupon_code : 'Desconto') : 'Ajuste da loja' }}</td><td>{{ $adjust < 0 ? '− ' : '' }}{{ $orders->money(abs($adjust)) }}</td></tr>
+                            @php
+                                // Descontos conhecidos (cupom, pontos, Pix); o que sobrar é ajuste da loja.
+                                $known = array_filter([
+                                    ($quote->coupon_code ? 'Cupom ' . $quote->coupon_code : 'Desconto') => (float) ($quote->discount ?? 0),
+                                    'Pontos (' . number_format((int) $quote->points_used, 0, ',', '.') . ')' => (float) ($quote->points_discount ?? 0),
+                                    'Desconto no Pix' => $quote->payment_preference === 'pix' || ($sale?->payment_method === 'pix') ? \App\Services\Portal\Rewards::quotePixOff($quote) : 0,
+                                ], fn ($v) => $v > 0.009);
+                                $rest = round($adjust + array_sum($known), 2);
+                            @endphp
+                            @foreach($known as $kl => $kv)
+                                <tr><td>{{ $kl }}</td><td style="color:var(--ml-green)">− {{ $orders->money($kv) }}</td></tr>
+                            @endforeach
+                            @if(abs($rest) > 0.009)
+                                <tr><td>{{ $rest < 0 ? 'Desconto da loja' : 'Ajuste da loja' }}</td><td>{{ $rest < 0 ? '− ' : '' }}{{ $orders->money(abs($rest)) }}</td></tr>
+                            @endif
                         @endif
                         @if($quote->delivery_method)
                             <tr><td>{{ $quote->delivery_method === 'entrega' ? 'Entrega' : 'Retirada' }}</td><td>{{ $quote->delivery_method === 'entrega' ? ($deliveryFee > 0 ? $orders->money($deliveryFee) : 'Grátis') : 'Com a loja' }}</td></tr>

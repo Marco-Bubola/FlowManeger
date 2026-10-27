@@ -43,6 +43,15 @@
     @if (!empty($og['url']))
         <meta property="og:url" content="{{ $og['url'] }}">
     @endif
+    {{-- Vitrine › Google e Instagram: códigos de verificação e se o Google pode mostrar a loja. --}}
+    @php $seo = $idOwner ? \App\Services\Portal\ProductFeed::settingsFor((int) $idOwner) : null; @endphp
+    @if($seo)
+        <meta name="description" content="{{ $og['description'] ?? 'Veja os produtos e ofertas de ' . $storeName . '.' }}">
+        @if(! $seo['google'])<meta name="robots" content="noindex">@endif
+        @if($seo['gverify'])<meta name="google-site-verification" content="{{ $seo['gverify'] }}">@endif
+        @if($seo['mverify'])<meta name="facebook-domain-verification" content="{{ $seo['mverify'] }}">@endif
+    @endif
+    @stack('head')
     @include('partials.favicons')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -400,6 +409,9 @@ document.addEventListener('alpine:init', () => {
                                 @if($favAlerts > 0)<span class="ml-acc-badge pink">{{ $favAlerts }}</span>@endif</a>
                             <a href="{{ route('portal.sales') }}" role="menuitem"><i class="fas fa-bag-shopping"></i> Minhas compras</a>
                             <a href="{{ route('portal.profile') }}" role="menuitem"><i class="fas fa-user-pen"></i> Meus dados</a>
+                            @if($portalClient && \App\Services\Portal\Rewards::on((int) $portalClient->user_id))
+                                <a href="{{ route('portal.profile') }}#pontos" role="menuitem" data-testid="menu-points"><i class="fas fa-star"></i> Meus pontos <span class="ml-acc-badge" style="background:#f5b301">{{ number_format(\App\Services\Portal\Rewards::balance($portalClient), 0, ',', '.') }}</span></a>
+                            @endif
                             <a href="{{ route('portal.dashboard') }}" role="menuitem"><i class="fas fa-house"></i> Painel da conta</a>
                             <form method="POST" action="{{ route('portal.logout') }}">
                                 @csrf

@@ -31,6 +31,15 @@
         .pc-opt small { display: block; font-size: 12px; color: var(--ml-muted); margin-top: 2px; }
         .pc-opt.on { border-color: var(--ml-blue); box-shadow: 0 0 0 1px var(--ml-blue); background: #faf8ff; }
         .pc-coupon-row { display: flex; gap: 8px; }
+        .pc-points { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--ml-line); border-radius: 10px; cursor: pointer; }
+        .pc-points.on { border-color: var(--ml-blue); background: var(--ml-blue-soft); }
+        .pc-points input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--ml-blue); }
+        .pc-points b { display: block; font-size: 14px; color: var(--ml-text); }
+        .pc-points small { display: block; font-size: 12px; color: var(--ml-muted); }
+        .pc-points-off { margin: 0; font-size: 13px; color: var(--ml-muted); }
+        .pc-points-off i, .pc-earn i { color: #f5b301; }
+        .pc-earn { margin: 8px 0 0; font-size: 12.5px; font-weight: 600; color: var(--ml-text); }
+        .pc-pix-tag { font-style: normal; margin-left: 4px; font-size: 11px; font-weight: 800; color: #fff; background: var(--ml-green); padding: 1px 6px; border-radius: 999px; vertical-align: 1px; }
         .pc-coupon-row .pf-input { text-transform: uppercase; }
         .pc-coupon-row .po-btn { flex-shrink: 0; height: 44px; padding: 0 16px; }
         .pc-coupon-on { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px dashed var(--ml-green); border-radius: 8px; background: #effaf3; }
@@ -63,6 +72,9 @@
     $allowManual = ! $pixReady || $paySettings->allow_manual;
     $canPickup = ! $online || $paySettings->pickup_enabled;
     $canDeliver = $online && $paySettings->delivery_enabled;
+    $rw = \App\Services\Portal\Rewards::for((int) $client->user_id);
+    $ptsOn = \App\Services\Portal\Rewards::on((int) $client->user_id);
+    $ptsBal = $ptsOn ? \App\Services\Portal\Rewards::balance($client) : 0;
     $checkoutCfg = [
         'pix'        => $pixReady,
         'methods'    => $payMethods,
@@ -77,6 +89,9 @@
         'couponUrl'  => route('portal.coupon.check'),
         'oldCoupon'  => old('coupon_code', ''),
         'hasErrors'  => $errors->any(),
+        // Desconto no Pix e pontos de fidelidade (Vitrine › Pix e pontos).
+        'pixPct'     => $rw['pix'],
+        'pts'        => $ptsOn ? ['balance' => $ptsBal, 'worth' => $rw['worth'], 'min' => $rw['min_use'], 'max' => $rw['max_pct'], 'earn' => $rw['earn']] : null,
     ];
 @endphp
 
@@ -163,11 +178,26 @@
                         <tr><td x-text="'Produtos (' + units + ')'"></td><td x-text="money(totalOld)"></td></tr>
                         <tr x-show="totalOld - $store.cart.total > 0.009"><td>Descontos</td><td style="color:var(--ml-green)" x-text="'− ' + money(totalOld - $store.cart.total)"></td></tr>
                         <tr x-show="discount > 0" x-cloak><td x-text="'Cupom ' + coupon?.code"></td><td style="color:var(--ml-green)" x-text="'− ' + money(discount)" data-testid="coupon-discount"></td></tr>
+                        <tr x-show="ptsOff > 0" x-cloak><td x-text="'Pontos (' + ptsUse.toLocaleString('pt-BR') + ')'"></td><td style="color:var(--ml-green)" x-text="'− ' + money(ptsOff)" data-testid="points-discount"></td></tr>
+                        <tr x-show="pixOff > 0" x-cloak><td x-text="'Desconto no Pix (' + String(cfg.pixPct).replace('.', ',') + '%)'"></td><td style="color:var(--ml-green)" x-text="'− ' + money(pixOff)" data-testid="pix-discount"></td></tr>
                         <tr x-show="delivery === 'entrega'"><td>Entrega</td><td x-text="shipFee > 0 ? money(shipFee) : 'Grátis'" data-testid="ship-fee"></td></tr>
                         <tr class="po-sum-total"><td>Total</td><td x-text="money(grand)"></td></tr>
                     </table>
                     <p class="po-hint" style="margin-top:8px" x-show="!online">A loja confirma os valores e combina a entrega com você.</p>
+                    <p class="pc-earn" x-show="cfg.pts && earnPts > 0" x-cloak data-testid="points-earn"><i class="fas fa-star"></i> <span x-text="'Você ganha ' + earnPts.toLocaleString('pt-BR') + ' pontos com este pedido'"></span></p>
                 </div>
+                @if($ptsOn)
+                <div class="po-card-body" style="border-top:1px solid var(--ml-line)" data-testid="points-box">
+                    @if($ptsBal >= max(1, $rw['min_use']))
+                        <label class="pc-points" :class="{ on: usePts }">
+                            <input type="checkbox" x-model="usePts" data-testid="points-use">
+                            <span><b>Usar meus pontos</b><small x-text="'Você tem {{ number_format($ptsBal, 0, ',', '.') }} pontos' + (ptsUseMax > 0 ? '. Neste pedido valem ' + money(ptsValueMax) + '.' : '.')"></small></span>
+                        </label>
+                    @else
+                        <p class="pc-points-off"><i class="fas fa-star"></i> Você tem <b>{{ number_format($ptsBal, 0, ',', '.') }}</b> pontos. A partir de {{ number_format($rw['min_use'], 0, ',', '.') }} dá para usar como desconto.</p>
+                    @endif
+                </div>
+                @endif
                 @if($hasCoupons)
                 <div class="po-card-body pc-coupon" style="border-top:1px solid var(--ml-line)" data-testid="coupon-box">
                     <template x-if="!coupon">
@@ -223,7 +253,7 @@
                         @if(in_array('pix', $payMethods, true))
                         <label class="pc-opt" :class="{ on: checkout === 'pix' }">
                             <input type="radio" value="pix" x-model="checkout">
-                            <span><strong><i class="fas fa-qrcode" style="color:#32bcad"></i> Pix</strong><small>Aprovação na hora.</small></span>
+                            <span><strong><i class="fas fa-qrcode" style="color:#32bcad"></i> Pix @if($rw['pix'] > 0)<em class="pc-pix-tag">{{ rtrim(rtrim(number_format($rw['pix'], 2, ',', ''), '0'), ',') }}% off</em>@endif</strong><small>Aprovação na hora.</small></span>
                         </label>
                         @endif
                         @if(in_array('cartao', $payMethods, true))
@@ -294,6 +324,7 @@
         <input type="hidden" name="delivery_method" :value="delivery">
         <input type="hidden" name="client_notes" :value="notes">
         <input type="hidden" name="coupon_code" :value="discount > 0 ? coupon.code : ''">
+        <input type="hidden" name="use_points" :value="ptsOff > 0 ? 1 : 0">
     </form>
 
     <div class="pc-toast" x-show="toast" x-transition.opacity x-text="toast" x-cloak></div>
@@ -366,7 +397,21 @@ function portalCart(fresh, stockMap, cfg) {
             if (!s.ok) return 0;
             return s.freeAbove && (Alpine.store('cart').total - this.discount) + 0.009 >= s.freeAbove ? 0 : (Number(s.base) || 0);
         },
-        get grand() { return Alpine.store('cart').total - this.discount + (this.delivery === 'entrega' ? this.shipFee : 0); },
+        usePts: false,
+        // Pontos: até o teto da loja (% dos produtos com o cupom); a mesma conta do servidor.
+        get ptsBase() { return Math.max(0, Alpine.store('cart').total - this.discount); },
+        get ptsValueMax() {
+            const p = this.cfg.pts;
+            if (!p || p.balance < Math.max(1, p.min)) return 0;
+            return Math.round(Math.min(p.balance * p.worth / 100, this.ptsBase * p.max / 100) * 100) / 100;
+        },
+        get ptsUseMax() { const p = this.cfg.pts; return p && this.ptsValueMax > 0 ? Math.min(p.balance, Math.ceil(this.ptsValueMax * 100 / p.worth)) : 0; },
+        get ptsUse() { return this.usePts ? this.ptsUseMax : 0; },
+        get ptsOff() { return this.usePts ? Math.round(Math.min(this.ptsValueMax, this.ptsUseMax * this.cfg.pts.worth / 100) * 100) / 100 : 0; },
+        get payingPix() { return this.online ? this.checkout === 'pix' : this.pay === 'pix'; },
+        get pixOff() { return this.cfg.pixPct > 0 && this.payingPix ? Math.round(Math.max(0, this.ptsBase - this.ptsOff) * this.cfg.pixPct) / 100 : 0; },
+        get earnPts() { return this.cfg.pts ? Math.floor(Math.max(0, this.ptsBase - this.ptsOff - this.pixOff) * this.cfg.pts.earn) : 0; },
+        get grand() { return Alpine.store('cart').total - this.discount - this.ptsOff - this.pixOff + (this.delivery === 'entrega' ? this.shipFee : 0); },
         async applyCoupon() {
             const code = this.couponInput.trim();
             if (!code || this.couponBusy) return;

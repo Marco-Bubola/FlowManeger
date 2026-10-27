@@ -152,6 +152,9 @@ Route::get('/dashboard', DashboardIndex::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+// Mapa do site geral: aponta para o mapa de cada loja que quer aparecer no Google (robots.txt indica aqui).
+Route::get('/sitemap.xml', [\App\Http\Controllers\PortalFeedController::class, 'index'])->middleware('throttle:30,1')->name('sitemap.index');
+
 // Rotas públicas do portal — sem autenticação (deve vir antes dos grupos com middleware)
 Route::prefix('portal')->name('portal.')->group(function () {
     Route::get('/catalogo/{userId?}', [ClientPortalController::class, 'publicCatalog'])->name('catalog');
@@ -163,6 +166,9 @@ Route::prefix('portal')->name('portal.')->group(function () {
     Route::get('/catalogo/{userId}/carrinho/{token}', [\App\Http\Controllers\PortalCartController::class, 'restore'])->whereNumber('userId')->middleware('throttle:30,1')->name('cart.restore');
     Route::get('/catalogo/{userId}/monte-seu-kit', [ClientPortalController::class, 'kitBuilder'])->whereNumber('userId')->name('kit');
     Route::get('/catalogo/{userId}/produto/{product}/{slug?}', [ClientPortalController::class, 'productPage'])->whereNumber(['userId', 'product'])->name('product');
+    // Google e Instagram: lista de produtos (Google Shopping / loja do Instagram) e mapa do site da loja.
+    Route::get('/catalogo/{userId}/produtos.xml', [\App\Http\Controllers\PortalFeedController::class, 'feed'])->whereNumber('userId')->middleware('throttle:30,1')->name('feed');
+    Route::get('/catalogo/{userId}/sitemap.xml', [\App\Http\Controllers\PortalFeedController::class, 'sitemap'])->whereNumber('userId')->middleware('throttle:30,1')->name('sitemap');
     Route::get('/catalogo/{userId}/foto/{product}.jpg', [ClientPortalController::class, 'previewImage'])->whereNumber(['userId', 'product'])->name('catalog.preview-image');
     // Entrada do portal sem login: redireciona autenticados ao dashboard, convidados ao catálogo (via cookie) ou login
     Route::get('/', [ClientPortalController::class, 'portalHome'])->name('home');
@@ -291,6 +297,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/promotions/vitrine', \App\Livewire\Promotions\PortalStorefront::class)->name('promotions.storefront');
     Route::get('/promotions/avaliacoes', \App\Livewire\Promotions\PortalReviews::class)->name('promotions.reviews');
     Route::get('/promotions/carrinhos', \App\Livewire\Promotions\PortalCarts::class)->name('promotions.carts');
+    Route::get('/promotions/pix-e-pontos', \App\Livewire\Promotions\PortalRewards::class)->name('promotions.rewards');
+    Route::get('/promotions/google-e-instagram', \App\Livewire\Promotions\PortalMarketing::class)->name('promotions.marketing');
     Route::get('/promotions/relatorio-do-site', \App\Livewire\Promotions\PortalReport::class)->name('promotions.site-report');
     Route::get('/promotions/vitrine/banner/novo', \App\Livewire\Promotions\BannerEditor::class)->name('promotions.storefront.banner.create');
     Route::get('/promotions/vitrine/banner/{banner}/editar', \App\Livewire\Promotions\BannerEditor::class)->whereNumber('banner')->name('promotions.storefront.banner.edit');

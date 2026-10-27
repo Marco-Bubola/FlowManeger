@@ -25,6 +25,10 @@
     $int = number_format(floor($d['price']), 0, ',', '.');
     $cents = str_pad((string) (round($d['price'] * 100) % 100), 2, '0', STR_PAD_LEFT);
 @endphp
+@push('head')
+    <link rel="canonical" href="{{ $d['url'] }}">
+    <script type="application/ld+json">{!! \App\Services\Portal\ProductFeed::jsonLd($item, $d, $rating, \App\Services\Portal\StoreIdentity::for((int) $owner)['name'] ?: ($store?->name ?? config('app.name'))) !!}</script>
+@endpush
 
 <x-portal-catalog-layout :title="$d['name']" :store="$store" :owner-id="$owner" :og="$og">
 
@@ -58,6 +62,9 @@
     .pp-info .ml-price { font-size: 34px; }
     .pp-info .ml-price sup { font-size: 16px; }
     .pp-info .ml-pct { font-size: 17px; }
+    .pp-pix { display: block; margin-top: 6px; font-size: 14px; }
+    .pp-pts { margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--ml-text); }
+    .pp-pts i { color: #f5b301; }
     .pp-out { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; padding: 12px; border-radius: 8px; background: #fff4ec; color: #9a3d0b; font-size: 14px; }
     .pp-out i { margin-top: 2px; }
     .pp-out small { display: block; color: #a8673f; font-size: 12px; margin-top: 2px; }
@@ -270,6 +277,8 @@
                 <span class="ml-price"><span class="cur">R$</span><span x-text="intPart(p.price)">{{ $int }}</span><sup x-show="cents(p.price) !== '00'" x-text="cents(p.price)" @if($cents === '00') x-cloak @endif>{{ $cents }}</sup></span>
                 <span class="ml-pct" x-show="p.pct" x-text="p.pct + '% OFF'" @if(! $d['pct']) x-cloak @endif>{{ $d['pct'] }}% OFF</span>
             </div>
+            <div class="ml-pix pp-pix" x-show="p.pix" @if(empty($d['pix'])) x-cloak @endif data-testid="page-pix"><i class="fas fa-qrcode"></i> <span x-text="p.pix ? 'ou ' + money(p.pix) + ' no Pix (' + @js(rtrim(rtrim(number_format(\App\Services\Portal\Rewards::for((int) $owner)['pix'], 2, ',', ''), '0'), ',')) + '% de desconto)' : ''"></span></div>
+            <div class="pp-pts" x-show="p.pts > 0" @if(empty($d['pts'])) x-cloak @endif data-testid="page-points"><i class="fas fa-star"></i> <span x-text="'Ganhe ' + Number(p.pts).toLocaleString('pt-BR') + ' pontos comprando este produto'"></span></div>
             <div class="ml-ask" x-show="!(p.price > 0)" @if($d['price'] > 0) x-cloak @endif>Preço sob consulta</div>
             @if($family->count() > 1 && $family->pluck('price_sale')->unique()->count() > 1)
                 <div class="ml-stock" style="margin-top:4px">A partir de R$ {{ number_format($minPrice, 2, ',', '.') }}, conforme {{ mb_strtolower($attribute) }}</div>

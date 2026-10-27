@@ -413,6 +413,7 @@ class ClientPortalController extends Controller
         if (\Illuminate\Support\Facades\Schema::hasColumn('clients', 'privacy_accepted_at')) {
             $client->forceFill(['privacy_accepted_at' => now()])->save();
         }
+        \App\Services\Portal\Rewards::welcome($client);
 
         Auth::guard('portal')->login($client, true);
         $client->update(['portal_last_login_at' => now()]);
@@ -1099,6 +1100,9 @@ class ClientPortalController extends Controller
             'new'     => \App\Services\Portal\HomeLayout::isNew($p),
             'rate'    => ($r = \App\Services\Portal\ReviewService::summary((int) $p->user_id, (int) ($p->parent_id ?: $p->id))) ? $r['avg'] : null,
             'rates'   => $r['n'] ?? 0,
+            // Desconto no Pix e pontos (Vitrine › Pix e pontos).
+            'pix'     => \App\Services\Portal\Rewards::for((int) $p->user_id)['pix_card'] ? \App\Services\Portal\Rewards::pixPrice((int) $p->user_id, $price) : null,
+            'pts'     => \App\Services\Portal\Rewards::on((int) $p->user_id) ? \App\Services\Portal\Rewards::earnFor((int) $p->user_id, $price) : 0,
             'specs'   => collect($p->specs ?? [])->filter(fn ($s) => ($s['n'] ?? '') !== '' && ($s['v'] ?? '') !== '')->values()->all(),
         ];
     }
@@ -1144,6 +1148,7 @@ class ClientPortalController extends Controller
             'checkout'            => ['nullable', 'in:pix,cartao,boleto,manual'],
             'delivery_method'     => ['nullable', 'in:retirada,entrega'],
             'coupon_code'         => ['nullable', 'string', 'max:40'],
+            'use_points'          => ['nullable', 'boolean'],
         ]);
 
         if (empty($validated['items']) && empty($validated['extra_items'])) {
@@ -1221,6 +1226,20 @@ class ClientPortalController extends Controller
             $deliveryFee = $ship['fee'];
         }
 
+        // Pontos de fidelidade: conferidos aqui, sobre os produtos com o cupom (o frete não entra).
+        $pointsUsed = null;
+        $pointsOff = null;
+        if (! empty($validated['use_points'])) {
+            $base = collect($items)->sum(fn ($i) => (float) $i['price_ref'] * $i['quantity']) - (float) $discount + (float) ($this->pendingKit['total'] ?? 0);
+            [$pts, $off] = \App\Services\Portal\Rewards::usable($client, max(0, $base));
+            if ($pts > 0) {
+                [$pointsUsed, $pointsOff] = [$pts, $off];
+            }
+        }
+        // Desconto do Pix (guardado no pedido, para não mudar se a loja trocar a % depois).
+        $prefPix = $payNow ? $method === 'pix' : ($validated['payment_preference'] ?? null) === 'pix';
+        $pixPct = \App\Services\Portal\Rewards::for((int) $client->user_id)['pix'];
+
         $extraItems = [];
         foreach ($validated['extra_items'] ?? [] as $ei) {
             $extraItems[] = [
@@ -1241,6 +1260,10 @@ class ClientPortalController extends Controller
             'delivery_method'    => $delivery,
             'coupon_code'        => $couponCode,
             'discount'           => $discount,
+            'points_used'        => $pointsUsed,
+            'points_discount'    => $pointsOff,
+            // O desconto do Pix vale para o Pix pelo site e, sem pagamento online, para quem escolheu Pix.
+            'pix_pct'            => $pixPct > 0 && ($payNow ? true : $prefPix) ? $pixPct : null,
             'kit'                => $this->pendingKit,
             'delivery_fee'       => $delivery === 'entrega' ? $deliveryFee : ($delivery ? 0 : null),
             'shipping_address'   => $delivery === 'entrega' ? [
@@ -1253,6 +1276,7 @@ class ClientPortalController extends Controller
 
         // Carrinho abandonado: o carrinho guardado vira pedido (conta como recuperado se teve lembrete).
         \App\Services\Portal\CartRecovery::ordered($quote);
+        \App\Services\Portal\Rewards::spend($quote);
 
         // Pagamento pelo site: a loja é avisada quando o pagamento for aprovado.
         if ($payNow) {
