@@ -136,56 +136,88 @@ new class extends Component {
     }
 }; ?>
 
+@php
+    // Passos para ficar pronto: quem manda, dados da Meta, token e a primeira mensagem chegando
+    $waSteps = [
+        ['Seu número', filled($allowed_numbers), 'bi-person-check'],
+        ['Identificador', filled($phone_number_id), 'bi-hash'],
+        ['Token da Meta', $hasToken, 'bi-key'],
+        ['Webhook recebendo', (bool) $lastAt, 'bi-broadcast'],
+    ];
+    $waDone = collect($waSteps)->where(1, true)->count();
+@endphp
+
 <section class="settings-whatsapp-page w-full mobile-393-base">
     <x-settings.layout :heading="''">
-        <div class="s-pg-grid">
-        <div class="s-col-main">
-        <form wire:submit="save" style="display:flex;flex-direction:column;gap:1rem">
 
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon" style="background:rgba(37,211,102,.12);color:#16a34a"><i class="bi bi-whatsapp" style="font-size:1rem"></i></div>
-                    <div>
-                        <p class="settings-card-title">WhatsApp: lançar por print</p>
-                        <p class="settings-card-desc">Mande o print da notificação do banco e ele vai para a fatura ou para o livro caixa</p>
+    <div class="wa-page">
+        {{-- Topo: situação, passos e números --}}
+        <div class="wa-hero">
+            <span class="wa-glow"></span>
+            <div class="wa-hero-ico"><i class="bi bi-whatsapp"></i></div>
+            <div class="wa-hero-txt">
+                <span class="wa-kicker"><i class="bi bi-receipt"></i> Lançar por print</span>
+                <h2>{{ $ready ? 'Ligado e pronto para receber' : ($enabled ? 'Ligado, falta terminar de configurar' : 'Desligado') }}</h2>
+                <p>Mande o print da notificação do banco para o número do app e ele vai para a fatura certa ou para o livro caixa.</p>
+                <div class="wa-progress">
+                    @foreach($waSteps as [$label, $ok, $icon])
+                        <span class="{{ $ok ? 'is-ok' : '' }}"><i class="bi {{ $ok ? 'bi-check-circle-fill' : $icon }}"></i> {{ $label }}</span>
+                    @endforeach
+                </div>
+            </div>
+            <div class="wa-hero-stats">
+                <div><b>{{ $count }}</b><small>lançados pelo WhatsApp</small></div>
+                <div><b>{{ $lastAt ? $lastAt->locale('pt_BR')->diffForHumans(null, true) : '—' }}</b><small>{{ $lastAt ? 'desde a última mensagem' : 'nenhuma mensagem ainda' }}</small></div>
+                <a href="{{ route('finance.print-capture') }}" wire:navigate class="wa-hero-btn"><i class="bi bi-phone"></i> Abrir Lançar por print</a>
+            </div>
+        </div>
+
+        <div class="wa-grid">
+        <form wire:submit="save" class="wa-main">
+
+            {{-- 1. Ligar e quem pode mandar --}}
+            <div class="ap-card">
+                <div class="ap-card-head">
+                    <span class="wa-num">1</span>
+                    <div class="min-w-0">
+                        <h2>Ligar e quem pode mandar</h2>
+                        <p>Só os números daqui conseguem lançar. Mensagens de outros são ignoradas.</p>
                     </div>
                 </div>
-                @if($ready)
-                    <span class="s-badge s-badge-success">Ativo</span>
-                @else
-                    <span class="s-badge">Desligado</span>
-                @endif
+                <button type="button" class="wa-switch-row {{ $enabled ? 'is-on' : '' }}" wire:click="$toggle('enabled')" data-testid="toggle-wa">
+                    <span class="wa-sw-ico"><i class="bi bi-power"></i></span>
+                    <span class="wa-sw-txt"><b>Receber prints pelo WhatsApp</b><small>{{ $enabled ? 'Ligado' : 'Desligado' }}. Lembre de salvar depois de mudar.</small></span>
+                    <span class="wa-switch"><span></span></span>
+                </button>
+                <div class="wa-field">
+                    <label class="settings-field-label">Seu WhatsApp (quem pode mandar)</label>
+                    <flux:input wire:model="allowed_numbers" type="text" inputmode="tel" placeholder="(15) 99999-9999"/>
+                    <p class="wa-hint">Com DDD. Mais de um número: separe por vírgula.</p>
+                    @error('allowed_numbers') <p class="wa-err">{{ $message }}</p> @enderror
+                </div>
+                <button type="button" class="wa-switch-row {{ $auto_save ? 'is-on' : '' }}" wire:click="$toggle('auto_save')">
+                    <span class="wa-sw-ico is-indigo"><i class="bi bi-lightning-charge"></i></span>
+                    <span class="wa-sw-txt"><b>Gravar direto quando entender tudo</b><small>{{ $auto_save ? 'Ligado: entra direto na fatura ou no livro caixa, e dá para desfazer.' : 'Desligado, tudo fica em Lançar por print para você conferir antes.' }}</small></span>
+                    <span class="wa-switch"><span></span></span>
+                </button>
             </div>
 
-            <div style="padding:0 1.25rem 1.25rem;display:flex;flex-direction:column;gap:1rem">
-                <label class="settings-notif-row" style="margin:0">
-                    <div class="settings-notif-info">
-                        <div class="settings-notif-icon" style="background:rgba(16,185,129,.1);color:#10b981"><i class="bi bi-power"></i></div>
-                        <div>
-                            <p class="settings-notif-title">Receber prints pelo WhatsApp</p>
-                            <p class="settings-notif-desc">Só os números abaixo podem lançar</p>
-                        </div>
+            {{-- 2. Dados da Meta --}}
+            <div class="ap-card">
+                <div class="ap-card-head">
+                    <span class="wa-num">2</span>
+                    <div class="min-w-0">
+                        <h2>Dados do app da Meta</h2>
+                        <p>Copiados do developers.facebook.com. O token e a chave ficam guardados criptografados e não aparecem de novo.</p>
                     </div>
-                    <div class="settings-toggle-switch {{ $enabled ? 'active' : '' }}" wire:click="$toggle('enabled')" data-testid="toggle-wa">
-                        <div class="settings-toggle-track"></div>
-                        <div class="settings-toggle-thumb"></div>
-                    </div>
-                </label>
-
-                <div class="settings-form-grid">
-                    <div class="settings-form-full">
-                        <label class="settings-field-label">Seu WhatsApp (quem pode mandar)</label>
-                        <flux:input wire:model="allowed_numbers" type="text" inputmode="tel" placeholder="(15) 99999-9999"/>
-                        <p class="wa-hint">Com DDD. Mais de um número: separe por vírgula.</p>
-                        @error('allowed_numbers') <p class="wa-err">{{ $message }}</p> @enderror
-                    </div>
-                    <div class="settings-form-full">
+                </div>
+                <div class="wa-fields">
+                    <div class="wa-field">
                         <label class="settings-field-label">Identificador do número de telefone</label>
                         <flux:input wire:model="phone_number_id" type="text" inputmode="numeric" autocomplete="off" placeholder="Ex.: 123456789012345"/>
                         @error('phone_number_id') <p class="wa-err">{{ $message }}</p> @enderror
                     </div>
-                    <div class="settings-form-full">
+                    <div class="wa-field">
                         <label class="settings-field-label">Token de acesso (permanente)</label>
                         @if($hasToken)
                             <div class="wa-saved"><i class="bi bi-lock-fill"></i> Salvo, termina em <b>…{{ $tokenEnd }}</b>
@@ -195,119 +227,160 @@ new class extends Component {
                         <flux:input wire:model="access_token" type="password" autocomplete="off" placeholder="{{ $hasToken ? 'Cole um novo só se quiser trocar' : 'EAAG...' }}"/>
                         @error('access_token') <p class="wa-err">{{ $message }}</p> @enderror
                     </div>
-                    <div class="settings-form-full">
-                        <label class="settings-field-label">Chave secreta do app <span class="s-badge s-badge-accent" style="margin-left:.35rem">Recomendado</span></label>
+                    <div class="wa-field wa-field-full">
+                        <label class="settings-field-label">Chave secreta do app <span class="wa-pill">Recomendado</span></label>
                         @if($hasSecret)<div class="wa-saved"><i class="bi bi-lock-fill"></i> Salva</div>@endif
                         <flux:input wire:model="app_secret" type="password" autocomplete="off" placeholder="{{ $hasSecret ? 'Cole uma nova só se quiser trocar' : '32 letras e números' }}"/>
                         <p class="wa-hint">Com ela o app só aceita mensagens assinadas pela Meta.</p>
                         @error('app_secret') <p class="wa-err">{{ $message }}</p> @enderror
                     </div>
-                    <div class="settings-form-full">
-                        <label class="settings-field-label">URL de callback (cole na Meta, em WhatsApp › Configuração › Webhook)</label>
+                </div>
+            </div>
+
+            {{-- 3. Webhook --}}
+            <div class="ap-card">
+                <div class="ap-card-head">
+                    <span class="wa-num">3</span>
+                    <div class="min-w-0">
+                        <h2>Colar na Meta (Webhook)</h2>
+                        <p>Em WhatsApp › Configuração › Webhook, cole os dois e assine o campo "messages".</p>
+                    </div>
+                </div>
+                <div class="wa-fields">
+                    <div class="wa-field wa-field-full">
+                        <label class="settings-field-label">URL de callback</label>
                         <div class="wa-copy" x-data="{ok:false}">
                             <code>{{ $webhookUrl }}</code>
                             <button type="button" @click="navigator.clipboard.writeText(@js($webhookUrl)); ok=true; setTimeout(()=>ok=false,1500)"><i class="bi" :class="ok ? 'bi-check2' : 'bi-copy'"></i><span x-text="ok ? 'Copiado' : 'Copiar'"></span></button>
                         </div>
                     </div>
-                    <div class="settings-form-full">
-                        <label class="settings-field-label">Token de verificação (cole junto, na Meta)</label>
+                    <div class="wa-field wa-field-full">
+                        <label class="settings-field-label">Token de verificação</label>
                         <div class="wa-copy" x-data="{ok:false}">
                             <code>{{ $verifyToken }}</code>
                             <button type="button" @click="navigator.clipboard.writeText(@js($verifyToken)); ok=true; setTimeout(()=>ok=false,1500)"><i class="bi" :class="ok ? 'bi-check2' : 'bi-copy'"></i><span x-text="ok ? 'Copiado' : 'Copiar'"></span></button>
                         </div>
                     </div>
                 </div>
-
-                <label class="settings-notif-row" style="margin:0">
-                    <div class="settings-notif-info">
-                        <div class="settings-notif-icon" style="background:rgba(99,102,241,.1);color:#6366f1"><i class="bi bi-lightning-charge"></i></div>
-                        <div>
-                            <p class="settings-notif-title">Gravar direto quando entender tudo</p>
-                            <p class="settings-notif-desc">Desligado, tudo fica em Lançar por print para você conferir antes</p>
-                        </div>
-                    </div>
-                    <div class="settings-toggle-switch {{ $auto_save ? 'active' : '' }}" wire:click="$toggle('auto_save')">
-                        <div class="settings-toggle-track"></div>
-                        <div class="settings-toggle-thumb"></div>
-                    </div>
-                </label>
             </div>
-        </div>
 
-        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
-            <button data-mobile-save type="submit" class="settings-save-btn"><i class="bi bi-check2"></i> Salvar</button>
-            <button type="button" wire:click="testConnection" class="wa-test-btn" wire:loading.attr="disabled" wire:target="testConnection">
-                <i class="bi bi-plug"></i><span wire:loading.remove wire:target="testConnection">Testar conexão</span><span wire:loading wire:target="testConnection">Testando...</span>
-            </button>
-            <x-action-message on="whatsapp-saved"><span style="display:inline-flex;align-items:center;gap:.35rem;color:#059669;font-size:.83rem;font-weight:600"><i class="bi bi-check-circle"></i> Salvo!</span></x-action-message>
-        </div>
-        @if($testResult)
-            <div class="wa-test {{ $testOk ? 'ok' : 'bad' }}"><i class="bi {{ $testOk ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill' }}"></i> {{ $testResult }}</div>
-        @endif
+            <div class="wa-actions">
+                <button data-mobile-save type="submit" class="wa-btn-save"><i class="bi bi-check2"></i> Salvar</button>
+                <button type="button" wire:click="testConnection" class="wa-btn-test" wire:loading.attr="disabled" wire:target="testConnection">
+                    <i class="bi bi-plug"></i><span wire:loading.remove wire:target="testConnection">Testar conexão</span><span wire:loading wire:target="testConnection">Testando...</span>
+                </button>
+                <x-action-message on="whatsapp-saved"><span class="wa-ok-msg"><i class="bi bi-check-circle"></i> Salvo!</span></x-action-message>
+            </div>
+            @if($testResult)
+                <div class="wa-test {{ $testOk ? 'ok' : 'bad' }}"><i class="bi {{ $testOk ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill' }}"></i> {{ $testResult }}</div>
+            @endif
         </form>
-        </div>
 
-        <div class="s-col-side">
-            <div class="settings-card">
-                <div class="settings-card-header">
-                    <div class="settings-card-title-row">
-                        <div class="settings-card-icon" style="background:rgba(16,185,129,.1);color:#10b981"><i class="bi bi-chat-dots" style="font-size:1rem"></i></div>
-                        <div>
-                            <p class="settings-card-title">Pelo WhatsApp</p>
-                            <p class="settings-card-desc">{{ $lastAt ? 'Última mensagem ' . $lastAt->diffForHumans() : 'Nenhuma mensagem ainda' }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div style="padding:0 1.25rem 1.25rem;display:flex;flex-direction:column;gap:.6rem">
-                    <div class="settings-info-tile" style="background:rgba(16,185,129,.08);border-color:transparent">
-                        <p class="settings-info-tile-label">Lançados pelo WhatsApp</p>
-                        <p class="settings-info-tile-val" style="color:#10b981">{{ $count }}</p>
-                    </div>
-                    <a href="{{ route('finance.print-capture') }}" wire:navigate class="wa-test-btn" style="justify-content:center"><i class="bi bi-phone"></i> Abrir Lançar por print</a>
-                </div>
-            </div>
-
-            <div class="settings-card">
-                <div class="settings-card-header">
-                    <div class="settings-card-title-row">
-                        <div class="settings-card-icon" style="background:rgba(245,158,11,.1);color:#f59e0b"><i class="bi bi-signpost-split" style="font-size:1rem"></i></div>
-                        <div>
-                            <p class="settings-card-title">Como ligar</p>
-                            <p class="settings-card-desc">Uma vez só, uns 20 minutos</p>
-                        </div>
+        <aside class="wa-side">
+            <div class="ap-card">
+                <div class="ap-card-head">
+                    <span class="ap-ico bg-gradient-to-br from-amber-500 to-orange-500"><i class="bi bi-signpost-split"></i></span>
+                    <div class="min-w-0">
+                        <h2>Como ligar</h2>
+                        <p>Uma vez só, uns 20 minutos.</p>
                     </div>
                 </div>
                 <ol class="wa-steps">
                     <li>Entre em <b>developers.facebook.com</b>, <b>Meus apps › Criar app</b>, tipo <b>Empresa</b>, e adicione o produto <b>WhatsApp</b>.</li>
                     <li>Em <b>WhatsApp › Configuração da API</b> a Meta dá um número de teste grátis. Em "Para", cadastre o seu celular.</li>
-                    <li>Copie o <b>Identificador do número de telefone</b> para cá.</li>
-                    <li>Gere um <b>token permanente</b>: Configurações do negócio › Usuários do sistema › Adicionar (admin) › Gerar token, com <b>whatsapp_business_messaging</b> e <b>whatsapp_business_management</b>. O token da tela da API vence em 24 horas.</li>
-                    <li>Em <b>Configurações do app › Básico</b>, copie a <b>Chave secreta do app</b>.</li>
-                    <li>Salve aqui. Na Meta, em <b>WhatsApp › Configuração › Webhook</b>, cole a URL de callback e o token de verificação, e assine o campo <b>messages</b>.</li>
-                    <li>Salve o número do app nos contatos e mande <b>ajuda</b>.</li>
+                    <li class="{{ filled($phone_number_id) ? 'is-done' : '' }}">Copie o <b>Identificador do número de telefone</b> para o passo 2.</li>
+                    <li class="{{ $hasToken ? 'is-done' : '' }}">Gere um <b>token permanente</b>: Configurações do negócio › Usuários do sistema › Adicionar (admin) › Gerar token, com <b>whatsapp_business_messaging</b> e <b>whatsapp_business_management</b>. O token da tela da API vence em 24 horas.</li>
+                    <li class="{{ $hasSecret ? 'is-done' : '' }}">Em <b>Configurações do app › Básico</b>, copie a <b>Chave secreta do app</b>.</li>
+                    <li class="{{ $lastAt ? 'is-done' : '' }}">Salve aqui. Na Meta, em <b>WhatsApp › Configuração › Webhook</b>, cole a URL de callback e o token de verificação, e assine o campo <b>messages</b>.</li>
+                    <li class="{{ $count ? 'is-done' : '' }}">Salve o número do app nos contatos e mande <b>ajuda</b>.</li>
                 </ol>
-                <p class="wa-steps-note"><i class="bi bi-shield-lock"></i> O token e a chave ficam criptografados e não aparecem de novo. Não mande essas chaves por mensagem para ninguém.</p>
+                <p class="wa-steps-note"><i class="bi bi-shield-lock"></i> Não mande o token nem a chave por mensagem para ninguém.</p>
             </div>
+        </aside>
         </div>
-        </div>
-    </x-settings.layout>
+    </div>
 
     <style>
-        .settings-whatsapp-page .wa-err{color:#ef4444;font-size:.73rem;margin-top:.2rem}
-        .settings-whatsapp-page .wa-hint{color:#64748b;font-size:.72rem;margin-top:.3rem}
-        .settings-whatsapp-page .wa-saved{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;font-size:.78rem;color:#059669;margin:.1rem 0 .35rem}
-        .settings-whatsapp-page .wa-link-danger{margin-left:auto;background:none;border:0;color:#ef4444;font-weight:600;font-size:.78rem;cursor:pointer;text-decoration:underline}
-        .settings-whatsapp-page .wa-copy{display:flex;align-items:center;gap:.5rem;border:1.5px dashed rgba(var(--s-accent-rgb),.3);border-radius:.7rem;padding:.55rem .6rem .55rem .8rem;background:rgba(var(--s-accent-rgb),.04)}
-        .settings-whatsapp-page .wa-copy code{flex:1;min-width:0;font-size:.76rem;word-break:break-all;color:inherit}
-        .settings-whatsapp-page .wa-copy button{display:inline-flex;align-items:center;gap:.3rem;flex-shrink:0;border:0;border-radius:.55rem;padding:.4rem .7rem;background:var(--s-accent);color:#fff;font-size:.76rem;font-weight:700;cursor:pointer}
-        .settings-whatsapp-page .wa-test-btn{display:inline-flex;align-items:center;gap:.4rem;border:1.5px solid rgba(var(--s-accent-rgb),.35);color:var(--s-accent);background:transparent;border-radius:.75rem;padding:.6rem 1rem;font-size:.85rem;font-weight:700;cursor:pointer}
-        .settings-whatsapp-page .wa-test{border-radius:.75rem;padding:.7rem .9rem;font-size:.83rem;font-weight:600;display:flex;gap:.5rem;align-items:flex-start}
-        .settings-whatsapp-page .wa-test.ok{background:rgba(16,185,129,.1);color:#047857}
-        .settings-whatsapp-page .wa-test.bad{background:rgba(239,68,68,.1);color:#b91c1c}
-        .dark .settings-whatsapp-page .wa-test.ok{color:#6ee7b7}
-        .dark .settings-whatsapp-page .wa-test.bad{color:#fca5a5}
-        .settings-whatsapp-page .wa-steps{margin:0;padding:0 1.25rem 0 2.6rem;display:flex;flex-direction:column;gap:.55rem;font-size:.82rem;line-height:1.45;list-style:decimal}
-        .settings-whatsapp-page .wa-steps-note{margin:.9rem 1.25rem 1.25rem;font-size:.76rem;color:#64748b;display:flex;gap:.4rem}
-        .dark .settings-whatsapp-page .wa-steps-note{color:#94a3b8}
+        .wa-page { display: flex; flex-direction: column; gap: 1rem; }
+        .wa-hero { position: relative; overflow: hidden; display: flex; align-items: center; gap: 1.2rem; padding: 1.4rem 1.6rem; border-radius: 1.6rem; color: #fff; background: linear-gradient(135deg, #25d366 0%, #128c7e 55%, #075e54 100%); box-shadow: 0 24px 50px -28px rgba(7, 94, 84, .8); }
+        .wa-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 10% 0%, rgba(255, 255, 255, .3), transparent 40%); }
+        .wa-hero-ico { position: relative; flex: none; display: grid; place-items: center; width: 4rem; height: 4rem; border-radius: 1.2rem; background: rgba(255, 255, 255, .18); border: 1px solid rgba(255, 255, 255, .3); font-size: 1.9rem; }
+        .wa-hero-txt { position: relative; flex: 1; min-width: 0; }
+        .wa-kicker { display: inline-flex; align-items: center; gap: .35rem; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; opacity: .92; }
+        .wa-hero-txt h2 { font-size: 1.4rem; font-weight: 900; line-height: 1.2; margin-top: .2rem; }
+        .wa-hero-txt p { font-size: .8rem; opacity: .92; max-width: 40rem; }
+        .wa-progress { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .6rem; }
+        .wa-progress span { display: inline-flex; align-items: center; gap: .3rem; padding: .22rem .6rem; border-radius: 999px; background: rgba(0, 0, 0, .15); border: 1px dashed rgba(255, 255, 255, .4); font-size: .72rem; font-weight: 700; opacity: .85; }
+        .wa-progress span.is-ok { background: rgba(255, 255, 255, .95); color: #047857; border-style: solid; border-color: transparent; opacity: 1; }
+        .wa-hero-stats { position: relative; flex: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; width: 19rem; }
+        .wa-hero-stats > div { padding: .6rem .7rem; border-radius: .9rem; background: rgba(255, 255, 255, .15); border: 1px solid rgba(255, 255, 255, .25); }
+        .wa-hero-stats b { display: block; font-size: 1.15rem; font-weight: 900; line-height: 1.15; }
+        .wa-hero-stats small { display: block; font-size: .66rem; opacity: .9; line-height: 1.25; }
+        .wa-hero-btn { grid-column: 1 / -1; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; padding: .6rem; border-radius: .9rem; background: #fff; color: #047857; font-size: .82rem; font-weight: 800; }
+        .wa-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 1rem; align-items: start; }
+        .wa-main { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+        .wa-side { position: sticky; top: 1rem; min-width: 0; }
+        .wa-num { flex: none; display: grid; place-items: center; width: 2.3rem; height: 2.3rem; border-radius: .8rem; background: linear-gradient(135deg, #25d366, #128c7e); color: #fff; font-weight: 900; box-shadow: 0 8px 18px -8px rgba(18, 140, 126, .6); }
+        .wa-switch-row { width: 100%; display: flex; align-items: center; gap: .75rem; padding: .75rem .85rem; border-radius: 1rem; border: 1px solid #eef2f7; background: #f8fafc; text-align: left; margin-bottom: .75rem; transition: all .15s; }
+        .wa-switch-row.is-on { background: #fff; border-color: #a7f3d0; box-shadow: 0 8px 20px -16px #059669; }
+        .dark .wa-switch-row { background: #111827; border-color: #1f2937; }
+        .dark .wa-switch-row.is-on { background: rgba(16, 185, 129, .08); border-color: rgba(16, 185, 129, .35); box-shadow: none; }
+        .wa-sw-ico { flex: none; display: grid; place-items: center; width: 2.3rem; height: 2.3rem; border-radius: .8rem; background: #dcfce7; color: #16a34a; font-size: 1rem; }
+        .wa-sw-ico.is-indigo { background: var(--color-indigo-50); color: var(--color-indigo-600); }
+        .dark .wa-sw-ico { background: rgba(16, 185, 129, .15); }
+        .wa-sw-txt { display: block; flex: 1; min-width: 0; }
+        .wa-sw-txt b { display: block; font-size: .88rem; color: #0f172a; }
+        .wa-sw-txt small { display: block; font-size: .73rem; color: #64748b; }
+        .dark .wa-sw-txt b { color: #f1f5f9; }
+        .wa-switch { flex: none; position: relative; width: 2.6rem; height: 1.5rem; border-radius: 999px; background: #cbd5e1; transition: background .2s; }
+        .wa-switch span { position: absolute; top: .18rem; left: .18rem; width: 1.14rem; height: 1.14rem; border-radius: 999px; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: transform .2s; }
+        .wa-switch-row.is-on .wa-switch { background: #10b981; }
+        .wa-switch-row.is-on .wa-switch span { transform: translateX(1.1rem); }
+        .dark .wa-switch { background: #334155; }
+        .wa-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
+        .wa-field { min-width: 0; margin-bottom: .75rem; }
+        .wa-fields .wa-field { margin-bottom: 0; }
+        .wa-field-full { grid-column: 1 / -1; }
+        .wa-pill { margin-left: .35rem; padding: .05rem .45rem; border-radius: 999px; background: var(--color-indigo-50); color: var(--color-indigo-600); font-size: .66rem; font-weight: 800; }
+        .wa-err { color: #ef4444; font-size: .73rem; margin-top: .2rem; }
+        .wa-hint { color: #64748b; font-size: .72rem; margin-top: .3rem; }
+        .wa-saved { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; font-size: .78rem; color: #059669; margin: .1rem 0 .35rem; }
+        .wa-link-danger { margin-left: auto; background: none; border: 0; color: #ef4444; font-weight: 600; font-size: .78rem; cursor: pointer; text-decoration: underline; }
+        .wa-copy { display: flex; align-items: center; gap: .5rem; border: 1.5px dashed #a7f3d0; border-radius: .8rem; padding: .55rem .6rem .55rem .8rem; background: #f0fdf4; }
+        .dark .wa-copy { background: rgba(16, 185, 129, .06); border-color: rgba(16, 185, 129, .3); }
+        .wa-copy code { flex: 1; min-width: 0; font-size: .76rem; word-break: break-all; color: inherit; }
+        .wa-copy button { display: inline-flex; align-items: center; gap: .3rem; flex-shrink: 0; border: 0; border-radius: .6rem; padding: .4rem .7rem; background: #10b981; color: #fff; font-size: .76rem; font-weight: 700; cursor: pointer; }
+        .wa-actions { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+        .wa-btn-save { display: inline-flex; align-items: center; gap: .4rem; padding: .7rem 1.4rem; border-radius: .9rem; background: linear-gradient(135deg, #10b981, #047857); color: #fff; font-size: .88rem; font-weight: 800; box-shadow: 0 12px 24px -14px #047857; }
+        .wa-btn-test { display: inline-flex; align-items: center; gap: .4rem; padding: .66rem 1.1rem; border-radius: .9rem; border: 1.5px solid #a7f3d0; color: #047857; background: #fff; font-size: .85rem; font-weight: 800; }
+        .dark .wa-btn-test { background: #111827; color: #6ee7b7; border-color: rgba(16, 185, 129, .35); }
+        .wa-ok-msg { display: inline-flex; align-items: center; gap: .35rem; color: #059669; font-size: .83rem; font-weight: 700; }
+        .wa-test { border-radius: .9rem; padding: .7rem .9rem; font-size: .83rem; font-weight: 600; display: flex; gap: .5rem; align-items: flex-start; }
+        .wa-test.ok { background: rgba(16, 185, 129, .1); color: #047857; }
+        .wa-test.bad { background: rgba(239, 68, 68, .1); color: #b91c1c; }
+        .dark .wa-test.ok { color: #6ee7b7; }
+        .dark .wa-test.bad { color: #fca5a5; }
+        .wa-steps { counter-reset: wa; display: flex; flex-direction: column; gap: .6rem; font-size: .8rem; line-height: 1.45; color: #334155; }
+        .wa-steps li { counter-increment: wa; position: relative; padding-left: 2.1rem; }
+        .wa-steps li::before { content: counter(wa); position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 999px; background: #f1f5f9; color: #475569; font-size: .72rem; font-weight: 900; }
+        .wa-steps li.is-done::before { content: '✓'; background: #10b981; color: #fff; }
+        .wa-steps li.is-done { color: #94a3b8; }
+        .dark .wa-steps { color: #cbd5e1; }
+        .dark .wa-steps li::before { background: #1e293b; color: #cbd5e1; }
+        .wa-steps-note { margin-top: .9rem; font-size: .74rem; color: #64748b; display: flex; gap: .4rem; }
+        @media (max-width: 1535px) { .wa-hero { flex-wrap: wrap; } .wa-hero-stats { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); } .wa-hero-btn { grid-column: auto; } }
+        @media (max-width: 1279px) { .wa-grid { grid-template-columns: minmax(0, 1fr) 290px; } .wa-fields { grid-template-columns: minmax(0, 1fr); } }
+        @media (max-width: 1023px) { .wa-grid { grid-template-columns: minmax(0, 1fr); } .wa-side { position: static; } .wa-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 767px) {
+            .wa-hero { padding: 1.1rem; border-radius: 1.3rem; gap: .9rem; }
+            .wa-hero-ico { width: 3.2rem; height: 3.2rem; font-size: 1.45rem; }
+            .wa-hero-txt { flex-basis: calc(100% - 4.5rem); }
+            .wa-hero-txt h2 { font-size: 1.1rem; }
+            .wa-hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .wa-hero-btn { grid-column: 1 / -1; }
+            .wa-fields { grid-template-columns: minmax(0, 1fr); }
+            .wa-actions > button { flex: 1; justify-content: center; }
+        }
     </style>
+    </x-settings.layout>
 </section>
