@@ -413,6 +413,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/team', 'settings.team')->name('settings.team');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
     Volt::route('settings/notifications', 'settings.notifications')->name('settings.notifications');
+    Volt::route('settings/menu', 'settings.menu')->name('settings.menu');
     Volt::route('settings/security', 'settings.security')->name('settings.security');
     Volt::route('settings/system', 'settings.system')->name('settings.system');
     Volt::route('settings/devices', 'settings.devices')->name('settings.devices');

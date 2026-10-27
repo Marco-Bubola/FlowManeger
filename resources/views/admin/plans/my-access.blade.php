@@ -43,7 +43,7 @@
                     @if($me->isAdmin())
                         Você é administrador: tudo está liberado.
                     @else
-                        {{ $onCount }} de {{ $myPerms->count() }} recursos liberados. Os outros aparecem com cadeado e liberam assim que você trocar de plano.
+                        {{ $onCount }} de {{ $myPerms->count() }} recursos incluídos no seu plano. Os com cadeado fazem parte de outros planos.
                     @endif
                 </p>
                 @if($mySub)
@@ -56,7 +56,7 @@
                     <a href="{{ route('settings.plan') }}" wire:navigate class="ac-btn-glass"><i class="bi bi-patch-check"></i> Minha assinatura</a>
                 @endif
                 @if($me->isAdmin() && \Illuminate\Support\Facades\Route::has('admin.plans.users'))
-                    <a href="{{ route('admin.plans.users') }}" class="ac-btn-glass"><i class="bi bi-person-gear"></i> Usuários (admin)</a>
+                    <a href="{{ route('admin.plans.users') }}" class="ac-btn-glass"><i class="bi bi-person-gear"></i> Todos os usuários</a>
                 @endif
             </div>
         </div>
@@ -67,7 +67,7 @@
                 <span class="ap-ico bg-gradient-to-br from-emerald-500 to-teal-500"><i class="bi bi-unlock"></i></span>
                 <div class="min-w-0">
                     <h2>O que o seu plano libera</h2>
-                    <p>Verde está liberado. Com cadeado, precisa de outro plano.</p>
+                    <p>Verde está no seu plano. Com cadeado, está em outro plano.</p>
                 </div>
             </div>
             <div class="ac-feats">
@@ -91,7 +91,7 @@
                 <span class="ap-ico bg-gradient-to-br from-violet-500 to-fuchsia-500"><i class="bi bi-layers"></i></span>
                 <div class="min-w-0">
                     <h2>Comparar planos</h2>
-                    <p>Ao trocar de plano os recursos mudam na hora.</p>
+                    <p>O que cada plano inclui, lado a lado.</p>
                 </div>
             </div>
 

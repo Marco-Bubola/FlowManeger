@@ -178,7 +178,7 @@
         .pl-letter:hover:not(:disabled) { background: rgb(238 242 255); color: rgb(79 70 229); }
         .pl-letter:disabled { opacity: .3; cursor: default; }
         .pl-letter.is-all { padding: 0 .7rem; flex: 0 0 auto; }
-        .pl-letter.is-on { background: linear-gradient(90deg, #4f46e5, #9333ea); color: #fff; box-shadow: 0 3px 10px -3px rgb(79 70 229 / .6); }
+        .pl-letter.is-on { background: linear-gradient(90deg, var(--color-indigo-600, #4f46e5), var(--color-purple-600, #9333ea)); color: #fff; box-shadow: 0 3px 10px -3px rgb(79 70 229 / .6); }
         .dark .pl-letter { color: rgb(203 213 225); }
         .dark .pl-letter:hover:not(:disabled) { background: rgb(79 70 229 / .2); color: #c7d2fe; }
         @media (max-width: 640px) { .pl-letter { min-width: 2.1rem; height: 2.1rem; } }

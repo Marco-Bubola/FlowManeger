@@ -206,7 +206,8 @@ class PlansController extends Controller
     public function users(Request $request)
     {
         $viewer = $request->user();
-        $isAdminView = $viewer->isAdmin();
+        // "Acesso e permissões" é sempre a própria conta; a lista de todos os usuários fica em Administração › Usuários.
+        $isAdminView = $viewer->isAdmin() && $request->routeIs('admin.plans.users');
         $query = User::with(['activeSubscription.plan'])->latest();
 
         if ($isAdminView) {
@@ -229,7 +230,7 @@ class PlansController extends Controller
             $query->whereKey($viewer->id);
         }
 
-        $users = $query->paginate($isAdminView ? 30 : 1)->withQueryString();
+        $users = $query->paginate($isAdminView ? 20 : 1)->withQueryString();
         $plans = Plan::active()->ordered()->get();
         $defaultPlan = Plan::getDefault();
         $stats = $isAdminView

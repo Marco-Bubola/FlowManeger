@@ -59,12 +59,8 @@
         }
     </style>
 
+    <x-settings.layout :heading="'Novo plano'">
     <div class="plan-form-page w-full app-viewport-fit mobile-393-base">
-        @include('partials.plan-center-nav', [
-            'scope' => 'admin',
-            'title' => 'Criar novo plano',
-            'subtitle' => 'Cadastro no mesmo layout do restante do sistema, sem sidebar paralela.',
-        ])
 
         <div style="margin-bottom:1rem">
             <a href="{{ route('admin.plans.index') }}" style="font-size:.8rem;color:var(--plan-muted)">← Voltar aos Planos</a>
@@ -96,4 +92,5 @@
             </div>
         </form>
     </div>
+    </x-settings.layout>
 </x-layouts.app>

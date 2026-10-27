@@ -4,9 +4,12 @@
      Vale primeiro o que está salvo na conta (igual em todos os aparelhos). --}}
 @php
     $fmPalette = null;
+    $fmLook = null;
     if (auth()->check()) {
         $fmPrefs = auth()->user()->preferences;
         $fmPalette = is_array($fmPrefs) ? ($fmPrefs['appearance']['palette'] ?? null) : null;
+        // Cores dos cards de produto e fundo das telas
+        $fmLook = is_array($fmPrefs) ? ($fmPrefs['appearance']['look'] ?? null) : null;
     }
 @endphp
 <script>
@@ -57,6 +60,42 @@
             try { if (localStorage.getItem('flowmanager:color-theme') === 'custom') localStorage.setItem('flowmanager:color-theme', 'purple'); } catch (e) {}
         }
     };
+    // Cores dos cards de produto: acompanham o tema, um estilo pronto ou as cores escolhidas
+    var CARD_FIXED = {
+        branco: ['#ffffff', '#e2e8f0', '#f1f5f9', '#e2e8f0', '#f1f5f9', '#334155', '#0f172a', '#475569'],
+        grafite: [P.slate[1], P.slate[3], P.slate[2], P.slate[2], P.slate[1], '#334155', '#0f172a', '#475569'],
+        escuro: ['#1e293b', '#475569', '#334155', '#334155', '#0f172a', '#e2e8f0', '#f1f5f9', '#64748b'],
+    };
+    window.FM_CARD_FIXED = CARD_FIXED;
+    window.fmCardColors = function (look, pal) {
+        look = look || {}; pal = pal || {};
+        var mode = look.cards || 'tema';
+        if (CARD_FIXED[mode]) return CARD_FIXED[mode];
+        var f;
+        if (mode === 'custom') {
+            f = { bg: look.c_bg, border: look.c_border, tag: look.c_tag, detail: look.c_detail };
+        } else if (mode === 'tema') {
+            var p = P[pal.primary] ? pal.primary : DEF.primary;
+            var s = P[pal.secondary] ? pal.secondary : DEF.secondary;
+            var a = P[pal.accent] ? pal.accent : DEF.accent;
+            // Com as cores padrão o card fica como sempre foi (lilás)
+            if (p === DEF.primary && s === DEF.secondary && a === DEF.accent) return null;
+            f = { bg: p, border: p, tag: s, detail: a };
+        } else {
+            return null;
+        }
+        ['bg', 'border', 'tag', 'detail'].forEach(function (k) { if (!P[f[k]]) f[k] = { bg: 'indigo', border: 'violet', tag: 'pink', detail: 'orange' }[k]; });
+        return [P[f.bg][1], P[f.border][3], P[f.detail][2], P[f.tag][2], P[f.detail][1], '#334155', P[f.border][10], P[f.border][6]];
+    };
+    window.fmApplyLook = function (look, pal) {
+        look = look || {};
+        var c = window.fmCardColors(look, pal);
+        var el = document.getElementById('fm-cards');
+        if (!el) { el = document.createElement('style'); el.id = 'fm-cards'; document.head.appendChild(el); }
+        el.textContent = c ? 'html:root{--card-bg:' + c[0] + ';--card-border:' + c[1] + ';--card-accent:' + c[2] + ';--card-accent2:' + c[3] + ';--card-danger:' + c[4] + ';--card-text:' + c[5] + ';--card-title:' + c[6] + ';--card-btn:' + c[7] + ';}' : '';
+        var bg = ['tema', 'cinza', 'areia', 'branco'].indexOf(look.bg) >= 0 ? look.bg : '';
+        if (bg) document.documentElement.setAttribute('data-fm-bg', bg); else document.documentElement.removeAttribute('data-fm-bg');
+    };
     try {
         var server = @json($fmPalette);
         var local = null;
@@ -64,6 +103,11 @@
         var v = server || local;
         if (server) localStorage.setItem('flowmanager:palette', JSON.stringify(server));
         if (v) window.fmApplyPalette(v);
+        var look = @json($fmLook);
+        var lookLocal = null;
+        try { lookLocal = JSON.parse(localStorage.getItem('flowmanager:look') || 'null'); } catch (e) {}
+        if (look) localStorage.setItem('flowmanager:look', JSON.stringify(look));
+        window.fmApplyLook(look || lookLocal, v || {});
     } catch (e) {}
 })();
 </script>

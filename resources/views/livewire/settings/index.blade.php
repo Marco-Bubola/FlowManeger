@@ -45,6 +45,7 @@ new class extends Component {
         'settings.devices' => [$devices ? $devices . ' ' . ($devices === 1 ? 'aparelho' : 'aparelhos') : 'Este aparelho', 'off'],
         'settings.plan' => [$plan?->name ?? 'Grátis', 'ok'],
         'settings.team' => [$team ? $seats . ' ' . ($seats === 1 ? 'pessoa' : 'pessoas') : 'Só você', 'off'],
+        'settings.menu' => (function () { $n = \App\Support\AppMenu::hiddenCount(); return [$n ? $n . ' escondida' . ($n > 1 ? 's' : '') : 'Tudo à mostra', 'off']; })(),
         'settings.appearance' => [$themeNames[$palette['theme'] ?? ''] ?? (empty($palette) ? 'Flow' : 'Cores próprias'), 'off'],
         'settings.whatsapp' => [$waOn ? 'Ligado' : 'Desligado', $waOn ? 'ok' : 'off'],
         'settings.bank-connections' => [$banks ? $banks . ' ' . ($banks === 1 ? 'conta' : 'contas') : 'Nenhum banco', $banks ? 'ok' : 'off'],

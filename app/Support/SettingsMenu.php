@@ -31,6 +31,7 @@ class SettingsMenu
             ]],
             'preferencias' => ['Preferências', 'bi-sliders', [
                 ['settings.appearance', 'Aparência', 'bi-palette', 'Tema, cores, fonte e modo escuro', 'from-fuchsia-500 to-pink-500'],
+                ['settings.menu', 'Menu do app', 'bi-layout-sidebar-inset', 'Escolha as áreas que aparecem', 'from-indigo-500 to-violet-600'],
                 ['settings.notifications', 'Notificações', 'bi-bell', 'O que aparece no sino', 'from-orange-500 to-red-500'],
             ]],
             'loja' => ['Loja e vendas', 'bi-shop', [
@@ -76,11 +77,19 @@ class SettingsMenu
         return $name;
     }
 
+    /** Telas que não estão no menu mas pertencem a uma página dele (ex.: criar e editar plano ficam em Planos). */
+    private const ALIASES = [
+        'admin.plans.index' => ['admin.plans.create', 'admin.plans.edit'],
+    ];
+
     public static function isActive(string $route, ?string $current = null): bool
     {
         $current = $current ?? static::currentRouteName();
+        if (! $current) {
+            return false;
+        }
 
-        return $current && Str::is($route . '*', $current);
+        return Str::is($route . '*', $current) || in_array($current, self::ALIASES[$route] ?? [], true);
     }
 
     /** [grupoKey, nomeDoGrupo, item] da página aberta, ou null na página inicial. */

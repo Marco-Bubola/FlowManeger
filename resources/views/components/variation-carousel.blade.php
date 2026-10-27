@@ -21,18 +21,18 @@
         border-radius: 999px; background: rgba(255,255,255,.85); border: 1px solid rgba(139,92,246,.25); box-shadow: 0 2px 8px rgba(124,58,237,.12); user-select: none; }
     .dark .vcn { background: rgba(30,27,75,.75); box-shadow: none; border-color: rgba(167,139,250,.35); }
     .vc .vcn .vcn-arrow { width: 1.6rem; height: 1.6rem; padding: 0; margin: 0; flex-shrink: 0; border-radius: 999px; display: flex; align-items: center; justify-content: center;
-        font-size: .75rem; color: #fff; background: linear-gradient(135deg, #8b5cf6, #a855f7); box-shadow: 0 2px 6px rgba(124,58,237,.3); transition: transform .15s; }
+        font-size: .75rem; color: #fff; background: linear-gradient(135deg, var(--color-violet-500, #8b5cf6), var(--color-purple-500, #a855f7)); box-shadow: 0 2px 6px rgba(124,58,237,.3); transition: transform .15s; }
     .vc .vcn .vcn-arrow:hover { transform: scale(1.08); }
     .vc .vcn .vcn-arrow:active { transform: scale(.9); }
     .vcn-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; line-height: 1.15; }
     .vcn-name { max-width: 100%; font-size: .68rem; font-weight: 800; color: #5b21b6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .dark .vcn-name { color: #ddd6fe; }
-    .vcn-meta { display: flex; align-items: center; gap: .3rem; font-size: .6rem; font-weight: 700; color: #7c3aed; }
+    .vcn-meta { display: flex; align-items: center; gap: .3rem; font-size: .6rem; font-weight: 700; color: var(--color-violet-600, #7c3aed); }
     .dark .vcn-meta { color: #c4b5fd; }
-    .vcn-note { padding: 0 .3rem; border-radius: 999px; background: #7c3aed; color: #fff; }
+    .vcn-note { padding: 0 .3rem; border-radius: 999px; background: var(--color-violet-600, #7c3aed); color: #fff; }
     .vcn-dots { display: flex; gap: .15rem; }
     .vcn-dot { width: .3rem; height: .3rem; border-radius: 999px; background: rgba(124,58,237,.3); transition: all .2s; }
-    .vcn-dot.on { width: .75rem; background: #7c3aed; }
+    .vcn-dot.on { width: .75rem; background: var(--color-violet-600, #7c3aed); }
     .dark .vcn-dot { background: rgba(196,181,253,.35); } .dark .vcn-dot.on { background: #c4b5fd; }
     @container (max-width: 170px) {
         .vc .vcn { gap: .15rem; padding: .12rem; margin-top: .3rem; }

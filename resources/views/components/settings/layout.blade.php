@@ -99,7 +99,7 @@
                             <i class="bi bi-chevron-right"></i><span>{{ $stgCurrent[1] }}</span>
                         @endif
                     </nav>
-                    <h1>{{ $stgItem[1] ?? ($heading ?: 'Configurações') }}</h1>
+                    <h1>{{ $heading ?: ($stgItem[1] ?? 'Configurações') }}</h1>
                     <p>{{ $stgItem[3] ?? '' }}</p>
                 </div>
                 <div class="stg-head-actions">

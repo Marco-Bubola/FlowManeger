@@ -552,7 +552,7 @@ html body:has(.notif-ph) .mobile-top-bell { display: none !important; }
    (o degradê rosa ficava quase invisível sobre o fundo lilás) e ícone da categoria centrado na
    borda da foto num círculo claro, como em Nova venda (antes, no celular, ia para o lado e cobria o nome). */
 html body .product-card-modern .product-title {
-    background: none !important; -webkit-text-fill-color: currentColor !important; color: #1e1b4b !important;
+    background: none !important; -webkit-text-fill-color: currentColor !important; color: var(--card-title, #1e1b4b) !important;
     display: -webkit-box !important; -webkit-box-orient: vertical !important; -webkit-line-clamp: 2 !important; overflow: hidden !important;
     min-height: 0 !important; max-height: 2lh !important;
 }
@@ -565,7 +565,7 @@ html body .product-card-modern .category-icon-wrapper {
     background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%) !important;
     border-color: rgba(129, 140, 248, 0.22) !important;
 }
-html body .product-card-modern .category-icon { color: #6366f1 !important; filter: none !important; }
+html body .product-card-modern .category-icon { color: var(--color-indigo-500) !important; filter: none !important; }
 html.dark body .product-card-modern .category-icon-wrapper { background: #1e293b !important; border-color: rgba(129, 140, 248, 0.35) !important; }
 html.dark body .product-card-modern .category-icon { color: #a5b4fc !important; }
 /* Adicionar produtos à venda e Nova promoção (mesmos cards): ícone menor e espaço para ele acima do nome. */
@@ -655,3 +655,15 @@ html.dark body .s-conn-btn:not(.s-conn-btn--primary):not(.s-conn-btn--orange):no
 .settings-content-area .settings-card-title { font-size: .98rem; font-weight: 800; line-height: 1.25; }
 .settings-content-area .settings-card-desc { font-size: .78rem; margin-top: .15rem; }
 @media (max-width: 767px) { .settings-content-area .settings-card { padding: .95rem .9rem 1rem; border-radius: 1.1rem; } }
+
+/* Fundo das telas (Configurações › Aparência). Só no modo claro; o escuro continua igual. */
+html:not(.dark)[data-fm-bg="tema"] body { background: linear-gradient(135deg, var(--color-slate-50) 0%, var(--color-indigo-50) 50%, var(--color-purple-100) 100%) fixed !important; }
+html:not(.dark)[data-fm-bg="cinza"] body { background: #eef1f5 !important; }
+html:not(.dark)[data-fm-bg="areia"] body { background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 50%, #fdf2f8 100%) fixed !important; }
+html:not(.dark)[data-fm-bg="branco"] body { background: #ffffff !important; }
+/* Botão "ver" do card de produto acompanha as cores dos cards (Aparência). */
+html body .product-card-modern .btn-action-group .btn-secondary { background: var(--card-btn, #7e57c2) !important; }
+/* Páginas de administração (planos, assinaturas) dentro da moldura das Configurações:
+   sem o recuo próprio e sem repetir o título que o cabeçalho já mostra. */
+.settings-content-area :is(.plan-admin-page, .plan-form-page, .plan-subscriptions-page) { padding: 0 !important; max-width: none !important; margin: 0 !important; }
+.settings-content-area :is(.plan-admin-page, .plan-form-page, .plan-subscriptions-page) .page-title { display: none !important; }

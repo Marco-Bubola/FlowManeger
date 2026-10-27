@@ -5,11 +5,35 @@ use Livewire\Volt\Component;
 
 new class extends Component {
     public array $palette = [];
+    public array $look = [];
 
     public function mount(): void
     {
         $prefs = Auth::user()->preferences;
         $this->palette = is_array($prefs) ? ($prefs['appearance']['palette'] ?? []) : [];
+        $this->look = is_array($prefs) ? ($prefs['appearance']['look'] ?? []) : [];
+    }
+
+    /** Cores dos cards de produto e fundo das telas, salvos na conta. */
+    public function saveLook(array $value): void
+    {
+        $fams = ['slate', 'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'];
+        $clean = [
+            'cards' => in_array($value['cards'] ?? '', ['tema', 'classico', 'branco', 'grafite', 'escuro', 'custom'], true) ? $value['cards'] : 'tema',
+            'bg' => in_array($value['bg'] ?? '', ['padrao', 'tema', 'cinza', 'areia', 'branco'], true) ? $value['bg'] : 'padrao',
+        ];
+        foreach (['c_bg', 'c_border', 'c_tag', 'c_detail'] as $k) {
+            $clean[$k] = in_array($value[$k] ?? null, $fams, true) ? $value[$k] : null;
+        }
+
+        $user = Auth::user();
+        $prefs = is_array($user->preferences) ? $user->preferences : [];
+        $appearance = is_array($prefs['appearance'] ?? null) ? $prefs['appearance'] : [];
+        $appearance['look'] = $clean;
+        $prefs['appearance'] = $appearance;
+        $user->update(['preferences' => $prefs]);
+        $this->look = $clean;
+        $this->skipRender();
     }
 
     /** Guarda as cores na conta, para valerem em todos os aparelhos. */
@@ -60,7 +84,7 @@ new class extends Component {
 <section class="settings-appearance-page w-full mobile-393-base">
     <x-settings.layout :heading="''">
 
-    <div class="ap-page" x-data="fmAppearance(@js($palette), @js(array_map(fn ($t) => ['id' => $t[0], 'primary' => $t[3], 'secondary' => $t[4], 'accent' => $t[5]], $themes)))" x-init="init()">
+    <div class="ap-page" x-data="fmAppearance(@js($palette), @js($look), @js(array_map(fn ($t) => ['id' => $t[0], 'primary' => $t[3], 'secondary' => $t[4], 'accent' => $t[5]], $themes)))" x-init="init()">
 
         <div class="ap-grid">
             <div class="ap-main">
@@ -125,6 +149,71 @@ new class extends Component {
                     @endforeach
                     <div class="ap-actions">
                         <button type="button" class="ap-btn-ghost" @click="reset()"><i class="bi bi-arrow-counterclockwise"></i> Voltar ao padrão</button>
+                    </div>
+                </div>
+
+                {{-- Cards de produto --}}
+                <div class="ap-card">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-violet-500 to-pink-500"><i class="bi bi-postcard-heart"></i></span>
+                        <div class="min-w-0">
+                            <h2>Cores dos cards de produto</h2>
+                            <p>Os cards da lista de produtos, das vendas, dos kits e das promoções. "Acompanhar o tema" muda junto quando você troca o tema.</p>
+                        </div>
+                        <span class="ap-saved" x-show="lookSavedAt" x-transition.opacity x-cloak><i class="bi bi-cloud-check"></i> Salvo</span>
+                    </div>
+                    <div class="ap-cardstyles">
+                        <template x-for="m in cardModes" :key="m.id">
+                            <button type="button" class="ap-cs" :class="{ 'is-on': look.cards === m.id }" @click="pickCards(m.id)">
+                                <span class="ap-cs-art" :style="cardArt(m.id)">
+                                    <span class="ap-cs-img"></span>
+                                    <span class="ap-cs-name"></span>
+                                    <span class="ap-cs-prices"><span></span><span></span></span>
+                                </span>
+                                <span class="ap-cs-label" x-text="m.label"></span>
+                                <span class="ap-cs-desc" x-text="m.desc"></span>
+                            </button>
+                        </template>
+                    </div>
+                    <div x-show="look.cards === 'custom'" x-cloak class="mt-2">
+                        @foreach([['c_bg', 'Fundo do card', 'A cor clara atrás do nome'], ['c_border', 'Borda e nome', 'Contorno do card e cor do nome'], ['c_tag', 'Etiquetas', 'Código e preço de custo'], ['c_detail', 'Detalhes', 'Moldura da foto e preço de venda']] as [$slot, $label, $hint])
+                            <div class="ap-row">
+                                <div class="ap-row-label">
+                                    <span class="ap-row-dot" :style="'background: var(--fm-sw-' + (look.{{ $slot }} || customDefault.{{ $slot }}) + ')'"></span>
+                                    <div>
+                                        <p>{{ $label }}</p>
+                                        <small>{{ $hint }}</small>
+                                    </div>
+                                </div>
+                                <div class="ap-swatches">
+                                    @foreach($families as [$fam, $famName])
+                                        <button type="button" class="ap-swatch" title="{{ $famName }}" style="background: var(--fm-sw-{{ $fam }})"
+                                                :class="{ 'is-on': (look.{{ $slot }} || customDefault.{{ $slot }}) === '{{ $fam }}' }" @click="pickCardColor('{{ $slot }}', '{{ $fam }}')">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Fundo das telas --}}
+                <div class="ap-card">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-amber-400 to-rose-500"><i class="bi bi-image"></i></span>
+                        <div class="min-w-0">
+                            <h2>Fundo das telas</h2>
+                            <p>A cor atrás dos cards em todas as páginas. Vale no modo claro.</p>
+                        </div>
+                    </div>
+                    <div class="ap-bgs">
+                        <template x-for="b in bgModes" :key="b.id">
+                            <button type="button" class="ap-bg" :class="{ 'is-on': look.bg === b.id }" @click="pickBg(b.id)">
+                                <span class="ap-bg-art" :class="'ap-bg-' + b.id"><span></span><span></span></span>
+                                <span x-text="b.label"></span>
+                            </button>
+                        </template>
                     </div>
                 </div>
 
@@ -210,6 +299,16 @@ new class extends Component {
                             </div>
                             <button type="button" class="ap-pv-btn bg-gradient-to-r from-indigo-600 to-purple-600"><i class="bi bi-plus-lg"></i> Nova venda</button>
                         </div>
+                    </div>
+                    <div class="ap-pv-cards">
+                        @foreach([['Batom matte', 'R$ 32,90', 'from-pink-300 to-rose-400'], ['Hidratante', 'R$ 45,00', 'from-sky-300 to-indigo-400']] as [$pn, $pp, $pg])
+                            <div class="ap-pc">
+                                <span class="ap-pc-code">P00{{ $loop->iteration }}</span>
+                                <span class="ap-pc-img"><span class="bg-gradient-to-br {{ $pg }}"></span></span>
+                                <b>{{ $pn }}</b>
+                                <span class="ap-pc-prices"><span>R$ 18,00</span><span>{{ $pp }}</span></span>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
 
@@ -332,6 +431,47 @@ new class extends Component {
         .ap-pv-tabs span.text-white { color: #fff; }
         .ap-pv-btn { display: flex; align-items: center; justify-content: center; gap: .3rem; color: #fff; font-size: .68rem; font-weight: 800; padding: .45rem; border-radius: .7rem; }
 
+        .ap-cardstyles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .55rem; }
+        .ap-cs { position: relative; display: flex; flex-direction: column; gap: .2rem; text-align: left; padding: .45rem .45rem .6rem; border-radius: 1rem; border: 2px solid #e2e8f0; background: #f8fafc; transition: transform .15s, border-color .15s; }
+        .ap-cs:hover { transform: translateY(-2px); }
+        .ap-cs.is-on { border-color: var(--color-indigo-600); background: #fff; box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-indigo-500) 18%, transparent); }
+        .dark .ap-cs { background: #111827; border-color: #1f2937; }
+        .dark .ap-cs.is-on { background: #1e293b; border-color: var(--color-indigo-600); }
+        .ap-cs-art { display: flex; flex-direction: column; gap: .25rem; padding: .3rem; border-radius: .7rem; background: var(--a-bg); border: 2px solid var(--a-border); height: 5.6rem; }
+        .ap-cs-img { flex: 1; border-radius: .45rem; background: #fff; border: 2px solid var(--a-detail); }
+        .ap-cs-name { height: .32rem; width: 70%; margin: .1rem auto 0; border-radius: 1rem; background: var(--a-title); opacity: .75; }
+        .ap-cs-prices { display: flex; justify-content: space-between; gap: .3rem; }
+        .ap-cs-prices span { height: .55rem; width: 42%; border-radius: .25rem; background: linear-gradient(90deg, var(--a-tag), var(--a-border)); }
+        .ap-cs-prices span + span { background: linear-gradient(90deg, var(--a-danger), var(--a-tag)); }
+        .ap-cs-label { margin-top: .3rem; font-size: .78rem; font-weight: 800; color: #0f172a; line-height: 1.2; }
+        .ap-cs-desc { font-size: .66rem; color: #64748b; line-height: 1.25; }
+        .dark .ap-cs-label { color: #f1f5f9; }
+        .dark .ap-cs-desc { color: #94a3b8; }
+        .ap-bgs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .55rem; }
+        .ap-bg { display: flex; flex-direction: column; align-items: center; gap: .35rem; padding: .45rem .45rem .55rem; border-radius: .9rem; border: 2px solid #e2e8f0; background: #f8fafc; font-size: .74rem; font-weight: 700; color: #334155; }
+        .ap-bg.is-on { border-color: var(--color-indigo-600); background: #fff; }
+        .dark .ap-bg { background: #111827; border-color: #1f2937; color: #e2e8f0; }
+        .dark .ap-bg.is-on { border-color: var(--color-indigo-600); background: #1e293b; }
+        .ap-bg-art { position: relative; width: 100%; height: 2.8rem; border-radius: .6rem; border: 1px solid #e2e8f0; display: flex; gap: .25rem; padding: .35rem; }
+        .ap-bg-art span { flex: 1; border-radius: .3rem; background: #fff; box-shadow: 0 2px 6px -3px rgba(15, 23, 42, .3); }
+        .ap-bg-padrao { background: linear-gradient(135deg, #f8fafc, #eff6ff, #eef2ff); }
+        .ap-bg-tema { background: linear-gradient(135deg, var(--color-slate-50), var(--color-indigo-50) 50%, var(--color-purple-100)); }
+        .ap-bg-cinza { background: #eef1f5; }
+        .ap-bg-areia { background: linear-gradient(135deg, #fffbeb, #fff7ed 50%, #fdf2f8); }
+        .ap-bg-branco { background: #fff; }
+        .ap-bg-branco span { border: 1px solid #e2e8f0; }
+        .ap-pv-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-top: .6rem; }
+        .ap-pc { position: relative; display: flex; flex-direction: column; gap: .3rem; padding: .3rem; border-radius: 1rem; background: var(--card-bg, #e6e6fa); border: 2px solid var(--card-border, #b39ddb); }
+        .ap-pc-code { position: absolute; top: .3rem; left: .3rem; z-index: 1; font-size: .55rem; font-weight: 800; padding: .1rem .35rem; border-radius: .6rem 0 .6rem 0; color: var(--card-text, #424242); background: linear-gradient(90deg, var(--card-accent2, #f8bbd0), var(--card-border, #b39ddb)); }
+        .ap-pc-img { display: grid; place-items: center; height: 4.2rem; border-radius: .75rem; background: #fff; border: 3px solid var(--card-accent, #ffe0b2); }
+        .ap-pc-img span { width: 1.6rem; height: 2.6rem; border-radius: .4rem; }
+        .ap-pc b { font-size: .62rem; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; text-align: center; color: var(--card-title, #1e1b4b); }
+        .ap-pc-prices { display: flex; justify-content: space-between; gap: .2rem; }
+        .ap-pc-prices span { font-size: .55rem; font-weight: 800; padding: .12rem .3rem; border-radius: .4rem; color: var(--card-text, #424242); background: linear-gradient(90deg, var(--card-accent2, #f8bbd0), var(--card-border, #b39ddb)); }
+        .ap-pc-prices span + span { background: linear-gradient(90deg, var(--card-danger, #ffebee), var(--card-accent2, #f8bbd0)); }
+        @media (max-width: 1535px) { .ap-cardstyles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        @media (max-width: 767px) { .ap-bgs { grid-template-columns: repeat(3, minmax(0, 1fr)); } .ap-cardstyles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
         .ap-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
         .ap-mode { display: flex; flex-direction: column; gap: .35rem; align-items: center; padding: .45rem .45rem .55rem; border-radius: .9rem; border: 2px solid #e2e8f0; background: #f8fafc; font-size: .74rem; font-weight: 700; color: #334155; }
         .ap-mode.is-on { border-color: var(--color-indigo-600); background: #fff; }
@@ -342,7 +482,8 @@ new class extends Component {
         .ap-mode-dark { background: linear-gradient(135deg, #1e293b 55%, #020617 55%); border-color: #334155; }
         .ap-mode-system { background: linear-gradient(135deg, #fff 50%, #1e293b 50%); }
 
-        @media (max-width: 1279px) { .ap-grid { grid-template-columns: minmax(0, 1fr) 320px; } .ap-row { grid-template-columns: 1fr; gap: .5rem; } }
+        @media (max-width: 1535px) { .ap-row { grid-template-columns: 1fr; gap: .5rem; } }
+        @media (max-width: 1279px) { .ap-grid { grid-template-columns: minmax(0, 1fr) 320px; } }
         @media (max-width: 1023px) {
             .ap-grid { grid-template-columns: minmax(0, 1fr); }
             .ap-side { position: static; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -358,9 +499,28 @@ new class extends Component {
     </style>
 
     <script>
-        window.fmAppearance = window.fmAppearance || function (saved, themes) {
+        window.fmAppearance = window.fmAppearance || function (saved, savedLook, themes) {
             return {
                 themes: themes,
+                look: { cards: 'tema', bg: 'padrao', c_bg: null, c_border: null, c_tag: null, c_detail: null },
+                customDefault: { c_bg: 'violet', c_border: 'purple', c_tag: 'pink', c_detail: 'orange' },
+                lookSavedAt: null,
+                lookTimer: null,
+                cardModes: [
+                    { id: 'tema', label: 'Acompanhar o tema', desc: 'Muda junto com o tema' },
+                    { id: 'classico', label: 'Lilás clássico', desc: 'O visual de sempre' },
+                    { id: 'branco', label: 'Branco', desc: 'Limpo, a foto aparece mais' },
+                    { id: 'grafite', label: 'Grafite', desc: 'Cinza discreto' },
+                    { id: 'escuro', label: 'Escuro', desc: 'Card escuro, letras claras' },
+                    { id: 'custom', label: 'Minhas cores', desc: 'Escolha cada parte' },
+                ],
+                bgModes: [
+                    { id: 'padrao', label: 'Padrão' },
+                    { id: 'tema', label: 'Do tema' },
+                    { id: 'cinza', label: 'Cinza' },
+                    { id: 'areia', label: 'Areia' },
+                    { id: 'branco', label: 'Branco' },
+                ],
                 theme: 'flow',
                 pal: { primary: 'indigo', secondary: 'purple', accent: 'pink' },
                 font: 'system',
@@ -379,6 +539,9 @@ new class extends Component {
                     { id: 'roboto', label: 'Roboto', css: 'Roboto, sans-serif' },
                 ],
                 init() {
+                    var lk = savedLook && savedLook.cards ? savedLook : null;
+                    if (!lk) { try { lk = JSON.parse(localStorage.getItem('flowmanager:look') || 'null'); } catch (e) {} }
+                    if (lk) this.look = Object.assign({}, this.look, lk);
                     var local = null;
                     try { local = JSON.parse(localStorage.getItem('flowmanager:palette') || 'null'); } catch (e) {}
                     var v = (saved && saved.primary) ? saved : local;
@@ -409,6 +572,7 @@ new class extends Component {
                 apply() {
                     var v = Object.assign({ theme: this.theme }, this.pal);
                     window.fmApplyPalette && window.fmApplyPalette(v);
+                    window.fmApplyLook && window.fmApplyLook(this.look, this.pal);
                     try { localStorage.setItem('flowmanager:palette', JSON.stringify(v)); } catch (e) {}
                     clearTimeout(this.saveTimer);
                     this.saveTimer = setTimeout(() => {
@@ -428,6 +592,27 @@ new class extends Component {
                     this.apply();
                 },
                 reset() { this.pickTheme('flow'); },
+                // Mostra as cores de cada estilo de card na amostra (mesma conta usada no app)
+                cardArt(mode) {
+                    var classic = ['#e6e6fa', '#b39ddb', '#ffe0b2', '#f8bbd0', '#ffebee', '#424242', '#1e1b4b'];
+                    var lk = Object.assign({}, this.look, { cards: mode });
+                    if (mode === 'custom') { ['c_bg', 'c_border', 'c_tag', 'c_detail'].forEach((k) => { lk[k] = lk[k] || this.customDefault[k]; }); }
+                    var c = (window.fmCardColors && window.fmCardColors(lk, this.pal)) || classic;
+                    return '--a-bg:' + c[0] + ';--a-border:' + c[1] + ';--a-detail:' + c[2] + ';--a-tag:' + c[3] + ';--a-danger:' + c[4] + ';--a-title:' + c[6];
+                },
+                applyLook() {
+                    var lk = Object.assign({}, this.look);
+                    if (lk.cards === 'custom') { ['c_bg', 'c_border', 'c_tag', 'c_detail'].forEach((k) => { lk[k] = lk[k] || this.customDefault[k]; }); this.look = lk; }
+                    window.fmApplyLook && window.fmApplyLook(lk, this.pal);
+                    try { localStorage.setItem('flowmanager:look', JSON.stringify(lk)); } catch (e) {}
+                    clearTimeout(this.lookTimer);
+                    this.lookTimer = setTimeout(() => {
+                        this.$wire.saveLook(lk).then(() => { this.lookSavedAt = Date.now(); setTimeout(() => { this.lookSavedAt = null; }, 2500); });
+                    }, 400);
+                },
+                pickCards(id) { this.look.cards = id; this.applyLook(); },
+                pickCardColor(slot, fam) { this.look[slot] = fam; this.look.cards = 'custom'; this.applyLook(); },
+                pickBg(id) { this.look.bg = id; this.applyLook(); },
                 pickFont(id) {
                     this.font = id;
                     try { id === 'system' ? localStorage.removeItem('flowmanager:font') : localStorage.setItem('flowmanager:font', id); } catch (e) {}

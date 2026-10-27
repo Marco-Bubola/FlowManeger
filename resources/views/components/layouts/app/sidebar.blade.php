@@ -4,6 +4,7 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        @include('partials.app-menu-prefs')
         @php
             $mobilePendingSales = 0;
             $mobilePendingMl = 0;
@@ -865,7 +866,7 @@
                                         <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('access.center') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/30' : '' }}">
                                             <i class="bi bi-person-lock text-base"></i>
                                         </div>
-                                        <span class="sidebar-text flex-1 font-medium truncate">Acesso e permissoes</span>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Acesso e permissões</span>
                                         <div class="{{ request()->routeIs('access.center') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
                                     </a>
 
@@ -923,7 +924,7 @@
                                                 <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/50 group-hover:bg-fuchsia-200 dark:group-hover:bg-fuchsia-800/50 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('admin.plans.users') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-md shadow-fuchsia-500/30' : '' }}">
                                                     <i class="bi bi-person-vcard text-sm"></i>
                                                 </div>
-                                                <span class="sidebar-text flex-1 font-medium truncate text-sm">Usuarios</span>
+                                                <span class="sidebar-text flex-1 font-medium truncate text-sm">Usuários</span>
                                                 <div class="{{ request()->routeIs('admin.plans.users') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
                                             </a>
                                         </div>
@@ -1624,8 +1625,8 @@
                             <a href="{{ route('admin.plans.users') }}" class="more-sheet-account-link" wire:navigate.hover onclick="closeMoreSheet()">
                                 <span class="more-sheet-account-icon is-indigo"><i class="bi bi-person-vcard"></i></span>
                                 <span class="more-sheet-account-copy">
-                                    <strong>Usuarios</strong>
-                                    <small>Acesso e permissoes</small>
+                                    <strong>Usuários</strong>
+                                    <small>Acesso e permissões</small>
                                 </span>
                             </a>
                         @else

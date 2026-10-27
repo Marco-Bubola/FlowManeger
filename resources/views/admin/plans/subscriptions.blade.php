@@ -84,12 +84,8 @@
         }
     </style>
 
+    <x-settings.layout :heading="'Assinaturas'">
     <div class="plan-subscriptions-page w-full app-viewport-fit mobile-393-base">
-        @include('partials.plan-center-nav', [
-            'scope' => 'admin',
-            'title' => 'Assinaturas ativas e históricas',
-            'subtitle' => 'Filtro, acompanhamento e ações rápidas usando a sidebar principal e a tab bar do app.',
-        ])
 
         @if(session('success'))
             <div class="alert alert-success">✓ {{ session('success') }}</div>
@@ -214,4 +210,5 @@
         @endif
 
     </div>
+    </x-settings.layout>
 </x-layouts.app>

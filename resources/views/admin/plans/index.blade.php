@@ -112,12 +112,8 @@
         }
     </style>
 
+    <x-settings.layout :heading="'Planos'">
     <div class="plan-admin-page w-full app-viewport-fit mobile-393-base">
-        @include('partials.plan-center-nav', [
-            'scope' => 'admin',
-            'title' => 'Gerenciar planos',
-            'subtitle' => 'Planos, assinantes e liberação manual de planos.',
-        ])
 
         @if(session('success'))
             <div class="alert alert-success">✓ {{ session('success') }}</div>
@@ -295,4 +291,5 @@
         </div>
 
     </div>
+    </x-settings.layout>
 </x-layouts.app>
