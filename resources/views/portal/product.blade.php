@@ -83,6 +83,7 @@
     .pp-about h2 { margin: 0 0 10px; font-size: 18px; font-weight: 700; }
     .pp-about h2 + p { margin: 0; white-space: pre-line; color: var(--ml-muted); font-size: 14px; line-height: 1.6; }
     .pp-about .pp-sub { margin-top: 20px; }
+    .pp-about [style*="display: none"] + .pp-sub { margin-top: 0; }
     .pp-about .ml-specs { margin-top: 0; }
 
     .pp-related { margin-top: 12px; }
@@ -113,6 +114,8 @@
         .pp-about { padding: 24px; }
         .pp-about-in { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px; }
         .pp-about .pp-sub { margin-top: 0; }
+        .pp-about-in:has(> div[style*="display: none"]) { grid-template-columns: minmax(0, 1fr); }
+        .pp-about-in:has(> div[style*="display: none"]) .ml-specs { max-width: 720px; }
         .pp-related .ml-rail .ml-card { flex-basis: 184px; }
     }
     @media (min-width: 1180px) {
