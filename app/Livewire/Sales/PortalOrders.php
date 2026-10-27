@@ -140,6 +140,43 @@ class PortalOrders extends Component
         ];
     }
 
+    /** Andamento da entrega (o cliente vê em Meus pedidos); depois oferece avisar no WhatsApp. */
+    public function setDelivery(int $id, string $stage, ?string $code = null, ?string $carrier = null, ?string $eta = null): void
+    {
+        $quote = $this->quote($id);
+        if (! $quote || $quote->status !== 'approved' || ! isset(PortalOrderService::DELIVERY_STAGES[$stage])) {
+            return;
+        }
+        $code = mb_substr(trim((string) $code), 0, 60) ?: null;
+        $carrier = isset(PortalOrderService::CARRIERS[$carrier]) ? $carrier : null;
+        try {
+            $eta = $eta ? \Illuminate\Support\Carbon::parse($eta)->toDateString() : null;
+        } catch (\Throwable $e) {
+            $eta = null;
+        }
+        $events = (array) ($quote->delivery_events ?? []);
+        if ($quote->delivery_stage !== $stage) {
+            $events[] = ['stage' => $stage, 'at' => now()->toIso8601String()];
+        }
+        $quote->update(['delivery_stage' => $stage, 'delivery_events' => array_slice($events, -20), 'tracking_code' => $code, 'tracking_carrier' => $carrier, 'delivery_eta' => $stage === 'entregue' ? null : $eta]);
+
+        $orders = app(PortalOrderService::class);
+        $client = $quote->client;
+        $phone = \App\Services\Portal\CartRecovery::phone($client);
+        $store = \App\Services\Portal\StoreIdentity::for((int) $quote->user_id)['name'];
+        $this->notify = [
+            'quote_id' => $quote->id,
+            'status' => 'approved',
+            'sale_id' => $quote->sale?->id,
+            'client' => $client?->name,
+            'has_phone' => (bool) $phone,
+            'mailed' => false,
+            'url' => $phone ? 'https://wa.me/' . $phone . '?text=' . rawurlencode($orders->deliveryMessage($quote, $client, $store)) : null,
+            'message' => $orders->deliveryMessage($quote, $client, $store),
+            'title' => 'Entrega do pedido #' . $quote->id . ': ' . PortalOrderService::DELIVERY_STAGES[$stage][0],
+        ];
+    }
+
     public function closeNotify(): void
     {
         $this->notify = null;

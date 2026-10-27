@@ -1,6 +1,7 @@
 @php
     [$ptitle, $picon] = $pageInfo;
-    $others = collect(\App\Services\Portal\StoreIdentity::PAGES)->except($page)->filter(fn ($v, $k) => isset($identity['pages'][$k]));
+    $others = collect(\App\Services\Portal\StoreIdentity::footerPages($identity))->except($page);
+    $legalLine = collect([$identity['legal_name'] ?: null, $identity['document_text'] ?? null, $identity['address'] ?: null])->filter()->implode(' · ');
 @endphp
 <x-portal-catalog-layout :title="$ptitle" :store="$store" :owner-id="$ownerId">
     <style>
@@ -19,6 +20,7 @@
         <article class="sp-card">
             <h1 class="sf-font"><i class="fas {{ $picon }}"></i>{{ $ptitle }}</h1>
             <div class="sp-text">{{ $text }}</div>
+            @if($legalLine)<p style="margin:16px 0 0;font-size:12px;color:var(--ml-muted,#888)">{{ $legalLine }}</p>@endif
             @if($identity['wa_link'])
                 <a href="{{ $identity['wa_link'] }}" target="_blank" rel="noopener" class="sp-wa"><i class="fab fa-whatsapp"></i> Falar no WhatsApp</a>
             @endif

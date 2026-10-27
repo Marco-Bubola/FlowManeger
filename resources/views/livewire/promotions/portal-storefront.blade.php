@@ -735,6 +735,99 @@
         </section>
     @endif
 
+    {{-- ===================== Site dentro da lei ===================== --}}
+    @if($tab === 'leis')
+        @php
+            $SI = \App\Services\Portal\StoreIdentity::class;
+            $okN = collect($legal)->where(4, '!=', 'falta')->count();
+            $faltaN = collect($legal)->where(4, 'falta')->count();
+            $pctL = count($legal) ? (int) round($okN / count($legal) * 100) : 0;
+            $stTone = ['ok' => ['Em dia', 'emerald', 'bi-check-circle-fill'], 'falta' => ['Falta', 'rose', 'bi-exclamation-circle-fill'], 'aviso' => ['Revise', 'amber', 'bi-info-circle-fill']];
+            $legalTexts = ['trocas' => ['Trocas e devoluções', 'bi-arrow-counterclockwise', 'Precisa falar do direito de desistir em 7 dias depois de receber (compras pela internet).'],
+                'privacidade' => ['Política de privacidade', 'bi-person-lock', 'Diz que dados você guarda, para quê, com quem divide e como o cliente pede para apagar.'],
+                'termos' => ['Termos de compra', 'bi-file-earmark-text', 'Regras de preço, pedido, pagamento, entrega e cancelamento.']];
+            $sw = fn ($on) => 'relative inline-flex shrink-0 w-11 h-6 rounded-full transition ' . ($on ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600');
+            $knob = fn ($on) => 'absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ' . ($on ? 'left-[22px]' : 'left-0.5');
+        @endphp
+        <div class="space-y-4" data-testid="legal-tab" x-data="{ go(id) { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }) } }">
+            <section class="rounded-2xl overflow-hidden shadow-sm bg-gradient-to-br from-emerald-600 via-teal-600 to-sky-600 text-white p-5 sm:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div class="relative shrink-0 w-20 h-20">
+                        <svg viewBox="0 0 36 36" class="w-20 h-20 -rotate-90"><circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="3.5"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="{{ round($pctL * 0.974, 1) }} 100"/></svg>
+                        <b class="absolute inset-0 flex items-center justify-center text-lg font-black" data-testid="legal-pct">{{ $pctL }}%</b>
+                    </div>
+                    <div class="min-w-0">
+                        <h2 class="text-lg sm:text-xl font-black">Site dentro da lei</h2>
+                        <p class="text-sm text-white/85 mt-1">{{ $faltaN ? ($faltaN === 1 ? 'Falta 1 ponto' : "Faltam {$faltaN} pontos") . ' para o seu site seguir o Código de Defesa do Consumidor, a lei do comércio eletrônico e a LGPD.' : 'O seu site mostra o que a lei pede de quem vende pela internet.' }}</p>
+                        <p class="text-[11px] text-white/70 mt-2">É um guia prático para lojas pequenas, não substitui um contador ou advogado.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="{{ $card }} divide-y divide-slate-100 dark:divide-slate-800" data-testid="legal-checks">
+                @foreach($legal as [$lk, $lic, $lt, $ltx, $lst, $llaw, $lgo])
+                    @php [$stL, $stT, $stI] = $stTone[$lst]; @endphp
+                    <div class="flex items-start gap-3 p-3 sm:p-4" data-testid="legal-{{ $lk }}" data-state="{{ $lst }}">
+                        <span class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $tones[$stT] }}"><i class="bi {{ $lic }}"></i></span>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <b class="text-sm text-slate-900 dark:text-white">{{ $lt }}</b>
+                                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $tones[$stT] }}"><i class="bi {{ $stI }}"></i>{{ $stL }}</span>
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $ltx }}</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">{{ $llaw }}</p>
+                        </div>
+                        @if($lgo === 'identidade')
+                            <button type="button" wire:click="$set('tab', 'identidade')" class="{{ $phBtn }} shrink-0">Abrir</button>
+                        @elseif($lgo === 'barra')
+                            <button type="button" wire:click="togglePrivacyBar" class="{{ $sw($identity['privacy_bar'] ?? true) }}" role="switch" aria-checked="{{ ($identity['privacy_bar'] ?? true) ? 'true' : 'false' }}" data-testid="privacy-bar-toggle"><span class="{{ $knob($identity['privacy_bar'] ?? true) }}"></span></button>
+                        @elseif($lgo)
+                            <button type="button" @click="go('leis-{{ $lgo }}')" class="{{ $phBtn }} shrink-0">{{ $lst === 'ok' ? 'Ver' : 'Arrumar' }}</button>
+                        @endif
+                    </div>
+                @endforeach
+            </section>
+
+            <section id="leis-dados" class="{{ $card }} p-4 sm:p-5 space-y-3 scroll-mt-20">
+                <div class="flex items-start gap-3">
+                    <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-sky-50 dark:bg-sky-500/15 text-sky-600 text-lg"><i class="bi bi-building"></i></div>
+                    <div><h2 class="font-bold text-slate-900 dark:text-white">Dados da loja no rodapé</h2><p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Aparecem embaixo de todas as páginas e nos textos de privacidade e termos. Se você é MEI, use o CNPJ do MEI.</p></div>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div><label class="{{ $label }}">Nome ou razão social</label><input type="text" wire:model="identity.legal_name" maxlength="120" class="{{ $input }}" placeholder="Ex.: Maria Silva Cosméticos ME" data-testid="legal-name"></div>
+                    <div><label class="{{ $label }}">CPF ou CNPJ</label><input type="text" wire:model="identity.document" maxlength="30" inputmode="numeric" class="{{ $input }}" placeholder="Só os números" data-testid="legal-document"></div>
+                    <div class="sm:col-span-2"><label class="{{ $label }}">Endereço (rua, número, cidade e estado)</label><input type="text" wire:model="identity.address" maxlength="200" class="{{ $input }}" placeholder="Ex.: Rua das Flores, 120, Centro, Franca - SP" data-testid="legal-address"></div>
+                    <div><label class="{{ $label }}">E-mail de atendimento</label><input type="email" wire:model="identity.email" maxlength="120" class="{{ $input }}" placeholder="contato@sualoja.com"></div>
+                    <div><label class="{{ $label }}">WhatsApp</label><input type="text" wire:model="identity.whatsapp" maxlength="30" class="{{ $input }}" placeholder="(16) 99999-9999"></div>
+                </div>
+                <div class="flex justify-end"><button type="button" wire:click="saveIdentity" class="{{ $primary }}" data-testid="legal-save"><i class="bi bi-check2"></i>Salvar dados</button></div>
+            </section>
+
+            @foreach($legalTexts as $pk => [$pt, $pi, $pdesc])
+                @php $mine = trim($pages[$pk] ?? '') !== ''; @endphp
+                <section id="leis-{{ $pk }}" class="{{ $card }} p-4 sm:p-5 space-y-3 scroll-mt-20" x-data="{ open: {{ $mine ? 'true' : 'false' }} }">
+                    <div class="flex items-start gap-3">
+                        <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-violet-50 dark:bg-violet-500/15 text-violet-600 text-lg"><i class="bi {{ $pi }}"></i></div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-2"><h2 class="font-bold text-slate-900 dark:text-white">{{ $pt }}</h2>
+                                <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $mine ? $tones['emerald'] : $tones['sky'] }}">{{ $mine ? 'Seu texto' : 'Texto pronto no ar' }}</span></div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $pdesc }}</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="{{ route('portal.store-page', ['userId' => auth()->id(), 'page' => $pk]) }}" target="_blank" rel="noopener" class="{{ $phBtn }}"><i class="bi bi-box-arrow-up-right text-violet-500"></i>Ver no site</a>
+                        <button type="button" @click="open = !open" class="{{ $phBtn }}"><i class="bi bi-pencil text-violet-500"></i><span x-text="open ? 'Fechar' : 'Escrever o meu'"></span></button>
+                        <button type="button" wire:click="useLegalText('{{ $pk }}')" @click="open = true" class="{{ $phBtn }}" data-testid="use-legal-{{ $pk }}"><i class="bi bi-magic text-violet-500"></i>{{ $mine ? 'Trocar pelo texto pronto' : 'Editar o texto pronto' }}</button>
+                    </div>
+                    <div x-show="open" x-cloak class="space-y-2">
+                        <textarea wire:model.blur="pages.{{ $pk }}" rows="9" maxlength="5000" class="{{ $input }}" placeholder="Em branco, o site mostra o texto pronto." data-testid="legal-text-{{ $pk }}"></textarea>
+                        <div class="flex justify-end"><button type="button" wire:click="saveIdentity" class="{{ $primary }}"><i class="bi bi-check2"></i>Salvar texto</button></div>
+                    </div>
+                </section>
+            @endforeach
+        </div>
+    @endif
+
     @if($tab === 'automacoes')
         @php
             $H = \App\Services\Portal\HomeLayout::class;
@@ -756,6 +849,14 @@
                     </div>
                 </div>
             </section>
+
+            @php $cartOn = \App\Services\Portal\CartRecovery::ready() && \App\Services\Portal\CartRecovery::settingsFor(auth()->id())['on']; @endphp
+            <a href="{{ route('promotions.carts') }}" class="{{ $card }} p-4 flex items-center gap-3 hover:border-violet-300 transition" data-testid="auto-carts">
+                <span class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $cartOn ? $tones['emerald'] : $tones['slate'] }}"><i class="bi bi-cart-x"></i></span>
+                <span class="min-w-0 flex-1"><b class="block text-sm text-slate-900 dark:text-white">Carrinho abandonado</b><small class="block text-xs text-slate-500 dark:text-slate-400">{{ $cartOn ? 'Ligado: quem não fecha o pedido recebe uma lembrança no WhatsApp.' : 'Desligado. Lembre no WhatsApp quem deixou produtos no carrinho.' }}</small></span>
+                <span class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $cartOn ? $tones['emerald'] : $tones['slate'] }}">{{ $cartOn ? 'Ligado' : 'Desligado' }}</span>
+                <i class="bi bi-chevron-right text-slate-400"></i>
+            </a>
 
             {{-- 1. Tema das datas --}}
             <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="auto-theme">

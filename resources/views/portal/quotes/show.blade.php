@@ -25,6 +25,16 @@
     $deliveryFee = (float) ($quote->delivery_fee ?? 0);
     $addr = $quote->shipping_address ?? [];
     $kitTotal = \App\Services\Portal\KitService::total($quote);
+    $trackUrl = $orders->trackingUrl($quote);
+    // Comprar de novo: os produtos do pedido que ainda estão à venda e com estoque.
+    $again = collect($items)->map(function ($i) use ($products, $orders) {
+        $p = $i['product_id'] ? $products->get($i['product_id']) : null;
+        if (! $p || ! in_array($p->status, ['active', 'ativo'], true) || (int) $p->stock_quantity <= 0) {
+            return null;
+        }
+
+        return ['id' => $p->id, 'name' => $p->name, 'price' => (float) ($p->activePromotion?->promo_price ?? $p->price_sale), 'stock' => (int) $p->stock_quantity, 'img' => $orders->photo($p), 'qty' => min((int) $i['quantity'], (int) $p->stock_quantity)];
+    })->filter()->values();
 @endphp
 
 <div class="po-page" x-data="{ deleteModal: false }">
@@ -95,6 +105,21 @@
             <div class="po-card">
                 <div class="po-card-body">
                     <h2 class="po-sec-title">Acompanhamento</h2>
+                    @if($quote->tracking_code || $quote->delivery_eta)
+                        <div class="po-track" data-testid="tracking" x-data="{ copied: false }">
+                            <i class="fas fa-truck-fast"></i>
+                            <div style="min-width:0;flex:1">
+                                @if($quote->delivery_eta && $quote->delivery_stage !== 'entregue')<div class="po-track-eta">Previsão de entrega: <b>{{ $quote->delivery_eta->locale('pt_BR')->translatedFormat('l, j \d\e F') }}</b></div>@endif
+                                @if($quote->tracking_code)
+                                    <div class="po-track-code">{{ \App\Services\Portal\PortalOrderService::CARRIERS[$quote->tracking_carrier] ?? 'Rastreio' }}: <b>{{ \Illuminate\Support\Str::limit($quote->tracking_code, 40) }}</b></div>
+                                @endif
+                            </div>
+                            @if($quote->tracking_code && ! str_starts_with($quote->tracking_code, 'http'))
+                                <button type="button" class="po-btn po-btn-ghost" @click="navigator.clipboard?.writeText(@js($quote->tracking_code)); copied = true; setTimeout(() => copied = false, 1800)"><i class="fas" :class="copied ? 'fa-check' : 'fa-copy'"></i></button>
+                            @endif
+                            @if($trackUrl)<a href="{{ $trackUrl }}" target="_blank" rel="noopener" class="po-btn po-btn-primary" data-testid="tracking-link">Rastrear</a>@endif
+                        </div>
+                    @endif
                     <ol class="po-tl" data-testid="timeline">
                         @foreach($steps as $step)
                             <li class="{{ $step['state'] }}" data-step="{{ $step['key'] }}" data-state="{{ $step['state'] }}">
@@ -232,6 +257,12 @@
                     @if($quote->can_edit)
                         @unless($quote->kit)<a href="{{ route('portal.quotes.edit', $quote) }}" class="po-btn po-btn-soft po-btn-block"><i class="fas fa-pen"></i> Alterar pedido</a>@endunless
                         <button type="button" @click="deleteModal = true" class="po-btn po-btn-red po-btn-block"><i class="fas fa-trash"></i> Cancelar pedido</button>
+                    @endif
+                    @if($again->isNotEmpty() && ! $quote->can_edit)
+                        <button type="button" class="po-btn po-btn-soft po-btn-block" data-testid="buy-again"
+                                @click="@js($again).forEach(i => $store.cart.add(i, i.qty)); window.location = @js(route('portal.quotes.create'))">
+                            <i class="fas fa-rotate-right"></i> Comprar de novo
+                        </button>
                     @endif
                     <a href="{{ route('portal.catalog', ['userId' => $client->user_id]) }}" class="po-btn po-btn-ghost po-btn-block"><i class="fas fa-store"></i> Continuar comprando</a>
                 </div>

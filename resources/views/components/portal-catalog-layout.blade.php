@@ -220,6 +220,23 @@ document.addEventListener('alpine:init', () => {
         },
         save() {
             try { localStorage.setItem('portal_cart', JSON.stringify(this.items)); } catch (e) {}
+            this.push();
+        },
+        // Cliente logado: o carrinho também fica guardado na loja (lembrete de carrinho abandonado).
+        pushUrl: @js($portalClient && (int) $portalClient->user_id === (int) $idOwner && \App\Services\Portal\CartRecovery::ready() ? route('portal.cart.save', ['userId' => (int) $idOwner]) : null),
+        pushTimer: null,
+        push() {
+            if (!this.pushUrl) return;
+            clearTimeout(this.pushTimer);
+            this.pushTimer = setTimeout(() => {
+                const body = JSON.stringify({ items: this.items.map(i => ({ id: i.id, qty: i.qty || 1 })) });
+                // Carrinho vazio num aparelho que nunca mandou nada não apaga o carrinho guardado de outro aparelho.
+                try { const sent = localStorage.getItem('portal_cart_sent'); if (sent === body || (!this.items.length && sent === null)) return; } catch (e) {}
+                fetch(this.pushUrl, { method: 'POST', credentials: 'same-origin', keepalive: true, headers: {
+                    'Content-Type': 'application/json', 'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                }, body }).then(r => { if (r.ok) { try { localStorage.setItem('portal_cart_sent', body); } catch (e) {} } }).catch(() => {});
+            }, 1200);
         },
         get count() { return this.items.length; },
         get total() { return this.items.reduce((s, i) => s + (parseFloat(i.price) || 0) * (i.qty || 1), 0); },
@@ -250,7 +267,7 @@ document.addEventListener('alpine:init', () => {
             this.items = [];
             this.save();
         },
-        init() { this.load(); },
+        init() { this.load(); this.push(); },
     });
 
     // Favoritos (coração). Sem login: só no aparelho; com login: na conta, e o
@@ -378,7 +395,9 @@ document.addEventListener('alpine:init', () => {
         $identity['hours'] ? ['fas fa-clock', $identity['hours'], null] : null,
     ]);
     $fSocial = array_filter(['fab fa-instagram' => $identity['ig_link'], 'fab fa-facebook-f' => $identity['fb_link'], 'fab fa-tiktok' => $identity['tt_link'], 'fab fa-whatsapp' => $identity['wa_link']]);
-    $fPages = $idOwner ? collect(\App\Services\Portal\StoreIdentity::PAGES)->filter(fn ($v, $k) => isset($identity['pages'][$k])) : collect();
+    $fPages = $idOwner ? collect(\App\Services\Portal\StoreIdentity::footerPages($identity)) : collect();
+    // Decreto 7.962/2013: nome, CPF/CNPJ e endereço da loja à vista no site.
+    $fLegal = collect([$identity['legal_name'] ?: ($identity['document'] ? $storeName : null), $identity['document_text'] ?? null, $identity['address'] ?: null])->filter()->implode(' · ');
     $fPay = array_intersect_key(\App\Services\Portal\StoreIdentity::PAYMENTS, array_flip((array) $identity['payments']));
 @endphp
 <footer class="ml-foot2" data-testid="store-footer">
@@ -423,9 +442,28 @@ document.addEventListener('alpine:init', () => {
                 </div>
             @endif
         </div>
+        @if($fLegal)<p class="ml-foot2-copy" data-testid="footer-legal" style="margin-bottom:4px">{{ $fLegal }}</p>@endif
         <p class="ml-foot2-copy">{{ $storeName }} · Catálogo online · {{ date('Y') }}</p>
     </div>
 </footer>
+
+@if($idOwner && ($identity['privacy_bar'] ?? true))
+    {{-- LGPD: aviso curto na primeira visita, com o link da política --}}
+    <div class="ml-privacy" x-data="{ show: false, init() { try { this.show = !localStorage.getItem('fm_privacy_ok') } catch (e) {} }, ok() { this.show = false; try { localStorage.setItem('fm_privacy_ok', '1') } catch (e) {} } }" x-show="show" x-cloak x-transition.opacity data-testid="privacy-bar">
+        <i class="fas fa-user-shield"></i>
+        <p>Usamos os seus dados só para o seu pedido e guardamos o carrinho neste aparelho. Sem propaganda de terceiros. <a href="{{ route('portal.store-page', ['userId' => $idOwner, 'page' => 'privacidade']) }}">Política de privacidade</a></p>
+        <button type="button" @click="ok()" data-testid="privacy-ok">Entendi</button>
+    </div>
+    <style>
+        .ml-privacy { position: fixed; left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 70; max-width: 560px; margin: 0 auto; display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 14px; background: rgba(17,24,39,.94); color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.25); font-size: 12.5px; line-height: 1.4; }
+        .ml-privacy > i { color: #a7f3d0; font-size: 16px; flex-shrink: 0; }
+        .ml-privacy p { margin: 0; flex: 1; }
+        .ml-privacy a { color: #93c5fd; font-weight: 600; }
+        .ml-privacy button { flex-shrink: 0; border: 0; border-radius: 10px; padding: 8px 14px; background: #fff; color: #111827; font-weight: 700; font-size: 13px; cursor: pointer; }
+        @media (min-width: 1024px) { .ml-privacy { bottom: 20px; } }
+    </style>
+@endif
 
 @vite('resources/js/hover-photos.js')
 <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>

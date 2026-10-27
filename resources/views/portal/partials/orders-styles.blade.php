@@ -177,4 +177,8 @@
     }
     @media (max-width: 639px) { .pf-row3 { display: grid; gap: 12px; } }
     @media (max-width: 380px) { .pa-tile { font-size: 11.5px; } .pa-tile-ic { width: 40px; height: 40px; font-size: 17px; } .pa-stat-v { font-size: 17px; } }
+    .po-track { display: flex; align-items: center; gap: 12px; padding: 12px; margin: 0 0 14px; border-radius: 12px; background: rgba(52, 131, 250, .1); border: 1px solid rgba(52, 131, 250, .25); color: var(--ml-text); }
+    .po-track > i { font-size: 20px; color: var(--ml-blue); flex-shrink: 0; }
+    .po-track-eta, .po-track-code { font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+    .po-track .po-btn { flex-shrink: 0; }
 </style>

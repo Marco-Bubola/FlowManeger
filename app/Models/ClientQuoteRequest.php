@@ -17,6 +17,7 @@ class ClientQuoteRequest extends Model
         'payment_status', 'payment_amount', 'paid_at', 'delivery_method', 'delivery_fee', 'shipping_address',
         'responded_at', 'client_seen_status', 'client_notified_at',
         'coupon_code', 'discount', 'kit',
+        'delivery_stage', 'delivery_events', 'tracking_code', 'tracking_carrier', 'delivery_eta',
     ];
 
     protected $casts = [
@@ -32,6 +33,8 @@ class ClientQuoteRequest extends Model
         'discount'         => 'decimal:2',
         'shipping_address' => 'array',
         'kit'              => 'array',
+        'delivery_events'  => 'array',
+        'delivery_eta'     => 'date',
     ];
 
     /** Status em que a loja já deu uma resposta que o cliente precisa ver. */

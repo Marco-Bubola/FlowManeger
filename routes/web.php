@@ -158,7 +158,9 @@ Route::prefix('portal')->name('portal.')->group(function () {
     // Foto do produto em JPG para a prévia do link no WhatsApp (que não mostra .webp).
     Route::get('/catalogo/{userId}/vistos', [ClientPortalController::class, 'recentlyViewed'])->whereNumber('userId')->middleware('throttle:60,1')->name('catalog.seen');
     Route::get('/catalogo/{userId}/frete', [ClientPortalController::class, 'shippingQuote'])->whereNumber('userId')->middleware('throttle:30,1')->name('catalog.shipping');
-    Route::get('/catalogo/{userId}/pagina/{page}', [ClientPortalController::class, 'storePage'])->whereNumber('userId')->whereIn('page', ['sobre', 'trocas', 'entrega'])->name('store-page');
+    Route::get('/catalogo/{userId}/pagina/{page}', [ClientPortalController::class, 'storePage'])->whereNumber('userId')->whereIn('page', ['sobre', 'trocas', 'entrega', 'privacidade', 'termos'])->name('store-page');
+    Route::post('/catalogo/{userId}/carrinho', [\App\Http\Controllers\PortalCartController::class, 'save'])->whereNumber('userId')->middleware('throttle:60,1')->name('cart.save');
+    Route::get('/catalogo/{userId}/carrinho/{token}', [\App\Http\Controllers\PortalCartController::class, 'restore'])->whereNumber('userId')->middleware('throttle:30,1')->name('cart.restore');
     Route::get('/catalogo/{userId}/monte-seu-kit', [ClientPortalController::class, 'kitBuilder'])->whereNumber('userId')->name('kit');
     Route::get('/catalogo/{userId}/produto/{product}/{slug?}', [ClientPortalController::class, 'productPage'])->whereNumber(['userId', 'product'])->name('product');
     Route::get('/catalogo/{userId}/foto/{product}.jpg', [ClientPortalController::class, 'previewImage'])->whereNumber(['userId', 'product'])->name('catalog.preview-image');
@@ -207,6 +209,8 @@ Route::middleware('portal.auth')->prefix('portal')->name('portal.')->group(funct
     Route::delete('/orcamentos/{quote}', [ClientPortalController::class, 'destroyQuote'])->name('quotes.destroy');
     Route::get('/perfil', [ClientPortalController::class, 'profile'])->name('profile');
     Route::patch('/perfil', [ClientPortalController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/perfil/meus-dados', [\App\Http\Controllers\PortalPrivacyController::class, 'data'])->middleware('throttle:10,1')->name('profile.data');
+    Route::post('/perfil/encerrar', [\App\Http\Controllers\PortalPrivacyController::class, 'close'])->middleware('throttle:5,1')->name('profile.close');
     Route::post('/logout', [ClientPortalController::class, 'logout'])->name('logout');
 });
 
@@ -286,6 +290,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/promotions/cupons', \App\Livewire\Promotions\PortalCoupons::class)->name('promotions.coupons');
     Route::get('/promotions/vitrine', \App\Livewire\Promotions\PortalStorefront::class)->name('promotions.storefront');
     Route::get('/promotions/avaliacoes', \App\Livewire\Promotions\PortalReviews::class)->name('promotions.reviews');
+    Route::get('/promotions/carrinhos', \App\Livewire\Promotions\PortalCarts::class)->name('promotions.carts');
+    Route::get('/promotions/relatorio-do-site', \App\Livewire\Promotions\PortalReport::class)->name('promotions.report');
     Route::get('/promotions/vitrine/banner/novo', \App\Livewire\Promotions\BannerEditor::class)->name('promotions.storefront.banner.create');
     Route::get('/promotions/vitrine/banner/{banner}/editar', \App\Livewire\Promotions\BannerEditor::class)->whereNumber('banner')->name('promotions.storefront.banner.edit');
     Route::get('/promotions/vitrine/colecao/nova', \App\Livewire\Promotions\CollectionEditor::class)->name('promotions.storefront.collection.create');

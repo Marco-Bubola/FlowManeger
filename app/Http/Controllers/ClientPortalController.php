@@ -386,8 +386,10 @@ class ClientPortalController extends Controller
             'phone'    => ['required', 'regex:/^\d{10,11}$/'],
             'email'    => ['required', 'email', 'max:180'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'privacy'  => ['accepted'],
         ], [
             'phone.regex' => 'Informe o celular com DDD.',
+            'privacy.accepted' => 'Para criar a conta, marque que leu os Termos e a Política de privacidade.',
         ]);
 
         $email = Str::lower(trim($validated['email']));
@@ -408,6 +410,9 @@ class ClientPortalController extends Controller
             'portal_password' => Hash::make($validated['password']),
             'portal_active'   => true,
         ]);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('clients', 'privacy_accepted_at')) {
+            $client->forceFill(['privacy_accepted_at' => now()])->save();
+        }
 
         Auth::guard('portal')->login($client, true);
         $client->update(['portal_last_login_at' => now()]);
@@ -574,6 +579,7 @@ class ClientPortalController extends Controller
         $store = User::select('id', 'name', 'phone')->find($client->user_id);
 
         $paySettings = \App\Models\PaymentSetting::for((int) $client->user_id);
+        \App\Services\Portal\SiteStats::hit(request(), (int) $client->user_id, 'carrinho');
 
         return view('portal.quotes.create', compact('client', 'products', 'frequentIds', 'store', 'paySettings'));
     }
@@ -731,6 +737,10 @@ class ClientPortalController extends Controller
         $featured = $isHome && ($settings || $featuredIds) ? $front::productsFor($ownerId, $featuredIds, 15) : collect();
         $collections = $isHome ? $front::collections($ownerId) : collect();
 
+        if ($products->currentPage() === 1) {
+            \App\Services\Portal\SiteStats::hit($request, $ownerId, $isHome ? 'inicio' : 'catalogo');
+        }
+
         return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers', 'sort', 'store', 'stockMap', 'countByCategory',
             'collection', 'banners', 'settings', 'isHome', 'featured', 'collections'));
     }
@@ -804,14 +814,14 @@ class ClientPortalController extends Controller
     {
         $store = \App\Models\User::find($userId);
         $id = \App\Services\Portal\StoreIdentity::for($userId);
-        $text = $id['pages'][$page] ?? null;
+        $text = \App\Services\Portal\StoreIdentity::pageText($id, $page);
         if (! $store || ! $text) {
             return redirect()->route('portal.catalog', ['userId' => $userId]);
         }
 
         return view('portal.store-page', [
             'ownerId' => $userId, 'store' => $store, 'page' => $page, 'text' => $text, 'identity' => $id,
-            'pageInfo' => \App\Services\Portal\StoreIdentity::PAGES[$page],
+            'pageInfo' => \App\Services\Portal\StoreIdentity::allPages()[$page],
         ]);
     }
 
@@ -854,6 +864,8 @@ class ClientPortalController extends Controller
             'hasCpf' => $own && strlen(preg_replace('/\D+/', '', (string) $client->cpf_cnpj)) >= 11,
             'hasAddress' => $own && $client->hasRequiredPortalProfileData(),
         ];
+
+        \App\Services\Portal\SiteStats::hit($request, $userId, 'kit');
 
         return view('portal.kit-builder', [
             'ownerId' => $userId, 'store' => $store, 'types' => $types, 'extras' => $extras, 'products' => $products, 'cats' => $cats,
@@ -985,6 +997,8 @@ class ClientPortalController extends Controller
         $store = \App\Models\User::select('id', 'name', 'phone', 'location')->find($userId);
         $stockMap = self::stockMap($userId);
         $attribute = $choosable ? ($family->pluck('variation_attribute')->filter()->first() ?: 'Opção') : null;
+
+        \App\Services\Portal\SiteStats::hit($request, $userId, 'produto', $item->id);
 
         return view('portal.product', [
             'ownerId' => $userId,
@@ -1236,6 +1250,9 @@ class ClientPortalController extends Controller
                 'city' => $client->city, 'state' => $client->state, 'text' => $client->formattedPortalAddress(),
             ] : null,
         ]);
+
+        // Carrinho abandonado: o carrinho guardado vira pedido (conta como recuperado se teve lembrete).
+        \App\Services\Portal\CartRecovery::ordered($quote);
 
         // Pagamento pelo site: a loja é avisada quando o pagamento for aprovado.
         if ($payNow) {

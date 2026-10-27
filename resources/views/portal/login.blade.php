@@ -42,6 +42,9 @@
         </svg>
         Entrar com Google
     </a>
+    @if($loginStore = (int) request()->cookie('portal_store'))
+        <p class="pa-muted" style="font-size:.75rem;text-align:center;margin:8px 0 0">Ao entrar com o Google pela primeira vez, você aceita os <a href="{{ route('portal.store-page', ['userId' => $loginStore, 'page' => 'termos']) }}" class="pa-link" style="font-size:.75rem">Termos</a> e a <a href="{{ route('portal.store-page', ['userId' => $loginStore, 'page' => 'privacidade']) }}" class="pa-link" style="font-size:.75rem">Política de privacidade</a>.</p>
+    @endif
 
     <div class="pa-foot">
         @if(request()->cookie('portal_store'))

@@ -265,6 +265,9 @@
                     <button type="button" class="po-btn po-btn-primary po-btn-block" style="height:48px;font-size:15px;margin-top:14px" @click="send()" :disabled="sending || blocked" data-testid="cart-send">
                         <i class="fas" :class="online ? 'fa-lock' : 'fa-paper-plane'"></i> <span x-text="sending ? 'Enviando…' : sendLabel"></span>
                     </button>
+                    <p class="pc-legal" data-testid="cart-legal" style="margin:10px 2px 0;font-size:12px;line-height:1.45;color:var(--ml-muted,#777)">
+                        Ao enviar, você concorda com os <a href="{{ route('portal.store-page', ['userId' => $client->user_id, 'page' => 'termos']) }}" target="_blank" rel="noopener" style="color:var(--ml-blue)">Termos de compra</a> e a <a href="{{ route('portal.store-page', ['userId' => $client->user_id, 'page' => 'privacidade']) }}" target="_blank" rel="noopener" style="color:var(--ml-blue)">Política de privacidade</a>. Você pode desistir em até 7 dias depois de receber (<a href="{{ route('portal.store-page', ['userId' => $client->user_id, 'page' => 'trocas']) }}" target="_blank" rel="noopener" style="color:var(--ml-blue)">trocas e devoluções</a>).
+                    </p>
                 </div>
             </section>
         </div>

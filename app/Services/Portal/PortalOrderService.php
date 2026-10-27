@@ -107,6 +107,72 @@ class PortalOrderService
         }
     }
 
+    /** Andamento da entrega que a loja marca em Pedidos do portal: [rótulo, texto para o cliente, ícone]. */
+    public const DELIVERY_STAGES = [
+        'separando' => ['Separando o pedido', 'A loja está separando e embalando os seus produtos.', 'bi-box-seam'],
+        'pronto'    => ['Pronto para retirar', 'Seu pedido está pronto. Pode vir buscar!', 'bi-shop'],
+        'enviado'   => ['Enviado', 'Seu pedido foi enviado.', 'bi-truck'],
+        'saiu'      => ['Saiu para entrega', 'Seu pedido saiu para entrega e chega hoje.', 'bi-geo-alt'],
+        'entregue'  => ['Entregue', 'Pedido entregue. Obrigado pela compra!', 'bi-house-check'],
+    ];
+
+    public const CARRIERS = ['correios' => 'Correios', 'jadlog' => 'Jadlog', 'loggi' => 'Loggi', 'motoboy' => 'Motoboy / entrega própria', 'outro' => 'Outra transportadora'];
+
+    /** Passos da entrega para o tipo do pedido (retirada ou entrega). */
+    public function deliveryFlow(ClientQuoteRequest $quote): array
+    {
+        return $quote->delivery_method === 'retirada' ? ['separando', 'pronto', 'entregue'] : ['separando', 'enviado', 'saiu', 'entregue'];
+    }
+
+    /** Link para rastrear: o código (ou link) que a loja colocou. */
+    public function trackingUrl(ClientQuoteRequest $quote): ?string
+    {
+        $code = trim((string) $quote->tracking_code);
+        if ($code === '') {
+            return null;
+        }
+        if (preg_match('~^https?://~i', $code)) {
+            return $code;
+        }
+        if ($quote->tracking_carrier === 'correios' || preg_match('/^[A-Z]{2}\d{9}[A-Z]{2}$/i', $code)) {
+            return 'https://rastreamento.correios.com.br/app/index.php?objetos=' . rawurlencode(strtoupper($code));
+        }
+        if ($quote->tracking_carrier === 'jadlog') {
+            return 'https://www.jadlog.com.br/jadlog/tracking?cte=' . rawurlencode($code);
+        }
+
+        return null;
+    }
+
+    /** Quando a loja marcou cada passo da entrega: [stage => Carbon]. */
+    public function deliveryDates(ClientQuoteRequest $quote): array
+    {
+        $out = [];
+        foreach ((array) $quote->delivery_events as $e) {
+            if (! empty($e['stage']) && ! empty($e['at'])) {
+                $out[$e['stage']] = \Illuminate\Support\Carbon::parse($e['at']);
+            }
+        }
+
+        return $out;
+    }
+
+    /** Mensagem do WhatsApp para avisar o cliente do andamento da entrega. */
+    public function deliveryMessage(ClientQuoteRequest $quote, ?Client $client, ?string $storeName): string
+    {
+        [$label, $text] = self::DELIVERY_STAGES[$quote->delivery_stage] ?? ['Atualizado', 'Seu pedido teve novidade.'];
+        $first = $client?->name ? explode(' ', trim($client->name))[0] : '';
+        $msg = 'Oi' . ($first ? ', ' . $first : '') . '! ' . ($storeName ? "Aqui é da {$storeName}. " : '') . "Seu pedido #{$quote->id}: *{$label}*. {$text}";
+        if ($quote->tracking_code) {
+            $msg .= "\nCódigo de rastreio: {$quote->tracking_code}" . (($u = $this->trackingUrl($quote)) && ! str_starts_with($quote->tracking_code, 'http') ? "\n{$u}" : '');
+        }
+        if ($quote->delivery_eta && $quote->delivery_stage !== 'entregue') {
+            $msg .= "\nPrevisão: " . $quote->delivery_eta->format('d/m');
+        }
+
+        return $msg . "\nAcompanhe em: " . route('portal.quotes.show', $quote);
+    }
+
     // ─── O que o cliente vê ───────────────────────────────────────────────────
 
     /**
@@ -118,8 +184,13 @@ class PortalOrderService
         if ($sale && in_array($sale->status, ['cancelada', 'cancelado'], true)) {
             return ['cancelled', 'Cancelado', 'gray', 'A venda deste pedido foi cancelada pela loja.'];
         }
-        if ($sale && $this->isDelivered($sale)) {
+        if (($sale && $this->isDelivered($sale)) || $quote->delivery_stage === 'entregue') {
             return ['delivered', 'Entregue', 'green', 'Pedido concluído. Obrigado pela compra!'];
+        }
+        if ($quote->delivery_stage && isset(self::DELIVERY_STAGES[$quote->delivery_stage]) && $quote->status === 'approved') {
+            [$dl, $dt] = self::DELIVERY_STAGES[$quote->delivery_stage];
+
+            return [$quote->delivery_stage, $dl, 'violet', $dt . ($quote->delivery_eta ? ' Previsão: ' . $quote->delivery_eta->format('d/m') . '.' : '')];
         }
         if ($sale && $this->isPaid($sale)) {
             return ['paid', 'Pago', 'green', 'Pagamento recebido pela loja.'];
@@ -185,13 +256,35 @@ class PortalOrderService
                 : 'Aguardando pagamento.'),
         ];
 
-        $delivered = $sale && $this->isDelivered($sale);
-        $steps[] = [
-            'key' => 'delivered', 'label' => 'Entregue',
-            'state' => $delivered ? 'done' : ($paid ? 'current' : 'todo'),
-            'date' => $delivered ? $sale->updated_at : null,
-            'text' => $delivered ? 'Pedido entregue.' : 'A loja combina a entrega com você.',
-        ];
+        $delivered = ($sale && $this->isDelivered($sale)) || $quote->delivery_stage === 'entregue';
+        $stage = $quote->delivery_stage && isset(self::DELIVERY_STAGES[$quote->delivery_stage]) ? $quote->delivery_stage : null;
+        if (! $stage) {
+            $steps[] = [
+                'key' => 'delivered', 'label' => 'Entregue',
+                'state' => $delivered ? 'done' : ($paid ? 'current' : 'todo'),
+                'date' => $delivered ? $sale?->updated_at : null,
+                'text' => $delivered ? 'Pedido entregue.' : 'A loja combina a entrega com você.',
+            ];
+
+            return $steps;
+        }
+
+        // A loja está marcando a entrega: um passo para cada etapa.
+        $flow = $this->deliveryFlow($quote);
+        if (! in_array($stage, $flow, true)) {
+            array_splice($flow, count($flow) - 1, 0, [$stage]);
+        }
+        $at = array_search($delivered ? 'entregue' : $stage, $flow, true);
+        $dates = $this->deliveryDates($quote);
+        foreach ($flow as $i => $key) {
+            [$label, $text] = self::DELIVERY_STAGES[$key];
+            $state = $i < $at || ($i === $at && $key === 'entregue') ? 'done' : ($i === $at ? 'current' : 'todo');
+            $steps[] = [
+                'key' => $key === 'entregue' ? 'delivered' : $key, 'label' => $key === 'entregue' && $quote->delivery_method === 'retirada' ? 'Retirado' : $label,
+                'state' => $state, 'date' => $state !== 'todo' ? ($dates[$key] ?? null) : null,
+                'text' => $state === 'todo' ? '' : $text,
+            ];
+        }
 
         return $steps;
     }

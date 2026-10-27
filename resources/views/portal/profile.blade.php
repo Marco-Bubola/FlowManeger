@@ -199,6 +199,24 @@
             <button type="submit" class="po-btn po-btn-primary po-btn-block" style="height:48px;font-size:15px"><i class="fas fa-check"></i> Salvar alterações</button>
         </div>
     </form>
+
+    {{-- LGPD: ver os dados e encerrar a conta do site --}}
+    <section class="po-card" data-testid="privacy-card" x-data="{ closing: false }" style="margin-top:14px">
+        <div class="pa-sec-head"><h2>Seus dados e privacidade</h2></div>
+        <div class="po-card-body" style="display:grid;gap:10px">
+            <p style="margin:0;font-size:13px;color:var(--ml-muted,#777);line-height:1.5">A loja usa os seus dados só para os pedidos e a entrega. Veja como em <a href="{{ route('portal.store-page', ['userId' => $client->user_id, 'page' => 'privacidade']) }}" style="color:var(--ml-blue)">Política de privacidade</a>.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <a href="{{ route('portal.profile.data') }}" class="po-btn po-btn-soft" data-testid="privacy-download"><i class="fas fa-download"></i> Baixar meus dados</a>
+                <button type="button" class="po-btn po-btn-ghost" style="color:#dc2626" @click="closing = !closing" data-testid="privacy-close-open"><i class="fas fa-user-xmark"></i> Encerrar minha conta</button>
+            </div>
+            <form method="POST" action="{{ route('portal.profile.close') }}" x-show="closing" x-cloak style="display:grid;gap:10px;padding:12px;border-radius:12px;background:rgba(220,38,38,.06)">
+                @csrf
+                <p style="margin:0;font-size:13px;line-height:1.5">Você não vai mais conseguir entrar no site com esta conta, e a loja recebe o pedido para apagar os seus dados pessoais. Os registros das compras ficam com a loja pelo tempo que a lei fiscal pede.</p>
+                <label style="display:flex;gap:8px;align-items:flex-start;font-size:13px"><input type="checkbox" name="confirmar" value="1" required> Quero encerrar a minha conta</label>
+                <button type="submit" class="po-btn" style="background:#dc2626;color:#fff;justify-self:start" data-testid="privacy-close"><i class="fas fa-user-xmark"></i> Encerrar conta</button>
+            </form>
+        </div>
+    </section>
 </div>
 
 @push('scripts')

@@ -28,10 +28,15 @@
             'kits' => ['Monte seu kit', 'bi-gift', 'Cestas, caixas e enfeites', 'promotions.kits', 'cesta caixa presente balao doces cartao'],
             'cupons' => ['Cupons', 'bi-ticket-perforated', 'Códigos de desconto', 'promotions.coupons', 'desconto codigo cupom'],
             'pagamentos' => ['Pagamento e frete', 'bi-credit-card', 'Pix, cartão, boleto e entrega', 'settings.payments', 'pix cartao boleto mercado pago frete cep retirada entrega'],
-            'pedidos' => ['Pedidos do portal', 'bi-bag-check', 'Pedidos que chegaram', 'sales.portal-orders', 'orcamento pedido'],
+            'pedidos' => ['Pedidos do portal', 'bi-bag-check', 'Pedidos que chegaram', 'sales.portal-orders', 'orcamento pedido entrega rastreio envio'],
+            'carrinhos' => ['Carrinhos abandonados', 'bi-cart-x', 'Lembrar quem não fechou o pedido', 'promotions.carts', 'carrinho abandonado esquecido lembrete lembranca whatsapp recuperar'],
+        ],
+        'Resultados' => [
+            'relatorio' => ['Relatório do site', 'bi-graph-up-arrow', 'Visitas, mais vistos e pedidos', 'promotions.report', 'visitas acessos relatorio mais vistos conversao origem instagram'],
         ],
         'Clientes' => [
             'avaliacoes' => ['Avaliações', 'bi-star-half', 'Notas e comentários', 'promotions.reviews', 'estrelas comentario nota'],
+            'leis' => ['Site dentro da lei', 'bi-shield-check', 'Privacidade, termos e dados da loja', 'tab', 'lei lgpd privacidade termos cnpj cpf arrependimento codigo defesa consumidor cookies'],
         ],
     ];
     $now = collect($groups)->flatMap(fn ($g) => $g)->get($current) ?? $groups['Comece aqui']['geral'];

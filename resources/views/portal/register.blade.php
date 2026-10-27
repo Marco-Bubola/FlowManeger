@@ -58,6 +58,12 @@
         </div>
         @error('password')<p class="pa-error" style="margin-top:-8px">{{ $message }}</p>@enderror
 
+        <label class="pa-check" style="align-items:flex-start;line-height:1.4" data-testid="register-privacy">
+            <input type="checkbox" name="privacy" value="1" required {{ old('privacy') ? 'checked' : '' }} style="margin-top:2px;flex-shrink:0">
+            <span>Li e aceito os <a href="{{ route('portal.store-page', ['userId' => $store->id, 'page' => 'termos']) }}" target="_blank" rel="noopener" class="pa-link">Termos de compra</a> e a <a href="{{ route('portal.store-page', ['userId' => $store->id, 'page' => 'privacidade']) }}" target="_blank" rel="noopener" class="pa-link">Política de privacidade</a>.</span>
+        </label>
+        @error('privacy')<p class="pa-error" style="margin-top:-8px">{{ $message }}</p>@enderror
+
         <button type="submit" class="pa-btn">Criar conta e continuar <i class="fas fa-arrow-right"></i></button>
     </form>
 

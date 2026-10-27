@@ -46,6 +46,7 @@ class Client extends Model implements AuthenticatableContract, CanResetPasswordC
         'portal_last_login_at'    => 'datetime',
         'portal_profile_completed_at' => 'datetime',
         'birth_date'              => 'date',
+        'privacy_accepted_at'     => 'datetime',
     ];
 
     /** Override auth password column para não colidir com 'password' dos users */

@@ -307,9 +307,10 @@ class PortalStorefront extends Component
         $this->identity = array_intersect_key($id, array_flip(\App\Services\Portal\StoreIdentity::FIELDS));
         $this->identity['payments'] = array_values((array) ($this->identity['payments'] ?? []));
         $this->identity['show_name'] = (bool) ($this->identity['show_name'] ?? true);
-        foreach (array_keys(\App\Services\Portal\StoreIdentity::PAGES) as $k) {
+        foreach (array_keys(\App\Services\Portal\StoreIdentity::allPages()) as $k) {
             $this->pages[$k] = (string) (($s->pages ?? [])[$k] ?? '');
         }
+        $this->identity['privacy_bar'] = (bool) ($this->identity['privacy_bar'] ?? true);
     }
 
     public function updatedLogoUpload(): void
@@ -350,21 +351,72 @@ class PortalStorefront extends Component
             'identity.tiktok' => ['nullable', 'string', 'max:120'],
             'identity.address' => ['nullable', 'string', 'max:200'],
             'identity.hours' => ['nullable', 'string', 'max:200'],
+            'identity.legal_name' => ['nullable', 'string', 'max:120'],
+            'identity.document' => ['nullable', 'string', 'max:30'],
             'pages.*' => ['nullable', 'string', 'max:5000'],
         ], [], ['identity.name' => 'nome da loja', 'identity.email' => 'e-mail', 'pages.*' => 'texto']);
         $data = array_intersect_key($this->identity, array_flip(\App\Services\Portal\StoreIdentity::FIELDS));
         $data = array_map(fn ($v) => is_string($v) ? trim($v) : $v, $data);
         $data['payments'] = array_values(array_intersect(array_keys(\App\Services\Portal\StoreIdentity::PAYMENTS), (array) ($data['payments'] ?? [])));
         $data['show_name'] = (bool) ($data['show_name'] ?? true);
+        $data['privacy_bar'] = (bool) ($data['privacy_bar'] ?? true);
         $s = PortalSetting::for(Auth::id());
         $s->identity = $data;
-        $s->pages = array_map(fn ($v) => trim((string) $v), array_intersect_key($this->pages, \App\Services\Portal\StoreIdentity::PAGES));
+        $s->pages = array_map(fn ($v) => trim((string) $v), array_intersect_key($this->pages, \App\Services\Portal\StoreIdentity::allPages()));
         $s->save();
         \App\Services\Portal\StoreIdentity::forget(Auth::id());
         $this->previewKey++;
         if (! $quiet) {
             $this->dispatch('notify', type: 'success', message: 'Identidade da loja salva.');
         }
+    }
+
+    /** Site dentro da lei: põe o texto pronto no campo para a loja revisar e trocar o que quiser. */
+    public function useLegalText(string $page): void
+    {
+        if ($page === 'trocas' || isset(\App\Services\Portal\StoreIdentity::LEGAL_PAGES[$page])) {
+            $id = array_merge(\App\Services\Portal\StoreIdentity::for(Auth::id()), $this->identity);
+            $id['document_text'] = \App\Services\Portal\StoreIdentity::formatDocument($id['document'] ?? '');
+            $this->pages[$page] = \App\Services\Portal\StoreIdentity::legalDefault($page, $id);
+            $this->saveIdentity(true);
+            $this->dispatch('notify', type: 'success', message: 'Texto pronto colocado. Revise e salve se mudar algo.');
+        }
+    }
+
+    public function togglePrivacyBar(): void
+    {
+        $this->identity['privacy_bar'] = ! ($this->identity['privacy_bar'] ?? true);
+        $this->saveIdentity(true);
+    }
+
+    /**
+     * O que a lei pede de quem vende pela internet e como a loja está em cada ponto.
+     * Cada item: key, ícone, título, texto, situação (ok | falta | aviso), lei, botão/ação.
+     */
+    private function legalChecks(int $uid): array
+    {
+        $id = $this->identity;
+        $doc = preg_replace('/\D+/', '', (string) ($id['document'] ?? ''));
+        $docOk = in_array(strlen($doc), [11, 14], true);
+        $hasData = filled($id['legal_name'] ?? null) && $docOk && filled($id['address'] ?? null);
+        $contact = filled($id['email'] ?? null) && (filled($id['whatsapp'] ?? null) || filled($id['phone'] ?? null));
+        $own = fn ($k) => trim((string) ($this->pages[$k] ?? '')) !== '';
+        $trocasOk = ! $own('trocas') || preg_match('/7\s*\(?sete\)?\s*dias|7 dias|sete dias/iu', (string) $this->pages['trocas']);
+        $pay = \App\Models\PaymentSetting::for($uid);
+
+        return [
+            ['dados', 'bi-building', 'Nome, CPF/CNPJ e endereço da loja', $hasData ? 'Aparecem no rodapé de todas as páginas.' : 'Quem vende pela internet precisa mostrar o nome (ou razão social), o CPF ou CNPJ e o endereço. Preencha abaixo.', $hasData ? 'ok' : 'falta', 'Decreto 7.962/2013, art. 2º', 'dados'],
+            ['contato', 'bi-headset', 'Contato fácil de achar', $contact ? 'E-mail e WhatsApp/telefone no rodapé.' : 'Coloque um e-mail e um WhatsApp ou telefone na Identidade da loja.', $contact ? 'ok' : 'falta', 'Decreto 7.962/2013, art. 2º', 'identidade'],
+            ['privacidade', 'bi-person-lock', 'Política de privacidade', $own('privacidade') ? 'Com o seu texto, no rodapé.' : 'No ar com o texto pronto (explica que dados guardamos e para quê). Revise se quiser.', $own('privacidade') ? 'ok' : 'aviso', 'LGPD, Lei 13.709/2018', 'privacidade'],
+            ['termos', 'bi-file-earmark-text', 'Termos de compra', $own('termos') ? 'Com o seu texto, no rodapé.' : 'No ar com o texto pronto (preços, pedido, pagamento, entrega). Revise se quiser.', $own('termos') ? 'ok' : 'aviso', 'Código de Defesa do Consumidor', 'termos'],
+            ['trocas', 'bi-arrow-counterclockwise', 'Arrependimento em 7 dias', $trocasOk ? ($own('trocas') ? 'Seu texto de trocas fala dos 7 dias.' : 'No ar com o texto pronto de trocas e arrependimento.') : 'O seu texto de trocas não fala do direito de desistir em 7 dias. Use o texto pronto ou acrescente.', $trocasOk ? 'ok' : 'falta', 'CDC, art. 49', 'trocas'],
+            ['barra', 'bi-cookie', 'Aviso de privacidade no site', ($id['privacy_bar'] ?? true) ? 'Quem entra vê um aviso curto com o link da política.' : 'Desligado. Recomendo ligar.', ($id['privacy_bar'] ?? true) ? 'ok' : 'aviso', 'LGPD, art. 9º', 'barra'],
+            ['aceite', 'bi-check2-square', 'Aceite no cadastro', 'Quem cria conta marca que leu os Termos e a Política de privacidade.', 'ok', 'LGPD, art. 7º e 8º', null],
+            ['resumo', 'bi-receipt', 'Resumo antes de enviar o pedido', 'O carrinho mostra produtos, quantidades, frete, desconto e total antes de enviar, e o pedido fica em Meus pedidos.', 'ok', 'Decreto 7.962/2013, art. 4º', null],
+            ['conta', 'bi-person-x', 'Cliente pode encerrar a conta', 'Em Meu perfil o cliente vê os dados dele e pode pedir para encerrar a conta; você recebe um aviso.', 'ok', 'LGPD, art. 18', null],
+            ['pagamento', 'bi-shield-lock', 'Pagamento seguro', $pay && $pay->enabled ? 'Os dados do cartão vão direto para o Mercado Pago; o site não guarda.' : 'Sem pagamento online ligado: o pagamento é combinado com você.', 'ok', 'LGPD, art. 46', null],
+            ['nota', 'bi-journal-text', 'Nota fiscal', 'Isso o site não faz por você: emita a nota das vendas (MEI e empresas) como pede a prefeitura ou o estado.', 'aviso', 'Lembrete', null],
+        ];
     }
 
     /* ---------- Destaques ---------- */
@@ -653,6 +705,7 @@ class PortalStorefront extends Component
             'secInfo'       => $this->tab === 'inicio' ? $this->sectionInfo($uid, $banners, $collections) : [],
             'navInfo'       => $this->navInfo($banners, $collections),
             'overview'      => $this->tab === 'geral' ? $this->overview($uid, $banners, $collections) : [],
+            'legal'         => in_array($this->tab, ['leis', 'geral'], true) ? $this->legalChecks($uid) : [],
         ]);
     }
 
@@ -670,7 +723,7 @@ class PortalStorefront extends Component
         $reviews = \Illuminate\Support\Facades\Schema::hasTable('portal_reviews') ? \App\Models\PortalReview::where('user_id', $uid)->count() : 0;
         $id = $this->identity;
         $contacts = collect(['whatsapp', 'instagram', 'phone', 'email'])->filter(fn ($k) => filled($id[$k] ?? null))->count();
-        $pages = collect($this->pages)->filter(fn ($v) => trim($v) !== '')->count();
+        $pages = collect(array_intersect_key($this->pages, \App\Services\Portal\StoreIdentity::PAGES))->filter(fn ($v) => trim($v) !== '')->count();
         $autoOn = collect(['theme', 'featured', 'newbadge', 'sort', 'cats'])->filter(fn ($k) => ! empty($this->auto[$k]))->count();
         $styled = $this->home_theme !== 'padrao' || HomeLayout::look('padrao', $this->home_look) !== HomeLayout::look('padrao');
         $n = fn ($v, $one, $many) => $v === 1 ? "1 {$one}" : "{$v} {$many}";
@@ -696,8 +749,13 @@ class PortalStorefront extends Component
                 ['cupom', 'bi-ticket-perforated', 'Cupom de desconto', $coupons ? $n($coupons, 'cupom ativo', 'cupons ativos') . '.' : 'Um código como BEMVINDO10 ajuda a fechar a primeira compra.', $coupons > 0, 'Criar cupom', $route('promotions.coupons'), true],
                 ['kit', 'bi-gift', 'Monte seu kit', \App\Services\Portal\KitService::enabled($uid) ? 'Ligado: o cliente monta cestas e caixas.' : 'O cliente monta cestas e caixas de presente.', \App\Services\Portal\KitService::enabled($uid), 'Criar kits', $route('promotions.kits'), true],
             ],
+            'Dentro da lei' => [
+                ['leis', 'bi-shield-check', 'Site dentro da lei', ($lf = collect($this->legalChecks($uid))->where(4, 'falta')->count()) ? $n($lf, 'ponto', 'pontos') . ' para arrumar (dados da loja, trocas, privacidade).' : 'Dados da loja, privacidade, termos e trocas em dia.', $lf === 0, 'Arrumar', $tab('leis'), false],
+            ],
             'Deixe no automático' => [
                 ['automacoes', 'bi-robot', 'Automações', $autoOn ? $n($autoOn, 'ligada', 'ligadas') . '.' : 'Tema das datas, destaques e selo de novidade sozinhos.', $autoOn > 0, 'Ligar', $tab('automacoes'), false],
+                ['carrinhos', 'bi-cart-x', 'Carrinho abandonado', \App\Services\Portal\CartRecovery::ready() && \App\Services\Portal\CartRecovery::settingsFor($uid)['on'] ? 'Ligado: quem não fecha o pedido recebe uma lembrança.' : 'Lembre no WhatsApp quem deixou produtos no carrinho.', \App\Services\Portal\CartRecovery::ready() && \App\Services\Portal\CartRecovery::settingsFor($uid)['on'], 'Ligar', $route('promotions.carts'), false],
+                ['relatorio', 'bi-graph-up-arrow', 'Relatório do site', 'Veja visitas, de onde vêm os clientes e os produtos mais vistos.', \App\Services\Portal\SiteStats::ready() && \App\Models\PortalPageView::where('user_id', $uid)->exists(), 'Ver', $route('promotions.report'), true],
                 ['avaliacoes', 'bi-star-half', 'Avaliações', $reviews ? $n($reviews, 'avaliação', 'avaliações') . ' dos clientes.' : 'Quem compra pode deixar estrelas e comentário.', $reviews > 0, 'Ver', $route('promotions.reviews'), true],
             ],
         ];
@@ -719,6 +777,7 @@ class PortalStorefront extends Component
             'destaques' => $n(count($this->featuredIds), 'produto escolhido', 'produtos escolhidos'),
             'colecoes'  => $n($collections->where('active', true)->count(), 'coleção ligada', 'coleções ligadas'),
             'aviso'     => $this->notice_active && trim($this->notice_text) !== '' ? 'Ligado' : 'Desligado',
+            'leis'      => ($lf = collect($this->legalChecks(Auth::id()))->where(4, 'falta')->count()) ? ($lf === 1 ? '1 ponto para arrumar' : $lf . ' pontos para arrumar') : 'Tudo em dia',
             'automacoes'=> ($on = collect(['theme', 'featured', 'newbadge', 'sort', 'cats'])->filter(fn ($k) => ! empty($this->auto[$k]))->count())
                 ? ($on === 1 ? '1 ligada' : $on . ' ligadas') : 'Nenhuma ligada',
         ];

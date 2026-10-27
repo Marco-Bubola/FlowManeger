@@ -7,7 +7,7 @@
 
 @php
     $catalogUrl = route('portal.catalog', ['userId' => $client->user_id]);
-    $shortLabels = ['sent' => 'Enviado', 'quoted' => 'Proposta', 'confirmed' => 'Confirmado', 'rejected' => 'Recusado', 'paid' => 'Pago', 'delivered' => 'Entregue', 'cancelled' => 'Cancelado'];
+    $shortLabels = ['sent' => 'Enviado', 'quoted' => 'Proposta', 'confirmed' => 'Confirmado', 'rejected' => 'Recusado', 'paid' => 'Pago', 'delivered' => 'Entregue', 'cancelled' => 'Cancelado', 'separando' => 'Separando', 'pronto' => 'Pronto', 'enviado' => 'Enviado', 'saiu' => 'A caminho'];
     $chips = ['' => 'Todos', 'open' => 'Em andamento', 'confirmed' => 'Confirmados', 'rejected' => 'Recusados'];
 @endphp
 

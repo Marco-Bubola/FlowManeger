@@ -58,6 +58,11 @@ Schedule::command('bancos:sincronizar')
     ->cron('15 */3 * * *')
     ->withoutOverlapping();
 
+// Carrinho abandonado do catálogo: lembrança no WhatsApp (liga em Vitrine › Carrinhos abandonados)
+Schedule::command('portal:carrinhos')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping();
+
 // Estoque baixo: notifica produtos no mínimo/esgotados com sugestão de reposição
 Schedule::command('stock:check-low')
     ->dailyAt('08:30')

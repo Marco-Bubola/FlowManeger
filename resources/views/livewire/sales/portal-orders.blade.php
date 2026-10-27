@@ -54,7 +54,7 @@
         <div class="po-notify {{ $ok ? '' : 'is-rose' }}" data-testid="portal-notify">
             <div class="po-notify-icon"><i class="bi bi-whatsapp"></i></div>
             <div class="min-w-0 flex-1">
-                <p class="po-notify-title">Avise {{ $n['client'] ?? 'o cliente' }} que o pedido #{{ $n['quote_id'] }} foi {{ $ok ? 'confirmado' : 'recusado' }}</p>
+                <p class="po-notify-title">{{ ! empty($n['title']) ? $n['title'] . '. Avise ' . ($n['client'] ?? 'o cliente') : 'Avise ' . ($n['client'] ?? 'o cliente') . ' que o pedido #' . $n['quote_id'] . ' foi ' . ($ok ? 'confirmado' : 'recusado') }}</p>
                 <p class="po-dim">
                     O cliente também vê o novo status em "Meus pedidos" no portal.
                     @if (! empty($n['mailed'])) E-mail enviado. @endif
@@ -63,7 +63,7 @@
                 <details class="mt-1"><summary class="po-link">Ver mensagem</summary><pre class="po-msg">{{ $n['message'] }}</pre></details>
             </div>
             <div class="po-notify-actions">
-                <a href="{{ $n['url'] }}" target="_blank" rel="noopener" class="po-btn is-wa"><i class="bi bi-whatsapp"></i>Avisar no WhatsApp</a>
+                @if (! empty($n['url']))<a href="{{ $n['url'] }}" target="_blank" rel="noopener" class="po-btn is-wa" data-testid="notify-wa"><i class="bi bi-whatsapp"></i>Avisar no WhatsApp</a>@endif
                 @if (! empty($n['sale_id']))
                     <a href="{{ route('sales.show', $n['sale_id']) }}" class="po-btn"><i class="bi bi-receipt"></i>Venda #{{ $n['sale_id'] }}</a>
                 @endif
@@ -123,6 +123,9 @@
 
                     <div class="po-tags">
                         <span class="po-tag is-{{ $stTone }}"><i class="bi {{ $stIcon }}"></i>{{ $stLabel }}</span>
+                        @if ($q->delivery_stage && isset($orders::DELIVERY_STAGES[$q->delivery_stage]))
+                            <span class="po-tag is-{{ $q->delivery_stage === 'entregue' ? 'emerald' : 'violet' }}" data-testid="delivery-tag"><i class="bi {{ $orders::DELIVERY_STAGES[$q->delivery_stage][2] }}"></i>{{ $orders::DELIVERY_STAGES[$q->delivery_stage][0] }}{{ $q->tracking_code ? ' · ' . \Illuminate\Support\Str::limit($q->tracking_code, 18) : '' }}</span>
+                        @endif
                         @if ($q->payment_status === 'approved')
                             <span class="po-tag is-emerald" data-testid="paid-pix"><i class="bi bi-patch-check-fill"></i>Pago pelo site{{ $r->lastPayment ? ' · ' . $r->lastPayment->methodLabel() : '' }}</span>
                         @elseif ($q->payment_status === 'refunded')
@@ -221,6 +224,27 @@
                             <button type="button" class="po-btn is-primary" x-on:click="confirm = @js($payload)"><i class="bi bi-check2-circle"></i>Confirmar venda</button>
                         @elseif ($q->sale)
                             <a href="{{ route('sales.show', $q->sale->id) }}" class="po-btn is-green"><i class="bi bi-receipt"></i>Venda #{{ $q->sale->id }}</a>
+                        @endif
+
+                        @if ($q->status === 'approved')
+                            @php $flow = $orders->deliveryFlow($q); @endphp
+                            <div class="relative" x-data="{ d: false, stage: @js($q->delivery_stage ?: $flow[0]), code: @js((string) $q->tracking_code), carrier: @js($q->tracking_carrier ?: ($q->delivery_method === 'retirada' ? '' : 'correios')), eta: @js($q->delivery_eta?->toDateString() ?? '') }" x-on:click.outside="d = false">
+                                <button type="button" class="po-btn" x-on:click="d = !d" data-testid="delivery-open" title="Marcar o andamento da entrega"><i class="bi bi-truck"></i><span class="po-lbl">Entrega</span></button>
+                                <div x-show="d" x-cloak x-transition class="po-menu po-deliv" data-testid="delivery-panel">
+                                    <p class="po-label">{{ $q->delivery_method === 'retirada' ? 'Retirada na loja' : 'Andamento da entrega' }}</p>
+                                    @foreach ($flow as $st)
+                                        <button type="button" x-on:click="stage = '{{ $st }}'" :class="stage === '{{ $st }}' && 'is-on'" data-testid="delivery-stage-{{ $st }}"><i class="bi {{ $orders::DELIVERY_STAGES[$st][2] }}"></i>{{ $st === 'entregue' && $q->delivery_method === 'retirada' ? 'Retirado' : $orders::DELIVERY_STAGES[$st][0] }}</button>
+                                    @endforeach
+                                    <div x-show="stage === 'enviado' || stage === 'saiu'" class="po-deliv-fields">
+                                        <select x-model="carrier" class="po-deliv-input">
+                                            @foreach ($orders::CARRIERS as $ck => $cn)<option value="{{ $ck }}">{{ $cn }}</option>@endforeach
+                                        </select>
+                                        <input type="text" x-model="code" maxlength="60" placeholder="Código de rastreio ou link" class="po-deliv-input" data-testid="delivery-code">
+                                    </div>
+                                    <label x-show="stage !== 'entregue'" class="po-deliv-fields"><span class="po-dim">Previsão (opcional)</span><input type="date" x-model="eta" class="po-deliv-input"></label>
+                                    <button type="button" class="po-btn is-primary w-full justify-center" x-on:click="$wire.setDelivery({{ $q->id }}, stage, code, carrier, eta); d = false" data-testid="delivery-save"><i class="bi bi-check2"></i>Salvar e avisar</button>
+                                </div>
+                            </div>
                         @endif
 
                         @if (in_array($q->status, ['approved', 'rejected'], true) && ($q->status === 'rejected' || $q->sale))
@@ -427,6 +451,12 @@
         .dark .po-menu button:hover { background: rgb(30 41 59); }
         .po-menu button.is-on { color: rgb(79 70 229); background: rgb(238 242 255); }
         .dark .po-menu button.is-on { background: rgb(79 70 229 / .2); color: rgb(199 210 254); }
+        .po-deliv { min-width: 260px; gap: 2px; }
+        .po-deliv .po-label { padding: 4px 8px 2px; }
+        .po-deliv-fields { display: flex; flex-direction: column; gap: 6px; padding: 6px 4px; }
+        .po-deliv-input { width: 100%; border-radius: 10px; border: 1px solid rgb(226 232 240); background: #fff; padding: 7px 10px; font-size: .8rem; color: rgb(30 41 59); }
+        .dark .po-deliv-input { background: rgb(30 41 59); border-color: rgb(51 65 85); color: rgb(226 232 240); }
+        @media (max-width: 640px) { .po-deliv { position: fixed; left: 12px; right: 12px; bottom: calc(84px + env(safe-area-inset-bottom)); min-width: 0; } }
         .po-menu button.is-rose { color: rgb(225 29 72); border-top: 1px solid rgb(241 245 249); margin-top: 4px; padding-top: 10px; }
         .po-flash { display: flex; align-items: center; gap: 10px; border-radius: 16px; padding: 10px 14px; background: rgb(236 253 245); color: rgb(4 120 87); font-size: .85rem; font-weight: 600; border: 1px solid rgb(167 243 208); }
         .po-flash.is-error { background: rgb(255 241 242); color: rgb(190 18 60); border-color: rgb(254 205 211); }
