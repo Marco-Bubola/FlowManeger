@@ -755,7 +755,7 @@ class PortalStorefront extends Component
             'Deixe no automático' => [
                 ['automacoes', 'bi-robot', 'Automações', $autoOn ? $n($autoOn, 'ligada', 'ligadas') . '.' : 'Tema das datas, destaques e selo de novidade sozinhos.', $autoOn > 0, 'Ligar', $tab('automacoes'), false],
                 ['carrinhos', 'bi-cart-x', 'Carrinho abandonado', \App\Services\Portal\CartRecovery::ready() && \App\Services\Portal\CartRecovery::settingsFor($uid)['on'] ? 'Ligado: quem não fecha o pedido recebe uma lembrança.' : 'Lembre no WhatsApp quem deixou produtos no carrinho.', \App\Services\Portal\CartRecovery::ready() && \App\Services\Portal\CartRecovery::settingsFor($uid)['on'], 'Ligar', $route('promotions.carts'), false],
-                ['relatorio', 'bi-graph-up-arrow', 'Relatório do site', 'Veja visitas, de onde vêm os clientes e os produtos mais vistos.', \App\Services\Portal\SiteStats::ready() && \App\Models\PortalPageView::where('user_id', $uid)->exists(), 'Ver', $route('promotions.report'), true],
+                ['relatorio', 'bi-graph-up-arrow', 'Relatório do site', 'Veja visitas, de onde vêm os clientes e os produtos mais vistos.', \App\Services\Portal\SiteStats::ready() && \App\Models\PortalPageView::where('user_id', $uid)->exists(), 'Ver', $route('promotions.site-report'), true],
                 ['avaliacoes', 'bi-star-half', 'Avaliações', $reviews ? $n($reviews, 'avaliação', 'avaliações') . ' dos clientes.' : 'Quem compra pode deixar estrelas e comentário.', $reviews > 0, 'Ver', $route('promotions.reviews'), true],
             ],
         ];

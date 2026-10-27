@@ -291,7 +291,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/promotions/vitrine', \App\Livewire\Promotions\PortalStorefront::class)->name('promotions.storefront');
     Route::get('/promotions/avaliacoes', \App\Livewire\Promotions\PortalReviews::class)->name('promotions.reviews');
     Route::get('/promotions/carrinhos', \App\Livewire\Promotions\PortalCarts::class)->name('promotions.carts');
-    Route::get('/promotions/relatorio-do-site', \App\Livewire\Promotions\PortalReport::class)->name('promotions.report');
+    Route::get('/promotions/relatorio-do-site', \App\Livewire\Promotions\PortalReport::class)->name('promotions.site-report');
     Route::get('/promotions/vitrine/banner/novo', \App\Livewire\Promotions\BannerEditor::class)->name('promotions.storefront.banner.create');
     Route::get('/promotions/vitrine/banner/{banner}/editar', \App\Livewire\Promotions\BannerEditor::class)->whereNumber('banner')->name('promotions.storefront.banner.edit');
     Route::get('/promotions/vitrine/colecao/nova', \App\Livewire\Promotions\CollectionEditor::class)->name('promotions.storefront.collection.create');

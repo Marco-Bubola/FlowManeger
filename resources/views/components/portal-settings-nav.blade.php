@@ -32,7 +32,7 @@
             'carrinhos' => ['Carrinhos abandonados', 'bi-cart-x', 'Lembrar quem não fechou o pedido', 'promotions.carts', 'carrinho abandonado esquecido lembrete lembranca whatsapp recuperar'],
         ],
         'Resultados' => [
-            'relatorio' => ['Relatório do site', 'bi-graph-up-arrow', 'Visitas, mais vistos e pedidos', 'promotions.report', 'visitas acessos relatorio mais vistos conversao origem instagram'],
+            'relatorio' => ['Relatório do site', 'bi-graph-up-arrow', 'Visitas, mais vistos e pedidos', 'promotions.site-report', 'visitas acessos relatorio mais vistos conversao origem instagram'],
         ],
         'Clientes' => [
             'avaliacoes' => ['Avaliações', 'bi-star-half', 'Notas e comentários', 'promotions.reviews', 'estrelas comentario nota'],
