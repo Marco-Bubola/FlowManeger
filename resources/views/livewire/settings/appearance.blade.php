@@ -18,9 +18,20 @@ new class extends Component {
     public function saveLook(array $value): void
     {
         $fams = ['slate', 'red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'];
+        $pick = fn ($k, array $ok, $def) => in_array($value[$k] ?? null, $ok, true) ? $value[$k] : $def;
+        $cards = ['tema', 'classico', 'branco', 'grafite', 'escuro', 'noite', 'custom', 'rosa', 'menta', 'ceu', 'pessego', 'lavanda', 'limao', 'coral', 'oceano', 'uva', 'caramelo', 'cereja', 'floresta'];
+        $pats = ['nenhum', 'pontos', 'bolhas', 'linhas', 'grade', 'xadrez', 'mais', 'ondas', 'zigue', 'coracoes', 'estrelas', 'folhas', 'flores', 'confete', 'diamantes'];
         $clean = [
-            'cards' => in_array($value['cards'] ?? '', ['tema', 'classico', 'branco', 'grafite', 'escuro', 'custom'], true) ? $value['cards'] : 'tema',
-            'bg' => in_array($value['bg'] ?? '', ['padrao', 'tema', 'cinza', 'areia', 'branco'], true) ? $value['bg'] : 'padrao',
+            'cards' => $pick('cards', $cards, 'tema'),
+            'tone' => $pick('tone', ['suave', 'medio', 'forte'], 'medio'),
+            'shape' => $pick('shape', ['redondo', 'medio', 'reto'], 'redondo'),
+            'bg' => $pick('bg', ['padrao', 'tema', 'cinza', 'areia', 'branco', 'cor'], 'padrao'),
+            'bg_c' => $pick('bg_c', $fams, null),
+            'pat' => $pick('pat', $pats, 'nenhum'),
+            'pat_c' => $pick('pat_c', array_merge(['tema'], $fams), 'tema'),
+            'pat_o' => $pick('pat_o', ['suave', 'medio', 'forte'], 'medio'),
+            'side' => $pick('side', ['padrao', 'tema', 'cor', 'branco', 'cinza', 'areia'], 'padrao'),
+            'tab' => $pick('tab', ['padrao', 'tema', 'cor', 'branco'], 'padrao'),
         ];
         foreach (['c_bg', 'c_border', 'c_tag', 'c_detail'] as $k) {
             $clean[$k] = in_array($value[$k] ?? null, $fams, true) ? $value[$k] : null;
@@ -84,7 +95,7 @@ new class extends Component {
 <section class="settings-appearance-page w-full mobile-393-base">
     <x-settings.layout :heading="''">
 
-    <div class="ap-page" x-data="fmAppearance(@js($palette), @js($look), @js(array_map(fn ($t) => ['id' => $t[0], 'primary' => $t[3], 'secondary' => $t[4], 'accent' => $t[5]], $themes)))" x-init="init()">
+    <div class="ap-page" x-data="fmAppearance(@js($palette), @js($look), @js(array_map(fn ($t) => ['id' => $t[0], 'name' => $t[1], 'primary' => $t[3], 'secondary' => $t[4], 'accent' => $t[5]], $themes)))" x-init="init()">
 
         <div class="ap-grid">
             <div class="ap-main">
@@ -162,19 +173,24 @@ new class extends Component {
                         </div>
                         <span class="ap-saved" x-show="lookSavedAt" x-transition.opacity x-cloak><i class="bi bi-cloud-check"></i> Salvo</span>
                     </div>
-                    <div class="ap-cardstyles">
-                        <template x-for="m in cardModes" :key="m.id">
-                            <button type="button" class="ap-cs" :class="{ 'is-on': look.cards === m.id }" @click="pickCards(m.id)">
-                                <span class="ap-cs-art" :style="cardArt(m.id)">
-                                    <span class="ap-cs-img"></span>
-                                    <span class="ap-cs-name"></span>
-                                    <span class="ap-cs-prices"><span></span><span></span></span>
-                                </span>
-                                <span class="ap-cs-label" x-text="m.label"></span>
-                                <span class="ap-cs-desc" x-text="m.desc"></span>
-                            </button>
-                        </template>
-                    </div>
+                    <template x-for="g in cardGroups" :key="g.label">
+                        <div class="ap-group">
+                            <p class="ap-group-label" x-text="g.label"></p>
+                            <div class="ap-cardstyles">
+                                <template x-for="m in g.items" :key="m.id">
+                                    <button type="button" class="ap-cs" :class="{ 'is-on': look.cards === m.id }" @click="pickCards(m.id)">
+                                        <span class="ap-cs-art" :style="cardArt(m.id)">
+                                            <span class="ap-cs-img"></span>
+                                            <span class="ap-cs-name"></span>
+                                            <span class="ap-cs-prices"><span></span><span></span></span>
+                                        </span>
+                                        <span class="ap-cs-label" x-text="m.label"></span>
+                                        <span class="ap-cs-desc" x-text="m.desc" x-show="m.desc"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
                     <div x-show="look.cards === 'custom'" x-cloak class="mt-2">
                         @foreach([['c_bg', 'Fundo do card', 'A cor clara atrás do nome'], ['c_border', 'Borda e nome', 'Contorno do card e cor do nome'], ['c_tag', 'Etiquetas', 'Código e preço de custo'], ['c_detail', 'Detalhes', 'Moldura da foto e preço de venda']] as [$slot, $label, $hint])
                             <div class="ap-row">
@@ -196,6 +212,24 @@ new class extends Component {
                             </div>
                         @endforeach
                     </div>
+                    <div class="ap-two">
+                        <div>
+                            <p class="ap-label">Intensidade da cor</p>
+                            <div class="ap-seg mt-2">
+                                <template x-for="t in [{id:'suave',label:'Suave'},{id:'medio',label:'Média'},{id:'forte',label:'Forte'}]" :key="t.id">
+                                    <button type="button" :class="{ 'is-on': (look.tone || 'medio') === t.id }" @click="setLook('tone', t.id)" x-text="t.label"></button>
+                                </template>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="ap-label">Cantos do card</p>
+                            <div class="ap-seg mt-2">
+                                <template x-for="t in [{id:'redondo',label:'Redondos',r:'.7rem'},{id:'medio',label:'Médios',r:'.4rem'},{id:'reto',label:'Retos',r:'.12rem'}]" :key="t.id">
+                                    <button type="button" :class="{ 'is-on': (look.shape || 'redondo') === t.id }" @click="setLook('shape', t.id)"><span class="ap-shape" :style="'border-radius:' + t.r"></span><span x-text="t.label"></span></button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Fundo das telas --}}
@@ -204,15 +238,90 @@ new class extends Component {
                         <span class="ap-ico bg-gradient-to-br from-amber-400 to-rose-500"><i class="bi bi-image"></i></span>
                         <div class="min-w-0">
                             <h2>Fundo das telas</h2>
-                            <p>A cor atrás dos cards em todas as páginas. Vale no modo claro.</p>
+                            <p>A cor e o desenho atrás dos cards em todas as páginas. O desenho aparece também no modo escuro.</p>
                         </div>
                     </div>
-                    <div class="ap-bgs">
+                    <p class="ap-label">Cor do fundo</p>
+                    <div class="ap-bgs mt-2">
                         <template x-for="b in bgModes" :key="b.id">
-                            <button type="button" class="ap-bg" :class="{ 'is-on': look.bg === b.id }" @click="pickBg(b.id)">
-                                <span class="ap-bg-art" :class="'ap-bg-' + b.id"><span></span><span></span></span>
+                            <button type="button" class="ap-bg" :class="{ 'is-on': (look.bg || 'padrao') === b.id }" @click="pickBg(b.id)">
+                                <span class="ap-bg-art" :style="'background:' + bgArt(b.id)"><span></span><span></span></span>
                                 <span x-text="b.label"></span>
                             </button>
+                        </template>
+                    </div>
+                    <div class="ap-row" x-show="look.bg === 'cor'" x-cloak>
+                        <div class="ap-row-label">
+                            <span class="ap-row-dot" :style="'background: var(--fm-sw-' + (look.bg_c || 'indigo') + ')'"></span>
+                            <div><p>Qual cor</p><small>Fica bem clarinha no fundo</small></div>
+                        </div>
+                        <div class="ap-swatches">
+                            @foreach($families as [$fam, $famName])
+                                <button type="button" class="ap-swatch" title="{{ $famName }}" style="background: var(--fm-sw-{{ $fam }})"
+                                        :class="{ 'is-on': (look.bg_c || 'indigo') === '{{ $fam }}' }" @click="look.bg_c = '{{ $fam }}'; look.bg = 'cor'; applyLook()">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                    <p class="ap-label mt-4">Desenho no fundo</p>
+                    <div class="ap-pats mt-2">
+                        <template x-for="pt in patterns" :key="pt.id">
+                            <button type="button" class="ap-pat" :class="{ 'is-on': (look.pat || 'nenhum') === pt.id }" @click="setLook('pat', pt.id)">
+                                <span class="ap-pat-art" :style="patArt(pt.id)"><i class="bi bi-slash-circle" x-show="pt.id === 'nenhum'"></i></span>
+                                <span x-text="pt.label"></span>
+                            </button>
+                        </template>
+                    </div>
+                    <div x-show="look.pat && look.pat !== 'nenhum'" x-cloak>
+                        <div class="ap-row">
+                            <div class="ap-row-label">
+                                <span class="ap-row-dot" :style="'background:' + (look.pat_c && look.pat_c !== 'tema' ? 'var(--fm-sw-' + look.pat_c + ')' : 'var(--color-indigo-500)')"></span>
+                                <div><p>Cor do desenho</p><small>"Do tema" muda junto com o tema</small></div>
+                            </div>
+                            <div class="ap-swatches">
+                                <button type="button" class="ap-swatch ap-swatch-theme" title="Do tema" :class="{ 'is-on': !look.pat_c || look.pat_c === 'tema' }" @click="setLook('pat_c', 'tema')"><i class="bi bi-check-lg"></i></button>
+                                @foreach($families as [$fam, $famName])
+                                    <button type="button" class="ap-swatch" title="{{ $famName }}" style="background: var(--fm-sw-{{ $fam }})"
+                                            :class="{ 'is-on': look.pat_c === '{{ $fam }}' }" @click="setLook('pat_c', '{{ $fam }}')">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="ap-row">
+                            <div class="ap-row-label"><div><p>Quanto aparece</p><small>Suave fica bem discreto</small></div></div>
+                            <div class="ap-seg">
+                                <template x-for="t in [{id:'suave',label:'Suave'},{id:'medio',label:'Médio'},{id:'forte',label:'Forte'}]" :key="t.id">
+                                    <button type="button" :class="{ 'is-on': (look.pat_o || 'medio') === t.id }" @click="setLook('pat_o', t.id)" x-text="t.label"></button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Menu e barra --}}
+                <div class="ap-card">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-indigo-500 to-sky-500"><i class="bi bi-layout-sidebar-inset"></i></span>
+                        <div class="min-w-0">
+                            <h2>Menu lateral e barra do celular</h2>
+                            <p>A cor do menu do computador e da barra de baixo do celular. Vale no modo claro. Para esconder áreas do menu, use <a href="{{ route('settings.menu') }}" wire:navigate class="font-bold text-indigo-600 dark:text-indigo-300">Menu do app</a>.</p>
+                        </div>
+                    </div>
+                    <p class="ap-label">Menu lateral</p>
+                    <div class="ap-sides mt-2">
+                        <template x-for="m in sideModes" :key="m.id">
+                            <button type="button" class="ap-sidebtn" :class="{ 'is-on': (look.side || 'padrao') === m.id }" @click="setLook('side', m.id)">
+                                <span class="ap-side-art"><span :style="'background:' + sideArt(m.id)"><i></i><i></i><i></i></span><b></b></span>
+                                <span x-text="m.label"></span>
+                            </button>
+                        </template>
+                    </div>
+                    <p class="ap-label mt-4">Barra de baixo do celular</p>
+                    <div class="ap-seg mt-2">
+                        <template x-for="m in tabModes" :key="m.id">
+                            <button type="button" :class="{ 'is-on': (look.tab || 'padrao') === m.id }" @click="setLook('tab', m.id)"><span class="ap-tabdot" :style="'background:' + tabArt(m.id)"></span><span x-text="m.label"></span></button>
                         </template>
                     </div>
                 </div>
@@ -261,57 +370,6 @@ new class extends Component {
             </div>
 
             <aside class="ap-side">
-                {{-- Prévia ao vivo: usa as mesmas classes do app, então muda junto com as cores --}}
-                <div class="ap-card ap-preview-card">
-                    <div class="ap-card-head">
-                        <span class="ap-ico bg-gradient-to-br from-emerald-500 to-teal-500"><i class="bi bi-eye"></i></span>
-                        <div class="min-w-0">
-                            <h2>Prévia ao vivo</h2>
-                            <p>Assim fica o app com as cores escolhidas.</p>
-                        </div>
-                    </div>
-                    <div class="ap-preview">
-                        <div class="ap-pv-side">
-                            <span class="ap-pv-logo bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500"></span>
-                            <span class="ap-pv-item is-on bg-gradient-to-r from-indigo-500/15 to-purple-500/15 text-indigo-700 dark:text-indigo-300"><i class="bi bi-house"></i> Início</span>
-                            <span class="ap-pv-item"><i class="bi bi-bag"></i> Vendas</span>
-                            <span class="ap-pv-item"><i class="bi bi-box-seam"></i> Produtos</span>
-                            <span class="ap-pv-item"><i class="bi bi-wallet2"></i> Finanças</span>
-                        </div>
-                        <div class="ap-pv-main">
-                            <div class="ap-pv-head bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">
-                                <b>Vendas do mês</b>
-                                <span>R$ 12.480,00</span>
-                            </div>
-                            <div class="ap-pv-stats">
-                                <span class="bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="bi bi-graph-up"></i> 32 vendas</span>
-                                <span class="bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300"><i class="bi bi-people"></i> 18 clientes</span>
-                            </div>
-                            <div class="ap-pv-bars">
-                                @foreach([40, 65, 50, 85, 60, 95, 70] as $h)
-                                    <span class="bg-gradient-to-t from-indigo-500 to-purple-400" style="height: {{ $h }}%"></span>
-                                @endforeach
-                            </div>
-                            <div class="ap-pv-tabs">
-                                <span class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">Todas</span>
-                                <span>Pagas</span>
-                                <span>A receber</span>
-                            </div>
-                            <button type="button" class="ap-pv-btn bg-gradient-to-r from-indigo-600 to-purple-600"><i class="bi bi-plus-lg"></i> Nova venda</button>
-                        </div>
-                    </div>
-                    <div class="ap-pv-cards">
-                        @foreach([['Batom matte', 'R$ 32,90', 'from-pink-300 to-rose-400'], ['Hidratante', 'R$ 45,00', 'from-sky-300 to-indigo-400']] as [$pn, $pp, $pg])
-                            <div class="ap-pc">
-                                <span class="ap-pc-code">P00{{ $loop->iteration }}</span>
-                                <span class="ap-pc-img"><span class="bg-gradient-to-br {{ $pg }}"></span></span>
-                                <b>{{ $pn }}</b>
-                                <span class="ap-pc-prices"><span>R$ 18,00</span><span>{{ $pp }}</span></span>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
                 {{-- Claro / escuro --}}
                 <div class="ap-card">
                     <div class="ap-card-head">
@@ -347,6 +405,167 @@ new class extends Component {
                 </div>
             </aside>
         </div>
+
+        {{-- Prévia numa janela: dá para ver o app inteiro e trocar as escolhas ali mesmo --}}
+        <button type="button" class="ap-pv-fab bg-gradient-to-r from-indigo-600 to-purple-600" @click="openPreview()"><i class="bi bi-eye"></i> Ver prévia</button>
+        <template x-teleport="body">
+            <div class="ap-modal" x-show="pvOpen" x-cloak x-transition.opacity @keydown.escape.window="pvOpen = false">
+                <div class="ap-modal-back" @click="pvOpen = false"></div>
+                <div class="ap-modal-box" role="dialog" aria-label="Prévia do app">
+                    <div class="ap-modal-head">
+                        <span class="ap-ico bg-gradient-to-br from-emerald-500 to-teal-500"><i class="bi bi-eye"></i></span>
+                        <div class="min-w-0 flex-1">
+                            <h2>Prévia do app</h2>
+                            <p>Troque aqui e veja na hora. Tudo já fica salvo.</p>
+                        </div>
+                        <div class="ap-seg ap-dev">
+                            <button type="button" :class="{ 'is-on': pvDev === 'pc' }" @click="pvDev = 'pc'"><i class="bi bi-laptop"></i><span>Computador</span></button>
+                            <button type="button" :class="{ 'is-on': pvDev === 'cel' }" @click="pvDev = 'cel'"><i class="bi bi-phone"></i><span>Celular</span></button>
+                        </div>
+                        <button type="button" class="ap-modal-x" @click="pvOpen = false" aria-label="Fechar"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                    <div class="ap-modal-body">
+                        <div class="ap-stage" :class="{ 'is-dark': dark }">
+                            {{-- Computador --}}
+                            <div class="ap-mock-pc" x-show="pvDev === 'pc'" :style="{ background: previewBg() }">
+                                <div class="ap-mk-side" :style="'background:' + (dark ? '#0f172a' : sideArt(look.side || 'padrao'))">
+                                    <span class="ap-mk-logo bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500"></span>
+                                    <span class="ap-mk-item is-on bg-gradient-to-r from-indigo-500/15 to-purple-500/15 text-indigo-700 dark:text-indigo-300"><i class="bi bi-house"></i> Início</span>
+                                    <span class="ap-mk-item"><i class="bi bi-bag"></i> Vendas</span>
+                                    <span class="ap-mk-item"><i class="bi bi-box-seam"></i> Produtos</span>
+                                    <span class="ap-mk-item"><i class="bi bi-wallet2"></i> Finanças</span>
+                                    <span class="ap-mk-item"><i class="bi bi-gear"></i> Configurações</span>
+                                </div>
+                                <div class="ap-mk-main">
+                                    <div class="ap-mk-head bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">
+                                        <div><b>Vendas do mês</b><span>R$ 12.480,00</span></div>
+                                        <span class="ap-mk-pill"><i class="bi bi-plus-lg"></i> Nova venda</span>
+                                    </div>
+                                    <div class="ap-mk-stats">
+                                        <span class="bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="bi bi-graph-up"></i> 32 vendas</span>
+                                        <span class="bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300"><i class="bi bi-people"></i> 18 clientes</span>
+                                        <span class="bg-pink-50 text-pink-700 dark:bg-pink-500/15 dark:text-pink-300"><i class="bi bi-box-seam"></i> 4 em falta</span>
+                                    </div>
+                                    <div class="ap-mk-cards">
+                                        @foreach([['Batom matte', 'R$ 32,90', 'from-pink-300 to-rose-400'], ['Hidratante', 'R$ 45,00', 'from-sky-300 to-indigo-400'], ['Perfume floral', 'R$ 129,90', 'from-amber-200 to-orange-400'], ['Sabonete', 'R$ 12,50', 'from-emerald-200 to-teal-400']] as [$pn, $pp, $pg])
+                                            <div class="ap-pc" :style="'border-radius:' + mockRadius()">
+                                                <span class="ap-pc-code">P00{{ $loop->iteration }}</span>
+                                                <span class="ap-pc-img"><span class="bg-gradient-to-br {{ $pg }}"></span></span>
+                                                <b>{{ $pn }}</b>
+                                                <span class="ap-pc-prices"><span>R$ 18,00</span><span>{{ $pp }}</span></span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- Celular --}}
+                            <div class="ap-mock-cel" x-show="pvDev === 'cel'" :style="{ background: previewBg() }">
+                                <div class="ap-mk-cel-top"><b>Produtos</b><i class="bi bi-bell"></i></div>
+                                <div class="ap-mk-head bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500"><div><b>Em estoque</b><span>148 itens</span></div></div>
+                                <div class="ap-mk-cards is-cel">
+                                    @foreach([['Batom matte', 'R$ 32,90', 'from-pink-300 to-rose-400'], ['Hidratante', 'R$ 45,00', 'from-sky-300 to-indigo-400']] as [$pn, $pp, $pg])
+                                        <div class="ap-pc" :style="'border-radius:' + mockRadius()">
+                                            <span class="ap-pc-code">P00{{ $loop->iteration }}</span>
+                                            <span class="ap-pc-img"><span class="bg-gradient-to-br {{ $pg }}"></span></span>
+                                            <b>{{ $pn }}</b>
+                                            <span class="ap-pc-prices"><span>R$ 18,00</span><span>{{ $pp }}</span></span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div class="ap-mk-tab" :style="'background:' + (dark ? '#0a0e1e' : tabArt(look.tab || 'padrao'))">
+                                    <span><i class="bi bi-house"></i></span><span><i class="bi bi-bag"></i></span>
+                                    <span class="ap-mk-tab-mid bg-gradient-to-br from-indigo-500 to-purple-600"><i class="bi bi-plus-lg"></i></span>
+                                    <span class="is-on text-indigo-600 dark:text-indigo-300"><i class="bi bi-box-seam"></i></span><span><i class="bi bi-list"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ap-quick">
+                            <div class="ap-quick-tabs">
+                                <template x-for="t in [{id:'tema',label:'Tema',icon:'bi-palette2'},{id:'cards',label:'Cards',icon:'bi-postcard-heart'},{id:'fundo',label:'Fundo',icon:'bi-image'},{id:'menu',label:'Menu',icon:'bi-layout-sidebar-inset'}]" :key="t.id">
+                                    <button type="button" :class="{ 'is-on': pvTab === t.id }" @click="pvTab = t.id"><i class="bi" :class="t.icon"></i> <span x-text="t.label"></span></button>
+                                </template>
+                            </div>
+                            <div class="ap-quick-body">
+                                <div x-show="pvTab === 'tema'" class="ap-chips">
+                                    <template x-for="t in themes" :key="t.id">
+                                        <button type="button" class="ap-chip" :class="{ 'is-on': theme === t.id }" @click="pickTheme(t.id)">
+                                            <span class="ap-chip-dots"><i :style="'background:var(--fm-sw-' + t.primary + ')'"></i><i :style="'background:var(--fm-sw-' + t.secondary + ')'"></i><i :style="'background:var(--fm-sw-' + t.accent + ')'"></i></span>
+                                            <span x-text="t.name"></span>
+                                        </button>
+                                    </template>
+                                    <div class="ap-chips-row">
+                                        <span class="ap-mini-label">Claro ou escuro</span>
+                                        <div class="ap-seg">
+                                            <button type="button" :class="{ 'is-on': mode === 'light' }" @click="pickMode('light')"><i class="bi bi-sun"></i> Claro</button>
+                                            <button type="button" :class="{ 'is-on': mode === 'dark' }" @click="pickMode('dark')"><i class="bi bi-moon-stars"></i> Escuro</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div x-show="pvTab === 'cards'" x-cloak class="ap-chips">
+                                    <template x-for="m in allCardModes()" :key="m.id">
+                                        <button type="button" class="ap-chip" :class="{ 'is-on': look.cards === m.id }" @click="pickCards(m.id)">
+                                            <span class="ap-chip-card" :style="cardArt(m.id)"></span>
+                                            <span x-text="m.label"></span>
+                                        </button>
+                                    </template>
+                                    <div class="ap-chips-row">
+                                        <span class="ap-mini-label">Intensidade</span>
+                                        <div class="ap-seg">
+                                            <template x-for="t in [{id:'suave',label:'Suave'},{id:'medio',label:'Média'},{id:'forte',label:'Forte'}]" :key="t.id">
+                                                <button type="button" :class="{ 'is-on': (look.tone || 'medio') === t.id }" @click="setLook('tone', t.id)" x-text="t.label"></button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <div class="ap-chips-row">
+                                        <span class="ap-mini-label">Cantos</span>
+                                        <div class="ap-seg">
+                                            <template x-for="t in [{id:'redondo',label:'Redondos'},{id:'medio',label:'Médios'},{id:'reto',label:'Retos'}]" :key="t.id">
+                                                <button type="button" :class="{ 'is-on': (look.shape || 'redondo') === t.id }" @click="setLook('shape', t.id)" x-text="t.label"></button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div x-show="pvTab === 'fundo'" x-cloak class="ap-chips">
+                                    <template x-for="b in bgModes" :key="b.id">
+                                        <button type="button" class="ap-chip" :class="{ 'is-on': (look.bg || 'padrao') === b.id }" @click="pickBg(b.id)">
+                                            <span class="ap-chip-sq" :style="'background:' + bgArt(b.id)"></span><span x-text="b.label"></span>
+                                        </button>
+                                    </template>
+                                    <span class="ap-mini-label w-full">Desenho</span>
+                                    <template x-for="pt in patterns" :key="pt.id">
+                                        <button type="button" class="ap-chip" :class="{ 'is-on': (look.pat || 'nenhum') === pt.id }" @click="setLook('pat', pt.id)">
+                                            <span class="ap-chip-sq ap-chip-pat" :style="patArt(pt.id)"></span><span x-text="pt.label"></span>
+                                        </button>
+                                    </template>
+                                    <div class="ap-chips-row" x-show="look.pat && look.pat !== 'nenhum'">
+                                        <span class="ap-mini-label">Quanto aparece</span>
+                                        <div class="ap-seg">
+                                            <template x-for="t in [{id:'suave',label:'Suave'},{id:'medio',label:'Médio'},{id:'forte',label:'Forte'}]" :key="t.id">
+                                                <button type="button" :class="{ 'is-on': (look.pat_o || 'medio') === t.id }" @click="setLook('pat_o', t.id)" x-text="t.label"></button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div x-show="pvTab === 'menu'" x-cloak class="ap-chips">
+                                    <span class="ap-mini-label w-full">Menu lateral</span>
+                                    <template x-for="m in sideModes" :key="m.id">
+                                        <button type="button" class="ap-chip" :class="{ 'is-on': (look.side || 'padrao') === m.id }" @click="setLook('side', m.id); pvDev = 'pc'">
+                                            <span class="ap-chip-sq" :style="'background:' + sideArt(m.id)"></span><span x-text="m.label"></span>
+                                        </button>
+                                    </template>
+                                    <span class="ap-mini-label w-full">Barra do celular</span>
+                                    <template x-for="m in tabModes" :key="m.id">
+                                        <button type="button" class="ap-chip" :class="{ 'is-on': (look.tab || 'padrao') === m.id }" @click="setLook('tab', m.id); pvDev = 'cel'">
+                                            <span class="ap-chip-sq" :style="'background:' + tabArt(m.id)"></span><span x-text="m.label"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
     </div>
 
     <style>
@@ -431,7 +650,7 @@ new class extends Component {
         .ap-pv-tabs span.text-white { color: #fff; }
         .ap-pv-btn { display: flex; align-items: center; justify-content: center; gap: .3rem; color: #fff; font-size: .68rem; font-weight: 800; padding: .45rem; border-radius: .7rem; }
 
-        .ap-cardstyles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .55rem; }
+        .ap-cardstyles { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .55rem; }
         .ap-cs { position: relative; display: flex; flex-direction: column; gap: .2rem; text-align: left; padding: .45rem .45rem .6rem; border-radius: 1rem; border: 2px solid #e2e8f0; background: #f8fafc; transition: transform .15s, border-color .15s; }
         .ap-cs:hover { transform: translateY(-2px); }
         .ap-cs.is-on { border-color: var(--color-indigo-600); background: #fff; box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-indigo-500) 18%, transparent); }
@@ -447,7 +666,7 @@ new class extends Component {
         .ap-cs-desc { font-size: .66rem; color: #64748b; line-height: 1.25; }
         .dark .ap-cs-label { color: #f1f5f9; }
         .dark .ap-cs-desc { color: #94a3b8; }
-        .ap-bgs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .55rem; }
+        .ap-bgs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .55rem; }
         .ap-bg { display: flex; flex-direction: column; align-items: center; gap: .35rem; padding: .45rem .45rem .55rem; border-radius: .9rem; border: 2px solid #e2e8f0; background: #f8fafc; font-size: .74rem; font-weight: 700; color: #334155; }
         .ap-bg.is-on { border-color: var(--color-indigo-600); background: #fff; }
         .dark .ap-bg { background: #111827; border-color: #1f2937; color: #e2e8f0; }
@@ -469,8 +688,7 @@ new class extends Component {
         .ap-pc-prices { display: flex; justify-content: space-between; gap: .2rem; }
         .ap-pc-prices span { font-size: .55rem; font-weight: 800; padding: .12rem .3rem; border-radius: .4rem; color: var(--card-text, #424242); background: linear-gradient(90deg, var(--card-accent2, #f8bbd0), var(--card-border, #b39ddb)); }
         .ap-pc-prices span + span { background: linear-gradient(90deg, var(--card-danger, #ffebee), var(--card-accent2, #f8bbd0)); }
-        @media (max-width: 1535px) { .ap-cardstyles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-        @media (max-width: 767px) { .ap-bgs { grid-template-columns: repeat(3, minmax(0, 1fr)); } .ap-cardstyles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+                @media (max-width: 767px) { .ap-bgs { grid-template-columns: repeat(3, minmax(0, 1fr)); } .ap-cardstyles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem; } .ap-cs-desc { display: none; } }
 
         .ap-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
         .ap-mode { display: flex; flex-direction: column; gap: .35rem; align-items: center; padding: .45rem .45rem .55rem; border-radius: .9rem; border: 2px solid #e2e8f0; background: #f8fafc; font-size: .74rem; font-weight: 700; color: #334155; }
@@ -496,30 +714,173 @@ new class extends Component {
             .ap-swatches { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: .35rem; }
             .ap-swatch { width: 100%; height: auto; aspect-ratio: 1; }
         }
+
+        /* Mais escolhas: grupos de cards, desenhos, menu e prévia em janela */
+        .ap-page .ap-seg, .ap-modal .ap-seg { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 1fr; }
+        .ap-group + .ap-group { margin-top: .9rem; }
+        .ap-group-label, .ap-mini-label { font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #64748b; margin-bottom: .45rem; }
+        .dark .ap-group-label, .dark .ap-mini-label { color: #94a3b8; }
+        .ap-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #e2e8f0; }
+        .dark .ap-two { border-color: #1e293b; }
+        .ap-shape { width: .95rem; height: .95rem; border: 2px solid currentColor; }
+        .ap-pats { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: .5rem; }
+        .ap-pat { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .35rem .35rem .45rem; border-radius: .9rem; border: 2px solid #e2e8f0; background: #f8fafc; font-size: .7rem; font-weight: 700; color: #334155; }
+        .ap-pat.is-on { border-color: var(--color-indigo-600); background: #fff; }
+        .dark .ap-pat { background: #111827; border-color: #1f2937; color: #e2e8f0; }
+        .dark .ap-pat.is-on { border-color: var(--color-indigo-600); background: #1e293b; }
+        .ap-pat-art { display: grid; place-items: center; width: 100%; height: 2.8rem; border-radius: .55rem; border: 1px solid #e2e8f0; color: #94a3b8; }
+        .ap-swatch-theme { background: conic-gradient(var(--color-indigo-500), var(--color-purple-500), var(--color-pink-500), var(--color-indigo-500)); }
+        .ap-sides { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .5rem; }
+        .ap-sidebtn { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .35rem .35rem .45rem; border-radius: .9rem; border: 2px solid #e2e8f0; background: #f8fafc; font-size: .7rem; font-weight: 700; color: #334155; }
+        .ap-sidebtn.is-on { border-color: var(--color-indigo-600); background: #fff; }
+        .dark .ap-sidebtn { background: #111827; border-color: #1f2937; color: #e2e8f0; }
+        .dark .ap-sidebtn.is-on { border-color: var(--color-indigo-600); background: #1e293b; }
+        .ap-side-art { display: flex; width: 100%; height: 3rem; border-radius: .55rem; overflow: hidden; border: 1px solid #e2e8f0; background: #f1f5f9; }
+        .ap-side-art > span { width: 42%; display: flex; flex-direction: column; gap: .2rem; padding: .3rem; border-right: 1px solid #e2e8f0; }
+        .ap-side-art > span i { height: .3rem; border-radius: 1rem; background: color-mix(in oklab, var(--color-indigo-500) 35%, #cbd5e1); }
+        .ap-side-art > span i:first-child { background: var(--color-indigo-500); }
+        .ap-side-art b { flex: 1; }
+        .ap-tabdot { width: .9rem; height: .9rem; border-radius: .3rem; border: 1px solid #cbd5e1; }
+
+        .ap-pv-fab { position: fixed; z-index: 60; right: 1.25rem; bottom: 1.25rem; display: inline-flex; align-items: center; gap: .45rem; padding: .75rem 1.1rem; border-radius: 999px; color: #fff; font-size: .85rem; font-weight: 800; box-shadow: 0 14px 30px -10px color-mix(in oklab, var(--color-indigo-600) 70%, transparent); }
+        .ap-pv-fab:hover { transform: translateY(-2px); }
+        @media (max-width: 1023px) { .ap-pv-fab { bottom: calc(5.4rem + env(safe-area-inset-bottom)); right: 1rem; } }
+
+        .ap-modal { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+        .ap-modal-back { position: absolute; inset: 0; background: rgba(15, 23, 42, .55); backdrop-filter: blur(4px); }
+        .ap-modal-box { position: relative; width: min(1180px, 100%); max-height: calc(100dvh - 2rem); display: flex; flex-direction: column; border-radius: 1.4rem; background: #fff; box-shadow: 0 30px 80px -20px rgba(15, 23, 42, .6); overflow: hidden; }
+        .dark .ap-modal-box { background: #0b1220; border: 1px solid #1e293b; }
+        .ap-modal-head { display: flex; align-items: center; gap: .75rem; padding: .9rem 1rem; border-bottom: 1px solid #e2e8f0; }
+        .dark .ap-modal-head { border-color: #1e293b; }
+        .ap-modal-head h2 { font-size: 1rem; font-weight: 800; color: #0f172a; }
+        .ap-modal-head p { font-size: .75rem; color: #64748b; }
+        .dark .ap-modal-head h2 { color: #f1f5f9; }
+        .ap-dev { width: 15rem; }
+        .ap-modal-x { display: grid; place-items: center; width: 2.3rem; height: 2.3rem; border-radius: .8rem; background: #f1f5f9; color: #334155; }
+        .dark .ap-modal-x { background: #1e293b; color: #e2e8f0; }
+        .ap-modal-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 340px; overflow: hidden; }
+        .ap-stage { display: grid; place-items: center; padding: 1rem; background: #e2e8f0; overflow: auto; }
+        .dark .ap-stage { background: #020617; }
+        .ap-mock-pc { width: 100%; max-width: 780px; display: flex; gap: .7rem; padding: .7rem; border-radius: 1rem; box-shadow: 0 18px 40px -20px rgba(15, 23, 42, .5); }
+        .ap-mk-side { width: 9.5rem; flex: none; display: flex; flex-direction: column; gap: .3rem; padding: .6rem; border-radius: .9rem; box-shadow: 0 6px 18px -10px rgba(15, 23, 42, .4); }
+        .ap-mk-logo { width: 1.9rem; height: 1.9rem; border-radius: .6rem; margin-bottom: .4rem; }
+        .ap-mk-item { display: flex; align-items: center; gap: .4rem; font-size: .72rem; font-weight: 600; color: #64748b; padding: .38rem .45rem; border-radius: .55rem; white-space: nowrap; }
+        .ap-stage.is-dark .ap-mk-item { color: #94a3b8; }
+        .ap-mk-item.is-on { font-weight: 800; }
+        .ap-mk-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .55rem; }
+        .ap-mk-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; border-radius: .9rem; padding: .7rem .8rem; color: #fff; }
+        .ap-mk-head b { display: block; font-size: .68rem; opacity: .9; }
+        .ap-mk-head span { font-size: 1.05rem; font-weight: 800; }
+        .ap-mk-pill { font-size: .68rem !important; font-weight: 800; padding: .35rem .6rem; border-radius: 999px; background: rgba(255, 255, 255, .22); white-space: nowrap; }
+        .ap-mk-stats { display: flex; flex-wrap: wrap; gap: .35rem; }
+        .ap-mk-stats span { font-size: .66rem; font-weight: 700; padding: .25rem .5rem; border-radius: .55rem; }
+        .ap-mk-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .55rem; }
+        .ap-mk-cards.is-cel { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0 .5rem; }
+        .ap-mock-cel { position: relative; width: 270px; height: 470px; display: flex; flex-direction: column; gap: .55rem; padding: .7rem 0 0; border-radius: 2rem; border: 6px solid #0f172a; overflow: hidden; box-shadow: 0 18px 40px -20px rgba(15, 23, 42, .6); }
+        .ap-mock-cel .ap-mk-head { margin: 0 .5rem; }
+        .ap-mk-cel-top { display: flex; justify-content: space-between; align-items: center; margin: 0 .5rem; padding: .5rem .7rem; border-radius: .9rem; background: rgba(255, 255, 255, .9); font-size: .8rem; color: #0f172a; }
+        .ap-stage.is-dark .ap-mk-cel-top { background: #0f172a; color: #f1f5f9; }
+        .ap-mk-tab { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-around; align-items: center; padding: .5rem .3rem .7rem; color: #64748b; box-shadow: 0 -10px 24px -14px rgba(15, 23, 42, .4); }
+        .ap-mk-tab span { display: grid; place-items: center; width: 2rem; height: 2rem; font-size: 1rem; }
+        .ap-mk-tab-mid { border-radius: 999px; color: #fff !important; width: 2.6rem !important; height: 2.6rem !important; margin-top: -1rem; }
+        .ap-quick { display: flex; flex-direction: column; min-height: 0; border-left: 1px solid #e2e8f0; }
+        .dark .ap-quick { border-color: #1e293b; }
+        .ap-quick-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .25rem; padding: .6rem; border-bottom: 1px solid #e2e8f0; }
+        .dark .ap-quick-tabs { border-color: #1e293b; }
+        .ap-quick-tabs button { display: flex; flex-direction: column; align-items: center; gap: .15rem; padding: .45rem .2rem; border-radius: .7rem; font-size: .7rem; font-weight: 700; color: #64748b; }
+        .ap-quick-tabs button.is-on { background: color-mix(in oklab, var(--color-indigo-500) 12%, transparent); color: var(--color-indigo-700); }
+        .dark .ap-quick-tabs button.is-on { color: var(--color-indigo-300); }
+        .ap-quick-body { flex: 1; overflow-y: auto; padding: .75rem; }
+        .ap-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+        .ap-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .6rem .35rem .35rem; border-radius: .8rem; border: 2px solid #e2e8f0; background: #f8fafc; font-size: .72rem; font-weight: 700; color: #334155; }
+        .ap-chip.is-on { border-color: var(--color-indigo-600); background: #fff; }
+        .dark .ap-chip { background: #111827; border-color: #1f2937; color: #e2e8f0; }
+        .dark .ap-chip.is-on { border-color: var(--color-indigo-500); background: #1e293b; }
+        .ap-chip-dots { display: flex; }
+        .ap-chip-dots i { width: .9rem; height: .9rem; border-radius: 999px; border: 2px solid #fff; margin-left: -.3rem; }
+        .ap-chip-dots i:first-child { margin-left: 0; }
+        .ap-chip-card { width: 1.5rem; height: 1.5rem; border-radius: .45rem; background: var(--a-bg); border: 3px solid var(--a-border); box-shadow: inset 0 -5px 0 var(--a-tag); }
+        .ap-chip-sq { width: 1.5rem; height: 1.5rem; border-radius: .45rem; border: 1px solid #cbd5e1; }
+        .ap-chip-pat { background-size: 17px 17px, cover !important; }
+        .ap-chips-row { width: 100%; display: flex; flex-direction: column; gap: .35rem; margin-top: .6rem; }
+        .ap-chips-row .ap-mini-label { margin: 0; }
+        @media (max-width: 1023px) {
+            .ap-modal { padding: 0; align-items: flex-end; }
+            .ap-modal-box { width: 100%; max-height: 94dvh; border-radius: 1.4rem 1.4rem 0 0; }
+            .ap-modal-body { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; overflow-y: auto; }
+            .ap-quick { border-left: 0; border-top: 1px solid #e2e8f0; }
+            .ap-quick-body { max-height: 15rem; }
+            .ap-mk-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .ap-mk-cards > :nth-child(4) { display: none; }
+            .ap-sides { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        @media (max-width: 767px) {
+            .ap-modal-head p { display: none; }
+            .ap-dev { width: auto; }
+            .ap-dev span { display: none; }
+            .ap-mock-pc { gap: .4rem; padding: .4rem; }
+            .ap-mk-side { width: 5.6rem; padding: .4rem; }
+            .ap-mk-item { font-size: .6rem; padding: .3rem; }
+            .ap-mk-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .ap-mk-cards > :nth-child(3) { display: none; }
+            .ap-mock-cel { width: 230px; height: 400px; }
+            .ap-two { grid-template-columns: 1fr; }
+            .ap-pats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            .ap-stage { padding: .6rem; }
+        }
     </style>
 
     <script>
         window.fmAppearance = window.fmAppearance || function (saved, savedLook, themes) {
             return {
                 themes: themes,
-                look: { cards: 'tema', bg: 'padrao', c_bg: null, c_border: null, c_tag: null, c_detail: null },
+                look: { cards: 'tema', tone: 'medio', shape: 'redondo', bg: 'padrao', bg_c: null, pat: 'nenhum', pat_c: 'tema', pat_o: 'medio', side: 'padrao', tab: 'padrao', c_bg: null, c_border: null, c_tag: null, c_detail: null },
+                pvOpen: false,
+                pvDev: window.innerWidth < 768 ? 'cel' : 'pc',
+                pvTab: 'cards',
+                dark: document.documentElement.classList.contains('dark'),
                 customDefault: { c_bg: 'violet', c_border: 'purple', c_tag: 'pink', c_detail: 'orange' },
                 lookSavedAt: null,
                 lookTimer: null,
-                cardModes: [
-                    { id: 'tema', label: 'Acompanhar o tema', desc: 'Muda junto com o tema' },
-                    { id: 'classico', label: 'Lilás clássico', desc: 'O visual de sempre' },
-                    { id: 'branco', label: 'Branco', desc: 'Limpo, a foto aparece mais' },
-                    { id: 'grafite', label: 'Grafite', desc: 'Cinza discreto' },
-                    { id: 'escuro', label: 'Escuro', desc: 'Card escuro, letras claras' },
-                    { id: 'custom', label: 'Minhas cores', desc: 'Escolha cada parte' },
+                cardGroups: [
+                    { label: 'Combinar com o app', items: [
+                        { id: 'tema', label: 'Acompanhar o tema', desc: 'Muda junto com o tema' },
+                        { id: 'classico', label: 'Lilás clássico', desc: 'O visual de sempre' },
+                        { id: 'custom', label: 'Minhas cores', desc: 'Escolha cada parte' },
+                    ] },
+                    { label: 'Neutros', items: [
+                        { id: 'branco', label: 'Branco', desc: 'A foto aparece mais' },
+                        { id: 'grafite', label: 'Grafite', desc: 'Cinza discreto' },
+                        { id: 'escuro', label: 'Escuro', desc: 'Letras claras' },
+                        { id: 'noite', label: 'Noite', desc: 'Azul bem escuro' },
+                    ] },
+                    { label: 'Coloridos', items: [
+                        { id: 'rosa', label: 'Rosa' }, { id: 'pessego', label: 'Pêssego' }, { id: 'caramelo', label: 'Caramelo' },
+                        { id: 'limao', label: 'Limão' }, { id: 'menta', label: 'Menta' }, { id: 'floresta', label: 'Floresta' },
+                        { id: 'oceano', label: 'Oceano' }, { id: 'ceu', label: 'Céu' }, { id: 'lavanda', label: 'Lavanda' },
+                        { id: 'uva', label: 'Uva' }, { id: 'coral', label: 'Coral' }, { id: 'cereja', label: 'Cereja' },
+                    ] },
                 ],
                 bgModes: [
                     { id: 'padrao', label: 'Padrão' },
                     { id: 'tema', label: 'Do tema' },
+                    { id: 'cor', label: 'Uma cor' },
                     { id: 'cinza', label: 'Cinza' },
                     { id: 'areia', label: 'Areia' },
                     { id: 'branco', label: 'Branco' },
+                ],
+                patterns: [
+                    { id: 'nenhum', label: 'Nenhum' }, { id: 'pontos', label: 'Pontos' }, { id: 'bolhas', label: 'Bolhas' }, { id: 'linhas', label: 'Linhas' },
+                    { id: 'grade', label: 'Grade' }, { id: 'xadrez', label: 'Xadrez' }, { id: 'mais', label: 'Cruzes' }, { id: 'diamantes', label: 'Losangos' },
+                    { id: 'ondas', label: 'Ondas' }, { id: 'zigue', label: 'Zigue-zague' }, { id: 'coracoes', label: 'Corações' }, { id: 'estrelas', label: 'Estrelas' },
+                    { id: 'folhas', label: 'Folhas' }, { id: 'flores', label: 'Flores' }, { id: 'confete', label: 'Confete' },
+                ],
+                sideModes: [
+                    { id: 'padrao', label: 'Vidro' }, { id: 'tema', label: 'Tom do tema' }, { id: 'cor', label: 'Cor do tema' },
+                    { id: 'branco', label: 'Branco' }, { id: 'cinza', label: 'Cinza' }, { id: 'areia', label: 'Areia' },
+                ],
+                tabModes: [
+                    { id: 'padrao', label: 'Padrão' }, { id: 'tema', label: 'Tom do tema' }, { id: 'cor', label: 'Cor do tema' }, { id: 'branco', label: 'Branco' },
                 ],
                 theme: 'flow',
                 pal: { primary: 'indigo', secondary: 'purple', accent: 'pink' },
@@ -611,8 +972,31 @@ new class extends Component {
                     }, 400);
                 },
                 pickCards(id) { this.look.cards = id; this.applyLook(); },
+                setLook(k, v) { this.look[k] = v; this.applyLook(); },
+                allCardModes() { return this.cardGroups.reduce(function (a, g) { return a.concat(g.items); }, []); },
+                openPreview() { this.dark = document.documentElement.classList.contains('dark'); this.pvOpen = true; },
+                mockRadius() { return { medio: '.6rem', reto: '.2rem' }[this.look.shape] || '1rem'; },
+                bgArt(id) {
+                    var lk = Object.assign({}, this.look, { bg: id, pat: 'nenhum' });
+                    return (window.fmBgCss && window.fmBgCss(lk, this.pal, false)) || 'linear-gradient(135deg, #f8fafc, #eff6ff, #eef2ff)';
+                },
+                patArt(id) {
+                    if (id === 'nenhum') return 'background:#f8fafc';
+                    var lk = Object.assign({}, this.look, { pat: id, pat_o: 'forte', bg: 'branco' });
+                    return 'background:' + ((window.fmBgCss && window.fmBgCss(lk, this.pal, false)) || '#fff');
+                },
+                previewBg() {
+                    var bg = window.fmBgCss && window.fmBgCss(this.look, this.pal, this.dark);
+                    return bg || (this.dark ? 'linear-gradient(to bottom right, #0f172a, #1e293b, #0f172a)' : 'linear-gradient(to bottom right, var(--color-slate-50), var(--color-blue-50), var(--color-indigo-50))');
+                },
+                sideArt(id) {
+                    return { tema: 'linear-gradient(180deg, var(--color-indigo-50), var(--color-purple-100))', cor: 'linear-gradient(180deg, var(--color-indigo-100), var(--color-purple-200))', branco: '#fff', cinza: '#f1f5f9', areia: 'linear-gradient(180deg, #fffbeb, #fff1f2)' }[id] || 'rgba(255,255,255,.82)';
+                },
+                tabArt(id) {
+                    return { tema: 'linear-gradient(180deg, var(--color-indigo-50), var(--color-purple-100))', cor: 'linear-gradient(180deg, var(--color-indigo-100), var(--color-purple-200))', branco: '#fff' }[id] || 'linear-gradient(180deg, rgba(255,255,255,.96), rgba(244,247,251,.94))';
+                },
                 pickCardColor(slot, fam) { this.look[slot] = fam; this.look.cards = 'custom'; this.applyLook(); },
-                pickBg(id) { this.look.bg = id; this.applyLook(); },
+                pickBg(id) { this.look.bg = id; if (id === 'cor' && !this.look.bg_c) this.look.bg_c = this.pal.primary || 'indigo'; this.applyLook(); },
                 pickFont(id) {
                     this.font = id;
                     try { id === 'system' ? localStorage.removeItem('flowmanager:font') : localStorage.setItem('flowmanager:font', id); } catch (e) {}
@@ -650,6 +1034,7 @@ new class extends Component {
                     var dark = m === 'dark' || (m === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
                     try { m === 'system' ? localStorage.removeItem('flowmanager:theme') : localStorage.setItem('flowmanager:theme', m); } catch (e) {}
                     document.documentElement.classList.toggle('dark', dark);
+                    this.dark = dark;
                     window.dispatchEvent(new CustomEvent('flowmanager:theme-changed', { detail: { theme: dark ? 'dark' : 'light' } }));
                 },
                 pickTabletNav(m) {

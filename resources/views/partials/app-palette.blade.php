@@ -65,8 +65,17 @@
         branco: ['#ffffff', '#e2e8f0', '#f1f5f9', '#e2e8f0', '#f1f5f9', '#334155', '#0f172a', '#475569'],
         grafite: [P.slate[1], P.slate[3], P.slate[2], P.slate[2], P.slate[1], '#334155', '#0f172a', '#475569'],
         escuro: ['#1e293b', '#475569', '#334155', '#334155', '#0f172a', '#e2e8f0', '#f1f5f9', '#64748b'],
+        noite: [P.indigo[9], P.indigo[6], P.violet[8], P.indigo[7], P.indigo[10], '#e0e7ff', '#eef2ff', P.indigo[5]],
+    };
+    // Estilos coloridos prontos: fundo, borda e nome, etiquetas, detalhes
+    var CARD_SETS = {
+        rosa: ['pink', 'pink', 'rose', 'amber'], menta: ['emerald', 'teal', 'cyan', 'lime'], ceu: ['sky', 'sky', 'blue', 'cyan'],
+        pessego: ['orange', 'orange', 'rose', 'amber'], lavanda: ['violet', 'violet', 'fuchsia', 'pink'], limao: ['lime', 'green', 'yellow', 'emerald'],
+        coral: ['rose', 'red', 'orange', 'amber'], oceano: ['cyan', 'blue', 'teal', 'sky'], uva: ['purple', 'purple', 'fuchsia', 'violet'],
+        caramelo: ['amber', 'orange', 'yellow', 'rose'], cereja: ['red', 'rose', 'pink', 'orange'], floresta: ['green', 'emerald', 'lime', 'teal'],
     };
     window.FM_CARD_FIXED = CARD_FIXED;
+    window.FM_CARD_SETS = CARD_SETS;
     window.fmCardColors = function (look, pal) {
         look = look || {}; pal = pal || {};
         var mode = look.cards || 'tema';
@@ -74,27 +83,87 @@
         var f;
         if (mode === 'custom') {
             f = { bg: look.c_bg, border: look.c_border, tag: look.c_tag, detail: look.c_detail };
+        } else if (CARD_SETS[mode]) {
+            var cs = CARD_SETS[mode];
+            f = { bg: cs[0], border: cs[1], tag: cs[2], detail: cs[3] };
         } else if (mode === 'tema') {
             var p = P[pal.primary] ? pal.primary : DEF.primary;
             var s = P[pal.secondary] ? pal.secondary : DEF.secondary;
             var a = P[pal.accent] ? pal.accent : DEF.accent;
-            // Com as cores padrão o card fica como sempre foi (lilás)
-            if (p === DEF.primary && s === DEF.secondary && a === DEF.accent) return null;
+            // Com as cores padrão e tom médio o card fica como sempre foi (lilás)
+            if (p === DEF.primary && s === DEF.secondary && a === DEF.accent && (!look.tone || look.tone === 'medio')) return null;
             f = { bg: p, border: p, tag: s, detail: a };
         } else {
             return null;
         }
         ['bg', 'border', 'tag', 'detail'].forEach(function (k) { if (!P[f[k]]) f[k] = { bg: 'indigo', border: 'violet', tag: 'pink', detail: 'orange' }[k]; });
-        return [P[f.bg][1], P[f.border][3], P[f.detail][2], P[f.tag][2], P[f.detail][1], '#334155', P[f.border][10], P[f.border][6]];
+        // Intensidade: suave (bem claro), médio, forte (mais cor)
+        var t = { suave: 0, medio: 1, forte: 2 }[look.tone] ; if (t === undefined) t = 1;
+        return [P[f.bg][t], P[f.border][2 + t], P[f.detail][1 + t], P[f.tag][1 + t], P[f.detail][t], '#334155', P[f.border][10], P[f.border][6]];
+    };
+    // Desenhos do fundo: SVG pequeno repetido, na cor escolhida
+    var PATS = {
+        pontos: [22, '<circle cx="11" cy="11" r="1.8" fill="C"/>'],
+        bolhas: [64, '<circle cx="14" cy="16" r="7" fill="C"/><circle cx="46" cy="42" r="11" fill="C"/><circle cx="50" cy="10" r="3" fill="C"/><circle cx="18" cy="52" r="4" fill="C"/>'],
+        linhas: [18, '<path d="M-2 20 20 -2M7 27 27 7" stroke="C" stroke-width="1.6"/>'],
+        grade: [28, '<path d="M28 0H0V28" fill="none" stroke="C" stroke-width="1.2"/>'],
+        xadrez: [32, '<rect width="16" height="16" fill="C"/><rect x="16" y="16" width="16" height="16" fill="C"/>'],
+        mais: [30, '<path d="M15 9v12M9 15h12" stroke="C" stroke-width="2.2" stroke-linecap="round"/>'],
+        ondas: [48, '<path d="M0 12c6 0 6-6 12-6s6 6 12 6 6-6 12-6 6 6 12 6M0 36c6 0 6-6 12-6s6 6 12 6 6-6 12-6 6 6 12 6" fill="none" stroke="C" stroke-width="1.8"/>'],
+        zigue: [32, '<path d="M0 12l8-6 8 6 8-6 8 6M0 28l8-6 8 6 8-6 8 6" fill="none" stroke="C" stroke-width="1.8" stroke-linejoin="round"/>'],
+        coracoes: [44, '<path d="M22 31s-9-5.6-9-11.4A4.8 4.8 0 0 1 22 17a4.8 4.8 0 0 1 9 2.6C31 25.4 22 31 22 31z" fill="C"/><path d="M6 9s-3.5-2.2-3.5-4.5A1.9 1.9 0 0 1 6 3.5a1.9 1.9 0 0 1 3.5 1C9.5 6.8 6 9 6 9z" fill="C"/>'],
+        estrelas: [48, '<path d="M24 10l3.5 7.3 8 1.1-5.8 5.6 1.4 8-7.1-3.8-7.1 3.8 1.4-8-5.8-5.6 8-1.1z" fill="C"/><circle cx="6" cy="40" r="1.6" fill="C"/><circle cx="42" cy="42" r="1.2" fill="C"/>'],
+        folhas: [52, '<path d="M14 40C14 24 26 14 40 12c0 15-10 27-26 28z" fill="C"/><path d="M14 40 32 22" stroke="#fff" stroke-opacity=".5" stroke-width="1.2"/>'],
+        flores: [52, '<g fill="C"><circle cx="26" cy="18" r="5.5"/><circle cx="34" cy="26" r="5.5"/><circle cx="26" cy="34" r="5.5"/><circle cx="18" cy="26" r="5.5"/></g><circle cx="26" cy="26" r="3.6" fill="#fff" fill-opacity=".7"/>'],
+        confete: [56, '<g fill="C"><rect x="6" y="8" width="8" height="3" rx="1.5" transform="rotate(30 10 9)"/><rect x="36" y="14" width="8" height="3" rx="1.5" transform="rotate(-40 40 15)"/><rect x="18" y="38" width="8" height="3" rx="1.5" transform="rotate(70 22 39)"/><circle cx="46" cy="44" r="2.4"/><circle cx="26" cy="22" r="1.8"/></g>'],
+        diamantes: [36, '<path d="M18 6l8 12-8 12-8-12z" fill="none" stroke="C" stroke-width="1.6"/>'],
+    };
+    window.FM_PATTERNS = Object.keys(PATS);
+    window.fmPatternUrl = function (id, color, opacity) {
+        var d = PATS[id]; if (!d) return '';
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + d[0] + '" height="' + d[0] + '" viewBox="0 0 ' + d[0] + ' ' + d[0] + '"><g opacity="' + opacity + '">' + d[1].replace(/="C"/g, '="' + color + '"') + '</g></svg>';
+        return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+    };
+    // Fundo das telas: cor de baixo + desenho por cima (claro e escuro)
+    window.fmBgCss = function (look, pal, dark) {
+        look = look || {}; pal = pal || {};
+        var base = '';
+        if (!dark) {
+            var c = P[look.bg_c] ? look.bg_c : 'indigo';
+            base = {
+                tema: 'linear-gradient(135deg, var(--color-slate-50) 0%, var(--color-indigo-50) 50%, var(--color-purple-100) 100%)',
+                cinza: 'linear-gradient(#eef1f5, #eef1f5)',
+                areia: 'linear-gradient(135deg, #fffbeb 0%, #fff7ed 50%, #fdf2f8 100%)',
+                branco: 'linear-gradient(#fff, #fff)',
+                cor: 'linear-gradient(135deg, ' + P[c][0] + ' 0%, ' + P[c][1] + ' 60%, ' + P[c][2] + ' 100%)',
+                padrao: 'linear-gradient(to bottom right, var(--color-slate-50), var(--color-blue-50), var(--color-indigo-50))',
+            }[look.bg] || '';
+        }
+        var pat = '';
+        if (PATS[look.pat]) {
+            var fam = look.pat_c && look.pat_c !== 'tema' && P[look.pat_c] ? look.pat_c : (P[pal.primary] ? pal.primary : DEF.primary);
+            var o = { suave: 0.09, medio: 0.16, forte: 0.26 }[look.pat_o] || 0.16;
+            pat = window.fmPatternUrl(look.pat, P[fam][dark ? 4 : 5], dark ? o * 0.75 : o);
+            if (!base) base = dark ? 'linear-gradient(to bottom right, #0f172a, #1e293b, #0f172a)' : 'linear-gradient(to bottom right, var(--color-slate-50), var(--color-blue-50), var(--color-indigo-50))';
+        }
+        return pat ? pat + ', ' + base : base;
     };
     window.fmApplyLook = function (look, pal) {
         look = look || {};
         var c = window.fmCardColors(look, pal);
         var el = document.getElementById('fm-cards');
         if (!el) { el = document.createElement('style'); el.id = 'fm-cards'; document.head.appendChild(el); }
-        el.textContent = c ? 'html:root{--card-bg:' + c[0] + ';--card-border:' + c[1] + ';--card-accent:' + c[2] + ';--card-accent2:' + c[3] + ';--card-danger:' + c[4] + ';--card-text:' + c[5] + ';--card-title:' + c[6] + ';--card-btn:' + c[7] + ';}' : '';
-        var bg = ['tema', 'cinza', 'areia', 'branco'].indexOf(look.bg) >= 0 ? look.bg : '';
-        if (bg) document.documentElement.setAttribute('data-fm-bg', bg); else document.documentElement.removeAttribute('data-fm-bg');
+        var css = c ? 'html:root{--card-bg:' + c[0] + ';--card-border:' + c[1] + ';--card-accent:' + c[2] + ';--card-accent2:' + c[3] + ';--card-danger:' + c[4] + ';--card-text:' + c[5] + ';--card-title:' + c[6] + ';--card-btn:' + c[7] + ';}' : '';
+        var light = window.fmBgCss(look, pal, false), dk = PATS[look.pat] ? window.fmBgCss(look, pal, true) : '';
+        if (light) css += 'html:not(.dark) body{background:' + light + ' !important;background-attachment:fixed !important;}';
+        if (dk) css += 'html.dark body{background:' + dk + ' !important;background-attachment:fixed !important;}';
+        el.textContent = css;
+        var root = document.documentElement;
+        var set = function (k, v, ok) { if (ok.indexOf(v) >= 0) root.setAttribute(k, v); else root.removeAttribute(k); };
+        set('data-fm-bg', look.bg, ['tema', 'cinza', 'areia', 'branco', 'cor']);
+        set('data-fm-cshape', look.shape, ['medio', 'reto']);
+        set('data-fm-side', look.side, ['tema', 'branco', 'cinza', 'areia', 'cor']);
+        set('data-fm-tab', look.tab, ['tema', 'branco', 'cor']);
     };
     try {
         var server = @json($fmPalette);

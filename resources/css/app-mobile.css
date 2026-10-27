@@ -656,11 +656,22 @@ html.dark body .s-conn-btn:not(.s-conn-btn--primary):not(.s-conn-btn--orange):no
 .settings-content-area .settings-card-desc { font-size: .78rem; margin-top: .15rem; }
 @media (max-width: 767px) { .settings-content-area .settings-card { padding: .95rem .9rem 1rem; border-radius: 1.1rem; } }
 
-/* Fundo das telas (Configurações › Aparência). Só no modo claro; o escuro continua igual. */
-html:not(.dark)[data-fm-bg="tema"] body { background: linear-gradient(135deg, var(--color-slate-50) 0%, var(--color-indigo-50) 50%, var(--color-purple-100) 100%) fixed !important; }
-html:not(.dark)[data-fm-bg="cinza"] body { background: #eef1f5 !important; }
-html:not(.dark)[data-fm-bg="areia"] body { background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 50%, #fdf2f8 100%) fixed !important; }
-html:not(.dark)[data-fm-bg="branco"] body { background: #ffffff !important; }
+/* Fundo das telas (Configurações › Aparência): a cor e o desenho vêm de partials/app-palette (fmBgCss). */
+/* Cantos dos cards de produto */
+html[data-fm-cshape="medio"] .product-card-modern { border-radius: 1em !important; }
+html[data-fm-cshape="reto"] .product-card-modern { border-radius: .35em !important; }
+html[data-fm-cshape="reto"] .product-card-modern .product-img-area,
+html[data-fm-cshape="reto"] .product-card-modern .product-img { border-radius: .3em !important; }
+/* Menu lateral (só no modo claro) */
+html:not(.dark)[data-fm-side="tema"] #modernSidebar > div > div:first-child { background: linear-gradient(180deg, color-mix(in oklab, var(--color-indigo-50) 92%, transparent), color-mix(in oklab, var(--color-purple-100) 92%, transparent)) !important; }
+html:not(.dark)[data-fm-side="cor"] #modernSidebar > div > div:first-child { background: linear-gradient(180deg, var(--color-indigo-100), var(--color-purple-200)) !important; }
+html:not(.dark)[data-fm-side="branco"] #modernSidebar > div > div:first-child { background: #fff !important; }
+html:not(.dark)[data-fm-side="cinza"] #modernSidebar > div > div:first-child { background: #f1f5f9 !important; }
+html:not(.dark)[data-fm-side="areia"] #modernSidebar > div > div:first-child { background: linear-gradient(180deg, #fffbeb, #fff1f2) !important; }
+/* Barra de baixo do celular (só no modo claro) */
+html:not(.dark)[data-fm-tab="tema"] .mobile-bottom-tabbar { background: linear-gradient(180deg, color-mix(in oklab, var(--color-indigo-50) 96%, transparent), color-mix(in oklab, var(--color-purple-100) 96%, transparent)) !important; }
+html:not(.dark)[data-fm-tab="cor"] .mobile-bottom-tabbar { background: linear-gradient(180deg, var(--color-indigo-100), var(--color-purple-200)) !important; }
+html:not(.dark)[data-fm-tab="branco"] .mobile-bottom-tabbar { background: #fff !important; }
 /* Botão "ver" do card de produto acompanha as cores dos cards (Aparência). */
 html body .product-card-modern .btn-action-group .btn-secondary { background: var(--card-btn, #7e57c2) !important; }
 /* Páginas de administração (planos, assinaturas) dentro da moldura das Configurações:
