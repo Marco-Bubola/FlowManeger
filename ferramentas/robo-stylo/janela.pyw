@@ -996,16 +996,29 @@ class App(ctk.CTk):
                             info = json.loads(origem.read_text(encoding="utf-8"))
                         except Exception:
                             info = None
-                    if not (info and info.get("imagens")):
+                    varias = len(f.variacoes) > 1
+                    if not (info and info.get("imagens")) or (varias and not any(p.get("detalhes") for p in info.get("variacoes") or [])):
                         info = ml.extrair(link)
-                    nomes = motor.salvar_fotos_ml(info, pasta, ml.baixar)
+                    d = json.loads(json.dumps(f.dados))
+                    vs = recursos._vs(d)
+                    nomes = []
+                    if varias and vs and not any(v.get("fotos") for v in vs):
+                        # cada variação com as fotos da cor (ou do tamanho) dela no anúncio
+                        por_opcao = motor.salvar_fotos_variacoes(info, pasta, ml.baixar)
+                        for v in vs:
+                            partes = [x.strip().lower() for x in str(v.get("valor") or "").split("·")]
+                            for (tipo, opcao), lista in por_opcao.items():
+                                if opcao.strip().lower() in partes:
+                                    v["fotos"] = lista
+                                    nomes += [n for n in lista if n not in nomes]
+                                    break
+                    if not nomes:
+                        nomes = motor.salvar_fotos_ml(info, pasta, ml.baixar)
+                        if vs and not any(v.get("fotos") for v in vs):
+                            vs[0]["fotos"] = nomes
                     if not nomes:
                         falhas.append((f.nome, "o anúncio não tem fotos que dê para baixar"))
                         continue
-                    d = json.loads(json.dumps(f.dados))
-                    vs = recursos._vs(d)
-                    if vs and not any(v.get("fotos") for v in vs):
-                        vs[0]["fotos"] = nomes
                     motor.salvar_ficha(f, d)
                     feitas.append((Path(pasta), nomes))
                 except motor.Parar:
@@ -3489,21 +3502,38 @@ class Editor(ctk.CTkFrame):
             em = {i for i, lst in enumerate(listas) if p in lst}
             if not em:
                 uso = "nao" if citou else "todas"
-            elif em >= cheias or len(em) > 1:
+            elif em >= cheias:
                 uso = "todas"
+            elif len(em) > 1:
+                cores = {self._cor_da_linha(self.linhas[i]) for i in em if i < len(self.linhas)}
+                cor = next(iter(cores)) if len(cores) == 1 else None
+                mesmas = {i for i, l in enumerate(self.linhas) if cor and self._cor_da_linha(l) == cor}
+                uso = f"cor:{cor}" if cor and em == mesmas else "todas"
             else:
                 i = next(iter(em))
                 uso = self.linhas[i] if i < len(self.linhas) and len(cheias) > 1 else "todas"
             self.fotos.append(FotoEd(p, uso=uso))
 
+    @staticmethod
+    def _cor_da_linha(l):
+        """Em "Tamanho e cor" a variação se chama "25 cm · Preto": devolve "Preto"."""
+        partes = [x.strip() for x in l.rotulo().split("·")]
+        return partes[-1] if len(partes) > 1 and partes[-1] else None
+
+    def _cores(self):
+        return list(dict.fromkeys(c for c in (self._cor_da_linha(l) for l in self.linhas) if c))
+
     def _opcoes_uso(self):
-        return ["Todas as variações"] + [f"Só: {l.rotulo()}" for l in self.linhas] + ["Não usar"]
+        return (["Todas as variações"] + [f"Só a cor: {c}" for c in self._cores()]
+                + [f"Só: {l.rotulo()}" for l in self.linhas] + ["Não usar"])
 
     def _uso_txt(self, f):
         if f.uso == "todas":
             return "Todas as variações"
         if f.uso == "nao":
             return "Não usar"
+        if isinstance(f.uso, str) and f.uso.startswith("cor:"):
+            return f"Só a cor: {f.uso[4:]}" if f.uso[4:] in self._cores() else "Todas as variações"
         return f"Só: {f.uso.rotulo()}" if f.uso in self.linhas else "Todas as variações"
 
     def atualizar_usos(self):
@@ -3553,6 +3583,8 @@ class Editor(ctk.CTkFrame):
             f.uso = "todas"
         elif txt == "Não usar":
             f.uso = "nao"
+        elif txt.startswith("Só a cor: "):
+            f.uso = "cor:" + txt[len("Só a cor: "):]
         else:
             rot = txt[len("Só: "):]
             f.uso = next((l for l in self.linhas if l.rotulo() == rot), "todas")
@@ -3715,10 +3747,13 @@ class Editor(ctk.CTkFrame):
                     if nome:
                         f.caminho, f.nova = pasta / nome[0], False
             gerais = [f.caminho.name for f in vis if f.uso == "todas"]
-            tem_propria = any(f.uso in self.linhas for f in vis)
+            cores = self._cores()
+            de_cor = lambda f: isinstance(f.uso, str) and f.uso.startswith("cor:") and f.uso[4:] in cores
+            tem_propria = any(f.uso in self.linhas or de_cor(f) for f in vis)
             for l, v in zip(self.linhas, d["variacoes"]):
                 # mantém a ordem da tela: a primeira foto da variação vira a capa dela
-                v["fotos"] = [f.caminho.name for f in vis if f.uso == "todas" or f.uso is l] if tem_propria else []
+                v["fotos"] = [f.caminho.name for f in vis if f.uso == "todas" or f.uso is l
+                              or (de_cor(f) and f.uso[4:] == self._cor_da_linha(l))] if tem_propria else []
             if not tem_propria and d["variacoes"]:
                 d["variacoes"][0]["fotos"] = gerais
             ficha = self.ficha or motor.Ficha(pasta=pasta)

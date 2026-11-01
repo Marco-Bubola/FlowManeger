@@ -725,16 +725,90 @@ JS_PRODUTO = r"""
     if (i > 0) r.specs.push([t.slice(0, i).trim(), t.slice(i + 1).trim()]);
   });
   if (!r.categoria.length) document.querySelectorAll('.andes-breadcrumb a').forEach(a => r.categoria.push(a.innerText.trim()));
-  document.querySelectorAll('.ui-pdp-variations__picker').forEach(p => {
-    const tt = p.querySelector('.ui-pdp-variations__title, .ui-pdp-variations__label, p');
-    const nome = tt ? tt.innerText.split(':')[0].trim() : '';
+  return r;
+}
+"""
+
+JS_PICKERS = r"""
+() => {
+  // Seletores de variação do anúncio (Cor, Tamanho...). Marca cada opção com data-robo-op="p-i" para o robô clicar.
+  const NOMES = /^(cor|cores|tamanho|tamanhos|medida|medidas|dimens[õo]es|modelo|voltagem|estampa|acabamento|material|formato|tipo|capacidade|quantidade)\b/i;
+  const limpar = t => String(t || '').replace(/\s+/g, ' ').replace(/^bot[aã]o\s+\d+\s+de\s+\d+[,.:]?\s*/i, '').trim();
+  const rotulo = el => {
+    const img = el.querySelector('img');
+    const cands = [el.getAttribute('aria-label'), el.getAttribute('title'), el.getAttribute('data-title'),
+                   img && img.getAttribute('alt'), el.innerText];
+    for (const c of cands) { const t = limpar(c); if (t && t.length < 60) return t; }
+    return '';
+  };
+  const out = [], usados = new Set();
+  const montar = (caixa, nome, selecionado) => {
     const ops = [];
-    p.querySelectorAll('a, button, [role=option], .ui-pdp-thumbnail').forEach(o => {
-      const v = (o.getAttribute('aria-label') || o.getAttribute('title') || o.innerText || '').trim();
-      if (v && v.length < 60 && !ops.includes(v)) ops.push(v);
+    caixa.querySelectorAll('a, button, [role=option], [role=radio], li.ui-pdp-variations__picker-item').forEach(o => {
+      if (usados.has(o) || o.closest('[data-robo-op]')) return;
+      if (o.querySelector('a, button') && o.tagName === 'LI') return;
+      const t = rotulo(o);
+      if (!t || NOMES.test(t + ':') && /:/.test(t) || ops.some(x => x.texto === t)) return;
+      if (/^(ver mais|ver menos|mais op|guia de)/i.test(t)) return;
+      usados.add(o);
+      const marca = out.length + '-' + ops.length;
+      o.setAttribute('data-robo-op', marca);
+      const href = o.tagName === 'A' && o.href && !o.href.startsWith('javascript') && !o.getAttribute('href').startsWith('#') ? o.href.split('#')[0] : '';
+      const sel = o.getAttribute('aria-checked') === 'true' || o.getAttribute('aria-selected') === 'true' || o.getAttribute('aria-current') === 'true'
+                  || /selected|--SELECTED|selecionad/i.test(o.className + ' ' + (o.getAttribute('aria-label') || ''));
+      ops.push({texto: t, href, marca, selecionado: sel});
     });
-    if (nome && ops.length) r.variacoes.push({nome, opcoes: ops});
+    if (nome && ops.length) out.push({nome, selecionado, opcoes: ops});
+  };
+  // 1) caixas do ML (vários nomes de classe já usados)
+  document.querySelectorAll('.ui-pdp-variations__picker, [class*="variations__picker"]:not([class*="__picker-"]), [data-testid*="picker"]').forEach(p => {
+    if (p.closest('[data-robo-picker]')) return;
+    p.setAttribute('data-robo-picker', '1');
+    const tt = p.querySelector('.ui-pdp-variations__title, .ui-pdp-variations__label, [class*="variations__label"], p, span');
+    const linha = tt ? tt.innerText.replace(/\s+/g, ' ').trim() : '';
+    const nome = linha.split(':')[0].trim();
+    const selecionado = linha.includes(':') ? linha.split(':').slice(1).join(':').trim() : '';
+    if (nome && nome.length < 30) montar(p, nome, selecionado);
   });
+  // 2) qualquer texto "Cor: Preto" / "Tamanho: 30 cm" seguido de botões de opção
+  if (!out.length) {
+    document.querySelectorAll('p, span, div, label, h3, h4').forEach(el => {
+      if (el.children.length > 3) return;
+      const t = (el.innerText || '').replace(/\s+/g, ' ').trim();
+      if (t.length > 60 || !t.includes(':') || !NOMES.test(t)) return;
+      if (el.closest('[data-robo-picker], .ui-pdp-specs, .andes-table, .ui-vpp-highlighted-specs, .ui-pdp-description, header, footer')) return;
+      let caixa = el.parentElement;
+      for (let i = 0; i < 4 && caixa; i++, caixa = caixa.parentElement) {
+        const n = caixa.querySelectorAll('a, button, [role=option], [role=radio]').length;
+        if (n >= 2) break;
+      }
+      if (!caixa) return;
+      caixa.setAttribute('data-robo-picker', '1');
+      montar(caixa, t.split(':')[0].trim(), t.split(':').slice(1).join(':').trim());
+    });
+  }
+  return out;
+}
+"""
+
+JS_GALERIA = r"""
+() => {
+  const r = {imagens: [], preco: null, preco_de: null, selecionados: []};
+  document.querySelectorAll('.ui-pdp-gallery img, figure.ui-pdp-gallery__figure img, img.ui-pdp-image').forEach(img => {
+    const u = img.getAttribute('data-zoom') || img.getAttribute('data-src') || img.src;
+    if (u && !u.startsWith('data:')) r.imagens.push(u);
+  });
+  if (!r.imagens.length) {
+    const og = document.querySelector('meta[property="og:image"]');
+    if (og && og.content) r.imagens.push(og.content);
+  }
+  const mp = document.querySelector('meta[itemprop="price"]');
+  if (mp && mp.content) r.preco = parseFloat(mp.content);
+  const ant = document.querySelector('.ui-pdp-price__original-value, s.andes-money-amount--previous, .andes-money-amount--previous');
+  if (ant) {
+    const f = ant.querySelector('.andes-money-amount__fraction'), ce = ant.querySelector('.andes-money-amount__cents');
+    if (f) r.preco_de = parseFloat(f.innerText.replace(/\./g, '') + '.' + (ce ? ce.innerText.trim() : '00'));
+  }
   return r;
 }
 """
@@ -765,6 +839,90 @@ def _limpar_opcao(nome, texto):
     if ":" in t and t.split(":")[0].strip().lower() == nome.lower():
         t = t.split(":", 1)[1].strip()
     return t
+
+
+def _fotos_ml(urls, maximo=12):
+    """Só as fotos do anúncio (mlstatic), sem repetir, no tamanho original. Devolve (fotos, alternativas)."""
+    fotos, alt, vistas = [], [], set()
+    for u in urls or []:
+        if "mlstatic" not in u or not re.search(r"\d+-ML[A-Z]\d+_\d+", u):
+            continue
+        k = _chave_foto_ml(u)
+        if k not in vistas:
+            vistas.add(k)
+            fotos.append(foto_grande_ml(u))
+            alt.append(u)
+    return fotos[:maximo], alt[:maximo]
+
+
+def _array_json(texto, inicio):
+    """Recorta o array JSON que começa em texto[inicio] == '['."""
+    nivel, dentro, esc = 0, False, False
+    for i in range(inicio, min(len(texto), inicio + 400000)):
+        c = texto[i]
+        if dentro:
+            if esc:
+                esc = False
+            elif c == "\\":
+                esc = True
+            elif c == '"':
+                dentro = False
+        elif c == '"':
+            dentro = True
+        elif c in "[{":
+            nivel += 1
+        elif c in "]}":
+            nivel -= 1
+            if nivel == 0:
+                return texto[inicio:i + 1]
+    return None
+
+
+def _texto_json(v):
+    if isinstance(v, dict):
+        v = v.get("text") or v.get("value") or v.get("name") or ""
+    return re.sub(r"\s+", " ", str(v or "")).strip()
+
+
+def pickers_do_html(html):
+    """Plano B: os seletores de variação que o ML guarda no JSON da página ("pickers")."""
+    for m in re.finditer(r'"pickers"\s*:\s*\[', html or ""):
+        bruto = _array_json(html, m.end() - 1)
+        if not bruto:
+            continue
+        try:
+            lista = json.loads(bruto)
+        except Exception:
+            continue
+        out = []
+        for p in lista if isinstance(lista, list) else []:
+            if not isinstance(p, dict):
+                continue
+            nome = _texto_json(p.get("label") or p.get("name") or p.get("id")).rstrip(":").strip()
+            sel = _texto_json(p.get("selected_option") or p.get("selected_label") or "")
+            ops = []
+            for o in p.get("products") or p.get("options") or p.get("values") or []:
+                if not isinstance(o, dict):
+                    continue
+                t = _texto_json(o.get("label") or o.get("name") or o.get("text"))
+                if not t or any(x["texto"] == t for x in ops):
+                    continue
+                href = o.get("permalink") or o.get("url") or o.get("link") or ""
+                if isinstance(href, dict):
+                    href = href.get("url") or ""
+                pic = o.get("picture") or o.get("thumbnail") or {}
+                pid = pic.get("id") if isinstance(pic, dict) else ""
+                ops.append({"texto": t, "href": str(href or ""), "marca": "", "selecionado": bool(o.get("selected")),
+                            "foto": f"https://http2.mlstatic.com/D_NQ_NP_{pid}-O.jpg" if pid else ""})
+            if nome and ops:
+                out.append({"nome": nome, "selecionado": sel, "opcoes": ops})
+        if out:
+            return out
+    return []
+
+
+def _eh_tamanho(nome):
+    return bool(re.search(r"(?i)tamanho|medida|dimens|capacidade|voltagem|quantidade", nome or ""))
 
 
 class MercadoLivre:
@@ -870,27 +1028,102 @@ class MercadoLivre:
                 pass
         info = pg.evaluate(JS_PRODUTO)
         info["link"] = pg.url.split("#")[0].split("?")[0]
-        fotos, alt, vistas = [], [], set()
-        for u in info.get("imagens") or []:
-            if "mlstatic" not in u or not re.search(r"\d+-ML[A-Z]\d+_\d+", u):
-                continue
-            k = _chave_foto_ml(u)
-            if k not in vistas:
-                vistas.add(k)
-                fotos.append(foto_grande_ml(u))
-                alt.append(u)
-        info["imagens"], info["imagens_alt"] = fotos[:12], alt[:12]
+        info["imagens"], info["imagens_alt"] = _fotos_ml(info.get("imagens"))
+        info["variacoes"] = self._variacoes(link, info)
         specs, vistos = [], set()
         for k, v in info.get("specs") or []:
             if k.lower() not in vistos and v:
                 vistos.add(k.lower())
                 specs.append([k, v])
         info["specs"] = specs
-        for p in info.get("variacoes") or []:
-            p["opcoes"] = [o for o in dict.fromkeys(_limpar_opcao(p["nome"], x) for x in p["opcoes"]) if o][:20]
         if not info.get("titulo"):
             raise RuntimeError("A página aberta não parece um anúncio do Mercado Livre.")
         return info
+
+    def _variacoes(self, link, info, max_opcoes=15):
+        """Lê os seletores de variação (Cor, Tamanho...) e abre cada opção para pegar as fotos e o preço dela.
+        Devolve [{nome, opcoes: [nomes], detalhes: {opção: {imagens, imagens_alt, preco, preco_de}}}]."""
+        pg = self.page
+        try:
+            pickers = pg.evaluate(JS_PICKERS)
+        except Exception:
+            pickers = []
+        if not pickers:
+            try:
+                pickers = pickers_do_html(pg.content())
+            except Exception:
+                pickers = []
+        saida = []
+        for p in pickers[:2]:
+            ops = []
+            for o in p.get("opcoes") or []:
+                t = _limpar_opcao(p["nome"], o.get("texto"))
+                if t and t.lower() != p["nome"].lower() and all(t != x["texto"] for x in ops):
+                    ops.append(dict(o, texto=t))
+            sel = _limpar_opcao(p["nome"], p.get("selecionado") or "")
+            if sel and all(sel != x["texto"] for x in ops) and not ops:
+                ops.append({"texto": sel, "href": "", "marca": "", "selecionado": True})
+            if ops:
+                saida.append({"nome": p["nome"], "selecionado": sel, "opcoes": ops[:max_opcoes]})
+        if not saida:
+            return []
+        self.avisar(f"variações: " + " × ".join(f"{p['nome']} ({len(p['opcoes'])})" for p in saida))
+
+        base = pg.url.split("#")[0]
+        atual = {"imagens": info.get("imagens") or [], "imagens_alt": info.get("imagens_alt") or [],
+                 "preco": info.get("preco"), "preco_de": info.get("preco_de")}
+        for p in saida:
+            det = {}
+            for o in p["opcoes"]:
+                if self.parar():
+                    raise Parar()
+                nome = o["texto"]
+                if o.get("selecionado") or nome == p.get("selecionado"):
+                    det[nome] = dict(atual)
+                    continue
+                try:
+                    if o.get("href"):
+                        pg.goto(o["href"], wait_until="domcontentloaded")
+                        self._esperar_liberar()
+                    elif o.get("marca"):
+                        if pg.url.split("#")[0] != base:
+                            pg.goto(base, wait_until="domcontentloaded")
+                            pg.evaluate(JS_PICKERS)
+                        alvo = pg.locator(f'[data-robo-op="{o["marca"]}"]').first
+                        if not alvo.count():
+                            continue
+                        antes = pg.url
+                        alvo.click(timeout=5000)
+                        try:
+                            pg.wait_for_url(lambda u: u != antes, timeout=6000)
+                        except Exception:
+                            pass
+                    else:
+                        if o.get("foto"):
+                            det[nome] = {"imagens": [o["foto"]], "imagens_alt": [], "preco": None, "preco_de": None}
+                        continue
+                    try:
+                        pg.wait_for_selector("h1", timeout=20000)
+                    except Exception:
+                        pass
+                    time.sleep(1.5)
+                    g = pg.evaluate(JS_GALERIA)
+                    fotos, alt = _fotos_ml(g.get("imagens"))
+                    if not fotos and o.get("foto"):
+                        fotos = [o["foto"]]
+                    det[nome] = {"imagens": fotos, "imagens_alt": alt, "preco": g.get("preco"), "preco_de": g.get("preco_de")}
+                except Parar:
+                    raise
+                except Exception:
+                    continue
+            p["detalhes"] = det
+            p["opcoes"] = [o["texto"] for o in p["opcoes"]]
+        try:
+            if pg.url.split("#")[0] != base:
+                pg.goto(base, wait_until="domcontentloaded")
+        except Exception:
+            pass
+        return saida
 
     def preco_atual(self, link):
         """Título e preço de hoje de um anúncio (para vigiar concorrentes). Preço None se o anúncio sumiu."""
@@ -958,6 +1191,51 @@ def salvar_fotos_ml(info, destino, baixar, max_fotos=10):
     return nomes
 
 
+def _nome_opcao(texto):
+    from unicodedata import normalize
+    t = normalize("NFKD", str(texto)).encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", "-", t).strip("-")[:30] or "opcao"
+
+
+def salvar_fotos_variacoes(info, destino, baixar, max_fotos=8):
+    """Baixa as fotos de cada opção de variação lida do anúncio (cada cor tem as suas).
+    Devolve {("cor"|"tam", opção): [nomes]}; foto igual em duas opções é baixada uma vez só."""
+    if not baixar or Image is None:
+        return {}
+    import io
+    pickers = [p for p in info.get("variacoes") or [] if p.get("detalhes")]
+    tam = next((p for p in pickers if _eh_tamanho(p["nome"])), None)
+    saida, ja = {}, {}
+    for p in pickers:
+        tipo = "tam" if p is tam else "cor"
+        # só baixa por tamanho quando o anúncio não varia por cor (senão as fotos vêm da cor)
+        if tipo == "tam" and len(pickers) > 1:
+            continue
+        for opcao, d in p["detalhes"].items():
+            nomes, alt = [], d.get("imagens_alt") or []
+            for n, url in enumerate((d.get("imagens") or [])[:max_fotos], 1):
+                k = _chave_foto_ml(url)
+                if k in ja:
+                    nomes.append(ja[k])
+                    continue
+                corpo = baixar(url)
+                if not corpo and n - 1 < len(alt) and alt[n - 1] != url:
+                    corpo = baixar(alt[n - 1])
+                if not corpo:
+                    continue
+                try:
+                    with Image.open(io.BytesIO(corpo)) as im:
+                        nome = f"{_nome_opcao(opcao)}-{n:02d}-ml.jpg"
+                        im.convert("RGB").save(Path(destino) / nome, "JPEG", quality=90, optimize=True)
+                except Exception:
+                    continue
+                ja[k] = nome
+                nomes.append(nome)
+            if nomes:
+                saida[(tipo, opcao)] = nomes
+    return saida
+
+
 def copia_das_fichas(pasta_produtos, pasta_copias=None, guardar=14):
     """Uma cópia por dia da pasta das fichas (zip). Devolve o arquivo criado, ou None se a de hoje já existe."""
     import zipfile
@@ -1018,26 +1296,48 @@ def ficha_do_ml(info, pasta_produtos, baixar=None, max_fotos=10):
                                  "diametro": cm("diâmetro", "diametro")}.items() if v}
     base["medidas_peca_cm"] = medidas
     pickers = [p for p in info.get("variacoes") or [] if p.get("opcoes")]
-    tam = next((p for p in pickers if re.search(r"(?i)tamanho|medida|dimens", p["nome"])), None)
-    cor = next((p for p in pickers if re.search(r"(?i)\bcor\b|cores|acabamento", p["nome"])), None)
-    valores, por = [], None
+    tam = next((p for p in pickers if _eh_tamanho(p["nome"])), None)
+    cor = next((p for p in pickers if p is not tam), None)
+    combos = []  # (valor, opção de tamanho, opção de cor)
     if tam and cor:
         por = "Tamanho e cor"
-        valores = [f"{t} · {c}" for t in tam["opcoes"] for c in cor["opcoes"]]
-    elif tam or cor or pickers:
-        p = tam or cor or pickers[0]
-        por = "Tamanho" if p is tam else "Cor" if p is cor else p["nome"].capitalize()
-        valores = list(p["opcoes"])
-    if valores:
+        combos = [(f"{t} · {c}", t, c) for t in tam["opcoes"] for c in cor["opcoes"]]
+    elif tam:
+        por = "Tamanho"
+        combos = [(t, t, None) for t in tam["opcoes"]]
+    elif cor:
+        por = "Cor"
+        combos = [(c, None, c) for c in cor["opcoes"]]
+    if len(combos) == 1:  # uma opção só (ex.: anúncio com uma cor): não é variação
+        combos = []
+    det_tam = (tam or {}).get("detalhes") or {}
+    det_cor = (cor or {}).get("detalhes") or {}
+    if combos:
         dados["variacao_por"] = por
-        dados["variacoes"] = [dict(json.loads(json.dumps(base)), valor=v) for v in valores[:40]]
+        dados["variacoes"] = []
+        for valor, t, c in combos[:40]:
+            v = dict(json.loads(json.dumps(base)), valor=valor)
+            # preço: o da opção de tamanho manda (cor quase nunca muda o preço); senão o da cor
+            d = det_tam.get(t) if t else None
+            d = d if d and d.get("preco") else det_cor.get(c) if c else None
+            if d and d.get("preco"):
+                v["venda"] = round(float(d["preco"]), 2)
+                v["preco_tabela"] = round(float(d["preco_de"]), 2) if d.get("preco_de") else None
+            dados["variacoes"].append(v)
     else:
         dados["variacoes"] = [base]
     dados["mercado_livre"] = {"link_referencia": info.get("link"), "titulo_anuncio": titulo[:60],
                               "tipo_anuncio": "classico", "quantidade_anuncio": 10}
     destino = nova_pasta(pasta_produtos, dados)
-    nomes = salvar_fotos_ml(info, destino, baixar, max_fotos)
-    dados["variacoes"][0]["fotos"] = nomes
+    fotos_var = salvar_fotos_variacoes(info, destino, baixar, max_fotos)
+    if fotos_var and combos:
+        # cada variação recebe as fotos da cor dela (ou do tamanho, se o anúncio só varia por tamanho)
+        for v, (valor, t, c) in zip(dados["variacoes"], combos):
+            v["fotos"] = fotos_var.get(("cor", c)) or fotos_var.get(("tam", t)) or []
+        if not any(v["fotos"] for v in dados["variacoes"]):
+            dados["variacoes"][0]["fotos"] = salvar_fotos_ml(info, destino, baixar, max_fotos)
+    else:
+        dados["variacoes"][0]["fotos"] = salvar_fotos_ml(info, destino, baixar, max_fotos)
     (destino / "ficha.md").write_text(texto_da_ficha(dados), encoding="utf-8")
     (destino / "origem-ml.json").write_text(json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8")
     return destino

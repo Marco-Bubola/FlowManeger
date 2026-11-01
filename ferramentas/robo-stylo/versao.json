@@ -1,6 +1,6 @@
 {
-  "versao": 8,
-  "data": "2026-10-25",
+  "versao": 9,
+  "data": "2026-11-01",
   "arquivos": [
     "janela.pyw",
     "motor.py",
@@ -10,9 +10,9 @@
     "requirements.txt"
   ],
   "novidades": [
-    "Ficha já cadastrada pode atualizar o produto no site: botão “Atualizar no site” em Cadastradas e na ficha.",
-    "Editar uma ficha cadastrada: ao salvar, o robô oferece atualizar o produto no site (preços, textos, medidas, prazo e fotos). O estoque do site não muda.",
-    "Variação nova numa ficha cadastrada entra no mesmo grupo do produto no site.",
-    "Ao cadastrar uma ficha que já existe no site, o robô pergunta se quer atualizar."
+    "Importar do Mercado Livre agora traz as variações do anúncio (cores e tamanhos), mesmo quando as cores aparecem só como bolinhas de foto.",
+    "Cada cor vem com as próprias fotos (o robô abre cada cor no anúncio) e cada tamanho com o próprio preço.",
+    "No editor, em \"Tamanho e cor\", uma foto pode valer só para uma cor (todas as medidas dela).",
+    "\"Baixar do anúncio\" numa ficha com várias variações também separa as fotos por cor."
   ]
 }

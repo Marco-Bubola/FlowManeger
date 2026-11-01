@@ -39,7 +39,8 @@ EDITOR
 - "Gerar variações": escreva os tamanhos e as cores separados por vírgula.
 - Fotos: adicione uma por vez ou várias, ou "Colar imagem" (Ctrl+C numa foto).
   ★ vira capa, ◀ ▶ mudam a ordem, ✕ tira. Cada foto vale para todas as
-  variações ou só para uma (ex.: a foto da cor branca só no Branco).
+  variações, só para uma cor (em "Tamanho e cor") ou só para uma variação
+  (ex.: a foto da cor branca só no Branco).
 
 MERCADO LIVRE
 - Escreva o que procura (ex.: mão francesa ferro) ou cole o link do anúncio.
@@ -47,6 +48,9 @@ MERCADO LIVRE
 - Filtre por palavra e preço, ordene, e toque em "Importar ficha": o robô lê
   título, preço, fotos, cores/tamanhos, características e descrição e cria uma
   ficha nova. Depois confira custo, estoque, medidas e o código no editor.
+- Anúncio com cores ou tamanhos: o robô abre cada opção no Mercado Livre e
+  traz as fotos de cada cor (preto-01-ml.jpg, amarelo-01-ml.jpg...) e o preço
+  de cada tamanho. Cada variação da ficha já sai com as fotos da cor dela.
 - Se o Mercado Livre pedir verificação ou login, resolva na janela do
   navegador; o robô espera e continua.
 
