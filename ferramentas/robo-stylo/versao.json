@@ -1,5 +1,5 @@
 {
-  "versao": 9,
+  "versao": 10,
   "data": "2026-11-01",
   "arquivos": [
     "janela.pyw",
@@ -10,9 +10,8 @@
     "requirements.txt"
   ],
   "novidades": [
-    "Importar do Mercado Livre agora traz as variações do anúncio (cores e tamanhos), mesmo quando as cores aparecem só como bolinhas de foto.",
-    "Cada cor vem com as próprias fotos (o robô abre cada cor no anúncio) e cada tamanho com o próprio preço.",
-    "No editor, em \"Tamanho e cor\", uma foto pode valer só para uma cor (todas as medidas dela).",
-    "\"Baixar do anúncio\" numa ficha com várias variações também separa as fotos por cor."
+    "Importar do Mercado Livre: o nome de cada cor vem certo (antes vinha \"Botón 1 de 5, Amarelo\"), inclusive a cor que já estava marcada no anúncio.",
+    "Cada cor fica só com as fotos dela (preto-01-ml.jpg, amarelo-01-ml.jpg...), sem foto de uma cor aparecer em outra.",
+    "Todas as fotos do anúncio vêm na maior resolução que o Mercado Livre tem, não só a capa."
   ]
 }

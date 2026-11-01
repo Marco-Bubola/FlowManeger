@@ -733,7 +733,10 @@ JS_PICKERS = r"""
 () => {
   // Seletores de variação do anúncio (Cor, Tamanho...). Marca cada opção com data-robo-op="p-i" para o robô clicar.
   const NOMES = /^(cor|cores|tamanho|tamanhos|medida|medidas|dimens[õo]es|modelo|voltagem|estampa|acabamento|material|formato|tipo|capacidade|quantidade)\b/i;
-  const limpar = t => String(t || '').replace(/\s+/g, ' ').replace(/^bot[aã]o\s+\d+\s+de\s+\d+[,.:]?\s*/i, '').trim();
+  // "Botão 1 de 5, Amarelo" / "Botón 1 de 5, Amarelo" / "Button 1 of 5" → "Amarelo"
+  const limpar = t => String(t || '').replace(/\s+/g, ' ').trim()
+      .replace(/^[^\d,]{0,12}\s\d+\s+(de|of)\s+\d+[,.:;-]?\s*/i, '')
+      .replace(/,?\s*(selecionad[oa]|seleccionad[oa]|selected|indispon[ií]vel|no disponible|esgotad[oa]|agotad[oa])\b.*$/i, '').trim();
   const rotulo = el => {
     const img = el.querySelector('img');
     const cands = [el.getAttribute('aria-label'), el.getAttribute('title'), el.getAttribute('data-title'),
@@ -748,7 +751,9 @@ JS_PICKERS = r"""
       if (usados.has(o) || o.closest('[data-robo-op]')) return;
       if (o.querySelector('a, button') && o.tagName === 'LI') return;
       const t = rotulo(o);
-      if (!t || NOMES.test(t + ':') && /:/.test(t) || ops.some(x => x.texto === t)) return;
+      // sem nome só vale se for uma bolinha com foto (a cor marcada às vezes vem só como "Botão 5 de 5")
+      if (!t && !o.querySelector('img')) return;
+      if (t && (NOMES.test(t + ':') && /:/.test(t) || ops.some(x => x.texto === t))) return;
       if (/^(ver mais|ver menos|mais op|guia de)/i.test(t)) return;
       usados.add(o);
       const marca = out.length + '-' + ops.length;
@@ -756,7 +761,9 @@ JS_PICKERS = r"""
       const href = o.tagName === 'A' && o.href && !o.href.startsWith('javascript') && !o.getAttribute('href').startsWith('#') ? o.href.split('#')[0] : '';
       const sel = o.getAttribute('aria-checked') === 'true' || o.getAttribute('aria-selected') === 'true' || o.getAttribute('aria-current') === 'true'
                   || /selected|--SELECTED|selecionad/i.test(o.className + ' ' + (o.getAttribute('aria-label') || ''));
-      ops.push({texto: t, href, marca, selecionado: sel});
+      const im = o.querySelector('img');
+      const foto = im ? (im.getAttribute('data-zoom') || im.getAttribute('data-src') || im.currentSrc || im.src || '') : '';
+      ops.push({texto: t, href, marca, selecionado: sel, foto: foto.startsWith('data:') ? '' : foto});
     });
     if (nome && ops.length) out.push({nome, selecionado, opcoes: ops});
   };
@@ -835,7 +842,8 @@ def _chave_foto_ml(url):
 
 
 def _limpar_opcao(nome, texto):
-    t = re.sub(r"(?i),?\s*(selecionad[oa]|indispon[ií]vel|esgotad[oa])\b.*$", "", str(texto)).strip()
+    t = re.sub(r"^[^\d,]{0,12}\s\d+\s+(de|of)\s+\d+[,.:;-]?\s*", "", re.sub(r"\s+", " ", str(texto or "")).strip(), flags=re.I)
+    t = re.sub(r"(?i),?\s*(selecionad[oa]|seleccionad[oa]|selected|indispon[ií]vel|no disponible|esgotad[oa]|agotad[oa])\b.*$", "", t).strip()
     if ":" in t and t.split(":")[0].strip().lower() == nome.lower():
         t = t.split(":", 1)[1].strip()
     return t
@@ -1055,12 +1063,20 @@ class MercadoLivre:
                 pickers = []
         saida = []
         for p in pickers[:2]:
+            sel = _limpar_opcao(p["nome"], p.get("selecionado") or "")
+            todas = [(o, _limpar_opcao(p["nome"], o.get("texto"))) for o in p.get("opcoes") or []]
+            sem_nome = [o for o, t in todas if not t]
+            # a opção marcada às vezes só diz "Botão 5 de 5": o nome dela é o que aparece em "Cor: Preto"
+            dono = None
+            if sel and sem_nome and all(t != sel for _, t in todas):
+                dono = next((o for o in sem_nome if o.get("selecionado")), sem_nome[0] if len(sem_nome) == 1 else None)
             ops = []
-            for o in p.get("opcoes") or []:
-                t = _limpar_opcao(p["nome"], o.get("texto"))
+            for o, t in todas:
+                if o is dono:
+                    t = sel
+                    o = dict(o, selecionado=True)
                 if t and t.lower() != p["nome"].lower() and all(t != x["texto"] for x in ops):
                     ops.append(dict(o, texto=t))
-            sel = _limpar_opcao(p["nome"], p.get("selecionado") or "")
             if sel and all(sel != x["texto"] for x in ops) and not ops:
                 ops.append({"texto": sel, "href": "", "marca": "", "selecionado": True})
             if ops:
@@ -1072,6 +1088,13 @@ class MercadoLivre:
         base = pg.url.split("#")[0]
         atual = {"imagens": info.get("imagens") or [], "imagens_alt": info.get("imagens_alt") or [],
                  "preco": info.get("preco"), "preco_de": info.get("preco_de")}
+        try:  # a cor que já está aberta: só a galeria dela (sem as fotos extras do og:image / JSON)
+            g = pg.evaluate(JS_GALERIA)
+            f0, a0 = _fotos_ml(g.get("imagens"))
+            if f0:
+                atual["imagens"], atual["imagens_alt"] = f0, a0
+        except Exception:
+            pass
         for p in saida:
             det = {}
             for o in p["opcoes"]:
@@ -1109,6 +1132,21 @@ class MercadoLivre:
                     time.sleep(1.5)
                     g = pg.evaluate(JS_GALERIA)
                     fotos, alt = _fotos_ml(g.get("imagens"))
+                    if o.get("marca") and o.get("href") and fotos and fotos == atual["imagens"]:
+                        # o link abriu a mesma galeria da cor inicial: tenta clicando na bolinha da cor
+                        try:
+                            pg.goto(base, wait_until="domcontentloaded")
+                            pg.evaluate(JS_PICKERS)
+                            alvo = pg.locator(f'[data-robo-op="{o["marca"]}"]').first
+                            if alvo.count():
+                                alvo.click(timeout=5000)
+                                time.sleep(2.5)
+                                g = pg.evaluate(JS_GALERIA)
+                                fotos, alt = _fotos_ml(g.get("imagens"))
+                        except Exception:
+                            pass
+                    if fotos == atual["imagens"] and o.get("foto"):
+                        fotos, alt = _fotos_ml([o["foto"]]) or ([o["foto"]], [])
                     if not fotos and o.get("foto"):
                         fotos = [o["foto"]]
                     det[nome] = {"imagens": fotos, "imagens_alt": alt, "preco": g.get("preco"), "preco_de": g.get("preco_de")}
@@ -1167,27 +1205,59 @@ def _limpar_descricao(texto):
     return re.sub(r"\n{3,}", "\n\n", t).strip()[:5000]
 
 
+def _candidatas_ml(url, alt=None):
+    """Endereços da mesma foto do ML, do maior para o menor (o ML guarda vários tamanhos)."""
+    k = re.search(r"(\d+-ML[A-Z]\d+_\d+)", str(url or ""))
+    out = []
+    if k:
+        k = k.group(1)
+        u = str(url).split("?")[0]
+        casa = u[:u.index("D_")] if "D_" in u else "https://http2.mlstatic.com/"
+        out += [f"{casa}D_NQ_NP_2X_{k}-F.webp", f"{casa}D_NQ_NP_{k}-O.webp", f"{casa}D_NQ_NP_{k}-O.jpg", f"{casa}D_NQ_NP_2X_{k}-F.jpg"]
+    out += [u for u in (url, alt) if u]
+    return list(dict.fromkeys(out))
+
+
+def baixar_foto_grande(baixar, url, alt=None, bom=1000):
+    """Baixa a versão de maior resolução da foto. Devolve (Image RGB, lado maior) ou (None, 0)."""
+    import io
+    melhor, lado = None, 0
+    for u in _candidatas_ml(url, alt):
+        corpo = baixar(u)
+        if not corpo:
+            continue
+        try:
+            im = Image.open(io.BytesIO(corpo))
+            im.load()
+        except Exception:
+            continue
+        if max(im.size) > lado:
+            melhor, lado = im, max(im.size)
+        if lado >= bom:
+            break
+    if melhor is None:
+        return None, 0
+    if melhor.mode in ("RGBA", "LA", "P"):
+        fundo = Image.new("RGB", melhor.size, (255, 255, 255))
+        rgba = melhor.convert("RGBA")
+        fundo.paste(rgba, mask=rgba.split()[-1])
+        return fundo, lado
+    return melhor.convert("RGB"), lado
+
+
 def salvar_fotos_ml(info, destino, baixar, max_fotos=10):
     """Baixa as fotos de um anúncio lido (info["imagens"]) para a pasta, como 01-ml.jpg, 02-ml.jpg..."""
     nomes = []
     if not baixar or Image is None:
         return nomes
-    import io
     alt = info.get("imagens_alt") or []
     for n, url in enumerate((info.get("imagens") or [])[:max_fotos], 1):
-        corpo = baixar(url)
-        if not corpo and n - 1 < len(alt) and alt[n - 1] != url:
-            corpo = baixar(alt[n - 1])
-        if not corpo:
+        im, _ = baixar_foto_grande(baixar, url, alt[n - 1] if n - 1 < len(alt) else None)
+        if im is None:
             continue
-        try:
-            with Image.open(io.BytesIO(corpo)) as im:
-                im = im.convert("RGB")
-                nome = f"{n:02d}-ml.jpg"
-                im.save(Path(destino) / nome, "JPEG", quality=90, optimize=True)
-                nomes.append(nome)
-        except Exception:
-            continue
+        nome = f"{n:02d}-ml.jpg"
+        im.save(Path(destino) / nome, "JPEG", quality=92, optimize=True)
+        nomes.append(nome)
     return nomes
 
 
@@ -1197,39 +1267,36 @@ def _nome_opcao(texto):
     return re.sub(r"[^a-z0-9]+", "-", t).strip("-")[:30] or "opcao"
 
 
-def salvar_fotos_variacoes(info, destino, baixar, max_fotos=8):
+def salvar_fotos_variacoes(info, destino, baixar, max_fotos=10):
     """Baixa as fotos de cada opção de variação lida do anúncio (cada cor tem as suas).
-    Devolve {("cor"|"tam", opção): [nomes]}; foto igual em duas opções é baixada uma vez só."""
+    Devolve {("cor"|"tam", opção): [nomes]}. Cada cor ganha os próprios arquivos (preto-01-ml.jpg...),
+    mesmo quando a foto se repete em outra cor, para cada foto pertencer a uma cor só."""
     if not baixar or Image is None:
         return {}
-    import io
     pickers = [p for p in info.get("variacoes") or [] if p.get("detalhes")]
     tam = next((p for p in pickers if _eh_tamanho(p["nome"])), None)
-    saida, ja = {}, {}
+    saida, cache = {}, {}
     for p in pickers:
         tipo = "tam" if p is tam else "cor"
         # só baixa por tamanho quando o anúncio não varia por cor (senão as fotos vêm da cor)
         if tipo == "tam" and len(pickers) > 1:
             continue
         for opcao, d in p["detalhes"].items():
-            nomes, alt = [], d.get("imagens_alt") or []
-            for n, url in enumerate((d.get("imagens") or [])[:max_fotos], 1):
+            nomes, vistas, alt = [], set(), d.get("imagens_alt") or []
+            for n, url in enumerate(d.get("imagens") or [], 1):
+                if len(nomes) >= max_fotos:
+                    break
                 k = _chave_foto_ml(url)
-                if k in ja:
-                    nomes.append(ja[k])
+                if k in vistas:
                     continue
-                corpo = baixar(url)
-                if not corpo and n - 1 < len(alt) and alt[n - 1] != url:
-                    corpo = baixar(alt[n - 1])
-                if not corpo:
+                vistas.add(k)
+                if k not in cache:
+                    cache[k] = baixar_foto_grande(baixar, url, alt[n - 1] if n - 1 < len(alt) else None)[0]
+                im = cache[k]
+                if im is None:
                     continue
-                try:
-                    with Image.open(io.BytesIO(corpo)) as im:
-                        nome = f"{_nome_opcao(opcao)}-{n:02d}-ml.jpg"
-                        im.convert("RGB").save(Path(destino) / nome, "JPEG", quality=90, optimize=True)
-                except Exception:
-                    continue
-                ja[k] = nome
+                nome = f"{_nome_opcao(opcao)}-{len(nomes) + 1:02d}-ml.jpg"
+                im.save(Path(destino) / nome, "JPEG", quality=92, optimize=True)
                 nomes.append(nome)
             if nomes:
                 saida[(tipo, opcao)] = nomes
