@@ -126,6 +126,23 @@
         @case('width')
             <span class="absolute inset-y-1.5 left-1/2 -translate-x-1/2 rounded bg-white dark:bg-slate-600 shadow-sm" style="width: {{ $k === 'cheia' ? '94%' : ($k === 'larga' ? '72%' : '52%') }}"><i class="block h-1.5 rounded-t" style="background: linear-gradient(90deg, {{ $c1 }}, {{ $c2 }})"></i></span>
             @break
+        @case('motion')
+            <span class="absolute inset-0 flex flex-col justify-center gap-1 px-2">
+                <i class="block h-2 w-3/4 rounded-sm bg-white dark:bg-slate-600 {{ $k !== 'nenhum' ? 'lk-thumb-rise' : '' }}"></i>
+                <span class="flex gap-1 w-full">
+                    @foreach([0, 1, 2] as $n)
+                        <i class="flex-1 h-4 rounded-sm {{ $k !== 'nenhum' ? 'lk-thumb-rise' : '' }}" style="background: {{ $n === 1 && $k === 'completo' ? $c3 : '#fff' }}; animation-delay: {{ $n * 0.15 + 0.15 }}s"></i>
+                    @endforeach
+                </span>
+            </span>
+            @once
+                <style>
+                    @keyframes lk-thumb-rise { 0%, 15% { opacity: 0; transform: translateY(6px); } 45%, 100% { opacity: 1; transform: none; } }
+                    .lk-thumb-rise { animation: lk-thumb-rise 2.4s ease-out infinite; }
+                    @media (prefers-reduced-motion: reduce) { .lk-thumb-rise { animation: none; } }
+                </style>
+            @endonce
+            @break
         @default
             <span class="absolute inset-0 flex items-center justify-center text-xl" style="color: {{ $c3 }}"><i class="bi {{ $k === 'nao' ? 'bi-pause-circle' : 'bi-magic' }} {{ $k === 'sim' ? 'animate-pulse' : '' }}"></i></span>
     @endswitch

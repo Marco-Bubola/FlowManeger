@@ -531,6 +531,10 @@ document.addEventListener('alpine:init', () => {
 @endif
 
 @vite('resources/js/hover-photos.js')
+{{-- Movimento ao rolar (Vitrine › Estilo do site): só carrega quando a loja ligou --}}
+@if(in_array($theme['look']['motion'] ?? 'nenhum', ['suave', 'completo'], true))
+    @vite('resources/js/portal-motion.js')
+@endif
 <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
 @stack('scripts')
 </body>

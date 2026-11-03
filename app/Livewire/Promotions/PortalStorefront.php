@@ -206,7 +206,12 @@ class PortalStorefront extends Component
     /** Volta o estilo para o que o tema traz. */
     public function resetLook(): void
     {
+        $motion = $this->home_look['motion'] ?? null;
         $this->home_look = HomeLayout::look($this->home_theme);
+        // O movimento ao rolar é escolha da loja, não do tema: continua como estava
+        if ($motion && isset(HomeLayout::LOOKS['motion'][1][$motion])) {
+            $this->home_look['motion'] = $motion;
+        }
         $this->saveHome();
     }
 

@@ -14,6 +14,7 @@ export default defineConfig({
                 'resources/js/upload-interactions.js',
                 'resources/css/portal.css',
                 'resources/js/hover-photos.js',
+                'resources/js/portal-motion.js',
             ],
             refresh: true,
         }),

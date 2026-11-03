@@ -1,0 +1,54 @@
+/*
+ * Movimento ao rolar do portal (Vitrine › Página inicial › Estilo do site › Movimento ao rolar).
+ * Só vale com body.lk-motion-suave ou body.lk-motion-completo e quando o aparelho não pede
+ * "reduzir movimento". As classes mo-* são postas pelo portal-motion.js: sem ele, nada some.
+ */
+
+/* Surgir ao rolar (suave e completo) */
+.mo-r {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity .7s ease, transform .8s cubic-bezier(.2, .7, .2, 1);
+    transition-delay: var(--mo-d, 0s);
+    will-change: opacity, transform;
+}
+.mo-r.mo-in { opacity: 1; transform: none; }
+.lk-motion-completo .mo-r { transform: translateY(38px) scale(.98); }
+.lk-motion-completo .mo-r.mo-in { transform: none; }
+/* Cards entram um pouco de lado no completo, como no vídeo */
+.lk-motion-completo .ml-rail > .mo-r { transform: translateX(34px); }
+.lk-motion-completo .ml-rail > .mo-r.mo-in { transform: none; }
+
+/* Título palavra por palavra (completo): banners e títulos das seções */
+.mo-w { display: inline-block; white-space: pre; opacity: 0; transform: translateY(.55em); filter: blur(3px); transition: opacity .55s ease, transform .6s cubic-bezier(.2, .7, .2, 1), filter .55s ease; transition-delay: calc(var(--mo-i, 0) * 90ms + var(--mo-d, 0s)); }
+.mo-words.mo-in .mo-w { opacity: 1; transform: none; filter: none; }
+
+/* Texto que acende conforme rola (completo) */
+.mo-read .mo-rw { opacity: .22; transition: opacity .35s ease; }
+.mo-read .mo-rw.lit { opacity: 1; }
+
+/* Aviso da loja correndo (completo) */
+.lk-motion-completo .sf-notice.mo-marquee { overflow: hidden; justify-content: flex-start; }
+.mo-marquee-track { display: inline-flex; gap: 3rem; white-space: nowrap; animation: mo-marquee var(--mo-mq, 22s) linear infinite; padding-left: 1rem; }
+.mo-marquee-track > span { display: inline-flex; align-items: center; gap: .5rem; }
+.sf-notice.mo-marquee:hover .mo-marquee-track { animation-play-state: paused; }
+@keyframes mo-marquee { to { transform: translateX(-50%); } }
+
+/* Fotos dos cards com zoom leve e card levantando (completo, só com mouse) */
+@media (hover: hover) {
+    .lk-motion-completo .ml-card { transition: transform .35s cubic-bezier(.2, .7, .2, 1), box-shadow .35s ease; }
+    .lk-motion-completo .ml-card:hover { transform: translateY(-4px); }
+    .lk-motion-completo .ml-card img { transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
+    .lk-motion-completo .ml-card:hover img { transform: scale(1.06); }
+}
+
+/* Carrinho pulando ao adicionar (completo) e aviso subindo */
+.mo-bump { animation: mo-bump .6s cubic-bezier(.3, 1.5, .5, 1); }
+@keyframes mo-bump { 0% { transform: scale(1); } 30% { transform: scale(1.35) rotate(-8deg); } 60% { transform: scale(.92) rotate(4deg); } 100% { transform: scale(1); } }
+.lk-motion-completo .ml-toast { animation: mo-toast .45s cubic-bezier(.3, 1.4, .5, 1); }
+@keyframes mo-toast { from { opacity: 0; transform: translate(-50%, 24px) scale(.92); } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .mo-r, .mo-w, .mo-read .mo-rw { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+    .mo-marquee-track, .mo-bump, .lk-motion-completo .ml-toast { animation: none !important; }
+}

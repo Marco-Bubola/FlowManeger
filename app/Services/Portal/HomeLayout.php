@@ -256,6 +256,12 @@ class HomeLayout
         'anim'    => ['Animações', [
             'sim' => ['Com animação', 'bi-magic'], 'nao' => ['Sem animação', 'bi-pause-circle'],
         ]],
+        // Movimento ao rolar (opcional): o primeiro é o padrão e deixa o site como sempre foi.
+        // suave = seções e produtos surgem ao rolar; completo = também título palavra por palavra,
+        // aviso correndo, texto que acende ao rolar, fotos com zoom e carrinho pulando ao adicionar.
+        'motion'  => ['Movimento ao rolar a página', [
+            'nenhum' => ['Sem movimento', 'bi-pause-circle'], 'suave' => ['Suave', 'bi-water'], 'completo' => ['Completo', 'bi-stars'],
+        ]],
     ];
 
     /** Partes do Estilo do site em abas, para não virar uma lista enorme. */
@@ -263,7 +269,7 @@ class HomeLayout
         'cards' => ['Cards dos produtos', 'bi-card-heading', ['cardbg', 'cards', 'price', 'badge', 'addbtn', 'photo', 'density']],
         'fundo' => ['Fundo', 'bi-image', ['bgtype', 'pattern', 'patternsize', 'patternop']],
         'topo'  => ['Topo e largura', 'bi-window-desktop', ['header', 'width']],
-        'texto' => ['Botões e textos', 'bi-fonts', ['buttons', 'text', 'titles', 'anim']],
+        'texto' => ['Botões e textos', 'bi-fonts', ['buttons', 'text', 'titles', 'anim', 'motion']],
     ];
 
     /** Cores de cada parte (vazio = sai das cores da loja). Ficam em portal_settings.home.paint. */
