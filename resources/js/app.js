@@ -18,3 +18,6 @@ import './hover-photos.js';
 
 // Barra de baixo com bolinha (opção em Configurações › Aparência › Movimento)
 import './fm-nav-bead.js';
+
+// Cards surgindo ao rolar nas telas do app (opção em Configurações › Aparência › Movimento)
+import './fm-app-motion.js';

@@ -124,8 +124,10 @@ html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead::aft
     html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead svg { width: 1.45rem; height: 1.45rem; }
 }
 
+html.no-animations[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead { transition: none; }
 @media (prefers-reduced-motion: reduce) {
     html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead { transition: none; }
     html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead,
     html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead svg { transition: none; }
 }
+
