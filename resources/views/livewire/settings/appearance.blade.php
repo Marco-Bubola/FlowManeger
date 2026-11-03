@@ -32,6 +32,7 @@ new class extends Component {
             'pat_o' => $pick('pat_o', ['suave', 'medio', 'forte'], 'medio'),
             'side' => $pick('side', ['padrao', 'tema', 'cor', 'branco', 'cinza', 'areia'], 'padrao'),
             'tab' => $pick('tab', ['padrao', 'tema', 'cor', 'branco'], 'padrao'),
+            'nav' => $pick('nav', ['classica', 'bolinha'], 'classica'),
         ];
         foreach (['c_bg', 'c_border', 'c_tag', 'c_detail'] as $k) {
             $clean[$k] = in_array($value[$k] ?? null, $fams, true) ? $value[$k] : null;
@@ -323,6 +324,28 @@ new class extends Component {
                         <template x-for="m in tabModes" :key="m.id">
                             <button type="button" :class="{ 'is-on': (look.tab || 'padrao') === m.id }" @click="setLook('tab', m.id)"><span class="ap-tabdot" :style="'background:' + tabArt(m.id)"></span><span x-text="m.label"></span></button>
                         </template>
+                    </div>
+                </div>
+
+                {{-- Movimento: versões animadas opcionais (o padrão continua o visual de sempre) --}}
+                <div class="ap-card">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-lime-500 to-emerald-500"><i class="bi bi-magic"></i></span>
+                        <div class="min-w-0">
+                            <h2>Movimento</h2>
+                            <p>Versões animadas, se você quiser. Deixando em "Clássica" tudo fica como sempre foi.</p>
+                        </div>
+                    </div>
+                    <p class="ap-label">Estilo da barra de baixo (celular e iPad)</p>
+                    <div class="ap-navs mt-2">
+                        <button type="button" class="ap-navbtn" :class="{ 'is-on': (look.nav || 'classica') === 'classica' }" @click="setLook('nav', 'classica')">
+                            <span class="ap-nav-art"><span class="ap-nav-bar"><i></i><i class="on"></i><i></i><i></i></span></span>
+                            <b>Clássica</b><small>A barra de sempre</small>
+                        </button>
+                        <button type="button" class="ap-navbtn" :class="{ 'is-on': look.nav === 'bolinha' }" @click="setLook('nav', 'bolinha')">
+                            <span class="ap-nav-art"><span class="ap-nav-bar is-bead"><i></i><i class="on"></i><i></i><i></i></span></span>
+                            <b>Com bolinha</b><small>A aba aberta vira uma bolinha colorida que desliza e pode ser arrastada</small>
+                        </button>
                     </div>
                 </div>
 
@@ -740,6 +763,25 @@ new class extends Component {
         .ap-side-art > span i { height: .3rem; border-radius: 1rem; background: color-mix(in oklab, var(--color-indigo-500) 35%, #cbd5e1); }
         .ap-side-art > span i:first-child { background: var(--color-indigo-500); }
         .ap-side-art b { flex: 1; }
+        .ap-navs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+        .ap-navbtn { display: flex; flex-direction: column; align-items: flex-start; gap: .2rem; padding: .5rem .55rem .65rem; border-radius: 1rem; border: 2px solid #e2e8f0; background: #f8fafc; text-align: left; color: #334155; }
+        .ap-navbtn b { font-size: .8rem; font-weight: 800; }
+        .ap-navbtn small { font-size: .68rem; line-height: 1.25; color: #64748b; }
+        .ap-navbtn.is-on { border-color: var(--color-indigo-600); background: #fff; }
+        .dark .ap-navbtn { background: #111827; border-color: #1f2937; color: #e2e8f0; }
+        .dark .ap-navbtn small { color: #94a3b8; }
+        .dark .ap-navbtn.is-on { border-color: var(--color-indigo-600); background: #1e293b; }
+        .ap-nav-art { display: flex; align-items: flex-end; width: 100%; height: 3.4rem; padding: 0 .4rem .35rem; margin-bottom: .25rem; border-radius: .65rem; background: linear-gradient(160deg, #eef2ff, #f5f3ff); overflow: hidden; }
+        .dark .ap-nav-art { background: linear-gradient(160deg, #1e1b4b, #0f172a); }
+        .ap-nav-bar { position: relative; display: flex; justify-content: space-around; align-items: center; width: 100%; height: 1.5rem; border-radius: .5rem; background: #fff; box-shadow: 0 -4px 10px -6px rgba(15, 23, 42, .3); }
+        .dark .ap-nav-bar { background: #0a0e1e; }
+        .ap-nav-bar i { width: .55rem; height: .55rem; border-radius: .2rem; background: #cbd5e1; }
+        .ap-nav-bar i.on { width: .8rem; height: .8rem; background: var(--color-indigo-400); box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-indigo-400) 30%, transparent); }
+        .ap-nav-bar.is-bead { -webkit-mask: radial-gradient(circle .78rem at 37.5% 0, transparent 95%, #000 100%); mask: radial-gradient(circle .78rem at 37.5% 0, transparent 95%, #000 100%); overflow: visible; }
+        .ap-nav-bar.is-bead i.on { position: relative; }
+        .ap-navbtn .ap-nav-art:has(.is-bead) { position: relative; }
+        .ap-navbtn .ap-nav-art:has(.is-bead)::after { content: ''; position: absolute; left: calc(.4rem + (100% - .8rem) * .375 - .55rem); bottom: calc(.35rem + 1.5rem - .6rem); width: 1.1rem; height: 1.1rem; border-radius: 999px; background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .6), transparent 46%), #a3e635; box-shadow: 0 4px 10px -3px #a3e635; }
+        .ap-nav-bar.is-bead i.on { opacity: 0; }
         .ap-tabdot { width: .9rem; height: .9rem; border-radius: .3rem; border: 1px solid #cbd5e1; }
 
         .ap-pv-fab { position: fixed; z-index: 60; right: 1.25rem; bottom: 1.25rem; display: inline-flex; align-items: center; gap: .45rem; padding: .75rem 1.1rem; border-radius: 999px; color: #fff; font-size: .85rem; font-weight: 800; box-shadow: 0 14px 30px -10px color-mix(in oklab, var(--color-indigo-600) 70%, transparent); }
@@ -834,7 +876,7 @@ new class extends Component {
         window.fmAppearance = window.fmAppearance || function (saved, savedLook, themes) {
             return {
                 themes: themes,
-                look: { cards: 'tema', tone: 'medio', shape: 'redondo', bg: 'padrao', bg_c: null, pat: 'nenhum', pat_c: 'tema', pat_o: 'medio', side: 'padrao', tab: 'padrao', c_bg: null, c_border: null, c_tag: null, c_detail: null },
+                look: { cards: 'tema', tone: 'medio', shape: 'redondo', bg: 'padrao', bg_c: null, pat: 'nenhum', pat_c: 'tema', pat_o: 'medio', side: 'padrao', tab: 'padrao', nav: 'classica', c_bg: null, c_border: null, c_tag: null, c_detail: null },
                 pvOpen: false,
                 pvDev: window.innerWidth < 768 ? 'cel' : 'pc',
                 pvTab: 'cards',

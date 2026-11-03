@@ -150,6 +150,7 @@
     };
     window.fmApplyLook = function (look, pal) {
         look = look || {};
+        window.__fmLookNow = [look, pal];
         var c = window.fmCardColors(look, pal);
         var el = document.getElementById('fm-cards');
         if (!el) { el = document.createElement('style'); el.id = 'fm-cards'; document.head.appendChild(el); }
@@ -164,7 +165,17 @@
         set('data-fm-cshape', look.shape, ['medio', 'reto']);
         set('data-fm-side', look.side, ['tema', 'branco', 'cinza', 'areia', 'cor']);
         set('data-fm-tab', look.tab, ['tema', 'branco', 'cor']);
+        set('data-fm-nav', look.nav, ['bolinha']);
     };
+    // Ao trocar de página pelo menu (wire:navigate) o Livewire troca o <html> e as marcas
+    // da Aparência (data-fm-*) sumiam até recarregar: aplica de novo depois de cada troca.
+    if (!window.__fmLookNavBound) {
+        window.__fmLookNavBound = true;
+        document.addEventListener('livewire:navigated', function () {
+            var cur = window.__fmLookNow;
+            if (cur) window.fmApplyLook(cur[0], cur[1]);
+        });
+    }
     try {
         var server = @json($fmPalette);
         var local = null;

@@ -1,0 +1,131 @@
+/*
+ * Opções de movimento do app (Configurações › Aparência › Movimento).
+ * Nada aqui vale enquanto a opção não for ligada: o visual de sempre continua o padrão.
+ */
+
+/* ───────────── Barra de baixo com bolinha (html[data-fm-nav="bolinha"]) ─────────────
+ * A aba aberta vira uma bolinha colorida encaixada num recorte da barra. Ela desliza até
+ * a aba tocada (e dá para arrastar). A cor da barra sai de --fm-surf, que segue as mesmas
+ * opções de "Barra de baixo do celular" (Padrão, Tom do tema, Cor do tema, Branco). */
+@property --fm-bx {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: -200px;
+}
+
+html[data-fm-nav="bolinha"] {
+    --fm-surf: linear-gradient(180deg, rgba(255, 255, 255, .97), rgba(244, 247, 251, .96));
+    --fm-notch: 1.95rem;
+    --fm-bead: 2.85rem;
+}
+html.dark[data-fm-nav="bolinha"] { --fm-surf: linear-gradient(180deg, rgba(10, 14, 30, .98), rgba(7, 10, 20, .97)); }
+html:not(.dark)[data-fm-nav="bolinha"][data-fm-tab="tema"] { --fm-surf: linear-gradient(180deg, color-mix(in oklab, var(--color-indigo-50) 97%, transparent), color-mix(in oklab, var(--color-purple-100) 97%, transparent)); }
+html:not(.dark)[data-fm-nav="bolinha"][data-fm-tab="cor"] { --fm-surf: linear-gradient(180deg, var(--color-indigo-100), var(--color-purple-200)); }
+html:not(.dark)[data-fm-nav="bolinha"][data-fm-tab="branco"] { --fm-surf: linear-gradient(#fff, #fff); }
+
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead {
+    background: transparent !important;
+    border-top-color: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: drop-shadow(0 -6px 16px rgba(15, 23, 42, .10));
+    transition: --fm-bx .62s cubic-bezier(.3, 1.32, .5, 1);
+}
+html.dark[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead { filter: drop-shadow(0 -8px 20px rgba(0, 0, 0, .5)); }
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead.fm-dragging,
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead.fm-no-anim { transition: none; }
+
+/* Fundo da barra com o recorte em volta da bolinha */
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    height: auto !important;
+    z-index: -1 !important;
+    opacity: 1 !important;
+    border-radius: inherit;
+    background: var(--fm-surf) !important;
+    -webkit-mask: radial-gradient(circle var(--fm-notch) at var(--fm-bx) 0, transparent 96%, #000 100%);
+    mask: radial-gradient(circle var(--fm-notch) at var(--fm-bx) 0, transparent 96%, #000 100%);
+}
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead.fm-bead-off::before { -webkit-mask: none; mask: none; }
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead::after { display: none !important; }
+
+/* Ícones das outras abas: só o desenho, sem a caixinha */
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:not(.mobile-tab-fab) .tab-icon {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+    transition: opacity .2s ease, transform .3s ease !important;
+}
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:not(.mobile-tab-fab)::before,
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:not(.mobile-tab-fab)::after { display: none !important; }
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:not(.mobile-tab-fab) {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+}
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:hover,
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:active { background: transparent !important; }
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.fm-bead-here .tab-icon { opacity: 0; transform: translateY(-6px) scale(.6) !important; }
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.fm-bead-here > span:not(.mobile-tab-badge) {
+    color: var(--fm-bead-c, #4f46e5);
+    filter: brightness(.82);
+}
+html.dark[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.fm-bead-here > span:not(.mobile-tab-badge) { filter: none; }
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item > span:not(.mobile-tab-badge) { transition: color .3s ease; }
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.is-active:not(.fm-bead-here) { color: #64748b !important; }
+html.dark[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.is-active:not(.fm-bead-here) { color: #94a3b8 !important; }
+
+/* A bolinha */
+.fm-bead { display: none; }
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead {
+    display: grid;
+    place-items: center;
+    position: absolute;
+    top: 0;
+    left: var(--fm-bx);
+    width: var(--fm-bead);
+    height: var(--fm-bead);
+    margin: calc(var(--fm-bead) / -2 - .1rem) 0 0 calc(var(--fm-bead) / -2);
+    border-radius: 999px;
+    z-index: 3;
+    color: var(--fm-bead-ink, #1f2937);
+    background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .55), transparent 46%), var(--fm-bead-c, #6366f1);
+    box-shadow: 0 8px 18px -6px var(--fm-bead-c, #6366f1), 0 0 22px -4px color-mix(in oklab, var(--fm-bead-c, #6366f1) 70%, transparent);
+    transition: background-color .35s ease, box-shadow .35s ease, transform .25s ease, opacity .25s ease;
+    touch-action: none;
+    cursor: grab;
+    -webkit-tap-highlight-color: transparent;
+}
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead.fm-dragging .fm-bead { transform: scale(1.1); cursor: grabbing; }
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead.fm-bead-off .fm-bead { opacity: 0; transform: scale(.4); pointer-events: none; }
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead svg { width: 1.3rem; height: 1.3rem; transition: opacity .18s ease, transform .3s cubic-bezier(.3, 1.4, .5, 1); }
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead.fm-swap svg { opacity: 0; transform: scale(.5) rotate(-25deg); }
+/* Brilho colorido embaixo da bolinha */
+html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 5.5rem;
+    height: 3rem;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--fm-bead-c, #6366f1) 30%, transparent), transparent);
+    pointer-events: none;
+    z-index: -1;
+}
+
+@media (min-width: 768px) {
+    html[data-fm-nav="bolinha"] { --fm-notch: 2.2rem; --fm-bead: 3.15rem; }
+    html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead svg { width: 1.45rem; height: 1.45rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead { transition: none; }
+    html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead,
+    html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead svg { transition: none; }
+}

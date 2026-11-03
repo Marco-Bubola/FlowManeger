@@ -3,6 +3,7 @@
 @import './product-show.css';
 @import './custom-create-invoice.css';
 @import './app-mobile.css';
+@import './fm-motion.css';
 @import './fa-shim.css';
 
 @source '../views';

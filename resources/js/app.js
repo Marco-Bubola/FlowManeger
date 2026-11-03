@@ -15,3 +15,6 @@ import './infinite-feed.js';
 
 // Fotos do card trocando ao deixar o mouse em cima (lista de produtos)
 import './hover-photos.js';
+
+// Barra de baixo com bolinha (opção em Configurações › Aparência › Movimento)
+import './fm-nav-bead.js';
