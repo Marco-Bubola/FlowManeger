@@ -10,8 +10,8 @@ import '../css/portal-motion.css';
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     // Blocos que surgem ao rolar; os cards de listas e faixas vão um depois do outro
-    const BLOCKS = '.sf-hero-wrap, .ml-hero, .ml-cats, .ml-box, .sf-col-page, .sf-strip, .ml-toolbar, .ml-foot2, .sp-card, .pp-main ~ section, .rv-wrap';
-    const ITEMS = '.ml-grid > *, .ml-rail > *, .ml-cats > *';
+    const BLOCKS = '.hm-sec, .hm-strip, .sf-hero-wrap, .ml-hero, .ml-cats, .ml-box, .sf-col-page, .sf-strip, .ml-toolbar, .ml-foot2, .sp-card, .pp-main ~ section, .rv-wrap';
+    const ITEMS = '.ml-grid > *, .ml-rail > *, .ml-cats > *, .hm-row > *, .hm-cats > *, .hm-mosaic > *, .hm-quotes > *';
 
     const io = new IntersectionObserver((entries) => {
         let n = 0;
@@ -35,20 +35,29 @@ import '../css/portal-motion.css';
     }
 
     function words(el, baseDelay) {
-        if (!el || el.dataset.moWords || el.children.length) return;
-        const txt = el.textContent.trim();
+        // Só texto, ou texto com <em>/<b> dentro (títulos com a última palavra em itálico)
+        if (!el || el.dataset.moWords || Array.from(el.children).some((c) => !/^(EM|B|I|STRONG|SPAN)$/.test(c.tagName))) return;
+        const txt = el.textContent.trim().replace(/\s+/g, ' ');
         if (!txt || txt.length > 90) return;
         el.dataset.moWords = '1';
         el.setAttribute('aria-label', txt);
-        el.innerHTML = '';
-        txt.split(/\s+/).forEach((w, i, all) => {
+        let i = 0;
+        const split = (text, into) => text.split(/(\s+)/).forEach((w) => {
+            if (w === '') return;
+            if (/^\s+$/.test(w)) { into.appendChild(document.createTextNode(' ')); return; }
             const s = document.createElement('span');
             s.className = 'mo-w';
             s.setAttribute('aria-hidden', 'true');
-            s.style.setProperty('--mo-i', i);
+            s.style.setProperty('--mo-i', i++);
             if (baseDelay) s.style.setProperty('--mo-d', baseDelay);
-            s.textContent = w + (i < all.length - 1 ? ' ' : '');
-            el.appendChild(s);
+            s.textContent = w;
+            into.appendChild(s);
+        });
+        const nodes = Array.from(el.childNodes);
+        el.innerHTML = '';
+        nodes.forEach((n) => {
+            if (n.nodeType === 3) split(n.textContent, el);
+            else if (n.nodeType === 1) { const c = n.cloneNode(false); c.setAttribute('aria-hidden', 'true'); split(n.textContent, c); el.appendChild(c); }
         });
         el.classList.add('mo-words');
         io.observe(el);
@@ -61,7 +70,7 @@ import '../css/portal-motion.css';
         });
         root.querySelectorAll(ITEMS).forEach((el) => watch(el, true));
         if (full) {
-            root.querySelectorAll('.sf-d-title, .ml-hero h1').forEach((el) => words(el, '.15s'));
+            root.querySelectorAll('.sf-d-title, .ml-hero h1, .hm-words, .hm-h').forEach((el) => words(el, '.15s'));
         }
     }
 

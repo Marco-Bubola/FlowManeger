@@ -427,6 +427,56 @@
                     </div>
                 </section>
 
+                {{-- 2a. Modelo da página inicial: o formato inteiro (Atual, Editorial, Elegante) --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-model" id="pi-modelo" style="scroll-margin-top: 80px">
+                    <div class="min-w-0">
+                        <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-layout-text-window text-violet-500"></i>Modelo da página inicial</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">O formato da página que o cliente vê primeiro. "Atual" deixa como está hoje. Os outros montam uma página de apresentação, com a lista de todos os produtos logo depois. Cada modelo traz as próprias cores e letras na página inicial; o resto do site continua com o estilo da loja.</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        @foreach($home::MODELS as $mk => [$mn, $md, $mi])
+                            @php $on = $home_model === $mk; @endphp
+                            <button type="button" wire:click="setModel('{{ $mk }}')" data-testid="model-{{ $mk }}" aria-pressed="{{ $on ? 'true' : 'false' }}"
+                                class="relative text-left rounded-2xl border p-2 transition {{ $on ? 'border-violet-500 ring-2 ring-violet-200 dark:ring-violet-500/30 bg-violet-50/60 dark:bg-violet-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300' }}">
+                                <span class="hm-thumb hm-thumb-{{ $mk }}" aria-hidden="true">
+                                    @if($mk === 'editorial')
+                                        <span class="a"><b>CONFORTO</b><b>QUE FICA</b><i></i></span><span class="b"><em></em></span>
+                                    @elseif($mk === 'botanico')
+                                        <span class="a"><b>Peças para</b><b><i>viver</i> bem</b></span><span class="c"><em></em><em></em><em></em></span>
+                                    @else
+                                        <span class="a"></span><span class="c"><em></em><em></em><em></em></span>
+                                    @endif
+                                </span>
+                                <span class="block mt-2 text-sm font-bold {{ $on ? 'text-violet-700 dark:text-violet-200' : 'text-slate-800 dark:text-slate-100' }}"><i class="bi {{ $mi }}"></i> {{ $mn }}</span>
+                                <span class="block text-[11px] leading-snug text-slate-500 dark:text-slate-400">{{ $md }}</span>
+                                @if($on)<i class="bi bi-check-circle-fill absolute -top-1.5 -right-1.5 text-violet-500 bg-white dark:bg-slate-900 rounded-full"></i>@endif
+                            </button>
+                        @endforeach
+                    </div>
+                    @if($home_model !== 'atual' && ($home_look['motion'] ?? 'nenhum') === 'nenhum')
+                        <p class="text-xs rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-200 px-3 py-2">Dica: para ficar igual aos vídeos, ligue também <b>Movimento ao rolar a página › Completo</b> em Estilo do site › Botões e textos.
+                            <button type="button" wire:click="setLook('motion', 'completo')" class="font-bold underline" data-testid="model-motion-on">Ligar agora</button></p>
+                    @endif
+                    <style>
+                        .hm-thumb { position: relative; display: flex; height: 5.2rem; border-radius: .8rem; overflow: hidden; background: #f4efe7; }
+                        .hm-thumb .a { flex: 1.2; display: flex; flex-direction: column; justify-content: center; gap: .15rem; padding: .5rem; }
+                        .hm-thumb-editorial .a { background: #2f3e34; color: #f4efe7; }
+                        .hm-thumb-editorial .a b { font: 900 .78rem/0.95 Impact, 'Oswald', sans-serif; letter-spacing: .02em; }
+                        .hm-thumb-editorial .a i { display: block; width: 1.6rem; height: .35rem; margin-top: .25rem; background: #f4efe7; }
+                        .hm-thumb-editorial .b { flex: 1; display: grid; place-items: center; }
+                        .hm-thumb-editorial .b em { width: 2rem; height: 2.4rem; border-radius: 1rem 1rem .4rem .4rem; background: #d8cbb8; box-shadow: 0 .4rem 0 -.1rem #b08a5a; }
+                        .hm-thumb-botanico { background: linear-gradient(180deg, #3b2f33 0 55%, #f6efe9 55%); flex-direction: column; }
+                        .hm-thumb-botanico .a { color: #fff; justify-content: flex-start; padding-top: .45rem; }
+                        .hm-thumb-botanico .a b { font: 600 .72rem/1.05 Georgia, serif; }
+                        .hm-thumb-botanico .a i { font-style: italic; font-weight: 400; }
+                        .hm-thumb .c { display: flex; gap: .3rem; padding: .35rem .5rem; }
+                        .hm-thumb .c em { flex: 1; height: 1.6rem; border-radius: .35rem; background: #e8dccd; }
+                        .hm-thumb-atual { flex-direction: column; background: #eef2ff; }
+                        .hm-thumb-atual .a { flex: none; height: 2.4rem; margin: .4rem .5rem 0; border-radius: .5rem; background: linear-gradient(90deg, #ec4899, #8b5cf6); }
+                        .hm-thumb-atual .c em { background: #fff; }
+                    </style>
+                </section>
+
                 {{-- 2b. Estilo do site --}}
                 <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-look" id="pi-estilo" style="scroll-margin-top: 80px">
                     <div class="flex items-start justify-between gap-2">

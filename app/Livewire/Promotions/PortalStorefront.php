@@ -34,6 +34,7 @@ class PortalStorefront extends Component
     public string $home_style = 'padrao';
     public array $home_look = [];
     public array $home_paint = [];
+    public string $home_model = 'atual';
     /** Vitrine › Automações (HomeLayout::AUTO_DEFAULT). */
     public array $auto = [];
     public string $home_theme = 'padrao';
@@ -109,6 +110,7 @@ class PortalStorefront extends Component
         $this->home_look = $h['look'];
         $this->home_paint = $h['paint'];
         $this->home_theme = $h['theme'];
+        $this->home_model = $h['model'];
     }
 
     private function saveHome(): void
@@ -121,6 +123,7 @@ class PortalStorefront extends Component
             'colors' => $this->home_colors, 'style' => $this->home_style, 'surface' => $this->home_surface,
             'look' => HomeLayout::look($this->home_theme, $this->home_look),
             'paint' => HomeLayout::paint($this->home_paint),
+            'model' => $this->home_model,
         ]);
         $this->loadHome();
         $this->previewKey++;
@@ -192,6 +195,15 @@ class PortalStorefront extends Component
         \Illuminate\Support\Facades\Cache::forget('portal-cats-auto-' . Auth::id());
         $this->previewKey++;
         $this->dispatch('notify', type: 'success', message: 'Automação salva.');
+    }
+
+    /** Modelo da página inicial: o formato inteiro (Atual, Editorial, Elegante). */
+    public function setModel(string $model): void
+    {
+        if (isset(HomeLayout::MODELS[$model])) {
+            $this->home_model = $model;
+            $this->saveHome();
+        }
     }
 
     /** Estilo do site: uma escolha de cada parte (topo, cards, fundo…). */

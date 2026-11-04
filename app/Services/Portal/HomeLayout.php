@@ -185,6 +185,34 @@ class HomeLayout
     ];
 
     /**
+     * Modelo da página inicial (Vitrine › Página inicial): o formato inteiro da página.
+     * 'atual' é o de sempre (blocos na ordem da Vitrine); os outros montam uma página de
+     * apresentação no estilo de loja de revista e depois a lista de todos os produtos.
+     */
+    public const MODELS = [
+        'atual'     => ['Atual', 'Os blocos na ordem que você montou, como hoje', 'bi-grid-1x2'],
+        'editorial' => ['Editorial', 'Títulos grandes em maiúsculas, produto girando no topo, faixa correndo, novidades soltas no fundo claro e depoimentos', 'bi-type-bold'],
+        'botanico'  => ['Elegante', 'Foto grande no topo, títulos com letra fina e itálico, cards altos com "+ Carrinho", categorias em fotos altas e nota das avaliações', 'bi-flower2'],
+    ];
+
+    /** @var array<int, string> */
+    private static array $modelMemo = [];
+
+    /** Modelo da página inicial da loja (atual = o de sempre). */
+    public static function model(?int $ownerId): string
+    {
+        if (! $ownerId || ! self::ready()) {
+            return 'atual';
+        }
+        if (! isset(self::$modelMemo[$ownerId])) {
+            $m = (string) (PortalSetting::where('user_id', $ownerId)->first()?->home['model'] ?? 'atual');
+            self::$modelMemo[$ownerId] = isset(self::MODELS[$m]) ? $m : 'atual';
+        }
+
+        return self::$modelMemo[$ownerId];
+    }
+
+    /**
      * Estilo do site (Vitrine › Página inicial): cada parte tem as suas escolhas [nome, ícone bootstrap].
      * Viram classes no <body> do catálogo (lk-{parte}-{escolha}); o primeiro de cada é o padrão.
      */
@@ -515,6 +543,7 @@ class HomeLayout
             'surface' => $surface,
             'look'    => self::look($theme, $h['look']),
             'paint'   => self::paint($h['paint']),
+            'model'   => isset(self::MODELS[$s?->home['model'] ?? '']) ? $s->home['model'] : 'atual',
         ];
     }
 
@@ -534,7 +563,7 @@ class HomeLayout
     public static function save(int $ownerId, array $layout): void
     {
         $s = PortalSetting::for($ownerId);
-        $s->home = array_merge($s->home ?? [], array_intersect_key($layout, array_flip(['theme', 'order', 'off', 'colors', 'style', 'surface', 'look', 'paint', 'auto'])));
+        $s->home = array_merge($s->home ?? [], array_intersect_key($layout, array_flip(['theme', 'order', 'off', 'colors', 'style', 'surface', 'look', 'paint', 'auto', 'model'])));
         $s->save();
     }
 

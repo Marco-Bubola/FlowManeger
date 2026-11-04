@@ -26,6 +26,8 @@
     $homeOrder = $homeLayout['order'];
     $homeOff = $isHome ? $homeLayout['off'] : [];
     $notice = $settings && $settings->notice_active && trim((string) $settings->notice_text) !== '' ? $settings : null;
+    // Modelo da página inicial (Vitrine › Página inicial › Modelo): Editorial e Elegante montam uma apresentação própria
+    $hModel = $isHome ? ($homeLayout['model'] ?? 'atual') : 'atual';
 @endphp
 
 <x-portal-catalog-layout title="Catálogo" :store="$store" :owner-id="$owner" :search="$search">
@@ -33,10 +35,16 @@
 @push('styles')
 @include('portal.partials.catalog-styles')
 @include('portal.partials.storefront-styles')
+@if($hModel !== 'atual')
+@include('portal.partials.home-models-styles')
+@endif
 @endpush
 
 <div class="ml-wrap" x-data="mlCatalog(@js($all), @js($cartUrl), @js($stockMap))" @keydown.escape.window="closeCart()" @open-cart.window="openCart()">
 
+    @if($hModel !== 'atual')
+        @include('portal.partials.home-' . $hModel)
+    @else
     @if($notice)
         @php $nHref = preg_match('~^https?://~i', (string) $notice->notice_link) ? $notice->notice_link : null; @endphp
         <{{ $nHref ? 'a' : 'p' }} @if($nHref) href="{{ $nHref }}" @endif class="sf-notice" data-testid="store-notice">
@@ -157,6 +165,7 @@
             @endif
         @endif
     @endforeach
+    @endif
 
     @if($collection)
         <section class="sf-col-page" data-testid="collection-head">
@@ -176,6 +185,12 @@
         <p class="ml-search-note">Resultados para <b>“{{ $search }}”</b>
             <a href="{{ route('portal.catalog', ['userId' => $owner]) }}">Limpar busca</a>
         </p>
+    @endif
+
+    @if($hModel !== 'atual')
+        <div class="hm-all-head hm-sec" id="todos">
+            @include('portal.partials.home-title', ['t1' => 'Todos os', 't2' => 'produtos'])
+        </div>
     @endif
 
     <div class="ml-toolbar">
