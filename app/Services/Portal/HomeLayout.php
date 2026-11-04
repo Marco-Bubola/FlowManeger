@@ -304,6 +304,14 @@ class HomeLayout
         'mohover' => ['Mouse em cima do produto', [
             'zoom' => ['Foto aproxima', 'bi-zoom-in'], 'levantar' => ['Card levanta', 'bi-arrow-up-square'], 'inclinar' => ['Card inclina', 'bi-phone-flip'], 'nada' => ['Sem efeito', 'bi-dash-circle'],
         ]],
+        // Faixas de produtos (Destaques, Ofertas, Coleções, Relacionados). Funcionam mesmo sem o movimento ao rolar.
+        'carousel' => ['Faixas de produtos (carrossel)', [
+            'normal' => ['Arrastar para o lado', 'bi-arrow-left-right'], 'vidro' => ['Vidro 3D', 'bi-badge-3d'],
+            'pilha' => ['Cartas em leque', 'bi-stack'], 'giro' => ['Girando sozinho', 'bi-arrow-repeat'],
+        ]],
+        'buybtn' => ['Botão de pôr no carrinho (página do produto)', [
+            'normal' => ['Como sempre', 'bi-cart-plus'], 'caminhao' => ['Caminhãozinho', 'bi-truck'], 'caixa' => ['Caixa fechando', 'bi-box-seam'],
+        ]],
     ];
 
     /** Partes do Estilo do site em abas, para não virar uma lista enorme. */
@@ -312,7 +320,7 @@ class HomeLayout
         'fundo' => ['Fundo', 'bi-image', ['bgtype', 'pattern', 'patternsize', 'patternop']],
         'topo'  => ['Topo e largura', 'bi-window-desktop', ['header', 'width']],
         'texto' => ['Botões e textos', 'bi-fonts', ['buttons', 'text', 'titles', 'anim']],
-        'movimento' => ['Movimento', 'bi-stars', ['motion', 'moentry', 'mospeed', 'mocart', 'mohover']],
+        'movimento' => ['Movimento', 'bi-stars', ['motion', 'moentry', 'mospeed', 'mocart', 'mohover', 'carousel', 'buybtn']],
     ];
 
     /** Cores de cada parte (vazio = sai das cores da loja). Ficam em portal_settings.home.paint. */

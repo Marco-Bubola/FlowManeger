@@ -200,6 +200,49 @@
                 </style>
             @endonce
             @break
+        @case('carousel')
+            <span class="absolute inset-0 flex items-center justify-center" style="perspective: 160px">
+                @foreach([-1, 0, 1] as $d)
+                    @php
+                        $t = match ($k) {
+                            'vidro' => 'translateX(' . ($d * 70) . '%) rotateY(' . ($d * -35) . 'deg) scale(' . ($d ? .82 : 1) . ')',
+                            'pilha' => 'translateX(' . ($d * 30) . '%) rotate(' . ($d * 9) . 'deg) scale(' . ($d ? .9 : 1) . ')',
+                            default => 'translateX(' . ($d * 110) . '%)',
+                        };
+                    @endphp
+                    <i class="absolute w-6 h-8 rounded {{ $k === 'giro' ? 'lk-thumb-spin' : '' }}" style="transform: {{ $t }}; z-index: {{ 2 - abs($d) }}; background: {{ $d === 0 ? 'linear-gradient(135deg,' . $c1 . ',' . $c2 . ')' : '#fff' }}; {{ $k === 'vidro' ? 'box-shadow: 0 0 0 1px rgba(255,255,255,.7), 0 4px 8px -3px rgba(0,0,0,.3); opacity: ' . ($d ? .8 : 1) : 'box-shadow: 0 2px 5px -2px rgba(0,0,0,.25)' }}"></i>
+                @endforeach
+            </span>
+            @once
+                <style>
+                    .lk-thumb-spin { animation: lk-ti-spin 2.4s ease-in-out infinite; }
+                    @keyframes lk-ti-spin { 0%, 30% { translate: 0 0; } 60%, 100% { translate: -110% 0; } }
+                    @media (prefers-reduced-motion: reduce) { .lk-thumb-spin { animation: none; } }
+                </style>
+            @endonce
+            @break
+        @case('buybtn')
+            <span class="absolute inset-0 flex items-center justify-center">
+                <span class="relative w-16 h-5 rounded-full overflow-hidden flex items-center justify-center text-[8px] font-bold text-white" style="background: {{ $c1 }}">
+                    @if($k === 'caminhao')
+                        <i class="bi bi-truck absolute text-[11px] lk-thumb-truck" style="color: #fff"></i>
+                    @elseif($k === 'caixa')
+                        <i class="bi bi-box-seam absolute text-[11px] lk-thumb-box"></i>
+                    @else
+                        <i class="bi bi-cart-plus text-[11px]"></i>
+                    @endif
+                </span>
+            </span>
+            @once
+                <style>
+                    .lk-thumb-truck { animation: lk-ti-truck 2.2s ease-in infinite; }
+                    @keyframes lk-ti-truck { 0%, 25% { transform: translateX(-4px); } 85%, 100% { transform: translateX(46px); } }
+                    .lk-thumb-box { animation: lk-ti-box 2.2s cubic-bezier(.3,1.4,.5,1) infinite; }
+                    @keyframes lk-ti-box { 0% { transform: scale(0); } 35%, 70% { transform: scale(1.1); } 100% { transform: scale(0) translateY(-6px); } }
+                    @media (prefers-reduced-motion: reduce) { .lk-thumb-truck, .lk-thumb-box { animation: none; } }
+                </style>
+            @endonce
+            @break
         @default
             <span class="absolute inset-0 flex items-center justify-center text-xl" style="color: {{ $c3 }}"><i class="bi {{ $k === 'nao' ? 'bi-pause-circle' : 'bi-magic' }} {{ $k === 'sim' ? 'animate-pulse' : '' }}"></i></span>
     @endswitch

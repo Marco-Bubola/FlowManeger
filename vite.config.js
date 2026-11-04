@@ -15,6 +15,7 @@ export default defineConfig({
                 'resources/css/portal.css',
                 'resources/js/hover-photos.js',
                 'resources/js/portal-motion.js',
+                'resources/js/portal-carousel.js',
             ],
             refresh: true,
         }),

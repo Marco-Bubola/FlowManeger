@@ -531,6 +531,9 @@ document.addEventListener('alpine:init', () => {
 @endif
 
 @vite('resources/js/hover-photos.js')
+@if(($theme['look']['carousel'] ?? 'normal') !== 'normal' || ($theme['look']['buybtn'] ?? 'normal') !== 'normal')
+    @vite('resources/js/portal-carousel.js')
+@endif
 {{-- Movimento ao rolar (Vitrine › Estilo do site): só carrega quando a loja ligou --}}
 @if(in_array($theme['look']['motion'] ?? 'nenhum', ['suave', 'completo'], true))
     @vite('resources/js/portal-motion.js')

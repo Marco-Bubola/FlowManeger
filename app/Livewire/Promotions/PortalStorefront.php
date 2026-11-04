@@ -218,7 +218,7 @@ class PortalStorefront extends Component
     /** Volta o estilo para o que o tema traz. */
     public function resetLook(): void
     {
-        $keep = array_intersect_key($this->home_look, array_flip(['motion', 'moentry', 'mospeed', 'mocart', 'mohover']));
+        $keep = array_intersect_key($this->home_look, array_flip(['motion', 'moentry', 'mospeed', 'mocart', 'mohover', 'carousel', 'buybtn']));
         $this->home_look = HomeLayout::look($this->home_theme);
         // O movimento é escolha da loja, não do tema: continua como estava
         foreach ($keep as $k => $v) {
