@@ -33,7 +33,10 @@ new class extends Component {
             'side' => $pick('side', ['padrao', 'tema', 'cor', 'branco', 'cinza', 'areia'], 'padrao'),
             'tab' => $pick('tab', ['padrao', 'tema', 'cor', 'branco'], 'padrao'),
             'nav' => $pick('nav', ['classica', 'bolinha', 'pilula', 'linha'], 'classica'),
-            'motion' => $pick('motion', ['nao', 'sim', 'zoom', 'lado', 'desfoque'], 'nao'),
+            'motion' => $pick('motion', ['nao', 'sim', 'zoom', 'lado', 'desfoque', 'virar', 'cortina'], 'nao'),
+            'speed' => $pick('speed', ['normal', 'calma', 'rapida'], 'normal'),
+            'hover' => $pick('hover', ['nada', 'zoom', 'levantar', 'inclinar'], 'nada'),
+            'cart' => $pick('cart', ['nada', 'pular', 'voar'], 'nada'),
             'page' => $pick('page', ['direta', 'desliza', 'esmaece', 'sobe'], 'direta'),
         ];
         foreach (['c_bg', 'c_border', 'c_tag', 'c_detail'] as $k) {
@@ -360,10 +363,48 @@ new class extends Component {
                             ['zoom', 'Crescendo', 'Os cards crescem um pouquinho até o tamanho certo'],
                             ['lado', 'Do lado', 'Os cards entram deslizando da esquerda'],
                             ['desfoque', 'Desembaçando', 'Os cards aparecem saindo de um desfoque'],
+                            ['virar', 'Virando', 'Os cards entram girando de leve, como uma página virando'],
+                            ['cortina', 'Cortina', 'Os cards vão sendo revelados de cima para baixo'],
                         ] as [$mk, $mt, $md])
                             <button type="button" class="ap-navbtn" :class="{ 'is-on': (look.motion || 'nao') === '{{ $mk }}' }" @click="setLook('motion', '{{ $mk }}')">
                                 <span class="ap-nav-art ap-mo-art {{ $mk !== 'nao' ? 'is-on ap-mo-' . $mk : '' }}"><i></i><i></i><i></i><i></i></span>
                                 <b>{{ $mt }}</b><small>{{ $md }}</small>
+                            </button>
+                        @endforeach
+                    </div>
+                    <p class="ap-label mt-4">Velocidade do movimento</p>
+                    <div class="ap-navs mt-2">
+                        @foreach([['normal', 'Normal', 'Como está'], ['calma', 'Mais calma', 'Tudo um pouco mais devagar'], ['rapida', 'Mais rápida', 'Tudo mais ligeiro']] as [$sk, $st, $sd])
+                            <button type="button" class="ap-navbtn" :class="{ 'is-on': (look.speed || 'normal') === '{{ $sk }}' }" @click="setLook('speed', '{{ $sk }}')">
+                                <span class="ap-nav-art ap-mo-art is-on ap-sp-{{ $sk }}"><i></i><i></i><i></i><i></i></span>
+                                <b>{{ $st }}</b><small>{{ $sd }}</small>
+                            </button>
+                        @endforeach
+                    </div>
+                    <p class="ap-label mt-4">Mouse em cima dos cards (computador)</p>
+                    <div class="ap-navs mt-2">
+                        @foreach([
+                            ['nada', 'Sem efeito', 'Como sempre foi'],
+                            ['zoom', 'Foto aproxima', 'A foto do card chega um pouco mais perto'],
+                            ['levantar', 'Card levanta', 'O card sobe de leve com sombra'],
+                            ['inclinar', 'Card inclina', 'O card inclina seguindo o mouse'],
+                        ] as [$hk, $ht, $hd])
+                            <button type="button" class="ap-navbtn" :class="{ 'is-on': (look.hover || 'nada') === '{{ $hk }}' }" @click="setLook('hover', '{{ $hk }}')">
+                                <span class="ap-nav-art ap-hv-art"><i class="{{ $hk !== 'nada' ? 'ap-hv-' . $hk : '' }}"><em></em></i></span>
+                                <b>{{ $ht }}</b><small>{{ $hd }}</small>
+                            </button>
+                        @endforeach
+                    </div>
+                    <p class="ap-label mt-4">Ao pôr um produto na venda</p>
+                    <div class="ap-navs mt-2">
+                        @foreach([
+                            ['nada', 'Sem efeito', 'Como sempre foi'],
+                            ['pular', 'Carrinho pula', 'O botão do carrinho dá um pulinho'],
+                            ['voar', 'Foto voa', 'A foto do produto voa até o carrinho'],
+                        ] as [$ck, $ct, $cd])
+                            <button type="button" class="ap-navbtn" :class="{ 'is-on': (look.cart || 'nada') === '{{ $ck }}' }" @click="setLook('cart', '{{ $ck }}')">
+                                <span class="ap-nav-art ap-ct-art"><i class="{{ $ck === 'voar' ? 'ap-ct-fly' : '' }}"></i><b class="bi bi-cart3 {{ $ck === 'pular' ? 'ap-ct-bump' : '' }}"></b></span>
+                                <b>{{ $ct }}</b><small>{{ $cd }}</small>
                             </button>
                         @endforeach
                     </div>
@@ -831,6 +872,27 @@ new class extends Component {
         @keyframes ap-mo-zoom { 0%, 12% { opacity: 0; transform: scale(.7); } 40%, 100% { opacity: 1; transform: none; } }
         @keyframes ap-mo-lado { 0%, 12% { opacity: 0; transform: translateX(-12px); } 40%, 100% { opacity: 1; transform: none; } }
         @keyframes ap-mo-blur { 0%, 12% { opacity: 0; filter: blur(5px); } 40%, 100% { opacity: 1; filter: none; } }
+        .ap-mo-art.ap-mo-virar i { animation-name: ap-mo-virar; } .ap-mo-art.ap-mo-cortina i { animation-name: ap-mo-cortina; }
+        @keyframes ap-mo-virar { 0%, 12% { opacity: 0; transform: perspective(120px) rotateX(60deg); } 40%, 100% { opacity: 1; transform: none; } }
+        @keyframes ap-mo-cortina { 0%, 12% { clip-path: inset(0 0 100% 0); } 40%, 100% { clip-path: inset(0); } }
+        .ap-mo-art.ap-sp-calma i { animation-duration: 4s; } .ap-mo-art.ap-sp-rapida i { animation-duration: 1.6s; }
+        .ap-hv-art { align-items: center; justify-content: center; perspective: 200px; }
+        .ap-hv-art > i { display: block; width: 2.6rem; height: 2.2rem; border-radius: .4rem; background: #fff; overflow: hidden; box-shadow: 0 2px 6px -3px rgba(15, 23, 42, .3); }
+        .ap-hv-art > i em { display: block; width: 100%; height: 100%; background: linear-gradient(135deg, var(--color-indigo-400), var(--color-pink-400)); }
+        .ap-hv-zoom em { animation: ap-hv-zoom 2s ease infinite; }
+        .ap-hv-levantar { animation: ap-hv-up 2s ease infinite; }
+        .ap-hv-inclinar { animation: ap-hv-tilt 2.4s ease infinite; }
+        @keyframes ap-hv-zoom { 0%, 30%, 100% { transform: none; } 55%, 80% { transform: scale(1.3); } }
+        @keyframes ap-hv-up { 0%, 30%, 100% { transform: none; } 55%, 80% { transform: translateY(-5px); box-shadow: 0 8px 10px -4px rgba(0, 0, 0, .3); } }
+        @keyframes ap-hv-tilt { 0%, 100% { transform: none; } 30% { transform: rotateY(20deg) rotateX(6deg); } 65% { transform: rotateY(-20deg) rotateX(-6deg); } }
+        .ap-ct-art { position: relative; }
+        .ap-ct-art > i { position: absolute; left: .7rem; bottom: .5rem; width: 1.2rem; height: 1.2rem; border-radius: .3rem; background: linear-gradient(135deg, var(--color-indigo-400), var(--color-pink-400)); }
+        .ap-ct-art > b { position: absolute; right: .7rem; top: .4rem; font-size: 1.1rem; color: #64748b; display: inline-block; }
+        .ap-ct-fly { animation: ap-ct-fly 2s ease-in infinite; }
+        .ap-ct-bump { animation: ap-ct-bump 1.6s ease infinite; }
+        @keyframes ap-ct-fly { 0%, 20% { transform: none; opacity: 1; } 70% { transform: translate(5.5rem, -1.2rem) scale(.3); opacity: .9; } 71%, 100% { opacity: 0; transform: none; } }
+        @keyframes ap-ct-bump { 0%, 40%, 100% { transform: none; } 55% { transform: scale(1.4) rotate(-10deg); } 70% { transform: scale(.9) rotate(5deg); } }
+        @media (prefers-reduced-motion: reduce) { .ap-hv-art *, .ap-hv-art > i, .ap-ct-art > * { animation: none !important; } }
         .ap-pg-art { align-items: stretch; padding: .4rem; }
         .ap-pg-art i { flex: 1; border-radius: .4rem; background: #fff; box-shadow: 0 2px 6px -3px rgba(15, 23, 42, .3); }
         .dark .ap-pg-art i { background: #1e293b; }
@@ -935,7 +997,7 @@ new class extends Component {
         window.fmAppearance = window.fmAppearance || function (saved, savedLook, themes) {
             return {
                 themes: themes,
-                look: { cards: 'tema', tone: 'medio', shape: 'redondo', bg: 'padrao', bg_c: null, pat: 'nenhum', pat_c: 'tema', pat_o: 'medio', side: 'padrao', tab: 'padrao', nav: 'classica', motion: 'nao', page: 'direta', c_bg: null, c_border: null, c_tag: null, c_detail: null },
+                look: { cards: 'tema', tone: 'medio', shape: 'redondo', bg: 'padrao', bg_c: null, pat: 'nenhum', pat_c: 'tema', pat_o: 'medio', side: 'padrao', tab: 'padrao', nav: 'classica', motion: 'nao', page: 'direta', speed: 'normal', hover: 'nada', cart: 'nada', c_bg: null, c_border: null, c_tag: null, c_detail: null },
                 pvOpen: false,
                 pvDev: window.innerWidth < 768 ? 'cel' : 'pc',
                 pvTab: 'cards',

@@ -14,7 +14,11 @@
         zoom: { opacity: 0, transform: 'scale(.9)' },
         lado: { opacity: 0, transform: 'translateX(-28px)' },
         desfoque: { opacity: 0, transform: 'scale(1.02)', filter: 'blur(8px)' },
+        virar: { opacity: 0, transform: 'perspective(900px) rotateX(24deg) translateY(24px)', transformOrigin: '50% 100%' },
+        cortina: { clipPath: 'inset(0 0 100% 0)' },
     };
+    // Velocidade (Aparência › Movimento › Velocidade): multiplica a duração de tudo
+    const speed = () => ({ calma: 1.6, rapida: .6 })[document.documentElement.getAttribute('data-fm-speed')] || 1;
     const isOn = () => !!FROM[mode()] && !reduce()
         && !document.documentElement.classList.contains('no-animations') // "Reduzir animações" em Aparência
         && 'IntersectionObserver' in window && typeof Element.prototype.animate === 'function';
@@ -56,7 +60,8 @@
         clearTimeout(batchTimer);
         batchTimer = setTimeout(() => { batch = 0; }, 120);
         const from = FROM[mode()] || FROM.sim;
-        el.animate([from, from.filter ? { opacity: 1, transform: 'none', filter: 'blur(0)' } : { opacity: 1, transform: 'none' }], { duration: 600, delay: d, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' });
+        const to = from.clipPath ? { clipPath: 'inset(0 0 0 0)' } : (from.filter ? { opacity: 1, transform: 'none', filter: 'blur(0)' } : { opacity: 1, transform: 'none' });
+        el.animate([from, to], { duration: 600 * speed(), delay: d * speed(), easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' });
     }
 
     function stop() {
@@ -112,7 +117,7 @@
         const k = document.documentElement.getAttribute('data-fm-page');
         const main = document.getElementById('mainContent');
         if (!PAGE[k] || !main || reduce() || document.documentElement.classList.contains('no-animations') || typeof main.animate !== 'function') return;
-        main.animate(PAGE[k], { duration: k === 'esmaece' ? 380 : 420, easing: 'cubic-bezier(.2,.7,.2,1)' });
+        main.animate(PAGE[k], { duration: (k === 'esmaece' ? 380 : 420) * speed(), easing: 'cubic-bezier(.2,.7,.2,1)' });
     });
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
     else start();
@@ -122,4 +127,63 @@
         const now = document.documentElement.getAttribute('data-fm-motion');
         if (now !== was) { was = now; if (FROM[now]) start(); else stop(); }
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-fm-motion'] });
+
+    // ───── Mouse em cima dos cards › Card inclina (data-fm-hover="inclinar") ─────
+    // Aproxima e Levanta são só CSS (fm-motion.css). Aqui o card segue o mouse.
+    const tiltOn = () => document.documentElement.getAttribute('data-fm-hover') === 'inclinar' && !reduce()
+        && !document.documentElement.classList.contains('no-animations');
+    const TILT = '#mainContent .product-card-modern, #mainContent .dash-kpis > *, #mainContent :is(.grid, [class*="-grid"]) > [class*="rounded"]:is([class*="shadow"], [class*="border"]):not(:has(input, select, textarea))';
+    let tilted = null;
+    const untilt = () => { if (tilted) { tilted.style.transform = ''; tilted.style.transition = ''; tilted = null; } };
+    document.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'mouse' || !tiltOn()) return untilt();
+        const card = e.target.closest && e.target.closest(TILT);
+        if (card !== tilted) untilt();
+        if (!card || card.closest('[role="dialog"], .fixed')) return;
+        const r = card.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+        tilted = card;
+        card.style.transition = 'transform .08s linear';
+        card.style.transform = `perspective(800px) rotateX(${(-y * 8).toFixed(2)}deg) rotateY(${(x * 10).toFixed(2)}deg) translateY(-2px)`;
+    }, { passive: true });
+    document.addEventListener('pointerleave', untilt);
+    document.addEventListener('livewire:navigating', untilt);
+
+    // ───── Ao pôr produto na venda (data-fm-cart="pular" | "voar") ─────
+    // Nova venda, Editar venda e Adicionar produtos: tocar num produto que ainda não estava escolhido
+    // faz o carrinho pular ou a foto voar até ele. Sem a opção (padrão), nada muda.
+    const cartMode = () => document.documentElement.getAttribute('data-fm-cart');
+    const cartBtn = () => Array.from(document.querySelectorAll('button .bi-cart3'))
+        .map((i) => i.closest('button')).filter((b) => { if (!b) return false; const r = b.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(b).visibility !== 'hidden'; })
+        .sort((a, b) => b.getBoundingClientRect().top - a.getBoundingClientRect().top)[0]; // o de baixo (botão flutuante) primeiro
+    function bump(b) {
+        if (!b || typeof b.animate !== 'function') return;
+        b.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.25) rotate(-8deg)', offset: .3 }, { transform: 'scale(.94) rotate(4deg)', offset: .6 }, { transform: 'scale(1)' }],
+            { duration: 600 * speed(), easing: 'cubic-bezier(.3,1.5,.5,1)' });
+    }
+    document.addEventListener('click', (e) => {
+        const m = cartMode();
+        if ((m !== 'pular' && m !== 'voar') || reduce() || document.documentElement.classList.contains('no-animations')) return;
+        const card = e.target.closest && e.target.closest('.product-card-modern[wire\\:click^="toggleProduct"]');
+        if (!card || card.classList.contains('selected')) return;
+        const to = cartBtn();
+        if (!to) return;
+        const img = card.querySelector('img');
+        if (m === 'pular' || !img || !img.currentSrc) return void setTimeout(() => bump(to), 120);
+        const a = img.getBoundingClientRect(), b = to.getBoundingClientRect();
+        const size = Math.min(a.width, a.height, 140);
+        if (!size) return bump(to);
+        const c = document.createElement('img');
+        c.src = img.currentSrc;
+        c.alt = '';
+        Object.assign(c.style, { position: 'fixed', zIndex: 9999, pointerEvents: 'none', borderRadius: '14px', objectFit: 'cover', boxShadow: '0 12px 26px rgba(0,0,0,.3)',
+            width: size + 'px', height: size + 'px', left: (a.left + a.width / 2 - size / 2) + 'px', top: (a.top + a.height / 2 - size / 2) + 'px' });
+        document.body.appendChild(c);
+        const dx = b.left + b.width / 2 - (a.left + a.width / 2), dy = b.top + b.height / 2 - (a.top + a.height / 2);
+        c.animate([
+            { transform: 'translate(0,0) scale(1)', opacity: 1 },
+            { transform: `translate(${dx * .45}px, ${dy * .45 - 70}px) scale(.6) rotate(-12deg)`, opacity: 1, offset: .45 },
+            { transform: `translate(${dx}px, ${dy}px) scale(.12) rotate(8deg)`, opacity: .6 },
+        ], { duration: 760 * speed(), easing: 'cubic-bezier(.5,0,.6,1)' }).finished.then(() => { c.remove(); bump(cartBtn()); }, () => c.remove());
+    }, true);
 })();

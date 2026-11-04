@@ -168,3 +168,23 @@ html.no-animations[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead { transit
     html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead svg { transition: none; }
 }
 
+
+/* ───────────── Mouse em cima dos cards (html[data-fm-hover="zoom"|"levantar"]) ─────────────
+ * Só com mouse. "Card inclina" é feito no fm-app-motion.js. Campos de formulário não mexem. */
+@media (hover: hover) {
+    html[data-fm-hover="levantar"] #mainContent :is(.product-card-modern, .dash-kpis > *, :is(.grid, [class*="-grid"]) > [class*="rounded"]:is([class*="shadow"], [class*="border"]):not(:has(input, select, textarea))) {
+        transition: transform .35s cubic-bezier(.2, .7, .2, 1), box-shadow .35s ease;
+    }
+    html[data-fm-hover="levantar"] #mainContent :is(.product-card-modern, .dash-kpis > *, :is(.grid, [class*="-grid"]) > [class*="rounded"]:is([class*="shadow"], [class*="border"]):not(:has(input, select, textarea))):hover {
+        transform: translateY(-5px);
+        box-shadow: 0 18px 32px -18px rgba(15, 23, 42, .45);
+    }
+    html[data-fm-hover="zoom"] #mainContent :is(.product-card-modern, :is(.grid, [class*="-grid"]) > [class*="rounded"]) img { transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
+    html[data-fm-hover="zoom"] #mainContent :is(.product-card-modern, :is(.grid, [class*="-grid"]) > [class*="rounded"]):hover img { transform: scale(1.07); }
+    html[data-fm-hover="zoom"] #mainContent .product-card-modern .product-img-area { overflow: hidden; }
+}
+html.no-animations[data-fm-hover] #mainContent :is(.product-card-modern, .dash-kpis > *, img) { transition: none !important; transform: none !important; }
+@media (prefers-reduced-motion: reduce) {
+    html[data-fm-hover] #mainContent :is(.product-card-modern, .dash-kpis > *) { transition: none !important; transform: none !important; }
+    html[data-fm-hover] #mainContent img { transition: none !important; transform: none !important; }
+}
