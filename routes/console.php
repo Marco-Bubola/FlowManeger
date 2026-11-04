@@ -93,3 +93,11 @@ Schedule::call(function () {
             }
         });
 })->name('shopee:refresh-tokens')->everyThirtyMinutes()->withoutOverlapping();
+
+// Instagram: publica os posts agendados (a cada minuto) e renova o acesso das contas (uma vez por dia)
+Schedule::command('instagram:publicar')
+    ->everyMinute()
+    ->withoutOverlapping();
+Schedule::command('instagram:publicar --renovar')
+    ->dailyAt('04:10')
+    ->withoutOverlapping();

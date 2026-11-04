@@ -41,6 +41,7 @@ class SettingsMenu
             'integracoes' => ['Integrações', 'bi-plug', [
                 ['settings.connections', 'Conexões', 'bi-link-45deg', 'Mercado Livre, Shopee e outros', 'from-yellow-500 to-amber-600'],
                 ['settings.whatsapp', 'WhatsApp', 'bi-whatsapp', 'Lançar compras mandando o print', 'from-green-500 to-emerald-600'],
+                ['settings.instagram', 'Instagram', 'bi-instagram', 'Postar produtos e promoções', 'from-pink-500 to-purple-600'],
                 ['settings.bank-connections', 'Bancos conectados', 'bi-bank', 'Extratos automáticos dos bancos', 'from-slate-500 to-slate-700'],
             ]],
         ];

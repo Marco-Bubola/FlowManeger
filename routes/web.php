@@ -290,6 +290,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/variation-stock', \App\Livewire\Products\VariationStockFix::class)->name('products.variation-stock');
     Route::get('/products/interessados', \App\Livewire\Products\InterestedClients::class)->name('products.interested');
 
+    // --- Instagram: postar pelo app ---
+    Route::get('/instagram', \App\Livewire\Instagram\PostsIndex::class)->name('instagram.index');
+    Route::get('/instagram/novo', \App\Livewire\Instagram\PostComposer::class)->name('instagram.create');
+    Route::get('/instagram/{post}/editar', \App\Livewire\Instagram\PostComposer::class)->whereNumber('post')->name('instagram.edit');
+    Route::get('/instagram/conectar', [\App\Http\Controllers\InstagramAuthController::class, 'redirect'])->name('instagram.connect');
+    Route::get('/instagram/retorno', [\App\Http\Controllers\InstagramAuthController::class, 'callback'])->name('instagram.callback');
+
     // --- Promoções ---
     Route::get('/promotions', PromotionsIndex::class)->name('promotions.index');
     Route::get('/promotions/create', PromotionsCreate::class)->name('promotions.create');
@@ -437,6 +444,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/connections', 'settings.connections')->name('settings.connections');
     Volt::route('settings/pagamentos', 'settings.payments')->name('settings.payments');
     Volt::route('settings/whatsapp', 'settings.whatsapp')->name('settings.whatsapp');
+    Volt::route('settings/instagram', 'settings.instagram')->name('settings.instagram');
     Volt::route('settings/produtos', 'settings.products')->name('settings.products');
     Volt::route('settings/bancos-conectados', 'settings.bank-connections')->name('settings.bank-connections');
 

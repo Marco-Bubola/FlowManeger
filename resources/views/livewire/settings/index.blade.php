@@ -31,6 +31,7 @@ new class extends Component {
     $mlOn = $safe(fn () => $db::table('mercadolivre_tokens')->where('user_id', $u->id)->where('is_active', 1)->exists(), false);
     $shopeeOn = $safe(fn () => $db::table('shopee_tokens')->where('user_id', $u->id)->where('is_active', 1)->exists(), false);
     $waOn = $safe(fn () => (bool) \App\Models\WhatsAppSetting::where('user_id', $u->id)->value('enabled'), false);
+    $igUser = $safe(fn () => ($ig = \App\Models\InstagramSetting::where('user_id', $u->id)->first()) && $ig->connected() ? $ig->username : null);
     $banks = $safe(fn () => \App\Models\BankConnectionAccount::where('user_id', $u->id)->count(), 0);
     $payOn = $safe(fn () => (bool) \App\Models\PaymentSetting::where('user_id', $u->id)->where('enabled', true)->whereNotNull('access_token')->exists(), false);
     $devices = $safe(fn () => config('session.driver') === 'database' ? $db::table(config('session.table', 'sessions'))->where('user_id', $u->id)->count() : null);
@@ -48,6 +49,7 @@ new class extends Component {
         'settings.menu' => (function () { $n = \App\Support\AppMenu::hiddenCount(); return [$n ? $n . ' escondida' . ($n > 1 ? 's' : '') : 'Tudo à mostra', 'off']; })(),
         'settings.appearance' => [$themeNames[$palette['theme'] ?? ''] ?? (empty($palette) ? 'Flow' : 'Cores próprias'), 'off'],
         'settings.whatsapp' => [$waOn ? 'Ligado' : 'Desligado', $waOn ? 'ok' : 'off'],
+        'settings.instagram' => [$igUser ? '@' . $igUser : 'Não conectado', $igUser ? 'ok' : 'off'],
         'settings.bank-connections' => [$banks ? $banks . ' ' . ($banks === 1 ? 'conta' : 'contas') : 'Nenhum banco', $banks ? 'ok' : 'off'],
         'settings.payments' => [$payOn ? 'Recebendo' : 'Não configurado', $payOn ? 'ok' : 'off'],
         'settings.connections' => [collect([$mlOn ? 'ML' : null, $shopeeOn ? 'Shopee' : null])->filter()->implode(' e ') ?: 'Nada conectado', ($mlOn || $shopeeOn) ? 'ok' : 'off'],

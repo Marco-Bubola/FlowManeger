@@ -17,6 +17,7 @@ new class extends Component {
         $shopeeToken = $safe(fn () => DB::table('shopee_tokens')->where('user_id', $uid)->where('is_active', 1)->latest('updated_at')->first());
         $pay = $safe(fn () => \App\Models\PaymentSetting::where('user_id', $uid)->first());
         $wa = $safe(fn () => \App\Models\WhatsAppSetting::where('user_id', $uid)->first());
+        $ig = $safe(fn () => \App\Models\InstagramSetting::where('user_id', $uid)->first());
 
         $this->stats = [
             'ml_connected' => ! is_null($mlToken),
@@ -26,6 +27,8 @@ new class extends Component {
             'pay_on' => (bool) ($pay && $pay->enabled && filled($pay->access_token)),
             'pay_test' => (bool) ($pay && str_starts_with((string) $pay->access_token, 'TEST-')),
             'wa_on' => (bool) ($wa?->enabled),
+            'ig_on' => (bool) ($ig?->connected()),
+            'ig_user' => $ig?->username,
             'banks' => (int) $safe(fn () => \App\Models\BankConnectionAccount::where('user_id', $uid)->count(), 0),
             'google' => ! empty(Auth::user()->google_id),
         ];
@@ -44,6 +47,9 @@ new class extends Component {
             ['Shopee', 'Pedidos, anúncios e estoque da loja', 'bi-shop', 'from-orange-500 to-red-500', $s['shopee_connected'],
                 $s['shopee_connected'] ? 'Conectado' . ($s['shopee_shop_id'] ? ' · loja ' . $s['shopee_shop_id'] : '') : 'Não conectado',
                 $s['shopee_connected'] ? [['Configurar', $r('shopee.settings'), true], ['Anúncios', $r('shopee.publications'), false]] : [['Conectar loja', $r('shopee.auth.connect'), true]]],
+            ['Instagram', 'Poste fotos, carrosséis e stories dos produtos e promoções', 'bi-instagram', 'from-pink-500 to-purple-600', $s['ig_on'],
+                $s['ig_on'] ? 'Conectado · @' . $s['ig_user'] : 'Não conectado',
+                $s['ig_on'] ? [['Novo post', $r('instagram.create'), true], ['Posts', $r('instagram.index'), false]] : [['Conectar', $r('settings.instagram'), true]]],
         ],
         'Dinheiro e pagamentos' => [
             ['Mercado Pago', 'Pix, cartão e boleto no catálogo online', 'bi-qr-code', 'from-sky-500 to-cyan-600', $s['pay_on'],

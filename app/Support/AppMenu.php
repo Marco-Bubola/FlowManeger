@@ -33,6 +33,7 @@ class AppMenu
                 ['promotions.index', 'Promoções', 'bi-percent'],
                 ['promotions.storefront', 'Vitrine do catálogo', 'bi-shop-window'],
                 ['promotions.reviews', 'Avaliações', 'bi-star-half'],
+                ['instagram.index', 'Instagram', 'bi-instagram', ['instagram/novo']],
                 ['sales.portal-orders', 'Pedidos do portal', 'bi-bag-heart'],
                 ['gestao.receivables', 'A receber', 'bi-cash-coin'],
                 ['gestao.collections', 'Cobranças', 'bi-whatsapp'],

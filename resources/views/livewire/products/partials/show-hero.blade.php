@@ -169,6 +169,7 @@
             <a href="{{ route('sales.create', ['product_id' => $v->id]) }}" class="sph-tile is-indigo"><i class="bi bi-cart-plus"></i>Vender</a>
             <a href="{{ $editUrl }}" class="sph-tile is-amber"><i class="bi bi-pencil-square"></i>Editar</a>
             <button type="button" x-on:click="$dispatch('open-product-share', { productId: {{ $v->id }} })" class="sph-tile is-green"><i class="bi bi-whatsapp"></i>WhatsApp</button>
+            <a href="{{ route('instagram.create', ['produto' => $v->id]) }}" wire:navigate class="sph-tile is-insta" data-testid="sph-instagram"><i class="bi bi-instagram"></i>Instagram</a>
             <a href="{{ route('promotions.index', ['produto' => $v->id]) }}" class="sph-tile is-rose"><i class="bi bi-fire"></i>{{ $promo ? 'Promoção' : 'Promover' }}</a>
             @unless ($isKit)
                 <a href="{{ route('products.breakdown', $v) }}" class="sph-tile is-orange"><i class="bi bi-scissors"></i>Desmembrar</a>
@@ -178,7 +179,6 @@
             <a href="{{ route('shopee.products.publish', $v) }}" class="sph-tile is-orange"><i class="bi bi-bag"></i>Shopee</a>
             <a href="{{ route('portal.catalog', ['userId' => auth()->id(), 'search' => $v->name]) }}" target="_blank" rel="noopener" class="sph-tile is-purple"><i class="bi bi-shop-window"></i>Ver no catálogo</a>
             <button type="button" wire:click="duplicateProduct" wire:loading.attr="disabled" wire:target="duplicateProduct" class="sph-tile is-slate"><i class="bi bi-files"></i>Duplicar</button>
-            <a href="{{ route('products.interested') }}" class="sph-tile is-pink"><i class="bi bi-heart"></i>Interessados</a>
             <button type="button" wire:click="askDelete" class="sph-tile is-danger"><i class="bi bi-trash3"></i>Excluir</button>
         </div>
     </div>
@@ -302,12 +302,15 @@
     .sph-tile.is-yellow { --t-bg: #fefce8; --t-fg: #a16207; --t-bd: #fef08a; }
     .sph-tile.is-purple { --t-bg: #faf5ff; --t-fg: #7e22ce; --t-bd: #e9d5ff; }
     .sph-tile.is-pink { --t-bg: #fdf2f8; --t-fg: #be185d; --t-bd: #fbcfe8; }
+    .sph-tile.is-insta { --t-bg: linear-gradient(135deg, #fff7ed, #fdf2f8 55%, #faf5ff); --t-fg: #c026d3; --t-bd: #f5d0fe; background: var(--t-bg); }
+    .sph-tile.is-insta i { background: linear-gradient(135deg, #f58529, #dd2a7b 55%, #8134af); -webkit-background-clip: text; background-clip: text; color: transparent; }
     .sph-tile.is-slate { --t-bg: #f8fafc; --t-fg: #334155; --t-bd: #e2e8f0; }
     .sph-tile.is-danger { --t-bg: #fff; --t-fg: #e11d48; --t-bd: #fecdd3; }
     .dark .sph-tile { --t-bg: rgb(30 41 59 / .7); --t-bd: rgb(51 65 85); }
     .dark .sph-tile.is-indigo { --t-fg: #a5b4fc; } .dark .sph-tile.is-amber { --t-fg: #fcd34d; } .dark .sph-tile.is-green { --t-fg: #6ee7b7; }
     .dark .sph-tile.is-rose { --t-fg: #fda4af; } .dark .sph-tile.is-orange { --t-fg: #fdba74; } .dark .sph-tile.is-sky { --t-fg: #7dd3fc; }
     .dark .sph-tile.is-yellow { --t-fg: #fde047; } .dark .sph-tile.is-purple { --t-fg: #d8b4fe; } .dark .sph-tile.is-pink { --t-fg: #f9a8d4; }
+    .dark .sph-tile.is-insta { --t-fg: #f0abfc; --t-bg: rgb(30 41 59 / .7); }
     .dark .sph-tile.is-slate { --t-fg: #cbd5e1; } .dark .sph-tile.is-danger { --t-fg: #fb7185; }
     @media (max-width: 699px) { .sph-photo { aspect-ratio: auto; height: 240px; } }
     @media (max-width: 420px) { .sph { padding: 12px; border-radius: 20px; } .sph-tile { min-height: 58px; font-size: .68rem; } }

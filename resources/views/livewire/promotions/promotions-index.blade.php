@@ -248,6 +248,7 @@
                         @else
                             <button type="button" wire:click="openEdit({{ $item->id }})" class="btn btn-primary" title="Editar"><i class="bi bi-pencil-square"></i></button>
                             <button type="button" wire:click="openShare({{ $item->id }})" class="btn btn-success" title="Enviar no WhatsApp"><i class="bi bi-whatsapp"></i></button>
+                            <a href="{{ route('instagram.create', ['promocao' => $item->id]) }}" wire:navigate class="btn btn-success" style="background: linear-gradient(135deg, #f58529, #dd2a7b 55%, #8134af); border-color: transparent; color: #fff;" title="Postar no Instagram"><i class="bi bi-instagram"></i></a>
                             <button type="button" wire:click="endPromotion({{ $item->id }})" wire:confirm="Retirar a promoção? O produto volta para o preço de revenda." class="btn btn-danger" title="Retirar"><i class="bi bi-x-circle"></i></button>
                         @endif
                     </div>

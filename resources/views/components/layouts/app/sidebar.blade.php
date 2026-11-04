@@ -260,6 +260,13 @@
                                     <span class="sidebar-text flex-1 font-medium truncate">Avaliações</span>
                                     <div class="{{ Request::is('promotions/avaliacoes') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-amber-400 to-orange-500 rounded-l-full"></div>
                                 </a>
+                                <a href="{{ route('instagram.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('instagram*') ? 'bg-gradient-to-r from-pink-500/10 to-purple-500/10 dark:from-pink-500/20 dark:to-purple-500/20 text-pink-600 dark:text-pink-400 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('instagram*') ? 'bg-gradient-to-br from-orange-500 via-pink-600 to-purple-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-instagram text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Instagram</span>
+                                    <div class="{{ Request::is('instagram*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-pink-500 to-purple-600 rounded-l-full"></div>
+                                </a>
 
                                 @php $portalNew = auth()->check() ? \App\Models\ClientQuoteRequest::where('user_id', auth()->id())->where('status', 'pending')->count() : 0; @endphp
                                 <a href="{{ route('sales.portal-orders') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('sales/pedidos-do-portal') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
@@ -1723,6 +1730,12 @@
                             <i class="bi bi-star-half text-white"></i>
                         </div>
                         <span class="more-app-label">Avaliações</span>
+                    </a>
+                    <a href="{{ route('instagram.index') }}" class="more-app-card {{ Request::is('instagram*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#f58529,#dd2a7b 55%,#8134af)">
+                            <i class="bi bi-instagram text-white"></i>
+                        </div>
+                        <span class="more-app-label">Instagram</span>
                     </a>
                     <a href="{{ route('products.barcode-scanner') }}" class="more-app-card {{ Request::is('products/barcode-scanner') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
                         <div class="more-app-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
