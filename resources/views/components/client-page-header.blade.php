@@ -12,6 +12,7 @@
     $back = $backRoute ?? route('clients.index');
     $tabs = $client ? [
         'resumo' => ['label' => 'Resumo', 'icon' => 'bi-graph-up', 'url' => route('clients.resumo', $client->id)],
+        'historico' => ['label' => 'Histórico', 'icon' => 'bi-clock-history', 'url' => route('clients.historico', $client->id)],
         'dashboard' => ['label' => 'Dashboard', 'icon' => 'bi-speedometer2', 'url' => route('clients.dashboard', $client->id)],
         'faturas' => ['label' => 'Faturas', 'icon' => 'bi-receipt', 'url' => route('clients.faturas', $client->id)],
         'transferencias' => ['label' => 'Transferências', 'icon' => 'bi-arrow-left-right', 'url' => route('clients.transferencias', $client->id)],

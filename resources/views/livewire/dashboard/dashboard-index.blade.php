@@ -92,6 +92,7 @@
             'rose' => 'bg-rose-500/15 text-rose-600 dark:text-rose-300',
             'amber' => 'bg-amber-500/15 text-amber-600 dark:text-amber-300',
             'purple' => 'bg-purple-500/15 text-purple-600 dark:text-purple-300',
+            'indigo' => 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300',
             'sky' => 'bg-sky-500/15 text-sky-600 dark:text-sky-300',
         ];
     @endphp

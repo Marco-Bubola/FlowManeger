@@ -10,6 +10,7 @@
         'clientes' => [
             'lista' => ['label' => 'Clientes', 'icon' => 'bi-people', 'route' => 'clients.index'],
             'novo' => ['label' => 'Novo cliente', 'icon' => 'bi-person-plus', 'route' => 'clients.create'],
+            'tarefas' => ['label' => 'Tarefas', 'icon' => 'bi-alarm', 'route' => 'tasks.index'],
         ],
         'vendas' => [
             'lista' => ['label' => 'Vendas', 'icon' => 'bi-cart3', 'route' => 'sales.index'],

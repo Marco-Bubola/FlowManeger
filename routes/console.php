@@ -64,6 +64,11 @@ Schedule::command('portal:carrinhos')
     ->withoutOverlapping();
 
 // Estoque baixo: notifica produtos no mínimo/esgotados com sugestão de reposição
+// Tarefas e follow-ups dos clientes: aviso no sino no dia/hora marcada
+Schedule::command('tasks:avisar')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping();
+
 Schedule::command('stock:check-low')
     ->dailyAt('08:30')
     ->withoutOverlapping();

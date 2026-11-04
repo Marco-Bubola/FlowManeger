@@ -29,6 +29,7 @@ class AppMenu
             'vendas' => ['Vendas', 'bi-bag-check', 'from-violet-500 to-fuchsia-600', 'sidebar-section-vendas', [], [
                 ['sales.index', 'Vendas', 'bi-cart3', ['sales/create']],
                 ['clients.index', 'Clientes', 'bi-people', ['clients/create']],
+                ['tasks.index', 'Tarefas', 'bi-alarm'],
                 ['promotions.index', 'Promoções', 'bi-percent'],
                 ['promotions.storefront', 'Vitrine do catálogo', 'bi-shop-window'],
                 ['promotions.reviews', 'Avaliações', 'bi-star-half'],

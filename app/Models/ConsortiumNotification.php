@@ -106,6 +106,7 @@ class ConsortiumNotification extends Model
         'sale_pending' => ['label' => 'Venda pendente', 'icon' => 'bi-cart', 'tone' => 'orange', 'category' => 'vendas'],
         'sale_completed' => ['label' => 'Venda concluída', 'icon' => 'bi-cart-check-fill', 'tone' => 'emerald', 'category' => 'vendas'],
         'client_new' => ['label' => 'Novo cliente', 'icon' => 'bi-person-plus-fill', 'tone' => 'sky', 'category' => 'vendas'],
+        'task_due' => ['label' => 'Tarefa para hoje', 'icon' => 'bi-alarm-fill', 'tone' => 'amber', 'category' => 'vendas'],
         'client_birthday' => ['label' => 'Aniversário de cliente', 'icon' => 'bi-gift-fill', 'tone' => 'pink', 'category' => 'vendas'],
         'portal_quote' => ['label' => 'Orçamento do portal', 'icon' => 'bi-file-earmark-text-fill', 'tone' => 'indigo', 'category' => 'vendas'],
         'wishlist_waiting' => ['label' => 'Clientes esperando produto', 'icon' => 'bi-heart-fill', 'tone' => 'pink', 'category' => 'vendas'],

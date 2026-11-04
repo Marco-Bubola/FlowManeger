@@ -729,6 +729,23 @@ class DashboardIndex extends Component
             'ok' => true,
         ];
 
+        if (Schema::hasTable('client_tasks')) {
+            $tarefas = \App\Models\ClientTask::ownedBy($userId)->open()
+                ->whereDate('due_date', '<=', \App\Models\ClientTask::today()->toDateString())
+                ->selectRaw('COUNT(*) as qtd, SUM(CASE WHEN due_date < ? THEN 1 ELSE 0 END) as atrasadas', [\App\Models\ClientTask::today()->toDateString()])
+                ->first();
+            $qt = (int) ($tarefas->qtd ?? 0);
+            $at = (int) ($tarefas->atrasadas ?? 0);
+            if ($qt > 0) {
+                $itens[] = [
+                    'icon' => 'bi-alarm', 'tone' => $at > 0 ? 'rose' : 'indigo',
+                    'title' => ($qt == 1 ? '1 tarefa para hoje' : "{$qt} tarefas para hoje") . ($at > 0 ? " ({$at} " . ($at == 1 ? 'atrasada' : 'atrasadas') . ')' : ''),
+                    'value' => null,
+                    'link' => route('tasks.index'),
+                ];
+            }
+        }
+
         $parcelas = VendaParcela::join('sales', 'venda_parcelas.sale_id', '=', 'sales.id')
             ->where('sales.user_id', $userId)
             ->where('venda_parcelas.status', 'pendente')

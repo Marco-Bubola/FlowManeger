@@ -226,6 +226,17 @@
                                     <div class="{{ Request::is('clients') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
                                 </a>
 
+                                @php $tasksDue = (auth()->check() && \Illuminate\Support\Facades\Schema::hasTable('client_tasks')) ? \App\Models\ClientTask::ownedBy(auth()->id())->open()->whereDate('due_date', '<=', \App\Models\ClientTask::today()->toDateString())->count() : 0; @endphp
+                                <a href="{{ route('tasks.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('tarefas') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('tarefas') ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-alarm text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Tarefas</span>
+                                    @if($tasksDue > 0)
+                                        <span class="sidebar-text inline-flex min-w-[20px] h-5 px-1.5 items-center justify-center rounded-full bg-amber-500 text-white text-[11px] font-bold" title="{{ $tasksDue }} tarefa(s) para hoje">{{ $tasksDue }}</span>
+                                    @endif
+                                </a>
+
                                 <a href="{{ route('promotions.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ (Request::is('promotions*') && ! Request::is('promotions/vitrine*') && ! Request::is('promotions/avaliacoes')) ? 'bg-gradient-to-r from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20 text-rose-600 dark:text-rose-400 font-semibold' : '' }}" wire:navigate.hover>
                                     <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ (Request::is('promotions*') && ! Request::is('promotions/vitrine*') && ! Request::is('promotions/avaliacoes')) ? 'bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/30' : '' }}">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1678,6 +1689,16 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
                         <span class="more-app-label">Clientes</span>
+                    </a>
+                    <a href="{{ route('tasks.index') }}" class="more-app-card {{ Request::is('tarefas') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#f59e0b,#ea580c)">
+                            <i class="bi bi-alarm"></i>
+                        </div>
+                        <span class="more-app-label">Tarefas</span>
+                        @php $tasksDueM = (auth()->check() && \Illuminate\Support\Facades\Schema::hasTable('client_tasks')) ? \App\Models\ClientTask::ownedBy(auth()->id())->open()->whereDate('due_date', '<=', \App\Models\ClientTask::today()->toDateString())->count() : 0; @endphp
+                        @if($tasksDueM > 0)
+                            <span class="more-app-badge">{{ $tasksDueM > 99 ? '99+' : $tasksDueM }}</span>
+                        @endif
                     </a>
                     <a href="{{ url('products') }}" class="more-app-card {{ Request::is('products*') && !Request::is('products/barcode-scanner') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
                         <div class="more-app-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">

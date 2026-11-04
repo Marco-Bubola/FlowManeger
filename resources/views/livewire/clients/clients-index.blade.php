@@ -225,6 +225,7 @@
                         @php $iconBtn = 'inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition'; @endphp
                         <div class="mt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
                             <a href="{{ route('clients.edit', $client->id) }}" class="{{ $iconBtn }} hover:text-indigo-600" title="Editar"><i class="bi bi-pencil"></i></a>
+                            <a href="{{ route('clients.historico', $client->id) }}" class="{{ $iconBtn }} hover:text-indigo-600" title="Histórico e anotações"><i class="bi bi-clock-history"></i></a>
                             @if($whats)
                                 <a href="https://wa.me/55{{ $whats }}?text={{ urlencode('Olá ' . $client->name . ', tudo bem?') }}" target="_blank" class="{{ $iconBtn }} hover:text-emerald-600" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
                             @else
