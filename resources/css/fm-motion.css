@@ -53,31 +53,31 @@ html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead.fm-bead-off::
 html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead::after { display: none !important; }
 
 /* Ícones das outras abas: só o desenho, sem a caixinha */
-html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:not(.mobile-tab-fab) .tab-icon {
+html[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:not(.mobile-tab-fab) .tab-icon {
     background: transparent !important;
     border-color: transparent !important;
     box-shadow: none !important;
     transform: none !important;
     transition: opacity .2s ease, transform .3s ease !important;
 }
-html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:not(.mobile-tab-fab)::before,
-html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:not(.mobile-tab-fab)::after { display: none !important; }
-html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:not(.mobile-tab-fab) {
+html[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:not(.mobile-tab-fab)::before,
+html[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:not(.mobile-tab-fab)::after { display: none !important; }
+html[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:not(.mobile-tab-fab) {
     background: transparent !important;
     box-shadow: none !important;
     border-color: transparent !important;
 }
-html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:hover,
-html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:active { background: transparent !important; }
+html[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:hover,
+html[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:active { background: transparent !important; }
 html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.fm-bead-here .tab-icon { opacity: 0; transform: translateY(-6px) scale(.6) !important; }
-html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.fm-bead-here > span:not(.mobile-tab-badge) {
+html[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.fm-bead-here > span:not(.mobile-tab-badge) {
     color: var(--fm-bead-c, #4f46e5);
     filter: brightness(.82);
 }
-html.dark[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.fm-bead-here > span:not(.mobile-tab-badge) { filter: none; }
-html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item > span:not(.mobile-tab-badge) { transition: color .3s ease; }
-html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.is-active:not(.fm-bead-here) { color: #64748b !important; }
-html.dark[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.is-active:not(.fm-bead-here) { color: #94a3b8 !important; }
+html.dark[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.fm-bead-here > span:not(.mobile-tab-badge) { filter: none; }
+html[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item > span:not(.mobile-tab-badge) { transition: color .3s ease; }
+html[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.is-active:not(.fm-bead-here) { color: #64748b !important; }
+html.dark[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.is-active:not(.fm-bead-here) { color: #94a3b8 !important; }
 
 /* A bolinha */
 .fm-bead { display: none; }
@@ -119,14 +119,51 @@ html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead::aft
     z-index: -1;
 }
 
+/* ───────────── Pílula e Linha (html[data-fm-nav="pilula"|"linha"]) ─────────────
+ * A barra continua a de sempre; só a marca da aba aberta muda e desliza até a aba tocada. */
+html:is([data-fm-nav="pilula"], [data-fm-nav="linha"]) body .mobile-bottom-tabbar.fm-has-bead { transition: --fm-bx .5s cubic-bezier(.3, 1.25, .5, 1); }
+html:is([data-fm-nav="pilula"], [data-fm-nav="linha"]) body .mobile-bottom-tabbar.fm-has-bead.fm-no-anim { transition: none; }
+html:is([data-fm-nav="pilula"], [data-fm-nav="linha"]) body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item:not(.mobile-tab-fab) { position: relative; z-index: 1; }
+html:is([data-fm-nav="pilula"], [data-fm-nav="linha"]) body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.fm-bead-here .tab-icon { color: var(--fm-bead-c, #6366f1) !important; filter: brightness(.78); }
+html.dark:is([data-fm-nav="pilula"], [data-fm-nav="linha"]) body .mobile-bottom-tabbar.fm-has-bead .mobile-tab-item.fm-bead-here .tab-icon { filter: none; }
+html:is([data-fm-nav="pilula"], [data-fm-nav="linha"]) body .mobile-bottom-tabbar.fm-has-bead .fm-bead {
+    display: block;
+    position: absolute;
+    left: var(--fm-bx);
+    pointer-events: none;
+    transition: background-color .35s ease, opacity .25s ease;
+}
+html:is([data-fm-nav="pilula"], [data-fm-nav="linha"]) body .mobile-bottom-tabbar.fm-has-bead .fm-bead svg { display: none; }
+html:is([data-fm-nav="pilula"], [data-fm-nav="linha"]) body .mobile-bottom-tabbar.fm-has-bead.fm-bead-off .fm-bead { opacity: 0; }
+html[data-fm-nav="pilula"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead {
+    top: var(--fm-by, 1.6rem);
+    width: 3.7rem;
+    height: 2.3rem;
+    margin: -1.15rem 0 0 -1.85rem;
+    border-radius: 999px;
+    z-index: 0;
+    background: color-mix(in oklab, var(--fm-bead-c, #6366f1) 32%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--fm-bead-c, #6366f1) 45%, transparent);
+}
+html[data-fm-nav="linha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead {
+    top: 0;
+    width: 2.4rem;
+    height: 3px;
+    margin-left: -1.2rem;
+    border-radius: 0 0 4px 4px;
+    z-index: 2;
+    background: var(--fm-bead-c, #6366f1);
+    box-shadow: 0 0 14px 1px var(--fm-bead-c, #6366f1);
+}
+
 @media (min-width: 768px) {
     html[data-fm-nav="bolinha"] { --fm-notch: 2.2rem; --fm-bead: 3.15rem; }
     html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead svg { width: 1.45rem; height: 1.45rem; }
 }
 
-html.no-animations[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead { transition: none; }
+html.no-animations[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead { transition: none; }
 @media (prefers-reduced-motion: reduce) {
-    html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead { transition: none; }
+    html[data-fm-nav] body .mobile-bottom-tabbar.fm-has-bead { transition: none; }
     html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead,
     html[data-fm-nav="bolinha"] body .mobile-bottom-tabbar.fm-has-bead .fm-bead svg { transition: none; }
 }

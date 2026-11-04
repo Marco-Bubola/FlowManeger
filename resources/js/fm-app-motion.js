@@ -1,5 +1,5 @@
 // Animações nas telas do app (Configurações › Aparência › Movimento › "Cards surgindo").
-// Só liga com <html data-fm-motion="sim">; desligado (padrão) não mexe em nada.
+// Só liga com <html data-fm-motion="sim|zoom|lado|desfoque">; desligado (padrão) não mexe em nada.
 // Cabeçalho da página desce de leve, e cards, indicadores e listas surgem ao rolar, um depois do outro.
 // Usa animações do navegador (el.animate) e não classes: o Livewire refaz as classes dos
 // elementos a cada atualização da tela e apagaria qualquer marca posta aqui.
@@ -8,7 +8,14 @@
     window.__fmMotionBound = true;
 
     const reduce = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isOn = () => document.documentElement.getAttribute('data-fm-motion') === 'sim' && !reduce()
+    const mode = () => document.documentElement.getAttribute('data-fm-motion');
+    const FROM = {
+        sim: { opacity: 0, transform: 'translateY(18px) scale(.985)' },
+        zoom: { opacity: 0, transform: 'scale(.9)' },
+        lado: { opacity: 0, transform: 'translateX(-28px)' },
+        desfoque: { opacity: 0, transform: 'scale(1.02)', filter: 'blur(8px)' },
+    };
+    const isOn = () => !!FROM[mode()] && !reduce()
         && !document.documentElement.classList.contains('no-animations') // "Reduzir animações" em Aparência
         && 'IntersectionObserver' in window && typeof Element.prototype.animate === 'function';
     const CARD = /(^|\s)([a-z0-9]+-)*card(-modern)?(\s|$)/;
@@ -48,10 +55,8 @@
         const d = Math.min(batch++, 8) * 55;
         clearTimeout(batchTimer);
         batchTimer = setTimeout(() => { batch = 0; }, 120);
-        el.animate([
-            { opacity: 0, transform: 'translateY(18px) scale(.985)' },
-            { opacity: 1, transform: 'none' },
-        ], { duration: 600, delay: d, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' });
+        const from = FROM[mode()] || FROM.sim;
+        el.animate([from, from.filter ? { opacity: 1, transform: 'none', filter: 'blur(0)' } : { opacity: 1, transform: 'none' }], { duration: 600, delay: d, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' });
     }
 
     function stop() {
@@ -93,12 +98,28 @@
     }
 
     document.addEventListener('livewire:navigated', start);
+
+    // Troca de tela (Aparência › Movimento › Troca de tela): a página nova entra deslizando,
+    // aparecendo aos poucos ou subindo. "Direta" (padrão) não mexe em nada.
+    const PAGE = {
+        desliza: [{ opacity: 0, transform: 'translateX(36px)' }, { opacity: 1, transform: 'none' }],
+        esmaece: [{ opacity: 0 }, { opacity: 1 }],
+        sobe: [{ opacity: 0, transform: 'translateY(26px)' }, { opacity: 1, transform: 'none' }],
+    };
+    let firstLoad = true;
+    document.addEventListener('livewire:navigated', () => {
+        if (firstLoad) { firstLoad = false; return; } // a primeira abertura do app não anima
+        const k = document.documentElement.getAttribute('data-fm-page');
+        const main = document.getElementById('mainContent');
+        if (!PAGE[k] || !main || reduce() || document.documentElement.classList.contains('no-animations') || typeof main.animate !== 'function') return;
+        main.animate(PAGE[k], { duration: k === 'esmaece' ? 380 : 420, easing: 'cubic-bezier(.2,.7,.2,1)' });
+    });
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
     else start();
     // Ligou ou desligou na tela de Aparência (só reage quando muda de verdade)
     let was = document.documentElement.getAttribute('data-fm-motion');
     new MutationObserver(() => {
         const now = document.documentElement.getAttribute('data-fm-motion');
-        if (now !== was) { was = now; if (now === 'sim') start(); else stop(); }
+        if (now !== was) { was = now; if (FROM[now]) start(); else stop(); }
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-fm-motion'] });
 })();

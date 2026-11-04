@@ -143,6 +143,63 @@
                 </style>
             @endonce
             @break
+        @case('moentry')
+        @case('mospeed')
+            @php
+                $ent = $part === 'moentry' ? $k : 'subir';
+                $dur = $part === 'mospeed' ? ['normal' => 2.4, 'calma' => 3.4, 'rapida' => 1.6][$k] : 2.4;
+            @endphp
+            <span class="absolute inset-0 flex items-center gap-1 px-2" style="perspective: 200px">
+                @foreach([0, 1, 2] as $n)
+                    <i class="flex-1 h-7 rounded-sm lk-thumb-in-{{ $ent }}" style="background: {{ $n === 1 ? $c3 : '#fff' }}; animation-duration: {{ $dur }}s; animation-delay: {{ $n * ($dur / 12) }}s"></i>
+                @endforeach
+            </span>
+            @once
+                <style>
+                    .lk-thumb-in-subir, .lk-thumb-in-zoom, .lk-thumb-in-lado, .lk-thumb-in-desfoque, .lk-thumb-in-virar, .lk-thumb-in-cortina { animation: 2.4s ease-out infinite; }
+                    .lk-thumb-in-subir { animation-name: lk-ti-subir; } .lk-thumb-in-zoom { animation-name: lk-ti-zoom; } .lk-thumb-in-lado { animation-name: lk-ti-lado; }
+                    .lk-thumb-in-desfoque { animation-name: lk-ti-desfoque; } .lk-thumb-in-virar { animation-name: lk-ti-virar; } .lk-thumb-in-cortina { animation-name: lk-ti-cortina; }
+                    @keyframes lk-ti-subir { 0%, 15% { opacity: 0; transform: translateY(8px); } 45%, 100% { opacity: 1; transform: none; } }
+                    @keyframes lk-ti-zoom { 0%, 15% { opacity: 0; transform: scale(.6); } 45%, 100% { opacity: 1; transform: none; } }
+                    @keyframes lk-ti-lado { 0%, 15% { opacity: 0; transform: translateX(-10px); } 45%, 100% { opacity: 1; transform: none; } }
+                    @keyframes lk-ti-desfoque { 0%, 15% { opacity: 0; filter: blur(4px); } 45%, 100% { opacity: 1; filter: none; } }
+                    @keyframes lk-ti-virar { 0%, 15% { opacity: 0; transform: rotateX(70deg); } 45%, 100% { opacity: 1; transform: none; } }
+                    @keyframes lk-ti-cortina { 0%, 15% { clip-path: inset(0 0 100% 0); } 45%, 100% { clip-path: inset(0); } }
+                    @media (prefers-reduced-motion: reduce) { [class*="lk-thumb-in-"] { animation: none !important; } }
+                </style>
+            @endonce
+            @break
+        @case('mocart')
+            <span class="absolute inset-0">
+                <i class="absolute left-2 bottom-2 w-5 h-5 rounded-sm bg-white {{ $k === 'voar' ? 'lk-thumb-fly' : '' }}" style="background: {{ $c3 }}"></i>
+                <i class="bi bi-cart3 absolute right-2 top-1.5 text-base text-slate-500 {{ $k === 'pular' ? 'lk-thumb-bump' : '' }}"></i>
+            </span>
+            @once
+                <style>
+                    .lk-thumb-fly { animation: lk-ti-fly 2s ease-in infinite; }
+                    @keyframes lk-ti-fly { 0%, 20% { transform: none; opacity: 1; } 70% { transform: translate(calc(var(--w, 120px) * .55), -16px) scale(.3); opacity: .9; } 71%, 100% { opacity: 0; transform: translate(0, 0); } }
+                    .lk-thumb-bump { animation: lk-ti-bump 1.6s ease infinite; display: inline-block; }
+                    @keyframes lk-ti-bump { 0%, 40%, 100% { transform: none; } 55% { transform: scale(1.4) rotate(-10deg); } 70% { transform: scale(.9) rotate(5deg); } }
+                    @media (prefers-reduced-motion: reduce) { .lk-thumb-fly, .lk-thumb-bump { animation: none; } }
+                </style>
+            @endonce
+            @break
+        @case('mohover')
+            <span class="absolute inset-0 flex items-center justify-center" style="perspective: 160px">
+                <i class="block w-10 h-9 rounded bg-white overflow-hidden shadow lk-thumb-hv-{{ $k }}"><i class="block w-full h-full" style="background: linear-gradient(135deg, {{ $c1 }}, {{ $c2 }})"></i></i>
+            </span>
+            @once
+                <style>
+                    .lk-thumb-hv-zoom > i { animation: lk-hv-zoom 2s ease infinite; }
+                    .lk-thumb-hv-levantar { animation: lk-hv-up 2s ease infinite; }
+                    .lk-thumb-hv-inclinar { animation: lk-hv-tilt 2.4s ease infinite; }
+                    @keyframes lk-hv-zoom { 0%, 30%, 100% { transform: none; } 55%, 80% { transform: scale(1.3); } }
+                    @keyframes lk-hv-up { 0%, 30%, 100% { transform: none; } 55%, 80% { transform: translateY(-5px); box-shadow: 0 8px 10px -4px rgba(0,0,0,.3); } }
+                    @keyframes lk-hv-tilt { 0%, 100% { transform: none; } 30% { transform: rotateY(18deg) rotateX(6deg); } 65% { transform: rotateY(-18deg) rotateX(-6deg); } }
+                    @media (prefers-reduced-motion: reduce) { [class*="lk-thumb-hv-"], [class*="lk-thumb-hv-"] > i { animation: none !important; } }
+                </style>
+            @endonce
+            @break
         @default
             <span class="absolute inset-0 flex items-center justify-center text-xl" style="color: {{ $c3 }}"><i class="bi {{ $k === 'nao' ? 'bi-pause-circle' : 'bi-magic' }} {{ $k === 'sim' ? 'animate-pulse' : '' }}"></i></span>
     @endswitch

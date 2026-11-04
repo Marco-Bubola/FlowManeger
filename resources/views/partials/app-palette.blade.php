@@ -165,8 +165,9 @@
         set('data-fm-cshape', look.shape, ['medio', 'reto']);
         set('data-fm-side', look.side, ['tema', 'branco', 'cinza', 'areia', 'cor']);
         set('data-fm-tab', look.tab, ['tema', 'branco', 'cor']);
-        set('data-fm-nav', look.nav, ['bolinha']);
-        set('data-fm-motion', look.motion, ['sim']);
+        set('data-fm-nav', look.nav, ['bolinha', 'pilula', 'linha']);
+        set('data-fm-motion', look.motion, ['sim', 'zoom', 'lado', 'desfoque']);
+        set('data-fm-page', look.page, ['desliza', 'esmaece', 'sobe']);
     };
     // Ao trocar de página pelo menu (wire:navigate) o Livewire troca o <html> e as marcas
     // da Aparência (data-fm-*) sumiam até recarregar: aplica de novo depois de cada troca.

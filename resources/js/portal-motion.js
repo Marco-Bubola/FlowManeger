@@ -135,23 +135,70 @@ import '../css/portal-motion.css';
         if (!ticking) { ticking = true; requestAnimationFrame(paintReads); }
     }
 
-    // Carrinho pulando quando um produto entra
+    // Ao pôr no carrinho (Vitrine › Movimento): carrinho pula, foto voa até ele, ou nada
+    const cartMode = ['pular', 'voar', 'nada'].find((m) => document.body.classList.contains('lk-mocart-' + m)) || 'pular';
+    const cartIcon = () => Array.from(document.querySelectorAll('.ml-header .fa-cart-shopping'))
+        .map((i) => i.closest('.ml-icon-btn') || i).find((b) => b.offsetParent !== null);
+    function bump() {
+        const b = cartIcon();
+        if (!b) return;
+        b.classList.remove('mo-bump');
+        void b.offsetWidth;
+        b.classList.add('mo-bump');
+    }
+    let flyFrom = null;
+    // Guarda a foto do produto tocado; a animação só sai se ele entrar mesmo no carrinho
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest && e.target.closest('.ml-add, .hm-add, .hm-spot .hm-btn, [data-add-cart], .pp-buy button');
+        if (!btn) { flyFrom = null; return; }
+        const card = btn.closest('.ml-card, .hm-card, .hm-spot, .pp-main, section, main');
+        flyFrom = card ? card.querySelector('img') : null;
+    }, true);
+    function fly() {
+        const img = flyFrom;
+        flyFrom = null;
+        const to = cartIcon();
+        if (!img || !to || !img.currentSrc) return bump();
+        const a = img.getBoundingClientRect(), b = to.getBoundingClientRect();
+        if (!a.width) return bump();
+        const size = Math.min(a.width, a.height, 160);
+        const c = document.createElement('img');
+        c.src = img.currentSrc;
+        c.className = 'mo-fly';
+        c.alt = '';
+        Object.assign(c.style, { width: size + 'px', height: size + 'px', left: (a.left + a.width / 2 - size / 2) + 'px', top: (a.top + a.height / 2 - size / 2) + 'px' });
+        document.body.appendChild(c);
+        const dx = b.left + b.width / 2 - (a.left + a.width / 2), dy = b.top + b.height / 2 - (a.top + a.height / 2);
+        const k = parseFloat(getComputedStyle(document.body).getPropertyValue('--mo-k')) || 1;
+        c.animate([
+            { transform: 'translate(0,0) scale(1)', opacity: 1 },
+            { transform: `translate(${dx * .45}px, ${dy * .45 - 80}px) scale(.6) rotate(-12deg)`, opacity: 1, offset: .45 },
+            { transform: `translate(${dx}px, ${dy}px) scale(.12) rotate(8deg)`, opacity: .6 },
+        ], { duration: 780 * k, easing: 'cubic-bezier(.5,0,.6,1)' }).finished.then(() => { c.remove(); bump(); }, () => c.remove());
+    }
     function cartBump() {
         const Alpine = window.Alpine;
-        if (!Alpine || !Alpine.store || !Alpine.store('cart')) return;
+        if (cartMode === 'nada' || !Alpine || !Alpine.store || !Alpine.store('cart')) return;
         let last = Alpine.store('cart').count;
         Alpine.effect(() => {
             const c = Alpine.store('cart').count;
-            if (c > last) {
-                document.querySelectorAll('.ml-header .fa-cart-shopping').forEach((i) => {
-                    const b = i.closest('.ml-icon-btn') || i;
-                    b.classList.remove('mo-bump');
-                    void b.offsetWidth;
-                    b.classList.add('mo-bump');
-                });
-            }
+            if (c > last) { if (cartMode === 'voar') fly(); else bump(); }
             last = c;
         });
+    }
+
+    // Card inclinando seguindo o mouse (Mouse em cima do produto › Card inclina)
+    if (document.body.classList.contains('lk-mohover-inclinar') && window.matchMedia('(hover: hover)').matches) {
+        document.addEventListener('pointermove', (e) => {
+            const card = e.target.closest && e.target.closest('.ml-card, .hm-card');
+            document.querySelectorAll('.mo-tilt').forEach((c) => { if (c !== card) { c.classList.remove('mo-tilt'); c.style.removeProperty('--rx'); c.style.removeProperty('--ry'); } });
+            if (!card || e.pointerType !== 'mouse') return;
+            const r = card.getBoundingClientRect();
+            const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+            card.classList.add('mo-tilt');
+            card.style.setProperty('--ry', (x * 14).toFixed(2) + 'deg');
+            card.style.setProperty('--rx', (-y * 12).toFixed(2) + 'deg');
+        }, { passive: true });
     }
 
     function start() {
@@ -164,9 +211,9 @@ import '../css/portal-motion.css';
                 window.addEventListener('resize', onScroll);
                 paintReads();
             }
-            if (window.Alpine) cartBump();
-            else document.addEventListener('alpine:initialized', cartBump, { once: true });
         }
+        if (window.Alpine) cartBump();
+        else document.addEventListener('alpine:initialized', cartBump, { once: true });
         // Produtos que chegam pela rolagem infinita também surgem
         const mo = new MutationObserver((list) => {
             list.forEach((m) => m.addedNodes.forEach((node) => {

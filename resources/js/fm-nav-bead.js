@@ -1,5 +1,5 @@
 // Barra de baixo com bolinha (Configurações › Aparência › Movimento).
-// Só liga quando <html data-fm-nav="bolinha">; sem isso a barra continua a de sempre.
+// Só liga quando <html data-fm-nav="bolinha|pilula|linha">; sem isso a barra continua a de sempre.
 // A aba aberta vira uma bolinha colorida que desliza até a aba tocada e pode ser arrastada.
 (function () {
     if (window.__fmBeadBound) return;
@@ -11,7 +11,9 @@
     let lastX = null;      // posição da bolinha na página anterior (para deslizar entre páginas)
     let lastColor = null;
 
-    const isOn = () => document.documentElement.getAttribute('data-fm-nav') === 'bolinha';
+    // bolinha = bolinha no recorte; pilula = pílula atrás do ícone; linha = traço no alto da barra
+    const MODES = ['bolinha', 'pilula', 'linha'];
+    const isOn = () => MODES.includes(document.documentElement.getAttribute('data-fm-nav'));
     const navEl = () => document.querySelector('.mobile-bottom-tabbar');
     const tabsOf = (nav) => Array.from(nav.querySelectorAll('.mobile-tab-item:not(.mobile-tab-fab)'))
         .filter((t) => t.offsetParent !== null && getComputedStyle(t).display !== 'none');
@@ -48,6 +50,12 @@
     }
 
     function moveTo(nav, x) {
+        // Altura do meio dos ícones (para a pílula ficar atrás deles)
+        const icon = nav.querySelector('.mobile-tab-item:not(.mobile-tab-fab) .tab-icon');
+        if (icon) {
+            const r = icon.getBoundingClientRect();
+            nav.style.setProperty('--fm-by', (r.top + r.height / 2 - nav.getBoundingClientRect().top) + 'px');
+        }
         nav.style.setProperty('--fm-bx', x + 'px');
         lastX = x;
     }
@@ -89,9 +97,16 @@
         void nav.offsetWidth;
         nav.classList.remove('fm-no-anim');
         requestAnimationFrame(() => {
-            moveTo(nav, target);
+            moveTo(nav, centerOf(nav, active));
             paint(nav, bead, active, false);
         });
+        // Depois de trocar de página a barra ainda pode se ajeitar (ícones, avisos): confere de novo
+        clearTimeout(nav.__fmSettle);
+        nav.__fmSettle = setTimeout(() => {
+            if (!nav.isConnected || nav.classList.contains('fm-dragging')) return;
+            const x = centerOf(nav, active);
+            if (Math.abs(x - (lastX ?? x)) > 1) moveTo(nav, x);
+        }, 700);
     }
 
     // Toque numa aba: a bolinha já sai andando antes da página trocar

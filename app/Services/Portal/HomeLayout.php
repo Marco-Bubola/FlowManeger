@@ -290,6 +290,20 @@ class HomeLayout
         'motion'  => ['Movimento ao rolar a página', [
             'nenhum' => ['Sem movimento', 'bi-pause-circle'], 'suave' => ['Suave', 'bi-water'], 'completo' => ['Completo', 'bi-stars'],
         ]],
+        // Detalhes do movimento (só valem com Suave ou Completo ligado)
+        'moentry' => ['Jeito de surgir', [
+            'subir' => ['Subindo', 'bi-arrow-up'], 'zoom' => ['Crescendo', 'bi-arrows-angle-expand'], 'lado' => ['Do lado', 'bi-arrow-right'],
+            'desfoque' => ['Desembaçando', 'bi-droplet-half'], 'virar' => ['Virando', 'bi-arrow-repeat'], 'cortina' => ['Cortina', 'bi-layout-split'],
+        ]],
+        'mospeed' => ['Velocidade do movimento', [
+            'normal' => ['Normal', 'bi-speedometer2'], 'calma' => ['Mais calma', 'bi-hourglass-split'], 'rapida' => ['Mais rápida', 'bi-lightning-charge'],
+        ]],
+        'mocart'  => ['Ao pôr no carrinho', [
+            'pular' => ['Carrinho pula', 'bi-cart-check'], 'voar' => ['Foto voa até o carrinho', 'bi-send'], 'nada' => ['Sem efeito', 'bi-dash-circle'],
+        ]],
+        'mohover' => ['Mouse em cima do produto', [
+            'zoom' => ['Foto aproxima', 'bi-zoom-in'], 'levantar' => ['Card levanta', 'bi-arrow-up-square'], 'inclinar' => ['Card inclina', 'bi-phone-flip'], 'nada' => ['Sem efeito', 'bi-dash-circle'],
+        ]],
     ];
 
     /** Partes do Estilo do site em abas, para não virar uma lista enorme. */
@@ -297,7 +311,8 @@ class HomeLayout
         'cards' => ['Cards dos produtos', 'bi-card-heading', ['cardbg', 'cards', 'price', 'badge', 'addbtn', 'photo', 'density']],
         'fundo' => ['Fundo', 'bi-image', ['bgtype', 'pattern', 'patternsize', 'patternop']],
         'topo'  => ['Topo e largura', 'bi-window-desktop', ['header', 'width']],
-        'texto' => ['Botões e textos', 'bi-fonts', ['buttons', 'text', 'titles', 'anim', 'motion']],
+        'texto' => ['Botões e textos', 'bi-fonts', ['buttons', 'text', 'titles', 'anim']],
+        'movimento' => ['Movimento', 'bi-stars', ['motion', 'moentry', 'mospeed', 'mocart', 'mohover']],
     ];
 
     /** Cores de cada parte (vazio = sai das cores da loja). Ficam em portal_settings.home.paint. */

@@ -32,8 +32,9 @@ new class extends Component {
             'pat_o' => $pick('pat_o', ['suave', 'medio', 'forte'], 'medio'),
             'side' => $pick('side', ['padrao', 'tema', 'cor', 'branco', 'cinza', 'areia'], 'padrao'),
             'tab' => $pick('tab', ['padrao', 'tema', 'cor', 'branco'], 'padrao'),
-            'nav' => $pick('nav', ['classica', 'bolinha'], 'classica'),
-            'motion' => $pick('motion', ['nao', 'sim'], 'nao'),
+            'nav' => $pick('nav', ['classica', 'bolinha', 'pilula', 'linha'], 'classica'),
+            'motion' => $pick('motion', ['nao', 'sim', 'zoom', 'lado', 'desfoque'], 'nao'),
+            'page' => $pick('page', ['direta', 'desliza', 'esmaece', 'sobe'], 'direta'),
         ];
         foreach (['c_bg', 'c_border', 'c_tag', 'c_detail'] as $k) {
             $clean[$k] = in_array($value[$k] ?? null, $fams, true) ? $value[$k] : null;
@@ -339,25 +340,46 @@ new class extends Component {
                     </div>
                     <p class="ap-label">Estilo da barra de baixo (celular e iPad)</p>
                     <div class="ap-navs mt-2">
-                        <button type="button" class="ap-navbtn" :class="{ 'is-on': (look.nav || 'classica') === 'classica' }" @click="setLook('nav', 'classica')">
-                            <span class="ap-nav-art"><span class="ap-nav-bar"><i></i><i class="on"></i><i></i><i></i></span></span>
-                            <b>Clássica</b><small>A barra de sempre</small>
-                        </button>
-                        <button type="button" class="ap-navbtn" :class="{ 'is-on': look.nav === 'bolinha' }" @click="setLook('nav', 'bolinha')">
-                            <span class="ap-nav-art"><span class="ap-nav-bar is-bead"><i></i><i class="on"></i><i></i><i></i></span></span>
-                            <b>Com bolinha</b><small>A aba aberta vira uma bolinha colorida que desliza e pode ser arrastada</small>
-                        </button>
+                        @foreach([
+                            ['classica', '', 'Clássica', 'A barra de sempre'],
+                            ['bolinha', 'is-bead', 'Com bolinha', 'A aba aberta vira uma bolinha colorida que desliza e pode ser arrastada'],
+                            ['pilula', 'is-pill', 'Pílula', 'Uma pílula colorida desliza por trás do ícone da aba aberta'],
+                            ['linha', 'is-line', 'Linha', 'Um traço colorido corre no alto da barra até a aba aberta'],
+                        ] as [$nk, $ncls, $nt, $nd])
+                            <button type="button" class="ap-navbtn" :class="{ 'is-on': (look.nav || 'classica') === '{{ $nk }}' }" @click="setLook('nav', '{{ $nk }}')">
+                                <span class="ap-nav-art"><span class="ap-nav-bar {{ $ncls }}"><i></i><i class="on"></i><i></i><i></i></span></span>
+                                <b>{{ $nt }}</b><small>{{ $nd }}</small>
+                            </button>
+                        @endforeach
                     </div>
-                    <p class="ap-label mt-4">Telas</p>
+                    <p class="ap-label mt-4">Telas: como os cards aparecem ao rolar</p>
                     <div class="ap-navs mt-2">
-                        <button type="button" class="ap-navbtn" :class="{ 'is-on': (look.motion || 'nao') === 'nao' }" @click="setLook('motion', 'nao')">
-                            <span class="ap-nav-art ap-mo-art"><i></i><i></i><i></i><i></i></span>
-                            <b>Paradas</b><small>As telas abrem como sempre</small>
-                        </button>
-                        <button type="button" class="ap-navbtn" :class="{ 'is-on': look.motion === 'sim' }" @click="setLook('motion', 'sim')">
-                            <span class="ap-nav-art ap-mo-art is-on"><i></i><i></i><i></i><i></i></span>
-                            <b>Cards surgindo</b><small>Cards, indicadores e listas aparecem suavemente ao rolar, um depois do outro</small>
-                        </button>
+                        @foreach([
+                            ['nao', 'Paradas', 'As telas abrem como sempre'],
+                            ['sim', 'Subindo', 'Cards, indicadores e listas sobem de leve, um depois do outro'],
+                            ['zoom', 'Crescendo', 'Os cards crescem um pouquinho até o tamanho certo'],
+                            ['lado', 'Do lado', 'Os cards entram deslizando da esquerda'],
+                            ['desfoque', 'Desembaçando', 'Os cards aparecem saindo de um desfoque'],
+                        ] as [$mk, $mt, $md])
+                            <button type="button" class="ap-navbtn" :class="{ 'is-on': (look.motion || 'nao') === '{{ $mk }}' }" @click="setLook('motion', '{{ $mk }}')">
+                                <span class="ap-nav-art ap-mo-art {{ $mk !== 'nao' ? 'is-on ap-mo-' . $mk : '' }}"><i></i><i></i><i></i><i></i></span>
+                                <b>{{ $mt }}</b><small>{{ $md }}</small>
+                            </button>
+                        @endforeach
+                    </div>
+                    <p class="ap-label mt-4">Troca de tela (ao abrir outra página pelo menu)</p>
+                    <div class="ap-navs mt-2">
+                        @foreach([
+                            ['direta', 'Direta', 'A página nova aparece na hora, como sempre'],
+                            ['desliza', 'Desliza', 'A página nova entra deslizando do lado, como num app'],
+                            ['esmaece', 'Esmaece', 'A página nova aparece aos poucos'],
+                            ['sobe', 'Sobe', 'A página nova sobe de leve de baixo'],
+                        ] as [$pk, $pt, $pd])
+                            <button type="button" class="ap-navbtn" :class="{ 'is-on': (look.page || 'direta') === '{{ $pk }}' }" @click="setLook('page', '{{ $pk }}')">
+                                <span class="ap-nav-art ap-pg-art {{ $pk !== 'direta' ? 'is-on ap-pg-' . $pk : '' }}"><i></i></span>
+                                <b>{{ $pt }}</b><small>{{ $pd }}</small>
+                            </button>
+                        @endforeach
                     </div>
                 </div>
 
@@ -776,6 +798,7 @@ new class extends Component {
         .ap-side-art > span i:first-child { background: var(--color-indigo-500); }
         .ap-side-art b { flex: 1; }
         .ap-navs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+        @media (min-width: 640px) { .ap-navs { grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); } }
         .ap-navbtn { display: flex; flex-direction: column; align-items: flex-start; gap: .2rem; padding: .5rem .55rem .65rem; border-radius: 1rem; border: 2px solid #e2e8f0; background: #f8fafc; text-align: left; color: #334155; }
         .ap-navbtn b { font-size: .8rem; font-weight: 800; }
         .ap-navbtn small { font-size: .68rem; line-height: 1.25; color: #64748b; }
@@ -801,6 +824,23 @@ new class extends Component {
         .ap-mo-art.is-on i:nth-child(2) { animation-delay: .12s; } .ap-mo-art.is-on i:nth-child(3) { animation-delay: .24s; } .ap-mo-art.is-on i:nth-child(4) { animation-delay: .36s; }
         @keyframes ap-mo-rise { 0%, 12% { opacity: 0; transform: translateY(10px); } 40%, 100% { opacity: 1; transform: none; } }
         @media (prefers-reduced-motion: reduce) { .ap-mo-art.is-on i { animation: none; } }
+        .ap-nav-bar.is-pill i.on { width: 1.4rem; height: .9rem; border-radius: 999px; background: #a3e635; box-shadow: none; }
+        .ap-nav-bar.is-line::before { content: ''; position: absolute; top: 0; left: calc(37.5% - .55rem); width: 1.1rem; height: .18rem; border-radius: 0 0 .2rem .2rem; background: #a3e635; }
+        .ap-nav-bar.is-line i.on { width: .55rem; height: .55rem; background: #65a30d; box-shadow: none; }
+        .ap-mo-art.ap-mo-zoom i { animation-name: ap-mo-zoom; } .ap-mo-art.ap-mo-lado i { animation-name: ap-mo-lado; } .ap-mo-art.ap-mo-desfoque i { animation-name: ap-mo-blur; }
+        @keyframes ap-mo-zoom { 0%, 12% { opacity: 0; transform: scale(.7); } 40%, 100% { opacity: 1; transform: none; } }
+        @keyframes ap-mo-lado { 0%, 12% { opacity: 0; transform: translateX(-12px); } 40%, 100% { opacity: 1; transform: none; } }
+        @keyframes ap-mo-blur { 0%, 12% { opacity: 0; filter: blur(5px); } 40%, 100% { opacity: 1; filter: none; } }
+        .ap-pg-art { align-items: stretch; padding: .4rem; }
+        .ap-pg-art i { flex: 1; border-radius: .4rem; background: #fff; box-shadow: 0 2px 6px -3px rgba(15, 23, 42, .3); }
+        .dark .ap-pg-art i { background: #1e293b; }
+        .ap-pg-art.ap-pg-desliza i { animation: ap-pg-slide 2.6s cubic-bezier(.2, .7, .2, 1) infinite; }
+        .ap-pg-art.ap-pg-esmaece i { animation: ap-pg-fade 2.6s ease infinite; }
+        .ap-pg-art.ap-pg-sobe i { animation: ap-pg-up 2.6s cubic-bezier(.2, .7, .2, 1) infinite; }
+        @keyframes ap-pg-slide { 0%, 15% { opacity: 0; transform: translateX(40%); } 45%, 100% { opacity: 1; transform: none; } }
+        @keyframes ap-pg-fade { 0%, 15% { opacity: 0; } 50%, 100% { opacity: 1; } }
+        @keyframes ap-pg-up { 0%, 15% { opacity: 0; transform: translateY(30%); } 45%, 100% { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) { .ap-pg-art i, .ap-mo-art i { animation: none !important; } }
         .ap-tabdot { width: .9rem; height: .9rem; border-radius: .3rem; border: 1px solid #cbd5e1; }
 
         .ap-pv-fab { position: fixed; z-index: 60; right: 1.25rem; bottom: 1.25rem; display: inline-flex; align-items: center; gap: .45rem; padding: .75rem 1.1rem; border-radius: 999px; color: #fff; font-size: .85rem; font-weight: 800; box-shadow: 0 14px 30px -10px color-mix(in oklab, var(--color-indigo-600) 70%, transparent); }
@@ -895,7 +935,7 @@ new class extends Component {
         window.fmAppearance = window.fmAppearance || function (saved, savedLook, themes) {
             return {
                 themes: themes,
-                look: { cards: 'tema', tone: 'medio', shape: 'redondo', bg: 'padrao', bg_c: null, pat: 'nenhum', pat_c: 'tema', pat_o: 'medio', side: 'padrao', tab: 'padrao', nav: 'classica', motion: 'nao', c_bg: null, c_border: null, c_tag: null, c_detail: null },
+                look: { cards: 'tema', tone: 'medio', shape: 'redondo', bg: 'padrao', bg_c: null, pat: 'nenhum', pat_c: 'tema', pat_o: 'medio', side: 'padrao', tab: 'padrao', nav: 'classica', motion: 'nao', page: 'direta', c_bg: null, c_border: null, c_tag: null, c_detail: null },
                 pvOpen: false,
                 pvDev: window.innerWidth < 768 ? 'cel' : 'pc',
                 pvTab: 'cards',
