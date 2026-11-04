@@ -273,6 +273,12 @@
                 <div class="igc-head mt-4"><span class="igc-num">4</span><h2>Legenda</h2>
                     <button type="button" wire:click="resetCaption" class="igc-link"><i class="bi bi-arrow-counterclockwise"></i> Refazer do modelo</button>
                 </div>
+                <div class="igc-dates">
+                    <span class="igc-label"><i class="bi bi-calendar-heart"></i> Data especial</span>
+                    @foreach($dates as $d)
+                        <button type="button" wire:click="useDate('{{ $d['key'] }}')" class="{{ $d['now'] ? 'is-now' : '' }}" title="{{ \App\Services\Promotions\CommercialCalendar::label($d) }}">{{ $d['emoji'] }} {{ $d['name'] }}</button>
+                    @endforeach
+                </div>
                 <textarea wire:model.live.debounce.500ms="caption" rows="9" maxlength="2200" class="igc-input igc-textarea" data-testid="igc-caption"></textarea>
                 <div class="igc-meta">
                     <span>{{ mb_strlen($caption) }}/2200</span>
@@ -403,6 +409,10 @@
         .igc-bgs button { width: 1.7rem; height: 1.7rem; border-radius: .55rem; border: 1px solid #cbd5e1; }
         .igc-bgs button.on { box-shadow: 0 0 0 2px #db2777; }
         .igc-meta { display: flex; align-items: center; gap: .8rem; font-size: .72rem; color: #64748b; margin-top: .3rem; flex-wrap: wrap; }
+        .igc-dates { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-bottom: .55rem; }
+        .igc-dates button { padding: .28rem .6rem; border-radius: 999px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: .74rem; font-weight: 700; color: #334155; }
+        .igc-dates button.is-now { border-color: #f9a8d4; background: #fdf2f8; color: #be185d; }
+        .dark .igc-dates button { background: #111827; border-color: #334155; color: #e2e8f0; }
         .igc-when { display: flex; width: 100%; } .igc-when button { flex: 1; justify-content: center; }
         .igc-when-fields { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: .5rem; margin-top: .6rem; }
         .igc-fail { margin-top: .8rem; display: flex; gap: .5rem; align-items: flex-start; padding: .7rem .9rem; border-radius: .9rem; background: rgba(239, 68, 68, .1); color: #b91c1c; font-size: .83rem; font-weight: 600; }

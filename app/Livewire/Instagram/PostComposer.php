@@ -222,6 +222,30 @@ class PostComposer extends Component
         $this->captionEdited = true;
     }
 
+    /** Data comercial (Black Friday, Natal...): chamada no começo da legenda e a hashtag da data. */
+    public function useDate(string $key): void
+    {
+        $cal = \App\Services\Promotions\CommercialCalendar::class;
+        if (! isset($cal::DATES[$key])) {
+            return;
+        }
+        [$name, $emoji] = $cal::DATES[$key];
+        $headline = $cal::HEADLINES[$key][\App\Services\Promotions\StoreKind::for(Auth::id()) === 'moveis' ? 1 : 0];
+        $line = "{$emoji} {$headline} {$emoji}";
+        $tag = '#' . preg_replace('/[^\p{L}\p{N}]/u', '', Str::lower(Str::ascii($name)));
+        $text = trim($this->caption);
+        foreach ($cal::DATES as $k => [$n, $e]) { // troca a chamada de outra data, se já tiver uma
+            $text = preg_replace('/^' . preg_quote($e, '/') . ' [^\n]* ' . preg_quote($e, '/') . "\n*/u", '', $text);
+            $text = preg_replace('/\s#' . preg_quote(preg_replace('/[^\p{L}\p{N}]/u', '', Str::lower(Str::ascii($n))), '/') . '\b/u', '', $text);
+        }
+        $text = $line . "\n\n" . $text;
+        if (! str_contains($text, $tag)) {
+            $text .= ' ' . $tag;
+        }
+        $this->caption = CaptionBuilder::clean($text);
+        $this->captionEdited = true;
+    }
+
     public function resetCaption(): void
     {
         $this->caption = $this->suggestedCaption();
@@ -360,6 +384,7 @@ class PostComposer extends Component
             'photos' => $this->productPhotos(),
             'results' => $results,
             'hashtagCount' => CaptionBuilder::countHashtags($this->caption),
+            'dates' => array_slice(\App\Services\Promotions\CommercialCalendar::upcoming(null, \App\Services\Promotions\StoreKind::for(Auth::id())), 0, 4),
             'art' => [
                 'name' => $product ? Str::limit(CaptionBuilder::title((string) $product->name), 60) : '',
                 'price' => $promo ? $money($promo->promo_price) : ($product && $product->price_sale > 0 ? $money($product->price_sale) : ''),

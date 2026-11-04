@@ -32,7 +32,7 @@ class CaptionBuilder
 
         $variations = '';
         if ($product) {
-            $values = Product::withoutGlobalScope('team_visibility')
+            $variations = Product::withoutGlobalScope('team_visibility')
                 ->where('user_id', $product->user_id)
                 ->where(fn ($q) => $q->where('id', $product->parent_id ?: $product->id)->orWhere('parent_id', $product->parent_id ?: $product->id))
                 ->whereNotNull('variation_value')->where('variation_value', '!=', '')
