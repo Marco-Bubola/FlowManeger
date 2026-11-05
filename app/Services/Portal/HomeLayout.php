@@ -237,7 +237,41 @@ class HomeLayout
         'atual'     => ['Atual', 'Os blocos na ordem que você montou, como hoje', 'bi-grid-1x2'],
         'editorial' => ['Editorial', 'Títulos grandes em maiúsculas, produto girando no topo, faixa correndo, novidades soltas no fundo claro e depoimentos', 'bi-type-bold'],
         'botanico'  => ['Elegante', 'Foto grande no topo, títulos com letra fina e itálico, cards altos com "+ Carrinho", categorias em fotos altas e nota das avaliações', 'bi-flower2'],
+        'noite'     => ['Noite', 'Como o Editorial, em fundo escuro com destaque laranja', 'bi-moon-stars'],
+        'pop'       => ['Pop', 'Como o Editorial, colorido: amarelo-claro, roxo e rosa', 'bi-emoji-sunglasses'],
+        'urbano'    => ['Urbano', 'Como o Editorial, cinza e preto com faixa amarela, letra alta e fina', 'bi-buildings'],
+        'luxo'      => ['Luxo', 'Como o Elegante, em preto com dourado e letra clássica', 'bi-gem'],
+        'natural'   => ['Natural', 'Como o Elegante, em verde-oliva e bege', 'bi-tree'],
+        'minimal'   => ['Minimal', 'Como o Elegante, branco e preto, bem limpo', 'bi-square'],
+        'romantico' => ['Romântico', 'Como o Elegante, em rosa com letra delicada', 'bi-heart'],
     ];
+
+    /**
+     * Variações de cor e letra dos dois formatos (layout = editorial ou botanico).
+     * on = texto sobre a cor principal; acc_ink = texto sobre a cor de destaque; header = topo do site.
+     */
+    public const MODEL_SKINS = [
+        'noite' => ['layout' => 'editorial', 'bg' => '#121212', 'ink' => '#f3efe6', 'soft' => '#232323', 'card' => '#1b1b1b', 'acc' => '#ff6a3d', 'acc_ink' => '#121212', 'mute' => '#a3a3a3', 'line' => '#2c2c2c', 'on' => '#121212', 'header' => '#0a0a0a', 'dark' => true,
+            'font' => "'Anton', 'Oswald', Impact, sans-serif", 'font_url' => 'https://fonts.googleapis.com/css2?family=Anton&display=swap'],
+        'pop' => ['layout' => 'editorial', 'bg' => '#fff3d6', 'ink' => '#2b1b5a', 'soft' => '#ffe2a8', 'card' => '#fffaf0', 'acc' => '#ff5fa2', 'acc_ink' => '#2b1b5a', 'mute' => '#6b5f8a', 'line' => '#f1dfb5', 'on' => '#ffffff', 'header' => '#2b1b5a',
+            'font' => "'Archivo Black', 'Arial Black', sans-serif", 'font_url' => 'https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap'],
+        'urbano' => ['layout' => 'editorial', 'bg' => '#e9ecef', 'ink' => '#111827', 'soft' => '#d6dbe1', 'card' => '#f8fafc', 'acc' => '#facc15', 'acc_ink' => '#111827', 'mute' => '#4b5563', 'line' => '#cfd5dc', 'on' => '#ffffff', 'header' => '#111827',
+            'font' => "'Bebas Neue', 'Oswald', Impact, sans-serif", 'font_url' => 'https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap'],
+        'luxo' => ['layout' => 'botanico', 'bg' => '#0f0d0b', 'ink' => '#efe6d2', 'soft' => '#1f1b16', 'card' => '#17140f', 'acc' => '#c9a24a', 'acc_ink' => '#0f0d0b', 'mute' => '#a89f8c', 'line' => '#2b261e', 'on' => '#0f0d0b', 'header' => '#0b0a08', 'dark' => true,
+            'font' => "'Cormorant Garamond', Georgia, serif", 'font_url' => 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap'],
+        'natural' => ['layout' => 'botanico', 'bg' => '#eef0e6', 'ink' => '#2f3b2c', 'soft' => '#dfe4d2', 'card' => '#f8f9f2', 'acc' => '#7f9153', 'acc_ink' => '#ffffff', 'mute' => '#66705f', 'line' => '#d5dbc6', 'on' => '#ffffff', 'header' => '#2f3b2c',
+            'font' => "'Fraunces', Georgia, serif", 'font_url' => 'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300;1,9..144,500&display=swap'],
+        'minimal' => ['layout' => 'botanico', 'bg' => '#ffffff', 'ink' => '#111111', 'soft' => '#f1f1f1', 'card' => '#fafafa', 'acc' => '#111111', 'acc_ink' => '#ffffff', 'mute' => '#6b6b6b', 'line' => '#e5e5e5', 'on' => '#ffffff', 'header' => '#111111',
+            'font' => "'DM Serif Display', Georgia, serif", 'font_url' => 'https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap'],
+        'romantico' => ['layout' => 'botanico', 'bg' => '#fff1f3', 'ink' => '#4a2333', 'soft' => '#fbdce3', 'card' => '#fff8f9', 'acc' => '#e0607e', 'acc_ink' => '#ffffff', 'mute' => '#8a6170', 'line' => '#f4d3db', 'on' => '#ffffff', 'header' => '#4a2333',
+            'font' => "'Playfair Display', Georgia, serif", 'font_url' => 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&display=swap'],
+    ];
+
+    /** Formato (editorial ou botanico) que o modelo usa. */
+    public static function modelLayout(string $model): string
+    {
+        return self::MODEL_SKINS[$model]['layout'] ?? $model;
+    }
 
     /** @var array<int, string> */
     private static array $modelMemo = [];

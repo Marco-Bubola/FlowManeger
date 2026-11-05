@@ -433,15 +433,16 @@
                         <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-layout-text-window text-violet-500"></i>Modelo da página inicial</h2>
                         <p class="text-xs text-slate-500 dark:text-slate-400">O formato da página que o cliente vê primeiro. "Atual" deixa como está hoje. Os outros montam uma página de apresentação, com a lista de todos os produtos logo depois. Cada modelo traz as próprias cores e letras na página inicial; o resto do site continua com o estilo da loja.</p>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2">
                         @foreach($home::MODELS as $mk => [$mn, $md, $mi])
-                            @php $on = $home_model === $mk; @endphp
+                            @php $on = $home_model === $mk; $sk = $home::MODEL_SKINS[$mk] ?? null; $ml = $home::modelLayout($mk); @endphp
                             <button type="button" wire:click="setModel('{{ $mk }}')" data-testid="model-{{ $mk }}" aria-pressed="{{ $on ? 'true' : 'false' }}"
                                 class="relative text-left rounded-2xl border p-2 transition {{ $on ? 'border-violet-500 ring-2 ring-violet-200 dark:ring-violet-500/30 bg-violet-50/60 dark:bg-violet-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300' }}">
-                                <span class="hm-thumb hm-thumb-{{ $mk }}" aria-hidden="true">
-                                    @if($mk === 'editorial')
+                                <span class="hm-thumb hm-thumb-{{ $ml }}" aria-hidden="true"
+                                    @if($sk) style="--t-bg: {{ $sk['bg'] }}; --t-ink: {{ $sk['ink'] }}; --t-soft: {{ $sk['soft'] }}; --t-acc: {{ $sk['acc'] }}; --t-font: {{ $sk['font'] }}" @endif>
+                                    @if($ml === 'editorial')
                                         <span class="a"><b>CONFORTO</b><b>QUE FICA</b><i></i></span><span class="b"><em></em></span>
-                                    @elseif($mk === 'botanico')
+                                    @elseif($ml === 'botanico')
                                         <span class="a"><b>Peças para</b><b><i>viver</i> bem</b></span><span class="c"><em></em><em></em><em></em></span>
                                     @else
                                         <span class="a"></span><span class="c"><em></em><em></em><em></em></span>
@@ -458,19 +459,20 @@
                             <button type="button" wire:click="setLook('motion', 'completo')" class="font-bold underline" data-testid="model-motion-on">Ligar agora</button></p>
                     @endif
                     <style>
-                        .hm-thumb { position: relative; display: flex; height: 5.2rem; border-radius: .8rem; overflow: hidden; background: #f4efe7; }
+                        .hm-thumb { position: relative; display: flex; height: 5.2rem; border-radius: .8rem; overflow: hidden; background: var(--t-bg, #f4efe7); }
                         .hm-thumb .a { flex: 1.2; display: flex; flex-direction: column; justify-content: center; gap: .15rem; padding: .5rem; }
-                        .hm-thumb-editorial .a { background: #2f3e34; color: #f4efe7; }
+                        .hm-thumb-editorial .a { background: var(--t-ink, #2f3e34); color: var(--t-bg, #f4efe7); }
                         .hm-thumb-editorial .a b { font: 900 .78rem/0.95 Impact, 'Oswald', sans-serif; letter-spacing: .02em; }
+                        .hm-thumb-editorial .a i { background: var(--t-acc, #f4efe7) !important; }
                         .hm-thumb-editorial .a i { display: block; width: 1.6rem; height: .35rem; margin-top: .25rem; background: #f4efe7; }
                         .hm-thumb-editorial .b { flex: 1; display: grid; place-items: center; }
-                        .hm-thumb-editorial .b em { width: 2rem; height: 2.4rem; border-radius: 1rem 1rem .4rem .4rem; background: #d8cbb8; box-shadow: 0 .4rem 0 -.1rem #b08a5a; }
-                        .hm-thumb-botanico { background: linear-gradient(180deg, #3b2f33 0 55%, #f6efe9 55%); flex-direction: column; }
-                        .hm-thumb-botanico .a { color: #fff; justify-content: flex-start; padding-top: .45rem; }
+                        .hm-thumb-editorial .b em { width: 2rem; height: 2.4rem; border-radius: 1rem 1rem .4rem .4rem; background: var(--t-soft, #d8cbb8); box-shadow: 0 .4rem 0 -.1rem #b08a5a; }
+                        .hm-thumb-botanico { background: linear-gradient(180deg, var(--t-ink, #3b2f33) 0 55%, var(--t-bg, #f6efe9) 55%); flex-direction: column; }
+                        .hm-thumb-botanico .a { color: var(--t-bg, #fff); justify-content: flex-start; padding-top: .45rem; }
                         .hm-thumb-botanico .a b { font: 600 .72rem/1.05 Georgia, serif; }
                         .hm-thumb-botanico .a i { font-style: italic; font-weight: 400; }
                         .hm-thumb .c { display: flex; gap: .3rem; padding: .35rem .5rem; }
-                        .hm-thumb .c em { flex: 1; height: 1.6rem; border-radius: .35rem; background: #e8dccd; }
+                        .hm-thumb .c em { flex: 1; height: 1.6rem; border-radius: .35rem; background: var(--t-soft, #e8dccd); }
                         .hm-thumb-atual { flex-direction: column; background: #eef2ff; }
                         .hm-thumb-atual .a { flex: none; height: 2.4rem; margin: .4rem .5rem 0; border-radius: .5rem; background: linear-gradient(90deg, #ec4899, #8b5cf6); }
                         .hm-thumb-atual .c em { background: #fff; }

@@ -1,6 +1,8 @@
 {{-- Estilos dos modelos da página inicial (Vitrine › Página inicial › Modelo). Só entram quando um modelo está ligado,
      e só na página inicial: o resto do site continua com as cores e o estilo da loja. --}}
-@if($hModel === 'editorial')
+@if(! empty($hSkin['font_url']))
+<link href="{{ $hSkin['font_url'] }}" rel="stylesheet">
+@elseif($hModel === 'editorial')
 <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
 @else
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300;1,9..144,500&display=swap" rel="stylesheet">
@@ -11,13 +13,21 @@
         --hm-bg: #f1ece3; --hm-ink: #24302a; --hm-soft: #e6dfd2; --hm-card: #fbf8f2; --hm-acc: #c6ef5b; --hm-mute: #6b6f66;
         --hm-font: 'Anton', 'Oswald', Impact, sans-serif;
         --ml-bg: var(--hm-bg); --ml-card: var(--hm-card); --ml-text: var(--hm-ink); --ml-muted: var(--hm-mute); --ml-line: #ddd5c6;
-        --ml-header: var(--hm-ink);
+        --ml-header: var(--hm-ink); --hm-on: #fff;
     }
     @if($hModel === 'botanico')
     body {
         --hm-bg: #f6efe9; --hm-ink: #3b2f33; --hm-soft: #ecdfd5; --hm-card: #fffaf6; --hm-acc: #b9825f; --hm-mute: #7a6b6c;
         --hm-font: 'Fraunces', 'Playfair Display', Georgia, serif;
         --ml-line: #e7d9cf;
+    }
+    @endif
+    @if(! empty($hSkin))
+    body {
+        --hm-bg: {{ $hSkin['bg'] }}; --hm-ink: {{ $hSkin['ink'] }}; --hm-soft: {{ $hSkin['soft'] }}; --hm-card: {{ $hSkin['card'] }}; --hm-acc: {{ $hSkin['acc'] }}; --hm-mute: {{ $hSkin['mute'] }};
+        --hm-on: {{ $hSkin['on'] }}; --hm-font: {!! $hSkin['font'] !!};
+        --ml-bg: var(--hm-bg); --ml-card: var(--hm-card); --ml-text: var(--hm-ink); --ml-muted: var(--hm-mute); --ml-line: {{ $hSkin['line'] }};
+        --ml-chip: var(--hm-card); --ml-header: {{ $hSkin['header'] }}; --hm-acc-ink: {{ $hSkin['acc_ink'] }};@if(! empty($hSkin['dark'])) --hm-hero-btn: {{ $hSkin['on'] }};@endif
     }
     @endif
     body { background: var(--hm-bg); }
@@ -43,7 +53,7 @@
     .hm-card-img { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; background: var(--hm-soft); }
     .hm-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
     .hm-card:hover .hm-card-img img { transform: scale(1.05); }
-    .hm-flag { position: absolute; left: 8px; top: 8px; background: var(--hm-ink); color: #fff; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px; }
+    .hm-flag { position: absolute; left: 8px; top: 8px; background: var(--hm-ink); color: var(--hm-on); font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px; }
     .hm-flag.new { background: var(--hm-acc); color: var(--hm-ink); }
     .hm-fav { position: absolute; right: 8px; top: 8px; width: 34px; height: 34px; border-radius: 999px; border: 0; background: rgba(255,255,255,.88); color: var(--hm-ink); cursor: pointer; }
     .hm-fav.on { color: #e11d48; }
@@ -53,7 +63,7 @@
     .hm-card-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 6px; padding-top: 4px; }
     .hm-card-price { font-weight: 800; color: var(--hm-ink); font-size: 14px; display: flex; flex-direction: column; line-height: 1.1; white-space: nowrap; min-width: 0; }
     .hm-card-price s { font-weight: 500; color: var(--hm-mute); font-size: 11px; }
-    .hm-add { flex-shrink: 0; border: 0; cursor: pointer; width: 36px; height: 36px; border-radius: 999px; background: var(--hm-ink); color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font: inherit; font-size: 12px; font-weight: 700; transition: background .2s ease; }
+    .hm-add { flex-shrink: 0; border: 0; cursor: pointer; width: 36px; height: 36px; border-radius: 999px; background: var(--hm-ink); color: var(--hm-on); display: inline-flex; align-items: center; justify-content: center; gap: 6px; font: inherit; font-size: 12px; font-weight: 700; transition: background .2s ease; }
     .hm-add span { display: none; }
     .hm-add.in { background: #16a34a; }
 
@@ -79,14 +89,14 @@
     @if($hModel === 'editorial')
     .hm-h { text-transform: uppercase; font-size: clamp(30px, 8vw, 64px); letter-spacing: .005em; }
     .hm-h em { font-style: normal; display: block; color: var(--hm-ink); -webkit-text-stroke: 0; }
-    .hm-hero { display: grid; grid-template-columns: 1fr; border-radius: 22px; overflow: hidden; background: var(--hm-ink); color: #f4efe6; margin-top: 12px; }
+    .hm-hero { display: grid; grid-template-columns: 1fr; border-radius: 22px; overflow: hidden; background: var(--hm-ink); color: var(--hm-on); margin-top: 12px; }
     .hm-hero-text { padding: 26px 20px 22px; display: flex; flex-direction: column; gap: 14px; }
     .hm-kicker { margin: 0; text-transform: uppercase; letter-spacing: .14em; font-size: 11px; font-weight: 700; color: var(--hm-acc); }
     .hm-hero-title { margin: 0; font-family: var(--hm-font); font-weight: 400; text-transform: uppercase; font-size: clamp(44px, 13vw, 132px); line-height: .9; letter-spacing: .005em; overflow-wrap: anywhere; }
     .hm-hero-cta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-    .hm-hero-note { font-size: 12px; line-height: 1.3; color: rgba(244,239,230,.75); }
-    .hm-hero-note b { color: #fff; font-size: 16px; }
-    .hm-hero-art { position: relative; background: #e9e2d4; min-height: 320px; }
+    .hm-hero-note { font-size: 12px; line-height: 1.3; color: color-mix(in srgb, var(--hm-on) 75%, transparent); }
+    .hm-hero-note b { color: var(--hm-on); font-size: 16px; }
+    .hm-hero-art { position: relative; background: var(--hm-soft); min-height: 320px; }
     @media (min-width: 640px) and (max-width: 1023px) { .hm-hero-art { min-height: 420px; } }
     .hm-hero-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .hm-spin { position: absolute; inset: 0; }
@@ -96,17 +106,17 @@
     .hm-spin-item img { position: absolute; left: 24px; top: 24px; width: calc(100% - 48px); height: calc(100% - 78px); object-fit: contain; mix-blend-mode: multiply; filter: drop-shadow(0 18px 18px rgba(0,0,0,.18)); }
     .hm-spin-tag { position: absolute; left: 14px; bottom: 14px; right: 14px; display: flex; justify-content: space-between; gap: 10px; color: var(--hm-ink); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
     .hm-spin-tag b { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .hm-strip { background: var(--hm-acc); color: var(--hm-ink); overflow: hidden; margin: 0 -12px 28px; padding: 12px 0; transform: rotate(-1.2deg); }
+    .hm-strip { background: var(--hm-acc); color: var(--hm-acc-ink, var(--hm-ink)); overflow: hidden; margin: 0 -12px 28px; padding: 12px 0; transform: rotate(-1.2deg); }
     .hm-strip-run { display: flex; gap: 22px; width: max-content; animation: hm-run 26s linear infinite; font-family: var(--hm-font); text-transform: uppercase; font-size: 20px; white-space: nowrap; align-items: center; }
     .hm-strip-run i { font-style: normal; }
     @keyframes hm-run { to { transform: translateX(-50%); } }
     .hm-card-name { text-transform: uppercase; letter-spacing: .02em; }
-    .hm-card-img { border-radius: 14px; background: #e7e0d1; }
+    .hm-card-img { border-radius: 14px; background: var(--hm-soft); }
     .hm-cat-img { aspect-ratio: 1; border-radius: 999px; }
     .hm-cat { align-items: center; text-align: center; }
     .hm-cat b { text-transform: uppercase; }
     .hm-mosaic { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .hm-tile { position: relative; overflow: hidden; border-radius: 16px; background: #e7e0d1; aspect-ratio: 1; text-decoration: none; }
+    .hm-tile { position: relative; overflow: hidden; border-radius: 16px; background: var(--hm-soft); aspect-ratio: 1; text-decoration: none; }
     .hm-tile.big { grid-column: span 2; aspect-ratio: 16 / 10; }
     .hm-mosaic > :nth-child(n+6) { display: none; }
     .hm-tile img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
@@ -136,8 +146,8 @@
     .hm-hero-title em { font-style: italic; font-weight: 300; }
     .hm-kicker { margin: 0; font-size: 15px; color: rgba(255,255,255,.85); max-width: 46ch; }
     .hm-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.16); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.3); }
-    .hm-btn { background: #fff; color: var(--hm-ink); }
-    .hm-sec:not(.hm-hero) .hm-btn, .hm-spot .hm-btn { background: var(--hm-ink); color: #fff; }
+    .hm-btn { background: #fff; color: var(--hm-hero-btn, var(--hm-ink)); }
+    .hm-sec:not(.hm-hero) .hm-btn, .hm-spot .hm-btn { background: var(--hm-ink); color: var(--hm-on); }
     .hm-card { background: var(--hm-card); border-radius: 20px; padding: 8px 8px 12px; box-shadow: 0 1px 0 var(--ml-line); }
     .hm-card-img { border-radius: 14px; aspect-ratio: 3 / 4; }
     .hm-card-body { padding: 10px 4px 0; }
@@ -151,7 +161,7 @@
     .hm-cats { grid-auto-columns: minmax(150px, 44%); }
     .hm-cat { position: relative; }
     .hm-cat-img { aspect-ratio: 3 / 4; border-radius: 18px; }
-    .hm-cat-txt { position: absolute; left: 8px; right: 8px; bottom: 8px; background: rgba(255,250,246,.92); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; }
+    .hm-cat-txt { position: absolute; left: 8px; right: 8px; bottom: 8px; background: color-mix(in srgb, var(--hm-card) 92%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; }
     .hm-cat b { font-family: var(--hm-font); font-weight: 500; font-size: 15px; }
     .hm-spot { display: grid; grid-template-columns: 1fr; gap: 16px; background: var(--hm-soft); border-radius: 24px; padding: 12px; }
     .hm-spot-img { display: block; border-radius: 18px; overflow: hidden; aspect-ratio: 4 / 3; background: var(--hm-card); }

@@ -42,6 +42,8 @@
     $notice = $settings && $settings->notice_active && trim((string) $settings->notice_text) !== '' ? $settings : null;
     // Modelo da página inicial (Vitrine › Página inicial › Modelo): Editorial e Elegante montam uma apresentação própria
     $hModel = $isHome ? ($homeLayout['model'] ?? 'atual') : 'atual';
+    $hSkin = \App\Services\Portal\HomeLayout::MODEL_SKINS[$hModel] ?? null;
+    $hModel = \App\Services\Portal\HomeLayout::modelLayout($hModel);
 @endphp
 
 <x-portal-catalog-layout title="Catálogo" :store="$store" :owner-id="$owner" :search="$search">
