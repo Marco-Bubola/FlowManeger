@@ -24,7 +24,21 @@
     $sides = ($banners['side'] ?? collect())->values();
     $homeLayout = \App\Services\Portal\HomeLayout::get($settings ?? new \App\Models\PortalSetting(['user_id' => $ownerId]), true);
     $homeOrder = $homeLayout['order'];
-    $homeOff = $isHome ? $homeLayout['off'] : [];
+    $homeOff = $isHome ? $homeLayout['off'] : \App\Services\Portal\HomeLayout::OPTIONAL;
+    $hs = $homeLayout['sec'];
+    $HL = \App\Services\Portal\HomeLayout::class;
+    // Blocos novos com produtos (Novidades / Mais vendidos): só busca quando ligados
+    $extra = [];
+    if ($isHome) {
+        foreach (['novos', 'vendidos'] as $rk) {
+            if (! in_array($rk, $homeOff, true)) {
+                $lim = $hs[$rk]['limit'] ?? 10;
+                $extra[$rk] = \Illuminate\Support\Facades\Cache::remember("portal-home-{$owner}-{$rk}-{$lim}", now()->addHour(),
+                    fn () => $front::productsFor($owner, $front::ruleRoots($owner, $rk, [], $lim), $lim));
+                foreach ($extra[$rk] as $p) { $all[$p->id] ??= $info($p); }
+            }
+        }
+    }
     $notice = $settings && $settings->notice_active && trim((string) $settings->notice_text) !== '' ? $settings : null;
     // Modelo da página inicial (Vitrine › Página inicial › Modelo): Editorial e Elegante montam uma apresentação própria
     $hModel = $isHome ? ($homeLayout['model'] ?? 'atual') : 'atual';
@@ -57,7 +71,7 @@
         @continue(in_array($sec, $homeOff, true))
         @if($sec === 'hero')
             @if($heroBanners->isNotEmpty())
-                <section class="sf-hero-wrap" x-data="sfHero({{ $heroBanners->count() }})" aria-roledescription="carrossel" aria-label="Destaques da loja" data-testid="hero-carousel">
+                <section class="sf-hero-wrap {{ $HL::secClass($hs, 'hero') }}" x-data="sfHero({{ $heroBanners->count() }})" aria-roledescription="carrossel" aria-label="Destaques da loja" data-testid="hero-carousel">
                     <div class="sf-hero-track" x-ref="track">
                         @foreach($heroBanners as $b)
                             @include('portal.partials.storefront-banner', ['b' => $b, 'kind' => 'hero', 'eager' => $loop->first])
@@ -86,7 +100,7 @@
             @endif
         @elseif($sec === 'cats')
             @if($categories->count())
-                <nav class="ml-cats" aria-label="Categorias">
+                <nav class="ml-cats {{ $HL::secClass($hs, 'cats') }}" aria-label="Categorias">
                     <a href="{{ route('portal.catalog', ['userId' => $owner]) }}" class="ml-cat {{ ! $category && ! $onlyOffers ? 'on' : '' }}">
                         <span class="ml-cat-ico"><i class="fas fa-store"></i></span>
                         <span>Tudo ({{ $stockMap->count() }})</span>
@@ -108,29 +122,23 @@
             @endif
         @elseif($sec === 'featured')
             @if($featured->isNotEmpty())
-                <section class="ml-box ml-offers" data-testid="featured">
+                <section class="ml-box ml-offers {{ $HL::secClass($hs, 'featured') }}" data-testid="featured">
                     <div class="ml-sec-head">
                         <h2><i class="fas fa-star sf-star"></i> {{ $settings?->featured_title ?: 'Destaques da loja' }}</h2>
                     </div>
-                    <div class="ml-rail">
-                        @foreach($featured as $p)
-                            @include('portal.partials.ml-card', ['d' => $all[$p->id]])
-                        @endforeach
-                    </div>
+                    @include('portal.partials.home-sec-sub', ['k' => 'featured'])
+                    @include('portal.partials.home-products', ['list' => $featured->take($hs['featured']['limit'] ?? 15), 'k' => 'featured'])
                 </section>
             @endif
         @elseif($sec === 'offers')
             @if($showOffers)
-                <section class="ml-box ml-offers">
+                <section class="ml-box ml-offers {{ $HL::secClass($hs, 'offers') }}">
                     <div class="ml-sec-head">
-                        <h2><i class="fas fa-bolt"></i> Ofertas do dia</h2>
+                        <h2><i class="fas fa-bolt"></i> {{ $HL::secTitle($hs, 'offers') }}</h2>
                         <a href="{{ route('portal.catalog', ['userId' => $owner, 'ofertas' => 1]) }}">Ver todas</a>
                     </div>
-                    <div class="ml-rail">
-                        @foreach($offers->take(15) as $o)
-                            @include('portal.partials.ml-card', ['d' => $all[$o->id]])
-                        @endforeach
-                    </div>
+                    @include('portal.partials.home-sec-sub', ['k' => 'offers'])
+                    @include('portal.partials.home-products', ['list' => $offers->take($hs['offers']['limit'] ?? 15), 'k' => 'offers'])
                 </section>
             @endif
         @elseif($sec === 'collections')
@@ -157,12 +165,14 @@
             @endforeach
         @elseif($sec === 'kits')
             @if($isHome && \App\Services\Portal\KitService::enabled($owner))
-                @include('portal.partials.kit-home')
+                <div class="{{ $HL::secClass($hs, 'kits') }}">@include('portal.partials.kit-home')</div>
             @endif
         @elseif($sec === 'recent')
             @if($isHome)
-                @include('portal.partials.recently-viewed')
+                <div class="{{ $HL::secClass($hs, 'recent') }}">@include('portal.partials.recently-viewed')</div>
             @endif
+        @else
+            @include('portal.partials.home-blocks', ['k' => $sec])
         @endif
     @endforeach
     @endif

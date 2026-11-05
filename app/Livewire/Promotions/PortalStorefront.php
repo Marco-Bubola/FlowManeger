@@ -28,6 +28,8 @@ class PortalStorefront extends Component
     // Página inicial (montagem): ordem dos blocos, escondidos, cores [topo 1, topo 2, principal], cantos e tema
     public array $home_order = [];
     public array $home_off = [];
+    public array $home_sec = [];
+    public ?string $openSec = null;
     public array $home_colors = [];
     /** Cores das áreas: [fundo da página, cards e seções] */
     public array $home_surface = [];
@@ -104,6 +106,7 @@ class PortalStorefront extends Component
         $h = HomeLayout::get($s ?? PortalSetting::for(Auth::id()));
         $this->home_order = $h['order'];
         $this->home_off = $h['off'];
+        $this->home_sec = $h['sec'];
         $this->home_colors = $h['colors'];
         $this->home_surface = $h['surface'];
         $this->home_style = $h['style'];
@@ -119,7 +122,10 @@ class PortalStorefront extends Component
             return;
         }
         HomeLayout::save(Auth::id(), [
-            'theme' => $this->home_theme, 'order' => array_values($this->home_order), 'off' => array_values($this->home_off),
+            'theme' => $this->home_theme, 'order' => array_values($this->home_order),
+            'off' => array_values(array_diff($this->home_off, HomeLayout::OPTIONAL)),
+            'on' => array_values(array_diff(HomeLayout::OPTIONAL, $this->home_off)),
+            'sec' => HomeLayout::secOptions($this->home_sec),
             'colors' => $this->home_colors, 'style' => $this->home_style, 'surface' => $this->home_surface,
             'look' => HomeLayout::look($this->home_theme, $this->home_look),
             'paint' => HomeLayout::paint($this->home_paint),
@@ -149,6 +155,76 @@ class PortalStorefront extends Component
             ? array_values(array_diff($this->home_off, [$key]))
             : array_merge($this->home_off, [$key]);
         $this->saveHome();
+    }
+
+    /** Abre/fecha os ajustes de um bloco. */
+    public function editSection(string $key): void
+    {
+        $this->openSec = $this->openSec === $key || ! isset(HomeLayout::SECTIONS[$key]) ? null : $key;
+    }
+
+    /** Qualquer ajuste de bloco (título, quantos, faixa/grade, onde aparece, textos) já salva. */
+    public function updatedHomeSec(): void
+    {
+        $this->saveHome();
+    }
+
+    public function setSecOption(string $key, string $opt, $value): void
+    {
+        if (isset(HomeLayout::SECTIONS[$key]) && in_array($opt, ['show', 'layout', 'limit', 'bg', 'align', 'min'], true)) {
+            $this->home_sec[$key][$opt] = match ($opt) {
+                'bg' => empty($this->home_sec[$key]['bg']),
+                'limit', 'min' => (int) $value,
+                default => (string) $value,
+            };
+            $this->saveHome();
+        }
+    }
+
+    public function addBenefit(): void
+    {
+        $items = $this->home_sec['benefits']['items'] ?? [];
+        if (count($items) < 4) {
+            $items[] = ['ico' => 'star', 'title' => 'Nova vantagem', 'text' => ''];
+            $this->home_sec['benefits']['items'] = $items;
+            $this->saveHome();
+        }
+    }
+
+    public function removeBenefit(int $i): void
+    {
+        $items = $this->home_sec['benefits']['items'] ?? [];
+        if (count($items) > 1) {
+            array_splice($items, $i, 1);
+            $this->home_sec['benefits']['items'] = array_values($items);
+            $this->saveHome();
+        }
+    }
+
+    public function setBenefitIcon(int $i, string $ico): void
+    {
+        if (isset(HomeLayout::BENEFIT_ICONS[$ico], $this->home_sec['benefits']['items'][$i])) {
+            $this->home_sec['benefits']['items'][$i]['ico'] = $ico;
+            $this->saveHome();
+        }
+    }
+
+    /** Arrumação pronta: ordem + quais blocos aparecem. */
+    public function applyArrangement(string $key): void
+    {
+        if (! isset(HomeLayout::ARRANGEMENTS[$key])) {
+            return;
+        }
+        [, , , $order, $on] = HomeLayout::ARRANGEMENTS[$key];
+        $rest = array_values(array_diff(array_keys(HomeLayout::SECTIONS), $order));
+        $this->home_order = array_merge($order, $rest);
+        // Só a Enxuta esconde o que ficou de fora; nas outras os blocos de sempre continuam no fim.
+        $this->home_off = array_values(array_merge(
+            $key === 'enxuta' ? array_diff($rest, HomeLayout::OPTIONAL) : [],
+            array_diff(HomeLayout::OPTIONAL, $on)
+        ));
+        $this->saveHome();
+        session()->flash('success', 'Arrumação "' . HomeLayout::ARRANGEMENTS[$key][0] . '" aplicada. Dá para mudar bloco por bloco abaixo.');
     }
 
     public function setStyle(string $style): void
@@ -849,6 +925,12 @@ class PortalStorefront extends Component
             'offers'      => [$n($offers, 'promoção ativa', 'promoções ativas'), null],
             'collections' => [$n($home, 'coleção', 'coleções') . ' e ' . $n($live('strip'), 'faixa', 'faixas'), 'colecoes'],
             'recent'      => ['Só aparece para quem já abriu algum produto', null],
+            'novos'       => ['Os últimos que você cadastrou', null],
+            'vendidos'    => ['Pelas vendas dos últimos meses', null],
+            'reviews'     => [\App\Services\Portal\ReviewService::ready() ? $n(\App\Models\PortalReview::where('user_id', $uid)->where('hidden', false)->count(), 'avaliação', 'avaliações') : '', null],
+            'benefits'    => [$n(count($this->home_sec['benefits']['items'] ?? []), 'vantagem', 'vantagens'), null],
+            'whatsapp'    => ['Usa o WhatsApp da Identidade da loja', 'identidade'],
+            'texto'       => [($this->home_sec['texto']['title'] ?? '') !== '' ? $this->home_sec['texto']['title'] : 'Escreva em Ajustar', null],
         ];
     }
 }

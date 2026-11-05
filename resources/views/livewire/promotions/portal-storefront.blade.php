@@ -535,23 +535,151 @@
                 </section>
 
                 {{-- 3. Blocos --}}
-                <section class="{{ $card }} p-4 sm:p-5 space-y-2" data-testid="home-sections" id="pi-blocos" style="scroll-margin-top: 80px">
-                    <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-list-ol text-violet-500"></i>O que aparece e em que ordem</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">De cima para baixo, como o cliente vê. O aviso fica sempre no alto e a lista de todos os produtos sempre no fim.</p>
+                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-sections" id="pi-blocos" style="scroll-margin-top: 80px">
+                    <div>
+                        <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-list-ol text-violet-500"></i>O que aparece e em que ordem</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">De cima para baixo, como o cliente vê. Toque em <b>Ajustar</b> para mudar o título, quantos produtos, faixa ou grade e se aparece no celular, no computador ou nos dois. O aviso fica sempre no alto e a lista de todos os produtos sempre no fim.</p>
+                    </div>
+
+                    {{-- Arrumações prontas --}}
+                    <div data-testid="arrangements">
+                        <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">Arrumações prontas</p>
+                        <div class="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+                            @foreach($home::ARRANGEMENTS as $ak => [$an, $ai, $ad])
+                                <button type="button" wire:click="applyArrangement('{{ $ak }}')" wire:confirm="Usar a arrumação {{ $an }}? A ordem e os blocos ligados mudam (os ajustes de cada bloco ficam)." title="{{ $ad }}" data-testid="arr-{{ $ak }}"
+                                        class="shrink-0 w-40 text-left rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 hover:border-violet-400 hover:bg-violet-50/60 dark:hover:bg-violet-500/10 transition">
+                                    <span class="flex items-center gap-1.5 text-sm font-semibold text-slate-800 dark:text-slate-100"><i class="bi {{ $ai }} text-violet-500"></i>{{ $an }}</span>
+                                    <span class="block text-[11px] leading-snug text-slate-500 dark:text-slate-400 mt-0.5">{{ $ad }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+
                     <ol class="space-y-1.5">
                         @foreach($home_order as $k)
-                            @php [$sname, $sico, $sdesc] = $home::SECTIONS[$k]; $on = ! in_array($k, $home_off, true); [$sinfo, $stab] = $secInfo[$k] ?? ['', null]; @endphp
-                            <li wire:key="sec-{{ $k }}" class="flex items-center gap-2 rounded-xl border px-2.5 py-2 {{ $on ? 'border-slate-200 dark:border-slate-700' : 'border-dashed border-slate-300 dark:border-slate-700 opacity-60' }}" data-testid="sec-{{ $k }}">
-                                <span class="shrink-0 w-6 text-center text-xs font-bold text-slate-400">{{ $loop->iteration }}</span>
-                                <span class="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center bg-violet-50 dark:bg-violet-500/15 text-violet-600"><i class="bi {{ $sico }}"></i></span>
-                                <span class="min-w-0 flex-1">
-                                    <b class="block text-sm text-slate-800 dark:text-slate-100 truncate">{{ $sname }}</b>
-                                    <small class="block text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ $sinfo ?: $sdesc }}@if($stab) · <a href="#" wire:click.prevent="$set('tab', '{{ $stab }}')" class="text-violet-600 font-semibold">mudar</a>@endif</small>
-                                </span>
-                                <button type="button" wire:click="moveSection('{{ $k }}', -1)" class="{{ $iconBtn }} !w-8 !h-8" title="Subir" @disabled($loop->first)><i class="bi bi-arrow-up"></i></button>
-                                <button type="button" wire:click="moveSection('{{ $k }}', 1)" class="{{ $iconBtn }} !w-8 !h-8" title="Descer" @disabled($loop->last) data-testid="down-{{ $k }}"><i class="bi bi-arrow-down"></i></button>
-                                <button type="button" wire:click="toggleSection('{{ $k }}')" role="switch" aria-checked="{{ $on ? 'true' : 'false' }}" title="{{ $on ? 'Esconder' : 'Mostrar' }}" data-testid="toggle-{{ $k }}"
-                                        class="shrink-0 relative w-10 h-6 rounded-full transition {{ $on ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600' }}"><span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all {{ $on ? 'left-[18px]' : 'left-0.5' }}"></span></button>
+                            @php
+                                [$sname, $sico, $sdesc] = $home::SECTIONS[$k]; $on = ! in_array($k, $home_off, true); [$sinfo, $stab] = $secInfo[$k] ?? ['', null];
+                                $so = $home_sec[$k] ?? []; $isOpen = $openSec === $k;
+                                $chip = fn ($act) => 'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold transition ' . ($act ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300');
+                                $tags = array_filter([
+                                    ($so['title'] ?? '') !== '' ? '“' . $so['title'] . '”' : null,
+                                    isset($so['limit']) && in_array($k, $home::PRODUCT_SECTIONS, true) ? $so['limit'] . ' produtos' : null,
+                                    ($so['layout'] ?? '') === 'grade' ? 'em grade' : null,
+                                    ($so['show'] ?? 'todos') !== 'todos' ? mb_strtolower($home::SHOW_ON[$so['show']][0]) : null,
+                                    ! empty($so['bg']) ? 'fundo destacado' : null,
+                                ]);
+                            @endphp
+                            <li wire:key="sec-{{ $k }}" class="rounded-xl border {{ $on ? 'border-slate-200 dark:border-slate-700' : 'border-dashed border-slate-300 dark:border-slate-700' }} {{ $isOpen ? 'ring-2 ring-violet-300 dark:ring-violet-500/40' : '' }}" data-testid="sec-{{ $k }}">
+                                <div class="flex items-center gap-2 px-2.5 py-2 {{ $on ? '' : 'opacity-60' }}">
+                                    <span class="shrink-0 w-5 text-center text-xs font-bold text-slate-400">{{ $loop->iteration }}</span>
+                                    <span class="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center bg-violet-50 dark:bg-violet-500/15 text-violet-600"><i class="bi {{ $sico }}"></i></span>
+                                    <span class="min-w-0 flex-1">
+                                        <b class="flex items-center gap-1.5 text-sm text-slate-800 dark:text-slate-100 truncate">{{ $sname }}@if(in_array($k, $home::OPTIONAL, true) && ! $on)<span class="shrink-0 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 px-1.5 text-[10px] font-bold">NOVO</span>@endif</b>
+                                        <small class="block text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ $tags ? implode(' · ', $tags) : ($sinfo ?: $sdesc) }}@if($stab) · <a href="#" wire:click.prevent="$set('tab', '{{ $stab }}')" class="text-violet-600 font-semibold">mudar</a>@endif</small>
+                                    </span>
+                                    <button type="button" wire:click="editSection('{{ $k }}')" class="{{ $iconBtn }} !w-auto !h-8 px-2 gap-1 text-xs font-semibold {{ $isOpen ? '!bg-violet-600 !text-white !border-violet-600' : '' }}" title="Ajustar" data-testid="edit-{{ $k }}"><i class="bi bi-sliders"></i><span class="hidden sm:inline">Ajustar</span></button>
+                                    <button type="button" wire:click="moveSection('{{ $k }}', -1)" class="{{ $iconBtn }} !w-8 !h-8" title="Subir" @disabled($loop->first)><i class="bi bi-arrow-up"></i></button>
+                                    <button type="button" wire:click="moveSection('{{ $k }}', 1)" class="{{ $iconBtn }} !w-8 !h-8" title="Descer" @disabled($loop->last) data-testid="down-{{ $k }}"><i class="bi bi-arrow-down"></i></button>
+                                    <button type="button" wire:click="toggleSection('{{ $k }}')" role="switch" aria-checked="{{ $on ? 'true' : 'false' }}" title="{{ $on ? 'Esconder' : 'Mostrar' }}" data-testid="toggle-{{ $k }}"
+                                            class="shrink-0 relative w-10 h-6 rounded-full transition {{ $on ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600' }}"><span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all {{ $on ? 'left-[18px]' : 'left-0.5' }}"></span></button>
+                                </div>
+
+                                @if($isOpen)
+                                    <div class="border-t border-slate-100 dark:border-slate-800 px-3 sm:px-4 py-3 space-y-3 text-sm" data-testid="sec-panel-{{ $k }}">
+                                        @if(! $on)
+                                            <p class="rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-200 text-xs px-3 py-2"><i class="bi bi-eye-slash"></i> Este bloco está escondido. Ligue a chave ao lado para ele aparecer no site.</p>
+                                        @endif
+                                        @if(! in_array($k, ['hero', 'cats', 'collections', 'benefits'], true))
+                                            <div class="grid sm:grid-cols-2 gap-3">
+                                                <label class="block"><span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Título</span>
+                                                    <input type="text" maxlength="60" wire:model.blur="{{ $k === 'featured' ? 'featured_title' : 'home_sec.' . $k . '.title' }}" placeholder="{{ $home::SECTION_TITLES[$k] ?: 'Ex.: Nossa história' }}" class="{{ $input }} mt-1" data-testid="sec-title-{{ $k }}"></label>
+                                                <label class="block"><span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Frase embaixo do título <span class="font-normal">(opcional)</span></span>
+                                                    <input type="text" maxlength="140" wire:model.blur="home_sec.{{ $k }}.sub" placeholder="Ex.: escolhidos a dedo para você" class="{{ $input }} mt-1"></label>
+                                            </div>
+                                        @endif
+
+                                        @if(in_array($k, $home::PRODUCT_SECTIONS, true) || $k === 'reviews')
+                                            <div><span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Quantos {{ $k === 'reviews' ? 'comentários' : 'produtos' }}</span>
+                                                <div class="mt-1 flex flex-wrap gap-1.5">
+                                                    @foreach($home::LIMITS as $lim)
+                                                        <button type="button" wire:click="setSecOption('{{ $k }}', 'limit', {{ $lim }})" class="{{ $chip(($so['limit'] ?? 0) === $lim) }}" data-testid="lim-{{ $k }}-{{ $lim }}">{{ $lim }}</button>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endif
+                                        @if(in_array($k, $home::PRODUCT_SECTIONS, true))
+                                            <div><span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Como mostra</span>
+                                                <div class="mt-1 flex flex-wrap gap-1.5">
+                                                    <button type="button" wire:click="setSecOption('{{ $k }}', 'layout', 'faixa')" class="{{ $chip(($so['layout'] ?? 'faixa') === 'faixa') }}"><i class="bi bi-arrow-left-right"></i> Faixa de arrastar</button>
+                                                    <button type="button" wire:click="setSecOption('{{ $k }}', 'layout', 'grade')" class="{{ $chip(($so['layout'] ?? '') === 'grade') }}" data-testid="grade-{{ $k }}"><i class="bi bi-grid-3x2-gap"></i> Grade (tudo à vista)</button>
+                                                </div>
+                                            </div>
+                                        @endif
+                                        @if($k === 'reviews')
+                                            <div><span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Só avaliações com</span>
+                                                <div class="mt-1 flex flex-wrap gap-1.5">
+                                                    @foreach([3, 4, 5] as $mn)
+                                                        <button type="button" wire:click="setSecOption('reviews', 'min', {{ $mn }})" class="{{ $chip(($so['min'] ?? 4) === $mn) }}">{{ $mn }}★ {{ $mn < 5 ? 'ou mais' : '' }}</button>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endif
+                                        @if($k === 'texto')
+                                            <label class="block"><span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Texto</span>
+                                                <textarea rows="4" maxlength="800" wire:model.blur="home_sec.texto.text" placeholder="Conte a história da loja, um recado ou uma regra importante." class="{{ $input }} mt-1" data-testid="sec-text-texto"></textarea></label>
+                                            <div class="flex flex-wrap gap-1.5">
+                                                <button type="button" wire:click="setSecOption('texto', 'align', 'centro')" class="{{ $chip(($so['align'] ?? 'centro') === 'centro') }}"><i class="bi bi-text-center"></i> No meio</button>
+                                                <button type="button" wire:click="setSecOption('texto', 'align', 'esquerda')" class="{{ $chip(($so['align'] ?? '') === 'esquerda') }}"><i class="bi bi-text-left"></i> À esquerda</button>
+                                            </div>
+                                        @endif
+                                        @if($k === 'whatsapp')
+                                            <div class="grid sm:grid-cols-2 gap-3">
+                                                <label class="block"><span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Texto</span>
+                                                    <input type="text" maxlength="200" wire:model.blur="home_sec.whatsapp.text" placeholder="Chama a gente no WhatsApp que a gente te ajuda a escolher." class="{{ $input }} mt-1"></label>
+                                                <label class="block"><span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Botão</span>
+                                                    <input type="text" maxlength="30" wire:model.blur="home_sec.whatsapp.button" placeholder="Falar no WhatsApp" class="{{ $input }} mt-1"></label>
+                                            </div>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400">Usa o número de <a href="#" wire:click.prevent="$set('tab', 'identidade')" class="text-violet-600 font-semibold">Identidade da loja</a>. Sem número lá, o bloco não aparece.</p>
+                                        @endif
+                                        @if($k === 'benefits')
+                                            <div class="space-y-2" data-testid="benefits-edit">
+                                                @foreach($so['items'] ?? [] as $bi => $it)
+                                                    <div wire:key="ben-{{ $bi }}" class="rounded-xl border border-slate-200 dark:border-slate-700 p-2.5">
+                                                        <div class="flex flex-wrap gap-1 mb-2">
+                                                            @foreach($home::BENEFIT_ICONS as $ik => [$bico])
+                                                                <button type="button" wire:click="setBenefitIcon({{ $bi }}, '{{ $ik }}')" class="w-8 h-8 rounded-lg border text-sm {{ $it['ico'] === $ik ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-600' : 'border-slate-200 dark:border-slate-700 text-slate-500' }}"><i class="bi {{ $bico }}"></i></button>
+                                                            @endforeach
+                                                            @if(count($so['items']) > 1)
+                                                                <button type="button" wire:click="removeBenefit({{ $bi }})" class="ml-auto w-8 h-8 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10" title="Tirar"><i class="bi bi-trash"></i></button>
+                                                            @endif
+                                                        </div>
+                                                        <div class="grid sm:grid-cols-2 gap-2">
+                                                            <input type="text" maxlength="40" wire:model.blur="home_sec.benefits.items.{{ $bi }}.title" placeholder="Ex.: Entrega rápida" class="{{ $input }}">
+                                                            <input type="text" maxlength="70" wire:model.blur="home_sec.benefits.items.{{ $bi }}.text" placeholder="Ex.: Para toda a cidade" class="{{ $input }}">
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                                @if(count($so['items'] ?? []) < 4)
+                                                    <button type="button" wire:click="addBenefit" class="{{ $phBtn }} !py-1.5 text-xs"><i class="bi bi-plus-lg"></i> Mais uma vantagem</button>
+                                                @endif
+                                            </div>
+                                        @endif
+
+                                        <div class="flex flex-wrap items-end gap-x-5 gap-y-3">
+                                            <div><span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Aparece</span>
+                                                <div class="mt-1 flex flex-wrap gap-1.5">
+                                                    @foreach($home::SHOW_ON as $sk => [$sn, $si])
+                                                        <button type="button" wire:click="setSecOption('{{ $k }}', 'show', '{{ $sk }}')" class="{{ $chip(($so['show'] ?? 'todos') === $sk) }}" data-testid="show-{{ $k }}-{{ $sk }}"><i class="bi {{ $si }}"></i> {{ $sn }}</button>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                            @if(! in_array($k, ['hero'], true))
+                                                <button type="button" wire:click="setSecOption('{{ $k }}', 'bg', 1)" class="{{ $chip(! empty($so['bg'])) }}" data-testid="bg-{{ $k }}"><i class="bi bi-paint-bucket"></i> Fundo destacado</button>
+                                            @endif
+                                            <button type="button" wire:click="editSection('{{ $k }}')" class="ml-auto text-xs font-semibold text-violet-600">Pronto</button>
+                                        </div>
+                                    </div>
+                                @endif
                             </li>
                         @endforeach
                     </ol>

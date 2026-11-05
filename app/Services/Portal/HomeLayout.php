@@ -23,10 +23,54 @@ class HomeLayout
         'offers'      => ['Ofertas do dia', 'bi-lightning-charge', 'Os produtos com promoção ativa.'],
         'kits'        => ['Monte seu kit', 'bi-gift', 'Os kits que o cliente monta (aparece quando tem kit ligado).'],
         'collections' => ['Coleções e faixas', 'bi-collection', 'Uma fileira para cada coleção, com as faixas entre elas.'],
+        'novos'       => ['Novidades', 'bi-stars', 'Os últimos produtos que você cadastrou.'],
+        'vendidos'    => ['Mais vendidos', 'bi-graph-up-arrow', 'Os produtos que mais saem na loja.'],
+        'reviews'     => ['O que dizem os clientes', 'bi-chat-quote', 'As últimas avaliações com estrelas.'],
+        'benefits'    => ['Vantagens da loja', 'bi-patch-check', 'Uma faixa com até 4 vantagens: entrega, Pix, parcelas, troca.'],
+        'whatsapp'    => ['Chamada para o WhatsApp', 'bi-whatsapp', 'Um quadro com botão para o cliente falar com você.'],
+        'texto'       => ['Texto livre', 'bi-card-text', 'Um título e um texto seu, para recado, história da loja ou regra.'],
         'recent'      => ['Vistos por último', 'bi-clock-history', 'Os produtos que o cliente abriu por último.'],
     ];
 
-    public const DEFAULT_ORDER = ['hero', 'cats', 'featured', 'kits', 'offers', 'collections', 'recent'];
+    public const DEFAULT_ORDER = ['hero', 'cats', 'featured', 'kits', 'offers', 'collections', 'novos', 'vendidos', 'reviews', 'benefits', 'whatsapp', 'texto', 'recent'];
+
+    /** Blocos novos: começam escondidos (a loja liga quando quiser), para a página não mudar sozinha. */
+    public const OPTIONAL = ['novos', 'vendidos', 'reviews', 'benefits', 'whatsapp', 'texto'];
+
+    /** Blocos que mostram produtos (dá para escolher quantos e se é faixa ou grade). */
+    public const PRODUCT_SECTIONS = ['featured', 'offers', 'novos', 'vendidos'];
+
+    /** Título que aparece no site quando a loja não escreve outro. */
+    public const SECTION_TITLES = [
+        'featured' => 'Destaques da loja', 'offers' => 'Ofertas do dia', 'novos' => 'Novidades', 'vendidos' => 'Mais vendidos',
+        'reviews' => 'O que dizem os clientes', 'whatsapp' => 'Ficou com alguma dúvida?', 'texto' => '', 'recent' => 'Vistos por último', 'kits' => '',
+    ];
+
+    public const SHOW_ON = ['todos' => ['Celular e computador', 'bi-display'], 'celular' => ['Só no celular', 'bi-phone'], 'computador' => ['Só no computador', 'bi-laptop']];
+
+    public const LIMITS = [4, 6, 8, 10, 12, 15, 20];
+
+    public const BENEFIT_ICONS = [
+        'truck' => ['bi-truck', 'fas fa-truck'], 'pix' => ['bi-qr-code', 'fas fa-qrcode'], 'card' => ['bi-credit-card', 'fas fa-credit-card'],
+        'swap' => ['bi-arrow-repeat', 'fas fa-sync-alt'], 'shield' => ['bi-shield-check', 'fas fa-shield-alt'], 'gift' => ['bi-gift', 'fas fa-gift'],
+        'star' => ['bi-star', 'fas fa-star'], 'clock' => ['bi-clock', 'fas fa-clock'], 'heart' => ['bi-heart', 'fas fa-heart'], 'chat' => ['bi-whatsapp', 'fab fa-whatsapp'],
+    ];
+
+    public const DEFAULT_BENEFITS = [
+        ['ico' => 'truck', 'title' => 'Entrega rápida', 'text' => 'Consulte o frete pelo CEP'],
+        ['ico' => 'pix', 'title' => 'Pague no Pix', 'text' => 'Na hora, sem complicação'],
+        ['ico' => 'card', 'title' => 'Parcele no cartão', 'text' => 'Nas principais bandeiras'],
+        ['ico' => 'swap', 'title' => 'Troca fácil', 'text' => 'Fale com a gente pelo WhatsApp'],
+    ];
+
+    /** Arrumações prontas da lista de blocos. */
+    public const ARRANGEMENTS = [
+        'padrao'   => ['Como sempre', 'bi-arrow-counterclockwise', 'A ordem de sempre, sem os blocos novos.', ['hero', 'cats', 'featured', 'kits', 'offers', 'collections', 'recent'], []],
+        'ofertas'  => ['Loja de ofertas', 'bi-lightning-charge', 'Ofertas logo depois dos banners, depois mais vendidos.', ['hero', 'offers', 'vendidos', 'cats', 'featured', 'collections', 'benefits', 'recent'], ['vendidos', 'benefits']],
+        'novidade' => ['Vitrine de novidades', 'bi-stars', 'Abre com as novidades e os destaques.', ['hero', 'novos', 'featured', 'cats', 'collections', 'offers', 'recent'], ['novos']],
+        'confianca' => ['Loja de confiança', 'bi-patch-check', 'Vantagens, avaliações e WhatsApp para quem ainda não conhece a loja.', ['hero', 'benefits', 'featured', 'cats', 'offers', 'collections', 'reviews', 'whatsapp', 'recent'], ['benefits', 'reviews', 'whatsapp']],
+        'enxuta'   => ['Enxuta', 'bi-dash-square', 'Só banners, categorias e destaques. O resto fica escondido.', ['hero', 'cats', 'featured'], []],
+    ];
 
     /** Cantos dos cards e banners. */
     public const STYLES = [
@@ -560,7 +604,8 @@ class HomeLayout
         return [
             'theme'   => $theme,
             'order'   => $order,
-            'off'     => array_values(array_intersect((array) $h['off'], array_keys(self::SECTIONS))),
+            'off'     => self::offList($h),
+            'sec'     => self::secOptions($h['sec'] ?? []),
             'colors'  => $colors,
             'style'   => isset(self::STYLES[$h['style']]) ? $h['style'] : 'padrao',
             'surface' => $surface,
@@ -568,6 +613,71 @@ class HomeLayout
             'paint'   => self::paint($h['paint']),
             'model'   => isset(self::MODELS[$s?->home['model'] ?? '']) ? $s->home['model'] : 'atual',
         ];
+    }
+
+    /** Escondidos: os que a loja desligou + os blocos novos que ela ainda não ligou. */
+    public static function offList(array $h): array
+    {
+        $off = array_values(array_intersect((array) ($h['off'] ?? []), array_keys(self::SECTIONS)));
+        foreach (self::OPTIONAL as $k) {
+            if (! in_array($k, (array) ($h['on'] ?? []), true) && ! in_array($k, $off, true)) {
+                $off[] = $k;
+            }
+        }
+
+        return $off;
+    }
+
+    /** Ajustes de cada bloco (título, quantos produtos, faixa ou grade, onde aparece, textos), já limpos. */
+    public static function secOptions($saved): array
+    {
+        $out = [];
+        $clip = fn ($v, $n) => mb_substr(trim(strip_tags((string) $v)), 0, $n);
+        foreach (array_keys(self::SECTIONS) as $k) {
+            $o = (array) (((array) $saved)[$k] ?? []);
+            $r = ['show' => isset(self::SHOW_ON[$o['show'] ?? '']) ? $o['show'] : 'todos', 'title' => $clip($o['title'] ?? '', 60), 'sub' => $clip($o['sub'] ?? '', 140), 'bg' => ! empty($o['bg'])];
+            if (in_array($k, self::PRODUCT_SECTIONS, true)) {
+                $r['limit'] = in_array((int) ($o['limit'] ?? 0), self::LIMITS, true) ? (int) $o['limit'] : ($k === 'offers' || $k === 'featured' ? 15 : 10);
+                $r['layout'] = ($o['layout'] ?? '') === 'grade' ? 'grade' : 'faixa';
+            }
+            if ($k === 'texto') {
+                $r['text'] = $clip($o['text'] ?? '', 800);
+                $r['align'] = ($o['align'] ?? '') === 'esquerda' ? 'esquerda' : 'centro';
+            }
+            if ($k === 'whatsapp') {
+                $r['text'] = $clip($o['text'] ?? '', 200);
+                $r['button'] = $clip($o['button'] ?? '', 30);
+            }
+            if ($k === 'reviews') {
+                $r['limit'] = in_array((int) ($o['limit'] ?? 0), self::LIMITS, true) ? (int) $o['limit'] : 6;
+                $r['min'] = in_array((int) ($o['min'] ?? 0), [3, 4, 5], true) ? (int) $o['min'] : 4;
+            }
+            if ($k === 'benefits') {
+                $items = [];
+                foreach (array_slice((array) ($o['items'] ?? self::DEFAULT_BENEFITS), 0, 4) as $it) {
+                    $it = (array) $it;
+                    $items[] = ['ico' => isset(self::BENEFIT_ICONS[$it['ico'] ?? '']) ? $it['ico'] : 'star', 'title' => $clip($it['title'] ?? '', 40), 'text' => $clip($it['text'] ?? '', 70)];
+                }
+                $r['items'] = $items ?: self::DEFAULT_BENEFITS;
+            }
+            $out[$k] = $r;
+        }
+
+        return $out;
+    }
+
+    /** Título do bloco no site. */
+    public static function secTitle(array $sec, string $k, ?string $fallback = null): string
+    {
+        return ($sec[$k]['title'] ?? '') !== '' ? $sec[$k]['title'] : ($fallback ?? (self::SECTION_TITLES[$k] ?? self::SECTIONS[$k][0]));
+    }
+
+    /** Classe do bloco no site (onde aparece e fundo destacado). */
+    public static function secClass(array $sec, string $k): string
+    {
+        $o = $sec[$k] ?? [];
+
+        return trim(match ($o['show'] ?? 'todos') { 'celular' => 'sf-only-phone', 'computador' => 'sf-only-pc', default => '' } . (! empty($o['bg']) ? ' sf-sec-bg' : ''));
     }
 
     /** Só as cores de parte válidas; o resto fica de fora (= automático). */
@@ -586,7 +696,7 @@ class HomeLayout
     public static function save(int $ownerId, array $layout): void
     {
         $s = PortalSetting::for($ownerId);
-        $s->home = array_merge($s->home ?? [], array_intersect_key($layout, array_flip(['theme', 'order', 'off', 'colors', 'style', 'surface', 'look', 'paint', 'auto', 'model'])));
+        $s->home = array_merge($s->home ?? [], array_intersect_key($layout, array_flip(['theme', 'order', 'off', 'on', 'sec', 'colors', 'style', 'surface', 'look', 'paint', 'auto', 'model'])));
         $s->save();
     }
 
