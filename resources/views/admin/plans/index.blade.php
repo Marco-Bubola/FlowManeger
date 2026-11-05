@@ -172,6 +172,49 @@
             </form>
         </div>
 
+        {{-- Página inicial do próprio FlowManager: estilo dos vídeos, opcional (Atual continua o padrão) --}}
+        @php $lp = \App\Support\LandingStyle::get(); @endphp
+        <div class="pg-card {{ $lp['model'] !== 'atual' || $lp['motion'] !== 'nenhum' ? 'is-on' : '' }}" data-testid="landing-style">
+            <span class="pg-ico"><i class="bi bi-window-sidebar"></i></span>
+            <div class="pg-txt">
+                <b>Página inicial do FlowManager</b>
+                <p>O site que aparece em flowmaneger.com para quem ainda não entrou. "Atual" e "Sem movimento" deixam como sempre foi.</p>
+                <form method="POST" action="{{ route('admin.landing.style') }}" class="lp-form">
+                    @csrf
+                    <div class="lp-row">
+                        <span class="lp-lbl">Estilo</span>
+                        @foreach(\App\Support\LandingStyle::MODELS as $k => [$t, $d])
+                            <label class="lp-opt" title="{{ $d }}"><input type="radio" name="model" value="{{ $k }}" @checked($lp['model'] === $k)><span>{{ $t }}</span></label>
+                        @endforeach
+                    </div>
+                    <div class="lp-row">
+                        <span class="lp-lbl">Movimento</span>
+                        @foreach(\App\Support\LandingStyle::MOTIONS as $k => [$t, $d])
+                            <label class="lp-opt" title="{{ $d }}"><input type="radio" name="motion" value="{{ $k }}" @checked($lp['motion'] === $k)><span>{{ $t }}</span></label>
+                        @endforeach
+                    </div>
+                    <div class="lp-row">
+                        <button type="submit" class="lp-save">Salvar</button>
+                        <a class="lp-prev" target="_blank" rel="noopener" href="#" onclick="var f=this.closest('form');this.href='{{ url('/') }}?estilo='+f.model.value+'&movimento='+f.motion.value;">Ver prévia <i class="bi bi-box-arrow-up-right"></i></a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <style>
+            .lp-form { margin-top: .6rem; display: flex; flex-direction: column; gap: .5rem; }
+            .lp-row { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+            .lp-lbl { width: 5.6rem; font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
+            .lp-opt input { position: absolute; opacity: 0; pointer-events: none; }
+            .lp-opt span { display: inline-flex; padding: .35rem .75rem; border-radius: 999px; border: 1.5px solid #e2e8f0; font-size: .8rem; font-weight: 700; cursor: pointer; background: #fff; color: #334155; }
+            .lp-opt input:checked + span { border-color: var(--color-indigo-500); background: var(--color-indigo-50); color: var(--color-indigo-700); }
+            .lp-opt input:focus-visible + span { outline: 2px solid var(--color-indigo-400); outline-offset: 2px; }
+            .dark .lp-opt span { background: #0f172a; border-color: #334155; color: #cbd5e1; }
+            .dark .lp-opt input:checked + span { background: #1e1b4b; color: #c7d2fe; }
+            .lp-save { padding: .45rem 1rem; border-radius: .7rem; background: linear-gradient(135deg, var(--color-indigo-600), var(--color-purple-600)); color: #fff; font-weight: 800; font-size: .82rem; }
+            .lp-prev { font-size: .8rem; font-weight: 700; color: var(--color-indigo-600); }
+            @media (max-width: 480px) { .lp-lbl { width: 100%; } }
+        </style>
+
         <!-- Stats -->
         <div class="stats-row">
             <div class="stat-card">

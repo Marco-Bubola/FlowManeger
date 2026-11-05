@@ -1,3 +1,8 @@
+@php
+    $lp = $lp ?? \App\Support\LandingStyle::DEFAULT;
+    $lpModel = $lp['model'] ?? 'atual';
+    $lpMotion = $lp['motion'] ?? 'nenhum';
+@endphp
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -635,6 +640,8 @@
             .testi-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 480px) {
+            .nav-cta .btn-nav-ghost { display: none; }
+            .nav-cta .btn-nav-primary { padding: .45rem .85rem; font-size: .78rem; }
             .hero-cta { flex-direction: column; align-items: stretch; }
             .btn-cta-primary, .btn-cta-secondary { width: 100%; max-width: 100%; justify-content: center; }
             .cta-final-actions { flex-direction: column; align-items: stretch; }
@@ -642,8 +649,10 @@
             .pb-kpis { grid-template-columns: 1fr; }
         }
     </style>
+    @if ($lpModel !== 'atual') @include('landing.skins') @endif
+    @if ($lpMotion !== 'nenhum') @include('landing.motion') @endif
 </head>
-<body>
+<body class="lp-{{ $lpModel }} lp-mo-{{ $lpMotion }}">
 <div class="bg-glow"></div>
 <div class="noise"></div>
 

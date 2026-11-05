@@ -47,6 +47,14 @@ class PlansController extends Controller
             : 'Bloqueio pelo plano desligado: todas as contas abrem tudo.');
     }
 
+    /** Admin › Planos › Página inicial do FlowManager: estilo e movimento da página de entrada. */
+    public function landingStyle(Request $request)
+    {
+        $v = \App\Support\LandingStyle::set($request->only('model', 'motion'));
+
+        return back()->with('success', 'Página inicial: ' . \App\Support\LandingStyle::MODELS[$v['model']][0] . ', ' . mb_strtolower(\App\Support\LandingStyle::MOTIONS[$v['motion']][0]) . '.');
+    }
+
     public function create()
     {
         return view('admin.plans.create');

@@ -145,7 +145,7 @@ Route::get('/manifest.webmanifest', function () {
 })->name('manifest');
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('welcome', ['lp' => \App\Support\LandingStyle::forRequest()]);
 })->name('home');
 
 Route::get('/dashboard', DashboardIndex::class)
@@ -668,6 +668,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('plans/grant', [AdminPlansController::class, 'grantAccess'])->name('plans.grant');
     Route::post('users/toggle-admin', [AdminPlansController::class, 'toggleAdmin'])->name('users.toggle-admin');
     Route::post('plans/gate', [AdminPlansController::class, 'toggleGate'])->name('plans.gate');
+    Route::post('landing-style', [AdminPlansController::class, 'landingStyle'])->name('landing.style');
 
     // Subscriptions management
     Route::get('subscriptions', [AdminPlansController::class, 'subscriptions'])->name('subscriptions.index');
