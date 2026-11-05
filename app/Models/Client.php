@@ -35,6 +35,7 @@ class Client extends Model implements AuthenticatableContract, CanResetPasswordC
         'portal_force_password_change', 'portal_profile_completed_at',
         'cpf_cnpj', 'birth_date', 'company', 'portal_notes',
         'cep', 'street', 'number', 'complement', 'neighborhood', 'city', 'state',
+        'source',
     ];
 
     protected $hidden = ['portal_password', 'portal_token', 'remember_token'];
@@ -125,6 +126,12 @@ class Client extends Model implements AuthenticatableContract, CanResetPasswordC
     }
 
     // Relacionamento com o usuário
+    /** Etiquetas do CRM (VIP, Atacado...). */
+    public function tags()
+    {
+        return $this->belongsToMany(ClientTag::class, 'client_tag', 'client_id', 'client_tag_id')->orderBy('name');
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

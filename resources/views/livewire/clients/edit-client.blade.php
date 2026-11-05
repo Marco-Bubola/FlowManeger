@@ -46,6 +46,7 @@
                     :phone="$phone"
                     :address="$address"
                     :selected-avatar="$avatar_cliente" />
+                @include('livewire.clients.partials.crm-fields')
             </div>
         </div>
     </div>

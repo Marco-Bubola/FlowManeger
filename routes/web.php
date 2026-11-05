@@ -249,6 +249,7 @@ Route::middleware(['auth'])->group(function () {
     // --- Rotas de Clientes (Livewire) ---
     Route::get('/clients', ClientsIndex::class)->name('clients.index');
     Route::get('/clients/create', CreateClient::class)->name('clients.create');
+    Route::get('/clients/etiquetas', \App\Livewire\Clients\ClientTags::class)->name('clients.tags');
     Route::get('/clients/{client}/edit', EditClient::class)->name('clients.edit');
 
     // --- Rotas de Resumo Financeiro do Cliente (Livewire) ---

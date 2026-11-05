@@ -36,6 +36,9 @@
                 @if($this->activeClients > 0)
                     <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"><i class="bi bi-person-check"></i>{{ $this->activeClients }} ativos</span>
                 @endif
+                @if($this->lostClients > 0)
+                    <button type="button" wire:click="$set('statusFilter', 'sumido')" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-orange-50 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300" title="Sem comprar há mais de 90 dias"><i class="bi bi-hourglass-split"></i>{{ $this->lostClients }} {{ $this->lostClients == 1 ? 'sumido' : 'sumidos' }}</button>
+                @endif
                 @if($this->premiumClients > 0)
                     <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="bi bi-star"></i>{{ $this->premiumClients }} premium</span>
                 @endif
@@ -50,8 +53,10 @@
         <x-list-toolbar placeholder="Buscar clientes por nome, email, telefone ou cidade...">
             <x-toolbar.group>
                 <x-toolbar.chip wire:click="$set('statusFilter', '')" :active="$statusFilter === ''" icon="bi-grid">Todos</x-toolbar.chip>
-                <x-toolbar.chip wire:click="$set('statusFilter', 'ativo')" :active="$statusFilter === 'ativo'" icon="bi-person-check">Ativos</x-toolbar.chip>
-                <x-toolbar.chip wire:click="$set('statusFilter', 'inativo')" :active="$statusFilter === 'inativo'" icon="bi-person-dash">Inativos</x-toolbar.chip>
+                <x-toolbar.chip wire:click="$set('statusFilter', 'novo')" :active="$statusFilter === 'novo'" icon="bi-stars">Novos</x-toolbar.chip>
+                <x-toolbar.chip wire:click="$set('statusFilter', 'ativo')" :active="$statusFilter === 'ativo'" icon="bi-lightning-charge">Ativos</x-toolbar.chip>
+                <x-toolbar.chip wire:click="$set('statusFilter', 'sumido')" :active="$statusFilter === 'sumido'" icon="bi-hourglass-split">Sumidos</x-toolbar.chip>
+                <x-toolbar.chip wire:click="$set('statusFilter', 'inativo')" :active="$statusFilter === 'inativo'" icon="bi-moon">Inativos</x-toolbar.chip>
                 <x-toolbar.chip wire:click="$set('statusFilter', 'premium')" :active="$statusFilter === 'premium'" icon="bi-star">Premium</x-toolbar.chip>
             </x-toolbar.group>
             <x-toolbar.group icon="bi-arrow-down-up">
@@ -64,18 +69,42 @@
 
         <!-- Filtros: mesma janela de Produtos e Vendas -->
         @php
-            $cliActive = $statusFilter || $dateFilter || $minValue !== '' || $maxValue !== '' || $minSales !== '' || $maxSales !== '';
+            $cliActive = $statusFilter || $tagFilter !== '' || $sourceFilter !== '' || $dateFilter || $minValue !== '' || $maxValue !== '' || $minSales !== '' || $maxSales !== '';
             $opt = fn ($on) => 'fm-fs-opt' . ($on ? ' is-on' : '');
             $sortIcon = fn ($col) => $sortBy === $col ? ($sortDirection === 'asc' ? 'bi-sort-up' : 'bi-sort-down') : '';
         @endphp
         <x-filter-sheet title="Filtros de clientes" subtitle="Status, cadastro, valor comprado e ordem" :active="$cliActive"
-            target="statusFilter,dateFilter,toggleSort,minValue,maxValue,minSales,maxSales,clearFilters">
+            target="statusFilter,tagFilter,sourceFilter,dateFilter,toggleSort,minValue,maxValue,minSales,maxSales,clearFilters">
             <div class="fm-fs-group">
                 <h4><i class="bi bi-person-check text-purple-500"></i>Status</h4>
                 <div class="fm-fs-options">
-                    @foreach(['' => ['Todos', 'bi-list-ul'], 'ativo' => ['Ativos', 'bi-person-check'], 'inativo' => ['Inativos', 'bi-person-x'], 'premium' => ['Premium', 'bi-star']] as $val => [$lbl, $ico])
-                        <button type="button" wire:click="$set('statusFilter', '{{ $val }}')" class="{{ $opt($statusFilter === $val) }}"><i class="bi {{ $ico }}"></i>{{ $lbl }}</button>
+                    <button type="button" wire:click="$set('statusFilter', '')" class="{{ $opt($statusFilter === '') }}"><i class="bi bi-list-ul"></i>Todos</button>
+                    @foreach(\App\Services\Clients\ClientStatus::STATUSES as $val => $st)
+                        <button type="button" wire:click="$set('statusFilter', '{{ $val }}')" class="{{ $opt($statusFilter === $val) }}" title="{{ $st['hint'] }}"><i class="bi {{ $st['icon'] }}"></i>{{ $st['label'] }}</button>
                     @endforeach
+                    <button type="button" wire:click="$set('statusFilter', 'premium')" class="{{ $opt($statusFilter === 'premium') }}"><i class="bi bi-star"></i>Premium</button>
+                </div>
+                <p class="mt-1 text-[11px] text-slate-400">Ativo: comprou nos últimos 90 dias · Sumido: 90 dias a 1 ano sem comprar · Inativo: mais de 1 ano</p>
+            </div>
+            <div class="fm-fs-group">
+                <h4><i class="bi bi-tags text-pink-500"></i>Etiqueta <a href="{{ route('clients.tags') }}" wire:navigate class="ml-auto text-[11px] font-semibold text-indigo-600 dark:text-indigo-300">Gerenciar</a></h4>
+                <div class="fm-fs-options">
+                    <button type="button" wire:click="$set('tagFilter', '')" class="{{ $opt($tagFilter === '') }}">Todas</button>
+                    @forelse($crmTags as $t)
+                        <button type="button" wire:click="$set('tagFilter', '{{ $t->id }}')" class="{{ $opt($tagFilter === (string) $t->id) }}"><span class="inline-block w-2 h-2 rounded-full" style="background: {{ \App\Models\ConsortiumNotification::TONES[$t->color] ?? '#6366f1' }}"></span>{{ $t->name }}</button>
+                    @empty
+                        <span class="text-xs text-slate-400">Crie etiquetas no cadastro do cliente.</span>
+                    @endforelse
+                </div>
+            </div>
+            <div class="fm-fs-group">
+                <h4><i class="bi bi-signpost-split text-sky-500"></i>Como conheceu</h4>
+                <div class="fm-fs-options">
+                    <button type="button" wire:click="$set('sourceFilter', '')" class="{{ $opt($sourceFilter === '') }}">Qualquer</button>
+                    @foreach(\App\Services\Clients\ClientStatus::SOURCES as $val => $src)
+                        <button type="button" wire:click="$set('sourceFilter', '{{ $val }}')" class="{{ $opt($sourceFilter === $val) }}"><i class="bi {{ $src['icon'] }}"></i>{{ $src['label'] }}</button>
+                    @endforeach
+                    <button type="button" wire:click="$set('sourceFilter', 'sem')" class="{{ $opt($sourceFilter === 'sem') }}">Não informado</button>
                 </div>
             </div>
             <div class="fm-fs-group">
@@ -136,6 +165,8 @@
                         'novo' => ['label' => 'Sem compras', 'icon' => 'bi-person-plus-fill', 'band' => 'from-slate-300 via-slate-400 to-slate-500', 'pill' => 'bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300'],
                     ][$tier];
                     $place = collect([$client->city ?? null, $client->state ?? null])->filter()->implode(' / ');
+                    $crm = \App\Services\Clients\ClientStatus::info(\App\Services\Clients\ClientStatus::for($client));
+                    $crmSrc = \App\Services\Clients\ClientStatus::sourceInfo($client->source ?? null);
                     $whats = $client->phone ? preg_replace('/[^0-9]/', '', $client->phone) : null;
                 @endphp
                 <div wire:key="client-card-{{ $client->id }}"
@@ -149,9 +180,16 @@
                         <div class="flex items-center justify-between">
                             <input type="checkbox" wire:model.live="selectedClients" value="{{ $client->id }}" title="Selecionar"
                                 class="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 dark:bg-slate-800">
-                            <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ $tierStyle['pill'] }}">
-                                <i class="bi {{ $tierStyle['icon'] }} text-[10px]"></i>{{ $tierStyle['label'] }}
-                            </span>
+                            <div class="flex items-center gap-1">
+                                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold" style="{{ \App\Models\ConsortiumNotification::toneStyle($crm['tone'], 0.16) }}" title="{{ $crm['hint'] }}">
+                                    <i class="bi {{ $crm['icon'] }} text-[10px]"></i>{{ $crm['label'] }}
+                                </span>
+                                @if($tier === 'vip' || $tier === 'premium')
+                                <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ $tierStyle['pill'] }}">
+                                    <i class="bi {{ $tierStyle['icon'] }} text-[10px]"></i>{{ $tierStyle['label'] }}
+                                </span>
+                                @endif
+                            </div>
                         </div>
 
                         {{-- Identidade --}}
@@ -165,6 +203,18 @@
                                 </p>
                             </div>
                         </a>
+
+                        @if($client->tags->isNotEmpty() || $crmSrc)
+                            <div class="mt-2 flex flex-wrap items-center gap-1">
+                                @foreach($client->tags->take(4) as $t)
+                                    <button type="button" wire:click="$set('tagFilter', '{{ $t->id }}')" class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold" style="{{ $t->style(0.15) }}" title="Ver clientes com esta etiqueta"><i class="bi bi-tag-fill text-[8px]"></i>{{ $t->name }}</button>
+                                @endforeach
+                                @if($client->tags->count() > 4)<span class="text-[10px] font-semibold text-slate-400">+{{ $client->tags->count() - 4 }}</span>@endif
+                                @if($crmSrc)
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400" title="Como conheceu a loja"><i class="bi {{ $crmSrc['icon'] }}"></i>{{ $crmSrc['label'] }}</span>
+                                @endif
+                            </div>
+                        @endif
 
                         {{-- Contato --}}
                         <div class="mt-3 space-y-1 text-xs">

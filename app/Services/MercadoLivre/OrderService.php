@@ -302,6 +302,7 @@ class OrderService extends MercadoLivreService
             'name' => mb_substr($name, 0, 100),
             'email' => $email !== '' ? $email : null,
             'phone' => $phone !== '' ? $phone : null,
+            'source' => 'mercadolivre',
         ]);
     }
 

@@ -409,6 +409,7 @@ class ClientPortalController extends Controller
             'phone'           => $this->formatPhoneForStorage($validated['phone']),
             'portal_password' => Hash::make($validated['password']),
             'portal_active'   => true,
+            'source'          => 'site',
         ]);
         if (\Illuminate\Support\Facades\Schema::hasColumn('clients', 'privacy_accepted_at')) {
             $client->forceFill(['privacy_accepted_at' => now()])->save();

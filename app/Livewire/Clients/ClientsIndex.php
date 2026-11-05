@@ -31,6 +31,9 @@ class ClientsIndex extends Component
     public string $statusFilter = '';
     public string $periodFilter = '';
     public string $dateFilter = '';
+    // CRM: etiqueta e origem
+    public string $tagFilter = '';
+    public string $sourceFilter = '';
     // Ordenação padrão: mais recentes adicionados primeiro
     public string $sortBy = 'created_at';
     public string $sortDirection = 'desc';
@@ -66,6 +69,8 @@ class ClientsIndex extends Component
         'search' => ['except' => ''],
         'filter' => ['except' => ''],
         'statusFilter' => ['except' => ''],
+        'tagFilter' => ['except' => '', 'as' => 'etiqueta'],
+        'sourceFilter' => ['except' => '', 'as' => 'origem'],
         'periodFilter' => ['except' => ''],
         'perPage' => ['except' => 12],
     ];
@@ -130,6 +135,16 @@ class ClientsIndex extends Component
     }
 
     public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingTagFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingSourceFilter(): void
     {
         $this->resetPage();
     }
@@ -238,7 +253,7 @@ class ClientsIndex extends Component
     // Novos métodos para filtros avançados
     public function clearAllFilters(): void
     {
-        $this->reset(['search', 'filter', 'statusFilter', 'periodFilter', 'minValue', 'maxValue', 'minSales', 'maxSales']);
+        $this->reset(['search', 'filter', 'statusFilter', 'periodFilter', 'minValue', 'maxValue', 'minSales', 'maxSales', 'tagFilter', 'sourceFilter']);
         $this->resetPage();
     }
 
@@ -379,22 +394,24 @@ class ClientsIndex extends Component
             });
         }
 
-        // Filtro por status
+        // Filtro por status do CRM (Novo, Ativo, Sumido, Inativo, Sem compras) ou Premium
         if (!empty($this->statusFilter)) {
-            if ($this->statusFilter === 'inativo') {
-                // Considera inativo quem não compra há mais de 30 dias, por exemplo
-                $query->whereDoesntHave('sales', function ($q) {
-                    $q->where('created_at', '>=', now()->subDays(30));
-                });
-            } elseif ($this->statusFilter === 'ativo') {
-                // A tabela de clientes não tem coluna de status: ativo é quem comprou nos últimos 30 dias
-                $query->whereHas('sales', function ($q) {
-                    $q->where('created_at', '>=', now()->subDays(30));
-                });
-            } elseif ($this->statusFilter === 'premium') {
+            if ($this->statusFilter === 'premium') {
                 // Mesmo critério do selo "Premium" do card: 5 compras ou mais
                 $query->has('sales', '>=', 5);
+            } elseif (isset(\App\Services\Clients\ClientStatus::STATUSES[$this->statusFilter])) {
+                \App\Services\Clients\ClientStatus::apply($query, $this->statusFilter);
             }
+        }
+
+        // Etiqueta e origem
+        if ($this->tagFilter !== '' && \Illuminate\Support\Facades\Schema::hasTable('client_tag')) {
+            $query->whereHas('tags', fn ($q) => $q->where('client_tags.id', (int) $this->tagFilter)->where('client_tags.user_id', Auth::id()));
+        }
+        if ($this->sourceFilter !== '') {
+            $this->sourceFilter === 'sem'
+                ? $query->whereNull('clients.source')
+                : $query->where('clients.source', $this->sourceFilter);
         }
 
         // Filtro por período de cadastro
@@ -479,10 +496,11 @@ class ClientsIndex extends Component
                 break;
         }
 
-        $clients = $query->with(['sales', 'consortiumParticipants'])->paginate($this->infiniteSize($this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 12), ['*'], 'page', 1);
+        $clients = $query->with(['sales', 'consortiumParticipants', 'tags'])->paginate($this->infiniteSize($this->perPage >= 1 && $this->perPage <= 120 ? $this->perPage : 12), ['*'], 'page', 1);
 
         return view('livewire.clients.clients-index', [
-            'clients' => $clients
+            'clients' => $clients,
+            'crmTags' => \Illuminate\Support\Facades\Schema::hasTable('client_tags') ? \App\Models\ClientTag::where('user_id', Auth::id())->orderBy('name')->get() : collect(),
         ]);
     }
 
@@ -527,6 +545,8 @@ class ClientsIndex extends Component
             'statusFilter',
             'periodFilter',
             'dateFilter',
+            'tagFilter',
+            'sourceFilter',
             'sortBy',
             'sortDirection',
             'minValue',
@@ -559,9 +579,12 @@ class ClientsIndex extends Component
      */
     public function getActiveClientsProperty()
     {
-        return Client::query()
-            ->whereHas('sales', fn ($q) => $q->where('created_at', '>=', now()->subDays(30)))
-            ->count();
+        return \App\Services\Clients\ClientStatus::apply(Client::query(), 'ativo')->count();
+    }
+
+    public function getLostClientsProperty()
+    {
+        return \App\Services\Clients\ClientStatus::apply(Client::query(), 'sumido')->count();
     }
 
     public function getPremiumClientsProperty()

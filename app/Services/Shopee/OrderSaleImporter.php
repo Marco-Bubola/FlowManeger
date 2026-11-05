@@ -222,6 +222,7 @@ class OrderSaleImporter
                 'user_id' => $userId,
                 'name' => $name,
                 'phone' => $phone !== '' ? mb_substr($phone, 0, 30) : null,
+                'source' => 'shopee',
             ]);
     }
 

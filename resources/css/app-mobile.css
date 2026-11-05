@@ -63,6 +63,8 @@
     }
     html body .app-ph .app-ph-meta { display: flex !important; flex-direction: row !important; margin-top: 0.2rem !important; gap: 0.25rem !important; flex-wrap: nowrap !important; overflow: hidden; }
     html body .app-ph .app-ph-meta > * { font-size: 0.62rem !important; padding: 0.05rem 0.4rem !important; white-space: nowrap; }
+    html body .app-ph .app-ph-crm { flex-wrap: nowrap !important; overflow: hidden; margin-top: 0.2rem !important; gap: 0.25rem !important; }
+    html body .app-ph .app-ph-crm > * { font-size: 0.62rem !important; padding: 0.05rem 0.4rem !important; white-space: nowrap; flex-shrink: 0; }
     html body .app-ph .app-ph-back {
         width: 2.1rem !important;
         height: 2.1rem !important;

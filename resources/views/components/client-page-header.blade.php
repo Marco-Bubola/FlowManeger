@@ -24,6 +24,14 @@
     ] : [];
     $headerIcon = str_contains($icon, ' ') ? $icon : 'bi ' . $icon;
     $since = $client?->created_at ? $client->created_at->locale('pt_BR')->diffForHumans(null, true) : null;
+    $crmStatus = null; $crmTags = collect(); $crmSource = null;
+    if ($client) {
+        try {
+            $crmStatus = \App\Services\Clients\ClientStatus::info(\App\Services\Clients\ClientStatus::for($client));
+            $crmSource = \App\Services\Clients\ClientStatus::sourceInfo($client->source ?? null);
+            $crmTags = \Illuminate\Support\Facades\Schema::hasTable('client_tags') ? $client->tags()->where('client_tags.user_id', auth()->id())->get() : collect();
+        } catch (\Throwable $e) { $crmStatus = null; }
+    }
 @endphp
 
 <div class="client-page-header relative overflow-hidden mb-6 app-ph rounded-[28px] border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(238,242,255,0.9),rgba(245,243,255,0.94))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
@@ -67,6 +75,20 @@
                                 <span class="inline-flex items-center gap-1"><i class="bi bi-calendar3"></i>Cliente há {{ $since }}</span>
                             @endif
                         </div>
+                        @if($crmStatus || $crmTags->isNotEmpty() || $crmSource)
+                            <div class="app-ph-crm mt-1.5 flex flex-wrap items-center gap-1.5">
+                                @if($crmStatus)
+                                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold" style="{{ \App\Models\ConsortiumNotification::toneStyle($crmStatus['tone'], 0.16) }}" title="{{ $crmStatus['hint'] }}"><i class="bi {{ $crmStatus['icon'] }}"></i>{{ $crmStatus['label'] }}</span>
+                                @endif
+                                @if($crmSource)
+                                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300" title="Como conheceu a loja"><i class="bi {{ $crmSource['icon'] }}"></i>{{ $crmSource['label'] }}</span>
+                                @endif
+                                @foreach($crmTags as $t)
+                                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold" style="{{ $t->style(0.16) }}"><i class="bi bi-tag-fill text-[9px]"></i>{{ $t->name }}</span>
+                                @endforeach
+                                <a href="{{ route('clients.edit', $client->id) }}#crm" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-300 hover:underline" title="Mudar etiquetas e origem"><i class="bi bi-pencil"></i></a>
+                            </div>
+                        @endif
                     @elseif($subtitle)
                         <p class="app-ph-sub mt-0.5 text-sm text-slate-600 dark:text-slate-400">{!! $subtitle !!}</p>
                     @endif

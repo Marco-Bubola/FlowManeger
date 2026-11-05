@@ -6,11 +6,12 @@ use App\Models\Client;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use App\Livewire\Clients\Concerns\HasClientExtraFields;
+use App\Livewire\Clients\Concerns\HasClientCrmFields;
 use Livewire\Component;
 
 class CreateClient extends Component
 {
-    use HasClientExtraFields;
+    use HasClientExtraFields, HasClientCrmFields;
 
     // Propriedades do formulário
     public string $name = '';
@@ -76,7 +77,7 @@ class CreateClient extends Component
             'phone' => 'nullable|regex:/^\(\d{2}\) \d{4,5}-\d{4}$/',
             'address' => 'nullable|string',
             'avatar_cliente' => 'required|url',
-        ] + $this->extraFieldRules();
+        ] + $this->extraFieldRules() + $this->crmRules();
     }
 
     public function messages(): array
@@ -98,14 +99,15 @@ class CreateClient extends Component
         $validated = $this->validate();
 
         // Cria o cliente
-        Client::create([
+        $client = Client::create([
             'name' => $this->name,
             'email' => $this->email ?: null,
             'phone' => $this->phone ?: null,
             'address' => $this->address ?: null,
             'user_id' => Auth::id(),
             'caminho_foto' => $this->avatar_cliente,
-        ] + $this->extraFieldData());
+        ] + $this->extraFieldData() + $this->crmData());
+        $this->saveCrmTags($client);
 
         // Emite evento para atualizar a lista
         $this->dispatch('client-created');
