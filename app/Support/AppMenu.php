@@ -30,6 +30,7 @@ class AppMenu
                 ['sales.index', 'Vendas', 'bi-cart3', ['sales/create']],
                 ['clients.index', 'Clientes', 'bi-people', ['clients/create']],
                 ['tasks.index', 'Tarefas', 'bi-alarm'],
+                ['crm.funnel', 'Funil de vendas', 'bi-funnel'],
                 ['promotions.index', 'Promoções', 'bi-percent'],
                 ['promotions.storefront', 'Vitrine do catálogo', 'bi-shop-window'],
                 ['promotions.reviews', 'Avaliações', 'bi-star-half'],

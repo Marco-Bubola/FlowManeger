@@ -258,6 +258,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/clients/{cliente}/resumo', ClientResumo::class)->name('clients.resumo');
     Route::get('/clients/{cliente}/historico', \App\Livewire\Clients\ClientHistory::class)->name('clients.historico');
     Route::get('/tarefas', \App\Livewire\Tasks\TasksIndex::class)->name('tasks.index');
+    Route::get('/funil', \App\Livewire\Crm\SalesFunnel::class)->name('crm.funnel');
     Route::get('/clients/{cliente}/faturas', ClientFaturas::class)->name('clients.faturas');
     Route::get('/clients/{cliente}/transferencias/{tipo?}', ClientTransferencias::class)->name('clients.transferencias');
     Route::get('/clients/{client}/portal/access', [ClientPortalController::class, 'accessPage'])->name('clients.portal.access');

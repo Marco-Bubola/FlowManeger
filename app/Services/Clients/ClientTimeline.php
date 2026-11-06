@@ -40,7 +40,7 @@ class ClientTimeline
     public function for(Client $client, int $userId, string $group = 'todos', int $limit = 60): Collection
     {
         $sources = [
-            'contatos' => ['notes', 'tasks'],
+            'contatos' => ['notes', 'tasks', 'deals'],
             'vendas' => ['sales', 'payments'],
             'site' => ['quotes', 'reviews', 'alerts', 'carts'],
             'mensagens' => ['promotions', 'reminders'],
@@ -126,6 +126,26 @@ class ClientTimeline
                 return $this->item($at, 'contatos', $done ? 'bi-check2-circle' : 'bi-alarm', $done ? 'emerald' : ($t->isLate() ? 'rose' : 'amber'),
                     $done ? 'Tarefa feita' : 'Tarefa: ' . $t->dueLabel(), $t->title, ['task_id' => $t->id, 'kind' => $done ? 'feita' : 'aberta', 'no_time' => ! $done && ! $t->due_time]);
             });
+    }
+
+    /** Negócios do funil: quando entrou e quando fechou. */
+    protected function deals(Client $client, int $userId, int $limit): Collection
+    {
+        $out = collect();
+        $money = fn ($v) => $v ? ' · R$ ' . number_format((float) $v, 2, ',', '.') : '';
+        \App\Models\CrmDeal::ownedBy($userId)->where('client_id', $client->id)->latest()->limit($limit)->get()
+            ->each(function (\App\Models\CrmDeal $d) use ($out, $money) {
+                $url = $this->url('crm.funnel', ['q' => $d->title]);
+                $out->push($this->item($d->created_at, 'contatos', 'bi-funnel', 'violet', 'Negócio no funil', $d->title . $money($d->value), ['url' => $url]));
+                if ($d->closed_at && $d->stage === 'ganho') {
+                    $out->push($this->item($d->closed_at, 'contatos', 'bi-trophy', 'emerald', 'Negócio ganho', $d->title . $money($d->value), ['url' => $url]));
+                } elseif ($d->closed_at && $d->stage === 'perdido') {
+                    $out->push($this->item($d->closed_at, 'contatos', 'bi-x-circle', 'rose', 'Negócio perdido',
+                        $d->title . ' · ' . (\App\Models\CrmDeal::LOST_REASONS[$d->lost_reason] ?? 'sem motivo'), ['url' => $url]));
+                }
+            });
+
+        return $out;
     }
 
     protected function sales(Client $client, int $userId, int $limit): Collection

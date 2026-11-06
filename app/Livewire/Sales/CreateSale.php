@@ -22,6 +22,9 @@ class CreateSale extends Component
 
     public int $currentStep = 1;
     public $client_id = '';
+
+    /** Negócio do funil que virou esta venda (?negocio=ID). */
+    public ?int $dealId = null;
     public string $clientSearch = '';
     public bool $showTipsModal = false;
     public $sale_date;
@@ -97,6 +100,11 @@ class CreateSale extends Component
             if ($client) {
                 $this->client_id = $client->id;
             }
+        }
+
+        $deal = (int) request()->get('negocio');
+        if ($deal && \Illuminate\Support\Facades\Schema::hasTable('crm_deals')) {
+            $this->dealId = \App\Models\CrmDeal::ownedBy(Auth::id())->whereKey($deal)->value('id');
         }
 
         // Botão "Vender" da tela do produto: já entra com o produto no carrinho
@@ -389,6 +397,11 @@ class CreateSale extends Component
         // Baixa o estoque conforme Sale::STOCK_ON_CREATE (após o commit, para o
         // sync com o ML rodar com os dados já gravados).
         $sale?->applyStockIfDue();
+
+        if ($sale && $this->dealId) {
+            \App\Models\CrmDeal::ownedBy(Auth::id())->whereKey($this->dealId)->whereNull('sale_id')
+                ->update(['sale_id' => $sale->id, 'value' => $sale->total_price, 'stage' => 'ganho', 'closed_at' => now()]);
+        }
 
         session()->flash('success', $this->marcar_como_pago ? 'Venda criada e quitada com sucesso!' : 'Venda criada com sucesso!');
         return redirect()->route('sales.index');

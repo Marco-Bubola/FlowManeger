@@ -7,6 +7,9 @@
                         <i class="bi bi-whatsapp"></i><span class="hidden sm:inline">WhatsApp</span>
                     </a>
                 @endif
+                <a href="{{ route('crm.funnel', ['novo' => $client->id]) }}" wire:navigate class="crm-btn" title="Colocar um orçamento deste cliente no funil">
+                    <i class="bi bi-funnel"></i><span class="hidden sm:inline">Novo negócio</span>
+                </a>
                 <a href="{{ route('tasks.index') }}" wire:navigate class="crm-btn" title="Todas as tarefas">
                     <i class="bi bi-alarm"></i><span class="hidden sm:inline">Tarefas</span>
                 </a>
