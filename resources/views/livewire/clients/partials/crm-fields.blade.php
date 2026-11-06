@@ -56,4 +56,11 @@
             </button>
         </div>
     </div>
+    <label class="flex items-start gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 p-3 cursor-pointer">
+        <input type="checkbox" wire:model="marketingOk" class="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+        <span>
+            <span class="block text-sm font-semibold text-slate-700 dark:text-slate-200">Aceita receber ofertas e mensagens da loja</span>
+            <span class="block text-xs text-slate-500 dark:text-slate-400">Desmarque se o cliente pediu para não receber. Ele sai das promoções e das automações (LGPD).</span>
+        </span>
+    </label>
 </div>

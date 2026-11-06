@@ -684,7 +684,7 @@ class PromotionsIndex extends Component
         return [
             'promotions' => $promos,
             'clients'    => $promos->count() === 1 ? $service->interestedClients($promos->first()) : collect(),
-            'allClients' => Client::where('user_id', Auth::id())->whereNotNull('phone')->where('phone', '!=', '')->orderBy('name')->get(['id', 'name', 'phone']),
+            'allClients' => Client::where('user_id', Auth::id())->where(fn ($q) => $q->whereNull('marketing_opt_out')->orWhere('marketing_opt_out', false))->whereNotNull('phone')->where('phone', '!=', '')->orderBy('name')->get(['id', 'name', 'phone']),
             'cards'      => $promos->map(fn (Promotion $p) => [
                 'name'     => $p->product->name,
                 // Caminho relativo: mesma origem da página, senão o canvas não pode virar imagem para copiar/compartilhar

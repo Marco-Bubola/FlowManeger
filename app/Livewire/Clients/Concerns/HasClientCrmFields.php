@@ -17,6 +17,7 @@ trait HasClientCrmFields
     public array $tagIds = [];
     public string $newTagName = '';
     public string $newTagColor = 'indigo';
+    public bool $marketingOk = true;
 
     protected function crmRules(): array
     {
@@ -24,18 +25,20 @@ trait HasClientCrmFields
             'source' => 'nullable|in:' . implode(',', array_keys(ClientStatus::SOURCES)),
             'tagIds' => 'array',
             'tagIds.*' => 'integer',
+            'marketingOk' => 'boolean',
         ];
     }
 
     protected function fillCrmFields(Client $client): void
     {
         $this->source = (string) ($client->source ?? '');
+        $this->marketingOk = ! (bool) ($client->marketing_opt_out ?? false);
         $this->tagIds = $client->tags()->where('client_tags.user_id', Auth::id())->pluck('client_tags.id')->map(fn ($v) => (int) $v)->all();
     }
 
     protected function crmData(): array
     {
-        return ['source' => $this->source !== '' ? $this->source : null];
+        return ['source' => $this->source !== '' ? $this->source : null, 'marketing_opt_out' => ! $this->marketingOk];
     }
 
     protected function saveCrmTags(Client $client): void

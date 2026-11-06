@@ -129,13 +129,13 @@
 
                 <div class="crs-list {{ $showForm ? '' : 'is-grid crm-tasks-grid' }}">
                     @forelse($tasks as $task)
-                        @php $wa = $task->client ? \App\Services\Clients\ClientContact::whatsappUrl($task->client->phone) : null; @endphp
+                        @php $wa = $task->client ? \App\Services\Clients\ClientContact::whatsappUrl($task->client->phone, (string) ($task->message ?? '')) : null; $autoDef = $task->auto ? (\App\Services\Clients\CrmAutomations::KINDS[$task->auto] ?? null) : null; @endphp
                         <div class="crs-row crm-task-row {{ $task->done_at ? 'is-done' : '' }}" wire:key="task-{{ $task->id }}">
                             <button type="button" wire:click="toggle({{ $task->id }})" class="crm-check {{ $task->done_at ? 'is-done' : '' }}" title="{{ $task->done_at ? 'Reabrir' : 'Marcar como feita' }}">
                                 <i class="bi {{ $task->done_at ? 'bi-check-circle-fill' : 'bi-circle' }}"></i>
                             </button>
                             <div class="min-w-0 flex-1">
-                                <p class="crs-row-title" title="{{ $task->title }}">{{ $task->title }}</p>
+                                <p class="crs-row-title" title="{{ $task->title }}">@if($autoDef)<i class="bi {{ $autoDef['icon'] }} mr-1" style="color: {{ \App\Models\ConsortiumNotification::TONES[$autoDef['tone']] }}" title="Criada pela automação {{ $autoDef['label'] }}"></i>@endif{{ $task->title }}</p>
                                 <p class="crs-row-meta">
                                     @if($task->done_at)
                                         <i class="bi bi-check2"></i> Feita {{ $task->done_at->setTimezone($tz)->locale('pt_BR')->isoFormat('DD/MM [às] HH:mm') }}
@@ -154,7 +154,7 @@
                             </div>
                             <div class="flex items-center gap-0.5 shrink-0">
                                 @if($wa && ! $task->done_at)
-                                    <a href="{{ $wa }}" target="_blank" rel="noopener" class="crm-icon-btn !text-green-600" title="WhatsApp do cliente"><i class="bi bi-whatsapp"></i></a>
+                                    <a href="{{ $wa }}" target="_blank" rel="noopener" class="crm-icon-btn !text-green-600 {{ $task->message ? 'crm-wa-ready' : '' }}" title="{{ $task->message ? 'Abrir WhatsApp com a mensagem pronta' : 'WhatsApp do cliente' }}"><i class="bi bi-whatsapp"></i></a>
                                 @endif
                                 <div class="relative" x-data="{ open: false }" @click.outside="open = false">
                                     <button type="button" @click="open = !open" class="crm-icon-btn" title="Mais opções"><i class="bi bi-three-dots-vertical"></i></button>

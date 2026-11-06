@@ -35,7 +35,7 @@ class Client extends Model implements AuthenticatableContract, CanResetPasswordC
         'portal_force_password_change', 'portal_profile_completed_at',
         'cpf_cnpj', 'birth_date', 'company', 'portal_notes',
         'cep', 'street', 'number', 'complement', 'neighborhood', 'city', 'state',
-        'source',
+        'source', 'marketing_opt_out',
     ];
 
     protected $hidden = ['portal_password', 'portal_token', 'remember_token'];
@@ -48,6 +48,7 @@ class Client extends Model implements AuthenticatableContract, CanResetPasswordC
         'portal_profile_completed_at' => 'datetime',
         'birth_date'              => 'date',
         'privacy_accepted_at'     => 'datetime',
+        'marketing_opt_out'       => 'boolean',
     ];
 
     /** Override auth password column para não colidir com 'password' dos users */

@@ -592,6 +592,7 @@ class PromotionService
         $userId = $product->user_id;
         $withPhone = fn () => Client::query()
             ->where('clients.user_id', $userId)
+            ->where(fn ($q) => $q->whereNull('clients.marketing_opt_out')->orWhere('clients.marketing_opt_out', false))
             ->whereNotNull('phone')->where('phone', '!=', '');
 
         $favIds = \App\Models\ClientFavorite::where('user_id', $userId)->where('product_id', $product->id)->pluck('client_id');

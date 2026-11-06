@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 /** Tarefa / follow-up com data ("ligar para Maria dia 10"). Cliente é opcional. */
 class ClientTask extends Model
 {
-    protected $fillable = ['user_id', 'client_id', 'title', 'notes', 'due_date', 'due_time', 'done_at', 'notified_at'];
+    protected $fillable = ['user_id', 'client_id', 'title', 'notes', 'due_date', 'due_time', 'done_at', 'notified_at', 'auto', 'message'];
 
     protected $casts = [
         'due_date' => 'date',

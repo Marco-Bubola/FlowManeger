@@ -55,6 +55,8 @@
     .crm-tasks-grid > .crs-empty { grid-column: 1 / -1; }
     @media (min-width: 1280px) { .crm-tasks-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
     @media (min-width: 2200px) { .crm-tasks-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } .crm-tasks-grid > *:nth-child(odd) { border-right: 0; } .crm-tasks-grid > *:not(:nth-child(3n)) { border-right: 1px solid rgb(241 245 249); } }
+    .crm-wa-ready { background: rgb(220 252 231); }
+    .dark .crm-wa-ready { background: rgb(20 83 45 / .5); }
     .crm-menu-item { width: 100%; display: flex; align-items: center; gap: .5rem; padding: .5rem .8rem; text-align: left; color: rgb(51 65 85); }
     .crm-menu-item:hover { background: rgb(248 250 252); }
     .dark .crm-menu-item { color: rgb(226 232 240); }

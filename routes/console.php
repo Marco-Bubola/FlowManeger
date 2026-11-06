@@ -64,6 +64,11 @@ Schedule::command('portal:carrinhos')
     ->withoutOverlapping();
 
 // Estoque baixo: notifica produtos no mínimo/esgotados com sugestão de reposição
+// Automações do CRM (aniversário, pós-venda, cliente sumido): tarefas com a mensagem pronta
+Schedule::command('crm:automacoes')
+    ->dailyAt('08:05')
+    ->withoutOverlapping();
+
 // Tarefas e follow-ups dos clientes: aviso no sino no dia/hora marcada
 Schedule::command('tasks:avisar')
     ->everyFifteenMinutes()
