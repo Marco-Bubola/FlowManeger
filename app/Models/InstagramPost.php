@@ -23,12 +23,27 @@ class InstagramPost extends Model
     ];
 
     protected $fillable = [
-        'user_id', 'product_id', 'promotion_id', 'kind', 'format', 'caption', 'images', 'status',
-        'scheduled_at', 'published_at', 'media_id', 'permalink', 'error', 'attempts',
+        'user_id', 'product_id', 'promotion_id', 'kind', 'format', 'caption', 'images', 'video', 'share_to_feed',
+        'status', 'scheduled_at', 'published_at', 'media_id', 'container_id', 'permalink', 'metrics', 'metrics_at',
+        'error', 'attempts',
+    ];
+
+    /** Resultados mostrados no card: chave => [nome, ícone]. */
+    public const METRICS = [
+        'views' => ['Visualizações', 'bi-eye'],
+        'reach' => ['Alcance', 'bi-people'],
+        'likes' => ['Curtidas', 'bi-heart'],
+        'comments' => ['Comentários', 'bi-chat'],
+        'saved' => ['Salvos', 'bi-bookmark'],
+        'shares' => ['Compartilhados', 'bi-send'],
+        'replies' => ['Respostas', 'bi-reply'],
     ];
 
     protected $casts = [
         'images' => 'array',
+        'metrics' => 'array',
+        'metrics_at' => 'datetime',
+        'share_to_feed' => 'boolean',
         'scheduled_at' => 'datetime',
         'published_at' => 'datetime',
     ];
@@ -49,8 +64,24 @@ class InstagramPost extends Model
         return array_map(fn ($p) => Storage::disk('public')->url($p), $this->images ?? []);
     }
 
+    public function videoUrl(): ?string
+    {
+        return $this->video ? Storage::disk('public')->url($this->video) : null;
+    }
+
+    /** Soma de curtidas, comentários, salvos e compartilhados (para ordenar os melhores). */
+    public function interactions(): int
+    {
+        $m = $this->metrics ?? [];
+
+        return (int) (($m['likes'] ?? 0) + ($m['comments'] ?? 0) + ($m['saved'] ?? 0) + ($m['shares'] ?? 0));
+    }
+
     public function kindLabel(): string
     {
+        if ($this->kind === 'reel') {
+            return 'Reels';
+        }
         if ($this->kind === 'story') {
             return 'Story';
         }
@@ -60,7 +91,7 @@ class InstagramPost extends Model
 
     public function deleteFiles(): void
     {
-        foreach ($this->images ?? [] as $p) {
+        foreach (array_filter(array_merge($this->images ?? [], [$this->video])) as $p) {
             Storage::disk('public')->delete($p);
         }
     }

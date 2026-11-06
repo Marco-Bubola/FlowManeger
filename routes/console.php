@@ -103,6 +103,9 @@ Schedule::call(function () {
 Schedule::command('instagram:publicar')
     ->everyMinute()
     ->withoutOverlapping();
+Schedule::command('instagram:publicar --resultados')
+    ->cron('20 */3 * * *')
+    ->withoutOverlapping();
 Schedule::command('instagram:publicar --renovar')
     ->dailyAt('04:10')
     ->withoutOverlapping();

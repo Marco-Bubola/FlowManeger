@@ -12,11 +12,13 @@
         'todos' => ['Todos', $counts->sum()],
         'agendado' => ['Agendados', $counts['agendado'] ?? 0],
         'postado' => ['Postados', $counts['postado'] ?? 0],
+        'melhores' => ['Melhores', null],
         'erro' => ['Não foram', ($counts['erro'] ?? 0) + ($counts['cancelado'] ?? 0)],
     ];
+    $num = fn ($n) => $n >= 10000 ? number_format($n / 1000, $n >= 100000 ? 0 : 1, ',', '.') . ' mil' : number_format((int) $n, 0, ',', '.');
 @endphp
 
-<div class="w-full px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-24 space-y-4">
+<div class="w-full px-3 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-24 space-y-4" @if($processing) wire:poll.10s="checkProcessing" @endif>
     <x-page-header title="Instagram" icon="bi-instagram" section="produtos"
                    subtitle="Posts feitos e agendados pelo app">
         <x-slot:meta>
@@ -30,6 +32,11 @@
             @endif
         </x-slot:meta>
         <x-slot:actions>
+            @if(($counts['postado'] ?? 0) > 0)
+                <button type="button" wire:click="refreshResults" wire:loading.attr="disabled" wire:target="refreshResults" class="{{ $phBtn }}" title="Atualizar resultados" data-testid="ig-refresh">
+                    <i class="bi bi-arrow-repeat text-pink-500" wire:loading.class="animate-spin" wire:target="refreshResults"></i><span class="hidden sm:inline">Atualizar resultados</span>
+                </button>
+            @endif
             <a href="{{ route('settings.instagram') }}" wire:navigate class="{{ $phBtn }}" title="Configurar"><i class="bi bi-gear text-slate-500"></i><span class="hidden sm:inline">Configurar</span></a>
             <a href="{{ route('instagram.create') }}" wire:navigate data-testid="ig-new"
                class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 via-pink-600 to-purple-600 shadow-md shadow-pink-500/25 transition whitespace-nowrap"><i class="bi bi-plus-lg"></i><span class="hidden sm:inline">Novo post</span></a>
@@ -43,9 +50,40 @@
         <div class="rounded-2xl px-4 py-3 text-sm font-semibold {{ $tones['rose'] }}"><i class="bi bi-exclamation-triangle-fill"></i> {{ session('ig_error') }}</div>
     @endif
 
+    @if($processing)
+        <div class="rounded-2xl px-4 py-3 text-sm font-semibold {{ $tones['amber'] }}"><i class="bi bi-arrow-repeat animate-spin inline-block"></i> O Instagram está processando um Reels. Esta tela confere sozinha e ele sai assim que ficar pronto.</div>
+    @endif
+
+    @if($summary['posts'] > 0)
+        <div class="igp-sum" data-testid="ig-summary">
+            <div class="igp-sum-head">
+                <b><i class="bi bi-graph-up-arrow"></i> Últimos 30 dias</b>
+                <small>{{ $lastResults ? 'Atualizado ' . \Carbon\Carbon::parse($lastResults)->locale('pt_BR')->diffForHumans() : 'Os números chegam algumas horas depois do post' }}</small>
+            </div>
+            <div class="igp-sum-grid">
+                <div><i class="bi bi-grid-3x3"></i><b>{{ $summary['posts'] }}</b><small>{{ $summary['posts'] === 1 ? 'post' : 'posts' }}</small></div>
+                <div><i class="bi bi-eye"></i><b>{{ $num($summary['views']) }}</b><small>visualizações</small></div>
+                <div><i class="bi bi-people"></i><b>{{ $num($summary['reach']) }}</b><small>contas alcançadas</small></div>
+                <div><i class="bi bi-heart"></i><b>{{ $num($summary['interactions']) }}</b><small>interações</small></div>
+                <div><i class="bi bi-bookmark"></i><b>{{ $num($summary['saved']) }}</b><small>salvos</small></div>
+            </div>
+            @if($summary['best'])
+                @php $best = $summary['best']; $bu = $best->imageUrls()[0] ?? null; @endphp
+                <div class="igp-best">
+                    @if($bu)<img src="{{ $bu }}" alt="">@endif
+                    <span class="min-w-0"><small><i class="bi bi-trophy-fill"></i> Melhor post</small><b class="truncate block">{{ $best->product?->name ?? $best->kindLabel() }}</b>
+                        <small>{{ $num($best->metrics['views'] ?? 0) }} visualizações · {{ $num($best->interactions()) }} interações</small></span>
+                </div>
+            @endif
+            @if($summary['noInsights'])
+                <p class="igp-note"><i class="bi bi-info-circle"></i> Para ver alcance e visualizações, conecte o Instagram de novo em Configurações › Instagram (a conexão antiga não pedia essa permissão).</p>
+            @endif
+        </div>
+    @endif
+
     <div class="igp-tabs">
         @foreach($tabs as $key => [$label, $n])
-            <button type="button" wire:click="setTab('{{ $key }}')" class="{{ $tab === $key ? 'on' : '' }}">{{ $label }} <span>{{ $n }}</span></button>
+            <button type="button" wire:click="setTab('{{ $key }}')" class="{{ $tab === $key ? 'on' : '' }}">@if($key === 'melhores')<i class="bi bi-trophy"></i>@endif {{ $label }} @if($n !== null)<span>{{ $n }}</span>@endif</button>
         @endforeach
     </div>
 
@@ -59,9 +97,9 @@
             @foreach($posts as $p)
                 @php [$stLabel, $stIcon, $stTone] = \App\Models\InstagramPost::STATUS[$p->status] ?? ['?', 'bi-question', 'slate']; $urls = $p->imageUrls(); @endphp
                 <div class="igp-card" wire:key="post{{ $p->id }}">
-                    <div class="igp-media {{ $p->kind === 'story' ? 'is-story' : '' }}">
-                        @if($urls)<img src="{{ $urls[0] }}" alt="" loading="lazy">@endif
-                        <span class="igp-kind"><i class="bi {{ $p->kind === 'story' ? 'bi-phone' : (count($urls) > 1 ? 'bi-collection' : 'bi-image') }}"></i> {{ $p->kindLabel() }}</span>
+                    <div class="igp-media {{ in_array($p->kind, ['story', 'reel'], true) ? 'is-story' : '' }}">
+                        @if($urls)<img src="{{ $urls[0] }}" alt="" loading="lazy">@elseif($p->kind === 'reel' && $p->video)<video src="{{ $p->videoUrl() }}#t=0.5" muted playsinline preload="metadata"></video>@endif
+                        <span class="igp-kind"><i class="bi {{ $p->kind === 'reel' ? 'bi-camera-reels' : ($p->kind === 'story' ? 'bi-phone' : (count($urls) > 1 ? 'bi-collection' : 'bi-image')) }}"></i> {{ $p->kindLabel() }}</span>
                     </div>
                     <div class="igp-body">
                         <div class="flex items-center gap-2 flex-wrap">
@@ -81,6 +119,19 @@
                         @endif
                         @if($p->caption)
                             <p class="igp-caption">{{ \Illuminate\Support\Str::limit($p->caption, 140) }}</p>
+                        @endif
+                        @if($p->status === 'postado' && $p->metrics)
+                            <div class="igp-metrics">
+                                @foreach(\App\Models\InstagramPost::METRICS as $mk => [$mlabel, $micon])
+                                    @if(isset($p->metrics[$mk]))
+                                        <span title="{{ $mlabel }}"><i class="bi {{ $micon }}"></i>{{ $num($p->metrics[$mk]) }}</span>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @elseif($p->status === 'postado')
+                            <p class="igp-wait"><i class="bi bi-hourglass-split"></i> Resultados aparecem em algumas horas.</p>
+                        @elseif($p->status === 'postando' && $p->kind === 'reel')
+                            <p class="igp-wait"><i class="bi bi-arrow-repeat"></i> Processando o vídeo no Instagram…</p>
                         @endif
                         @if($p->error && in_array($p->status, ['erro', 'cancelado'], true))
                             <p class="igp-error"><i class="bi bi-exclamation-triangle"></i> {{ $p->error }}</p>
@@ -122,7 +173,30 @@
         .dark .igp-card { background: rgb(15 23 42 / .85); border-color: rgb(51 65 85 / .7); }
         .igp-media { position: relative; flex: none; width: 7.5rem; aspect-ratio: 1; border-radius: .9rem; overflow: hidden; background: #f1f5f9; }
         .igp-media.is-story { aspect-ratio: 9 / 16; width: 5.2rem; }
-        .igp-media img { width: 100%; height: 100%; object-fit: cover; }
+        .igp-media img, .igp-media video { width: 100%; height: 100%; object-fit: cover; }
+        .igp-metrics { display: flex; flex-wrap: wrap; gap: .3rem; }
+        .igp-metrics span { display: inline-flex; align-items: center; gap: .25rem; padding: .15rem .45rem; border-radius: .55rem; background: #fdf2f8; color: #9d174d; font-size: .72rem; font-weight: 800; }
+        .dark .igp-metrics span { background: rgba(236, 72, 153, .12); color: #f9a8d4; }
+        .igp-wait { font-size: .72rem; color: #64748b; }
+        .igp-sum { padding: .9rem 1rem; border-radius: 1.3rem; background: linear-gradient(135deg, rgba(245, 133, 41, .08), rgba(221, 42, 123, .08), rgba(129, 52, 175, .08)); border: 1px solid #fbcfe8; }
+        .dark .igp-sum { border-color: rgba(236, 72, 153, .3); }
+        .igp-sum-head { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; flex-wrap: wrap; margin-bottom: .6rem; }
+        .igp-sum-head b { font-size: .9rem; color: #9d174d; } .dark .igp-sum-head b { color: #f9a8d4; }
+        .igp-sum-head small { font-size: .72rem; color: #64748b; }
+        .igp-sum-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .5rem; }
+        .igp-sum-grid > div { padding: .6rem .7rem; border-radius: .9rem; background: #fff; border: 1px solid #fce7f3; }
+        .dark .igp-sum-grid > div { background: #0f172a; border-color: #334155; }
+        .igp-sum-grid i { color: #db2777; font-size: .9rem; }
+        .igp-sum-grid b { display: block; font-size: 1.2rem; font-weight: 900; color: #0f172a; line-height: 1.2; } .dark .igp-sum-grid b { color: #f1f5f9; }
+        .igp-sum-grid small { display: block; font-size: .68rem; color: #64748b; }
+        .igp-best { display: flex; align-items: center; gap: .7rem; margin-top: .6rem; padding: .55rem .7rem; border-radius: .9rem; background: #fff; border: 1px solid #fce7f3; }
+        .dark .igp-best { background: #0f172a; border-color: #334155; }
+        .igp-best img { width: 2.8rem; height: 2.8rem; border-radius: .6rem; object-fit: cover; flex: none; }
+        .igp-best small { display: block; font-size: .7rem; color: #64748b; } .igp-best small i { color: #f59e0b; }
+        .igp-best b { font-size: .85rem; color: #0f172a; } .dark .igp-best b { color: #f1f5f9; }
+        .igp-note { margin-top: .6rem; font-size: .74rem; color: #92400e; }
+        @media (max-width: 767px) { .igp-sum-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .igp-sum-grid > div:first-child { grid-column: 1 / -1; } }
+        @media (min-width: 768px) and (max-width: 1023px) { .igp-sum-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
         .igp-kind { position: absolute; left: .3rem; bottom: .3rem; right: .3rem; padding: .1rem .35rem; border-radius: .4rem; background: rgba(15, 23, 42, .72); color: #fff; font-size: .6rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .igp-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .3rem; }
         .igp-title { font-size: .86rem; color: #0f172a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

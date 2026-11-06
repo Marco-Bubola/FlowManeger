@@ -33,6 +33,7 @@ class InstagramPostTest extends TestCase
             $t->id(); $t->string('name'); $t->string('email'); $t->string('password'); $t->string('phone')->nullable(); $t->text('preferences')->nullable(); $t->timestamps();
         });
         Artisan::call('migrate', ['--path' => 'database/migrations/2026_11_04_120000_create_instagram_tables.php', '--force' => true]);
+        Artisan::call('migrate', ['--path' => 'database/migrations/2026_11_06_100000_add_reels_and_results_to_instagram_posts.php', '--force' => true]);
 
         $this->user = User::forceCreate(['name' => 'Loja', 'email' => 'a@b.c', 'password' => 'x']);
         $this->setting = InstagramSetting::forUser($this->user->id);
@@ -204,5 +205,88 @@ class InstagramPostTest extends TestCase
         $this->assertSame('#moveis #decoracao #ferro', CaptionBuilder::hashtags('moveis, #decoracao  #ferro #moveis'));
         $this->assertSame("a\n\nb", CaptionBuilder::clean("a\n\n\n\n\nb\n"));
         $this->assertSame(2, CaptionBuilder::countHashtags('oi #a e #b'));
+    }
+
+    public function test_reel_waits_for_processing_then_publishes(): void
+    {
+        $status = 'IN_PROGRESS';
+        Http::fake(function ($r) use (&$status) {
+            $url = $r->url();
+            if (str_ends_with($url, '/1789/media_publish')) {
+                return Http::response(['id' => 'R1']);
+            }
+            if (str_ends_with($url, '/1789/media')) {
+                return Http::response(['id' => 'VC']);
+            }
+            if (str_contains($url, '/VC')) {
+                return Http::response(['status_code' => $status]);
+            }
+
+            return Http::response(['permalink' => 'https://instagram.com/reel/r']);
+        });
+        Storage::disk('public')->put('instagram/1/videos/v.mp4', 'x');
+        $post = $this->makePost(['instagram/1/capa.jpg'], 'reel', ['video' => 'instagram/1/videos/v.mp4', 'share_to_feed' => false]);
+
+        $post = (new InstagramPublisher())->publish($post);
+        $this->assertSame(InstagramPost::POSTANDO, $post->status);
+        $this->assertSame('VC', $post->container_id);
+        Http::assertSent(fn ($r) => ($r['media_type'] ?? '') === 'REELS' && str_contains($r['video_url'], 'videos/v.mp4')
+            && str_contains($r['cover_url'], 'capa.jpg') && $r['share_to_feed'] === 'false' && $r['caption'] === 'Oi #a');
+
+        $status = 'FINISHED';
+        Artisan::call('instagram:publicar');
+        $post = $post->fresh();
+        $this->assertSame(InstagramPost::POSTADO, $post->status);
+        $this->assertSame('R1', $post->media_id);
+    }
+
+    public function test_reel_with_video_error_fails(): void
+    {
+        Http::fake([
+            'graph.instagram.com/*/1789/media' => Http::response(['id' => 'VC']),
+            'graph.instagram.com/*' => Http::response(['status_code' => 'ERROR']),
+        ]);
+        Storage::disk('public')->put('instagram/1/videos/v.mp4', 'x');
+
+        $post = (new InstagramPublisher())->publish($this->makePost([], 'reel', ['video' => 'instagram/1/videos/v.mp4']));
+
+        $this->assertSame(InstagramPost::ERRO, $post->status);
+        $this->assertStringContainsString('vídeo', $post->error);
+    }
+
+    public function test_results_are_saved_and_command_refreshes_them(): void
+    {
+        Http::fake([
+            'graph.instagram.com/*/M1/insights*' => Http::response(['data' => [
+                ['name' => 'reach', 'values' => [['value' => 120]]],
+                ['name' => 'views', 'values' => [['value' => 300]]],
+                ['name' => 'saved', 'values' => [['value' => 4]]],
+                ['name' => 'shares', 'values' => [['value' => 2]]],
+            ]]),
+            'graph.instagram.com/*/M1*' => Http::response(['like_count' => 15, 'comments_count' => 3, 'permalink' => 'https://instagram.com/p/z']),
+        ]);
+        $post = $this->makePost(['instagram/1/a.jpg'], 'feed', ['status' => InstagramPost::POSTADO, 'media_id' => 'M1', 'published_at' => now()->subDays(2)]);
+        $old = $this->makePost(['instagram/1/b.jpg'], 'feed', ['status' => InstagramPost::POSTADO, 'media_id' => 'M2', 'published_at' => now()->subDays(90)]);
+
+        Artisan::call('instagram:publicar', ['--resultados' => true]);
+
+        $m = $post->fresh()->metrics;
+        $this->assertSame(['likes' => 15, 'comments' => 3, 'reach' => 120, 'views' => 300, 'saved' => 4, 'shares' => 2], $m);
+        $this->assertSame(24, $post->fresh()->interactions());
+        $this->assertNull($old->fresh()->metrics);
+    }
+
+    public function test_results_without_insights_permission_are_flagged(): void
+    {
+        Http::fake([
+            'graph.instagram.com/*/M1/insights*' => Http::response(['error' => ['code' => 10, 'message' => 'no permission']], 400),
+            'graph.instagram.com/*/M1*' => Http::response(['like_count' => 5, 'comments_count' => 1]),
+        ]);
+        $post = $this->makePost(['instagram/1/a.jpg'], 'feed', ['status' => InstagramPost::POSTADO, 'media_id' => 'M1', 'published_at' => now()]);
+
+        $m = (new InstagramPublisher())->refreshResults($post)->fresh()->metrics;
+
+        $this->assertSame(5, $m['likes']);
+        $this->assertTrue($m['_no_insights']);
     }
 }

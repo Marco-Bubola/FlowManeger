@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Http;
 class InstagramClient
 {
     public const VERSION = 'v23.0';
-    public const SCOPES = 'instagram_business_basic,instagram_business_content_publish';
+    public const SCOPES = 'instagram_business_basic,instagram_business_content_publish,instagram_business_manage_insights';
 
     public function __construct(private InstagramSetting $setting)
     {
@@ -107,6 +107,58 @@ class InstagramClient
         return (string) $this->post($this->setting->ig_user_id . '/media', $params)['id'];
     }
 
+    /** Container do Reels: a Meta baixa o vídeo e processa (pode levar alguns minutos). */
+    public function createReel(string $videoUrl, string $caption, ?string $coverUrl = null, bool $shareToFeed = true): string
+    {
+        $params = ['media_type' => 'REELS', 'video_url' => $videoUrl, 'caption' => $caption, 'share_to_feed' => $shareToFeed ? 'true' : 'false'];
+        if ($coverUrl) {
+            $params['cover_url'] = $coverUrl;
+        }
+
+        return (string) $this->post($this->setting->ig_user_id . '/media', $params)['id'];
+    }
+
+    /**
+     * Resultados de um post: curtidas e comentários (campos do post) e alcance, visualizações,
+     * salvos, compartilhados (insights). Métrica que a Meta não aceita para aquele tipo é pulada.
+     */
+    public function results(string $mediaId, string $kind): array
+    {
+        $out = [];
+        try {
+            $f = $this->get($mediaId, ['fields' => 'like_count,comments_count,permalink']);
+            $out['likes'] = (int) ($f['like_count'] ?? 0);
+            $out['comments'] = (int) ($f['comments_count'] ?? 0);
+            if (! empty($f['permalink'])) {
+                $out['permalink'] = $f['permalink'];
+            }
+        } catch (\Throwable $e) {
+            if (str_contains($e->getMessage(), 'venceu')) {
+                throw $e;
+            }
+        }
+
+        $wanted = $kind === 'story' ? ['reach', 'views', 'replies', 'shares'] : ['reach', 'views', 'saved', 'shares'];
+        foreach ([$wanted, ...array_map(fn ($m) => [$m], $wanted)] as $i => $set) {
+            try {
+                $r = $this->get($mediaId . '/insights', ['metric' => implode(',', $set)]);
+                foreach ($r['data'] ?? [] as $row) {
+                    $out[$row['name']] = (int) ($row['values'][0]['value'] ?? $row['total_value']['value'] ?? 0);
+                }
+                if ($i === 0) {
+                    break; // todas de uma vez deu certo
+                }
+            } catch (\Throwable $e) {
+                if (str_contains($e->getMessage(), 'permissão') && $i === 0) {
+                    $out['_no_insights'] = true;
+                    break;
+                }
+            }
+        }
+
+        return $out;
+    }
+
     public function createCarousel(array $children, string $caption): string
     {
         return (string) $this->post($this->setting->ig_user_id . '/media', [
@@ -185,8 +237,9 @@ class InstagramClient
             $code === 190 => 'O acesso ao Instagram venceu ou foi removido. Conecte a conta de novo em Configurações › Instagram.',
             in_array($code, [4, 9, 17, 32, 613], true) || $sub === 2207042 => 'O Instagram chegou no limite de posts por agora (100 por dia). Tente mais tarde.',
             $sub === 2207004 || $sub === 2207052 => 'O Instagram não conseguiu baixar a foto. Confira se o site está no ar e tente de novo.',
-            $sub === 2207009 || $sub === 2207026 => 'Formato de foto não aceito pelo Instagram (precisa ser entre retrato 4:5 e paisagem 1.91:1).',
-            $code === 10 || $code === 200 => 'O app da Meta não tem permissão para postar. Confira se o Instagram está como testador e conecte de novo.',
+            $sub === 2207009 => 'Formato de foto não aceito pelo Instagram (precisa ser entre retrato 4:5 e paisagem 1.91:1).',
+            $code === 10 || $code === 200 => 'O app da Meta não tem permissão para isso. Confira se o Instagram está como testador e conecte de novo.',
+            $sub === 2207026 || str_contains(strtolower($msg), 'video') => 'O Instagram não aceitou o vídeo. Use MP4 ou MOV vertical (9:16), de 3 segundos a 15 minutos.',
             str_contains(strtolower($msg), 'redirect_uri') => 'O endereço de retorno não confere. Cole na Meta o "Endereço de retorno" que aparece em Configurações › Instagram.',
             str_contains(strtolower($msg), 'client_secret') || str_contains(strtolower($msg), 'invalid platform app') => 'O ID ou a chave secreta do app do Instagram não conferem. Copie de novo da Meta.',
             default => 'O Instagram recusou' . ($status ? " ({$status})" : '') . ($msg !== '' ? ': ' . $msg : '.'),

@@ -35,7 +35,12 @@ class PostComposer extends Component
 
     public ?int $postId = null;
 
-    public string $kind = 'feed'; // feed | story
+    public string $kind = 'feed'; // feed | story | reel
+
+    /** Reels: vídeo enviado (caminho no disco public) e se aparece também no feed. */
+    public ?string $video = null;
+    public bool $shareToFeed = true;
+    public $videoFile = null;
     public string $format = 'quadrado'; // quadrado | retrato
     public string $fit = 'inteira'; // inteira | preencher
     public string $bg = '#ffffff';
@@ -76,6 +81,8 @@ class PostComposer extends Component
             $this->captionEdited = true;
             $this->extra = $post->imageUrls();
             $this->picked = $this->extra;
+            $this->video = $post->video;
+            $this->shareToFeed = (bool) $post->share_to_feed;
             $this->fit = 'inteira';
             if ($post->scheduled_at) {
                 $this->scheduling = true;
@@ -167,6 +174,11 @@ class PostComposer extends Component
         if (! in_array($url, array_merge($this->productPhotos(), $this->extra), true)) {
             return;
         }
+        if ($this->kind === 'reel') { // Reels: a foto escolhida é só a capa
+            $this->picked = [$url];
+
+            return;
+        }
         if (count($this->picked) >= self::MAX_PHOTOS) {
             $this->addError('picked', 'O Instagram aceita até 10 fotos por post.');
 
@@ -194,6 +206,39 @@ class PostComposer extends Component
             }
         }
         $this->uploads = [];
+    }
+
+    public function setKind(string $kind): void
+    {
+        $this->kind = in_array($kind, ['feed', 'story', 'reel'], true) ? $kind : 'feed';
+        if ($this->kind === 'reel') {
+            $this->picked = array_slice($this->picked, 0, 1);
+        }
+    }
+
+    public function updatedVideoFile(): void
+    {
+        $this->validate(
+            ['videoFile' => ['file', 'mimetypes:video/mp4,video/quicktime,video/x-m4v', 'max:102400']],
+            ['videoFile.mimetypes' => 'Envie o vídeo em MP4 ou MOV.', 'videoFile.max' => 'O vídeo pode ter até 100 MB.'],
+            ['videoFile' => 'vídeo']
+        );
+        $ext = strtolower($this->videoFile->getClientOriginalExtension() ?: 'mp4');
+        $dest = 'instagram/' . Auth::id() . '/videos/' . Str::random(24) . '.' . (in_array($ext, ['mp4', 'mov', 'm4v'], true) ? $ext : 'mp4');
+        Storage::disk('public')->put($dest, fopen($this->videoFile->getRealPath(), 'r'));
+        if ($this->video && ! $this->postId) {
+            Storage::disk('public')->delete($this->video);
+        }
+        $this->video = $dest;
+        $this->videoFile = null;
+    }
+
+    public function removeVideo(): void
+    {
+        if ($this->video && ! $this->postId) {
+            Storage::disk('public')->delete($this->video);
+        }
+        $this->video = null;
     }
 
     /** Arte da oferta desenhada na tela (canvas) e enviada como arquivo: entra como primeira foto. */
@@ -262,6 +307,11 @@ class PostComposer extends Component
         $error = null;
         foreach ($posts as $post) {
             $post = $publisher->publish($post);
+            if ($post->status === InstagramPost::POSTANDO) {
+                session()->flash('ig_ok', 'O Instagram está processando o vídeo. O Reels sai sozinho em alguns minutos.');
+
+                return $this->redirectRoute('instagram.index', navigate: true);
+            }
             $post->status === InstagramPost::POSTADO ? $ok++ : $error = $post->error;
         }
         if ($error && ! $ok) {
@@ -315,21 +365,26 @@ class PostComposer extends Component
         }
         $allowed = array_merge($this->productPhotos(), $this->extra);
         $picked = array_values(array_filter($this->picked, fn ($u) => in_array($u, $allowed, true)));
-        if (! $picked) {
+        if ($this->kind === 'reel' && ! ($this->video && Storage::disk('public')->exists($this->video))) {
+            $this->addError('video', 'Envie o vídeo do Reels.');
+
+            return [];
+        }
+        if (! $picked && $this->kind !== 'reel') {
             $this->addError('picked', 'Escolha pelo menos uma foto.');
 
             return [];
         }
         $this->caption = mb_substr(trim($this->caption), 0, CaptionBuilder::MAX);
-        if ($this->kind === 'feed' && CaptionBuilder::countHashtags($this->caption) > 30) {
+        if ($this->kind !== 'story' && CaptionBuilder::countHashtags($this->caption) > 30) {
             $this->addError('caption', 'O Instagram aceita até 30 hashtags. Tire algumas.');
 
             return [];
         }
 
-        $size = $this->kind === 'story' ? 'story' : ($this->format === 'retrato' ? 'retrato' : 'quadrado');
+        $size = in_array($this->kind, ['story', 'reel'], true) ? 'story' : ($this->format === 'retrato' ? 'retrato' : 'quadrado');
         try {
-            $paths = array_map(fn ($u) => InstagramImages::prepare(Auth::id(), $u, $size, $this->fit, $this->bg), array_slice($picked, 0, self::MAX_PHOTOS));
+            $paths = array_map(fn ($u) => InstagramImages::prepare(Auth::id(), $u, $size, $this->fit, $this->bg), array_slice($picked, 0, $this->kind === 'reel' ? 1 : self::MAX_PHOTOS));
         } catch (\Throwable $e) {
             $this->addError('picked', $e->getMessage());
 
@@ -341,7 +396,9 @@ class PostComposer extends Component
             'product_id' => $this->product()?->id,
             'promotion_id' => $this->promotion()?->id,
             'kind' => $this->kind,
-            'format' => $size,
+            'format' => $this->kind === 'reel' ? 'reel' : $size,
+            'video' => $this->kind === 'reel' ? $this->video : null,
+            'share_to_feed' => $this->shareToFeed,
             'caption' => $this->kind === 'story' ? null : $this->caption,
             'status' => InstagramPost::AGENDADO,
             'scheduled_at' => $scheduledAt ?? now(),
@@ -349,6 +406,9 @@ class PostComposer extends Component
 
         // Editando um agendado: substitui
         if ($this->postId && ($old = InstagramPost::where('user_id', Auth::id())->find($this->postId))) {
+            if ($old->video === $this->video && $this->kind === 'reel') {
+                $old->video = null; // o vídeo continua no post novo
+            }
             $old->deleteFiles();
             $old->delete();
         }

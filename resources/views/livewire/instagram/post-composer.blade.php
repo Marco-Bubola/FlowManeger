@@ -1,6 +1,8 @@
 @php
     $phBtn = 'inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70';
-    $ratio = $kind === 'story' ? '9 / 16' : ($format === 'retrato' ? '4 / 5' : '1 / 1');
+    $tall = in_array($kind, ['story', 'reel'], true);
+    $videoUrl = $video ? \Illuminate\Support\Facades\Storage::disk('public')->url($video) : null;
+    $ratio = $tall ? '9 / 16' : ($format === 'retrato' ? '4 / 5' : '1 / 1');
     $pool = array_values(array_unique(array_merge($extra, $photos)));
     $user = $setting->username ?: 'sua_loja';
 @endphp
@@ -149,8 +151,42 @@
 
         {{-- Fotos --}}
         <div class="igc-card igc-photos">
+            @if($kind === 'reel')
+                <div class="igc-head"><span class="igc-num">2</span><h2>Vídeo do Reels</h2></div>
+                @if($videoUrl)
+                    <div class="igc-video" data-testid="igc-video">
+                        <video src="{{ $videoUrl }}" controls playsinline muted preload="metadata"></video>
+                        <div class="min-w-0 flex-1">
+                            <b><i class="bi bi-check-circle-fill text-emerald-500"></i> Vídeo pronto</b>
+                            <small>Vertical (9:16) fica melhor. De 3 segundos a 15 minutos.</small>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                <label class="igc-btn-art cursor-pointer"><input type="file" wire:model="videoFile" accept="video/mp4,video/quicktime,.mp4,.mov" class="sr-only"><i class="bi bi-arrow-repeat"></i> Trocar</label>
+                                <button type="button" wire:click="removeVideo" class="igc-link" style="margin-left:0">Tirar</button>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <label class="igc-video-drop" wire:loading.class="is-busy" wire:target="videoFile" data-testid="igc-video-drop">
+                        <input type="file" wire:model="videoFile" accept="video/mp4,video/quicktime,.mp4,.mov" class="sr-only">
+                        <i class="bi bi-camera-reels" wire:loading.remove wire:target="videoFile"></i>
+                        <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="videoFile"></i>
+                        <b wire:loading.remove wire:target="videoFile">Enviar vídeo</b>
+                        <b wire:loading wire:target="videoFile">Enviando o vídeo…</b>
+                        <small>MP4 ou MOV, até 100 MB. Vertical (9:16), de 3 segundos a 15 minutos.</small>
+                    </label>
+                @endif
+                @error('videoFile') <p class="igc-err">{{ $message }}</p> @enderror
+                @error('video') <p class="igc-err">{{ $message }}</p> @enderror
+                <button type="button" wire:click="$toggle('shareToFeed')" class="igc-toggle {{ $shareToFeed ? 'on' : '' }}">
+                    <span class="igc-sw"><span></span></span>
+                    <span><b>Mostrar também no feed</b><small>{{ $shareToFeed ? 'Aparece na aba Reels e na grade do perfil.' : 'Só na aba Reels.' }}</small></span>
+                </button>
+                <div class="igc-head mt-4"><span class="igc-num"><i class="bi bi-image"></i></span><h2>Capa</h2><small class="igc-count">opcional</small></div>
+                <p class="igc-hint mb-2">Toque numa foto para ser a capa do Reels. Sem capa, o Instagram usa o começo do vídeo.</p>
+            @else
             <div class="igc-head"><span class="igc-num">2</span><h2>Fotos</h2><small class="igc-count">{{ count($picked) }}/{{ \App\Livewire\Instagram\PostComposer::MAX_PHOTOS }}</small></div>
             <p class="igc-hint mb-2">Toque para escolher. {{ $kind === 'story' ? 'Cada foto vira um story.' : 'Mais de uma foto vira carrossel; a ordem é a dos números.' }}</p>
+            @endif
             <div class="igc-pool" data-testid="igc-pool">
                 @foreach($pool as $u)
                     @php $pos = array_search($u, $picked, true); @endphp
@@ -170,7 +206,7 @@
             @error('uploads.*') <p class="igc-err">{{ $message }}</p> @enderror
             @error('picked') <p class="igc-err">{{ $message }}</p> @enderror
 
-            @if(count($picked) > 1)
+            @if(count($picked) > 1 && $kind !== 'reel')
                 <div class="igc-order">
                     <span class="igc-label"><i class="bi bi-arrow-left-right"></i> Ordem</span>
                     <div class="igc-order-row">
@@ -199,7 +235,7 @@
                             </template>
                         </div>
                     </div>
-                    <button type="button" @click="make(@js($kind === 'story' ? 'story' : $format))" :disabled="busy" class="igc-btn-art" data-testid="igc-make-art">
+                    <button type="button" @click="make(@js($tall ? 'story' : $format))" :disabled="busy" class="igc-btn-art" data-testid="igc-make-art">
                         <i class="bi" :class="busy ? 'bi-arrow-repeat animate-spin' : 'bi-stars'"></i><span x-text="busy ? 'Criando…' : 'Criar arte'"></span>
                     </button>
                 </div>
@@ -208,8 +244,24 @@
 
         {{-- Prévia --}}
         <div class="igc-preview-wrap">
-            <div class="igc-preview {{ $kind === 'story' ? 'is-story' : '' }}" wire:key="pv{{ md5(json_encode([$picked, $format, $kind, $fit])) }}" x-data="{ i: 0, n: {{ max(1, count($picked)) }} }">
-                @if($kind === 'story')
+            <div class="igc-preview {{ $tall ? 'is-story' : '' }}" wire:key="pv{{ md5(json_encode([$picked, $format, $kind, $fit, $video])) }}" x-data="{ i: 0, n: {{ max(1, count($picked)) }} }">
+                @if($kind === 'reel')
+                    <div class="igc-story igc-reel" style="aspect-ratio: 9 / 16">
+                        @if($videoUrl)
+                            <video src="{{ $videoUrl }}" @if($picked) poster="{{ $picked[0] }}" @endif class="igc-media is-cover" autoplay muted loop playsinline></video>
+                        @elseif($picked)
+                            <img src="{{ $picked[0] }}" alt="" class="igc-media is-cover" referrerpolicy="no-referrer">
+                        @else
+                            <div class="igc-empty"><i class="bi bi-camera-reels"></i><span>Envie o vídeo</span></div>
+                        @endif
+                        <div class="igc-reel-side"><i class="bi bi-heart"></i><i class="bi bi-chat"></i><i class="bi bi-send"></i><i class="bi bi-three-dots"></i></div>
+                        <div class="igc-reel-cap">
+                            <div class="igc-story-user" style="position:static"><span class="igc-av">@if($setting->picture_url)<img src="{{ $setting->picture_url }}" alt="" referrerpolicy="no-referrer">@endif</span><b>{{ $user }}</b></div>
+                            <p>{{ \Illuminate\Support\Str::limit(str_replace("\n", ' ', $caption), 90) }}</p>
+                        </div>
+                        <span class="igc-reel-tag"><i class="bi bi-camera-reels"></i> Reels</span>
+                    </div>
+                @elseif($kind === 'story')
                     <div class="igc-story" style="aspect-ratio: {{ $ratio }}; background: {{ $bg }}">
                         <div class="igc-story-bars">@foreach($picked ?: [null] as $j => $u)<span :class="i >= {{ $j }} ? 'on' : ''"></span>@endforeach</div>
                         <div class="igc-story-user"><span class="igc-av">@if($setting->picture_url)<img src="{{ $setting->picture_url }}" alt="" referrerpolicy="no-referrer">@endif</span><b>{{ $user }}</b><small>agora</small></div>
@@ -250,9 +302,10 @@
         <div class="igc-card igc-opts">
             <div class="igc-head"><span class="igc-num">3</span><h2>Formato</h2></div>
             <div class="igc-seg3">
-                <button type="button" wire:click="$set('kind', 'feed'); $set('format', 'quadrado')" class="{{ $kind === 'feed' && $format === 'quadrado' ? 'on' : '' }}"><span class="igc-shape" style="aspect-ratio:1/1"></span><b>Quadrado</b><small>Feed 1:1</small></button>
-                <button type="button" wire:click="$set('kind', 'feed'); $set('format', 'retrato')" class="{{ $kind === 'feed' && $format === 'retrato' ? 'on' : '' }}"><span class="igc-shape" style="aspect-ratio:4/5"></span><b>Retrato</b><small>Feed 4:5</small></button>
-                <button type="button" wire:click="$set('kind', 'story')" class="{{ $kind === 'story' ? 'on' : '' }}" data-testid="igc-story"><span class="igc-shape" style="aspect-ratio:9/16"></span><b>Story</b><small>9:16, 24 horas</small></button>
+                <button type="button" wire:click="setKind('feed'); $set('format', 'quadrado')" class="{{ $kind === 'feed' && $format === 'quadrado' ? 'on' : '' }}"><span class="igc-shape" style="aspect-ratio:1/1"></span><b>Quadrado</b><small>Feed 1:1</small></button>
+                <button type="button" wire:click="setKind('feed'); $set('format', 'retrato')" class="{{ $kind === 'feed' && $format === 'retrato' ? 'on' : '' }}"><span class="igc-shape" style="aspect-ratio:4/5"></span><b>Retrato</b><small>Feed 4:5</small></button>
+                <button type="button" wire:click="setKind('story')" class="{{ $kind === 'story' ? 'on' : '' }}" data-testid="igc-story"><span class="igc-shape" style="aspect-ratio:9/16"></span><b>Story</b><small>9:16, 24 horas</small></button>
+                <button type="button" wire:click="setKind('reel')" class="{{ $kind === 'reel' ? 'on' : '' }}" data-testid="igc-reel"><span class="igc-shape igc-shape-reel" style="aspect-ratio:9/16"><i class="bi bi-play-fill"></i></span><b>Reels</b><small>Vídeo 9:16</small></button>
             </div>
             <div class="igc-row">
                 <span class="igc-label"><i class="bi bi-aspect-ratio"></i> Foto</span>
@@ -269,7 +322,7 @@
                 @endif
             </div>
 
-            @if($kind === 'feed')
+            @if($kind !== 'story')
                 <div class="igc-head mt-4"><span class="igc-num">4</span><h2>Legenda</h2>
                     <button type="button" wire:click="resetCaption" class="igc-link"><i class="bi bi-arrow-counterclockwise"></i> Refazer do modelo</button>
                 </div>
@@ -291,7 +344,7 @@
                 <p class="igc-hint mt-3"><i class="bi bi-info-circle"></i> Story não leva legenda pela API do Instagram. Use a "Arte" para mostrar nome e preço na imagem.</p>
             @endif
 
-            <div class="igc-head mt-4"><span class="igc-num">{{ $kind === 'feed' ? 5 : 4 }}</span><h2>Quando</h2></div>
+            <div class="igc-head mt-4"><span class="igc-num">{{ $kind !== 'story' ? 5 : 4 }}</span><h2>Quando</h2></div>
             <div class="igc-seg igc-when">
                 <button type="button" wire:click="$set('scheduling', false)" class="{{ ! $scheduling ? 'on' : '' }}"><i class="bi bi-lightning-charge"></i> Agora</button>
                 <button type="button" wire:click="$set('scheduling', true)" class="{{ $scheduling ? 'on' : '' }}" data-testid="igc-schedule-tab"><i class="bi bi-calendar-event"></i> Agendar</button>
@@ -315,7 +368,7 @@
                 @else
                     <button type="button" wire:click="postNow" wire:loading.attr="disabled" wire:target="postNow" class="igc-btn-main" data-testid="igc-post-now">
                         <i class="bi bi-send" wire:loading.remove wire:target="postNow"></i><i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="postNow"></i>
-                        <span wire:loading.remove wire:target="postNow">{{ $kind === 'story' ? (count($picked) > 1 ? 'Postar ' . count($picked) . ' stories' : 'Postar story') : 'Postar agora' }}</span>
+                        <span wire:loading.remove wire:target="postNow">{{ $kind === 'story' ? (count($picked) > 1 ? 'Postar ' . count($picked) . ' stories' : 'Postar story') : ($kind === 'reel' ? 'Postar Reels' : 'Postar agora') }}</span>
                         <span wire:loading wire:target="postNow">Postando…</span>
                     </button>
                 @endif
@@ -393,7 +446,28 @@
         .igc-swatches button.on { box-shadow: 0 0 0 2px #db2777; }
         .igc-btn-art { display: inline-flex; align-items: center; gap: .4rem; padding: .6rem 1rem; border-radius: .9rem; background: #fff; color: #be185d; font-weight: 800; font-size: .85rem; border: 1.5px solid #f9a8d4; }
         .dark .igc-btn-art { background: #111827; color: #f9a8d4; }
-        .igc-seg3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+        .igc-seg3 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; }
+        @media (max-width: 420px) { .igc-seg3 { gap: .35rem; } .igc-seg3 button { padding: .6rem .2rem; } .igc-seg3 button small { font-size: .6rem; } }
+        .igc-shape-reel { display: grid; place-items: center; font-size: .9rem; }
+        .igc-video-drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; padding: 1.6rem 1rem; border-radius: 1.1rem; border: 2px dashed #f9a8d4; background: #fdf2f8; color: #be185d; text-align: center; cursor: pointer; }
+        .igc-video-drop > i { font-size: 2rem; } .igc-video-drop b { font-size: .95rem; } .igc-video-drop small { font-size: .74rem; color: #64748b; }
+        .dark .igc-video-drop { background: rgba(236, 72, 153, .08); border-color: rgba(236, 72, 153, .35); color: #f9a8d4; }
+        .igc-video { display: flex; gap: .9rem; align-items: center; padding: .7rem; border-radius: 1rem; border: 1px solid #fbcfe8; background: #fff; }
+        .dark .igc-video { background: #111827; border-color: rgba(236, 72, 153, .3); }
+        .igc-video video { width: 6rem; aspect-ratio: 9 / 16; object-fit: cover; border-radius: .7rem; background: #000; flex: none; }
+        .igc-video b { display: block; font-size: .88rem; color: #0f172a; } .dark .igc-video b { color: #f1f5f9; }
+        .igc-video small { display: block; font-size: .74rem; color: #64748b; }
+        .igc-toggle { width: 100%; display: flex; align-items: center; gap: .7rem; margin-top: .8rem; padding: .65rem .8rem; border-radius: 1rem; border: 1px solid #eef2f7; background: #f8fafc; text-align: left; }
+        .igc-toggle b { display: block; font-size: .84rem; color: #0f172a; } .igc-toggle small { display: block; font-size: .72rem; color: #64748b; }
+        .dark .igc-toggle { background: #111827; border-color: #1f2937; } .dark .igc-toggle b { color: #f1f5f9; }
+        .igc-sw { flex: none; position: relative; width: 2.6rem; height: 1.5rem; border-radius: 999px; background: #cbd5e1; transition: background .2s; }
+        .igc-sw span { position: absolute; top: .18rem; left: .18rem; width: 1.14rem; height: 1.14rem; border-radius: 999px; background: #fff; transition: transform .2s; }
+        .igc-toggle.on .igc-sw { background: #db2777; } .igc-toggle.on .igc-sw span { transform: translateX(1.1rem); }
+        .igc-reel { background: #000; }
+        .igc-reel-side { position: absolute; z-index: 2; right: .6rem; bottom: 5.5rem; display: flex; flex-direction: column; gap: 1rem; color: #fff; font-size: 1.25rem; text-shadow: 0 1px 4px rgba(0, 0, 0, .5); }
+        .igc-reel-cap { position: absolute; z-index: 2; left: 0; right: 2.8rem; bottom: 0; padding: .8rem; color: #fff; font-size: .76rem; background: linear-gradient(transparent, rgba(0, 0, 0, .55)); }
+        .igc-reel-cap p { margin-top: .35rem; line-height: 1.35; }
+        .igc-reel-tag { position: absolute; z-index: 2; top: .6rem; left: .6rem; padding: .15rem .5rem; border-radius: 999px; background: rgba(0, 0, 0, .5); color: #fff; font-size: .7rem; font-weight: 700; }
         .igc-seg3 button { display: flex; flex-direction: column; align-items: center; gap: .15rem; padding: .7rem .4rem; border-radius: 1rem; border: 1.5px solid #e2e8f0; background: #f8fafc; color: #334155; }
         .igc-seg3 button b { font-size: .82rem; } .igc-seg3 button small { font-size: .66rem; color: #64748b; }
         .igc-seg3 button.on { border-color: #db2777; background: #fdf2f8; color: #9d174d; }
