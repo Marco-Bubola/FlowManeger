@@ -243,6 +243,30 @@
                 </style>
             @endonce
             @break
+        @case('splash')
+            <span class="absolute inset-0 flex items-center justify-center bg-white">
+                @if($k !== 'nenhum')
+                    <span class="absolute inset-0 flex items-center justify-center lk-thumb-sp-{{ $k }}" style="background: linear-gradient(135deg, {{ $c1 }}, {{ $c2 }})"><i class="w-4 h-4 rounded bg-white lk-thumb-sp-logo"></i></span>
+                @else
+                    <i class="bi bi-dash-circle text-slate-400"></i>
+                @endif
+            </span>
+            @once
+                <style>
+                    .lk-thumb-sp-logo { animation: lk-sp-pop 2.4s cubic-bezier(.2,1.4,.4,1) infinite; }
+                    @keyframes lk-sp-pop { 0% { transform: scale(.2); } 25%, 100% { transform: none; } }
+                    .lk-thumb-sp-logo, .lk-thumb-sp-cortina, .lk-thumb-sp-circulo { animation-duration: 2.4s; animation-iteration-count: infinite; }
+                    .lk-thumb-sp-logo { animation-name: lk-sp-pop; }
+                    .lk-thumb-sp-cortina { animation: lk-sp-up 2.4s ease infinite; }
+                    @keyframes lk-sp-up { 0%, 55% { transform: none; } 85%, 100% { transform: translateY(-100%); } }
+                    .lk-thumb-sp-circulo { animation: lk-sp-hole 2.4s ease infinite; -webkit-mask: radial-gradient(circle, transparent var(--h, 0%), #000 calc(var(--h, 0%) + .5%)); mask: radial-gradient(circle, transparent var(--h, 0%), #000 calc(var(--h, 0%) + .5%)); }
+                    @property --h { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+                    @keyframes lk-sp-hole { 0%, 55% { --h: 0%; } 90%, 100% { --h: 75%; } }
+                    .lk-thumb-sp-logo { animation-name: lk-sp-pop; }
+                    @media (prefers-reduced-motion: reduce) { [class*="lk-thumb-sp-"] { animation: none !important; } }
+                </style>
+            @endonce
+            @break
         @default
             <span class="absolute inset-0 flex items-center justify-center text-xl" style="color: {{ $c3 }}"><i class="bi {{ $k === 'nao' ? 'bi-pause-circle' : 'bi-magic' }} {{ $k === 'sim' ? 'animate-pulse' : '' }}"></i></span>
     @endswitch

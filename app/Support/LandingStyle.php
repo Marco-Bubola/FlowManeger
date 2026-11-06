@@ -23,7 +23,14 @@ class LandingStyle
         'completo' => ['Completo', 'Também título palavra por palavra, cards inclinando com o mouse e depoimentos em carrossel de vidro 3D'],
     ];
 
-    public const DEFAULT = ['model' => 'atual', 'motion' => 'nenhum'];
+    public const SPLASHES = [
+        'nenhum' => ['Sem abertura', 'Entra direto na página'],
+        'logo' => ['Logo pulando', 'A logo pula e o nome sobe por ~1 segundo'],
+        'cortina' => ['Cortina subindo', 'A tela da logo sobe e mostra a página'],
+        'circulo' => ['Círculo abrindo', 'Abre um buraco redondo do meio para fora'],
+    ];
+
+    public const DEFAULT = ['model' => 'atual', 'motion' => 'nenhum', 'splash' => 'nenhum'];
 
     private static ?array $memo = null;
 
@@ -49,6 +56,7 @@ class LandingStyle
         return [
             'model' => isset(self::MODELS[$v['model'] ?? '']) ? $v['model'] : 'atual',
             'motion' => isset(self::MOTIONS[$v['motion'] ?? '']) ? $v['motion'] : 'nenhum',
+            'splash' => isset(self::SPLASHES[$v['splash'] ?? '']) ? $v['splash'] : 'nenhum',
         ];
     }
 
@@ -66,8 +74,8 @@ class LandingStyle
     {
         $v = self::get();
         $u = auth()->user();
-        if ($u && ($u->is_admin ?? false) && (request()->has('estilo') || request()->has('movimento'))) {
-            $v = self::clean(['model' => request()->query('estilo', $v['model']), 'motion' => request()->query('movimento', $v['motion'])]);
+        if ($u && ($u->is_admin ?? false) && (request()->has('estilo') || request()->has('movimento') || request()->has('abertura'))) {
+            $v = self::clean(['model' => request()->query('estilo', $v['model']), 'motion' => request()->query('movimento', $v['motion']), 'splash' => request()->query('abertura', $v['splash'])]);
         }
 
         return $v;

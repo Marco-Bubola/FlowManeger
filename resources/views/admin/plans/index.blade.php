@@ -174,7 +174,7 @@
 
         {{-- Página inicial do próprio FlowManager: estilo dos vídeos, opcional (Atual continua o padrão) --}}
         @php $lp = \App\Support\LandingStyle::get(); @endphp
-        <div class="pg-card {{ $lp['model'] !== 'atual' || $lp['motion'] !== 'nenhum' ? 'is-on' : '' }}" data-testid="landing-style">
+        <div class="pg-card {{ $lp['model'] !== 'atual' || $lp['motion'] !== 'nenhum' || ($lp['splash'] ?? 'nenhum') !== 'nenhum' ? 'is-on' : '' }}" data-testid="landing-style">
             <span class="pg-ico"><i class="bi bi-window-sidebar"></i></span>
             <div class="pg-txt">
                 <b>Página inicial do FlowManager</b>
@@ -194,8 +194,14 @@
                         @endforeach
                     </div>
                     <div class="lp-row">
+                        <span class="lp-lbl">Abertura</span>
+                        @foreach(\App\Support\LandingStyle::SPLASHES as $k => [$t, $d])
+                            <label class="lp-opt" title="{{ $d }}"><input type="radio" name="splash" value="{{ $k }}" @checked(($lp['splash'] ?? 'nenhum') === $k)><span>{{ $t }}</span></label>
+                        @endforeach
+                    </div>
+                    <div class="lp-row">
                         <button type="submit" class="lp-save">Salvar</button>
-                        <a class="lp-prev" target="_blank" rel="noopener" href="#" onclick="var f=this.closest('form');this.href='{{ url('/') }}?estilo='+f.model.value+'&movimento='+f.motion.value;">Ver prévia <i class="bi bi-box-arrow-up-right"></i></a>
+                        <a class="lp-prev" target="_blank" rel="noopener" href="#" onclick="var f=this.closest('form');this.href='{{ url('/') }}?estilo='+f.model.value+'&movimento='+f.motion.value+'&abertura='+f.splash.value;">Ver prévia <i class="bi bi-box-arrow-up-right"></i></a>
                     </div>
                 </form>
             </div>

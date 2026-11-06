@@ -5,6 +5,13 @@
     </head>
     <body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
         @include('partials.app-menu-prefs')
+        @php $fmSplash = (auth()->user()?->preferences['appearance']['look']['splash'] ?? 'nenhum'); @endphp
+        @if($fmSplash !== 'nenhum')
+            @include('partials.splash', ['splash' => $fmSplash, 'splashKey' => 'app-' . auth()->id(),
+                'splashLogo' => Vite::asset('resources/images/icons/logo-128.png'), 'splashName' => 'FlowManager',
+                'splashSub' => 'Olá, ' . \Illuminate\Support\Str::of(auth()->user()->name ?? '')->explode(' ')->first() . '!',
+                'splashBg' => 'linear-gradient(135deg, #db2777 0%, #8b5cf6 55%, #2563eb 100%)', 'splashInk' => '#ffffff', 'splashAcc' => '#ffffff'])
+        @endif
         @php
             $mobilePendingSales = 0;
             $mobilePendingMl = 0;

@@ -653,6 +653,10 @@
     @if ($lpMotion !== 'nenhum') @include('landing.motion') @endif
 </head>
 <body class="lp-{{ $lpModel }} lp-mo-{{ $lpMotion }}">
+@include('partials.splash', ['splash' => $lp['splash'] ?? 'nenhum', 'splashKey' => request()->has('abertura') ? 'previa-' . uniqid() : 'flowmanager',
+    'splashLogo' => Vite::asset('resources/images/icons/logo-128.png'), 'splashName' => 'FlowManager', 'splashSub' => 'Gerencie seu negócio com inteligência',
+    'splashBg' => match ($lpModel) { 'editorial' => '#24302a', 'elegante' => 'linear-gradient(135deg, #3b2f33, #8e5c6b)', default => 'radial-gradient(ellipse at 30% 20%, #2a1240, #050507 70%)' },
+    'splashInk' => '#ffffff', 'splashAcc' => match ($lpModel) { 'editorial' => '#c6ef5b', 'elegante' => '#e8bba0', default => '#a855f7' }])
 <div class="bg-glow"></div>
 <div class="noise"></div>
 

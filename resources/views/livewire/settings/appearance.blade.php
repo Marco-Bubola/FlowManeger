@@ -38,6 +38,7 @@ new class extends Component {
             'hover' => $pick('hover', ['nada', 'zoom', 'levantar', 'inclinar'], 'nada'),
             'cart' => $pick('cart', ['nada', 'pular', 'voar'], 'nada'),
             'page' => $pick('page', ['direta', 'desliza', 'esmaece', 'sobe'], 'direta'),
+            'splash' => $pick('splash', ['nenhum', 'logo', 'cortina', 'circulo'], 'nenhum'),
         ];
         foreach (['c_bg', 'c_border', 'c_tag', 'c_detail'] as $k) {
             $clean[$k] = in_array($value[$k] ?? null, $fams, true) ? $value[$k] : null;
@@ -405,6 +406,20 @@ new class extends Component {
                             <button type="button" class="ap-navbtn" :class="{ 'is-on': (look.cart || 'nada') === '{{ $ck }}' }" @click="setLook('cart', '{{ $ck }}')">
                                 <span class="ap-nav-art ap-ct-art"><i class="{{ $ck === 'voar' ? 'ap-ct-fly' : '' }}"></i><b class="bi bi-cart3 {{ $ck === 'pular' ? 'ap-ct-bump' : '' }}"></b></span>
                                 <b>{{ $ct }}</b><small>{{ $cd }}</small>
+                            </button>
+                        @endforeach
+                    </div>
+                    <p class="ap-label mt-4">Tela de abertura (uma vez, quando você entra no app)</p>
+                    <div class="ap-navs mt-2">
+                        @foreach([
+                            ['nenhum', 'Sem abertura', 'Entra direto, como sempre'],
+                            ['logo', 'Logo pulando', 'A logo pula e aparece "Olá" por 1 segundo'],
+                            ['cortina', 'Cortina subindo', 'A tela da logo sobe e mostra o app'],
+                            ['circulo', 'Círculo abrindo', 'Abre um buraco redondo do meio para fora'],
+                        ] as [$sk, $st, $sd])
+                            <button type="button" class="ap-navbtn" :class="{ 'is-on': (look.splash || 'nenhum') === '{{ $sk }}' }" @click="setLook('splash', '{{ $sk }}')" data-testid="app-splash-{{ $sk }}">
+                                <span class="ap-nav-art ap-sp-art"><i class="{{ $sk !== 'nenhum' ? 'ap-sp-' . $sk : '' }}"><b></b></i></span>
+                                <b>{{ $st }}</b><small>{{ $sd }}</small>
                             </button>
                         @endforeach
                     </div>
@@ -885,6 +900,18 @@ new class extends Component {
         @keyframes ap-hv-zoom { 0%, 30%, 100% { transform: none; } 55%, 80% { transform: scale(1.3); } }
         @keyframes ap-hv-up { 0%, 30%, 100% { transform: none; } 55%, 80% { transform: translateY(-5px); box-shadow: 0 8px 10px -4px rgba(0, 0, 0, .3); } }
         @keyframes ap-hv-tilt { 0%, 100% { transform: none; } 30% { transform: rotateY(20deg) rotateX(6deg); } 65% { transform: rotateY(-20deg) rotateX(-6deg); } }
+        .ap-sp-art { position: relative; overflow: hidden; }
+        .ap-sp-art > i { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #db2777, #8b5cf6 55%, #2563eb); }
+        .ap-sp-art > i:not([class]) { background: transparent; }
+        .ap-sp-art > i > b { width: .9rem; height: .9rem; border-radius: .25rem; background: #fff; }
+        .ap-sp-art > i:not([class]) > b { display: none; }
+        .ap-sp-logo > b { animation: ap-sp-pop 2.4s cubic-bezier(.2,1.4,.4,1) infinite; }
+        @keyframes ap-sp-pop { 0% { transform: scale(.2); } 25%, 100% { transform: none; } }
+        .ap-sp-cortina { animation: ap-sp-up 2.4s ease infinite; }
+        @keyframes ap-sp-up { 0%, 55% { transform: none; } 85%, 100% { transform: translateY(-100%); } }
+        .ap-sp-circulo { animation: ap-sp-hole 2.4s ease infinite; }
+        @keyframes ap-sp-hole { 0%, 55% { clip-path: circle(100%); } 90%, 100% { clip-path: circle(0%); } }
+        @media (prefers-reduced-motion: reduce) { .ap-sp-art * { animation: none !important; } }
         .ap-ct-art { position: relative; }
         .ap-ct-art > i { position: absolute; left: .7rem; bottom: .5rem; width: 1.2rem; height: 1.2rem; border-radius: .3rem; background: linear-gradient(135deg, var(--color-indigo-400), var(--color-pink-400)); }
         .ap-ct-art > b { position: absolute; right: .7rem; top: .4rem; font-size: 1.1rem; color: #64748b; display: inline-block; }

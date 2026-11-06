@@ -265,6 +265,9 @@
     @stack('styles')
 </head>
 <body class="{{ ! empty($theme['dark_mode']) ? 'ml-dark' : '' }} {{ \App\Services\Portal\HomeLayout::lookClasses($theme['look'] ?? null) }}">
+@include('partials.splash', ['splash' => $theme['look']['splash'] ?? 'nenhum', 'splashKey' => 'loja-' . $idOwner,
+    'splashLogo' => $identity['logo_url'] ?: Vite::asset('resources/images/icons/logo-128.png'), 'splashName' => $storeName, 'splashSub' => $identity['tagline'] ?? null,
+    'splashBg' => $theme['hero'] ?? '#7c3aed', 'splashInk' => '#ffffff', 'splashAcc' => '#ffffff'])
 <script>
 document.addEventListener('alpine:init', () => {
     Alpine.store('cart', {

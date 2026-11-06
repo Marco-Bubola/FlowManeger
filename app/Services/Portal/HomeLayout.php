@@ -390,6 +390,10 @@ class HomeLayout
         'buybtn' => ['Botão de pôr no carrinho (página do produto)', [
             'normal' => ['Como sempre', 'bi-cart-plus'], 'caminhao' => ['Caminhãozinho', 'bi-truck'], 'caixa' => ['Caixa fechando', 'bi-box-seam'],
         ]],
+        // Tela de abertura: a logo e o nome da loja animados por ~1 s, uma vez por visita.
+        'splash' => ['Tela de abertura', [
+            'nenhum' => ['Sem abertura', 'bi-dash-circle'], 'logo' => ['Logo pulando', 'bi-stars'], 'cortina' => ['Cortina subindo', 'bi-arrow-bar-up'], 'circulo' => ['Círculo abrindo', 'bi-circle'],
+        ]],
     ];
 
     /** Partes do Estilo do site em abas, para não virar uma lista enorme. */
@@ -398,7 +402,7 @@ class HomeLayout
         'fundo' => ['Fundo', 'bi-image', ['bgtype', 'pattern', 'patternsize', 'patternop']],
         'topo'  => ['Topo e largura', 'bi-window-desktop', ['header', 'width']],
         'texto' => ['Botões e textos', 'bi-fonts', ['buttons', 'text', 'titles', 'anim']],
-        'movimento' => ['Movimento', 'bi-stars', ['motion', 'moentry', 'mospeed', 'mocart', 'mohover', 'carousel', 'buybtn']],
+        'movimento' => ['Movimento', 'bi-stars', ['splash', 'motion', 'moentry', 'mospeed', 'mocart', 'mohover', 'carousel', 'buybtn']],
     ];
 
     /** Cores de cada parte (vazio = sai das cores da loja). Ficam em portal_settings.home.paint. */
