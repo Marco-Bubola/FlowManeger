@@ -331,6 +331,22 @@ trait ImportsFromMlCatalog
 
     // ─── Importar do catálogo do Mercado Livre ───────────────────────────────
 
+    /**
+     * Abrir a janela já de cara: ?ml=1 (e ?codigo=EAN no Novo produto).
+     * Usado pelo leitor de código de barras ("Trazer do Mercado Livre").
+     */
+    public function mountImportsFromMlCatalog(): void
+    {
+        if (!request()->query('ml') || !property_exists($this, 'name') || !property_exists($this, 'barcode')) {
+            return;
+        }
+        $code = preg_replace('/\D/', '', (string) request()->query('codigo', ''));
+        if ($code !== '' && trim((string) $this->barcode) === '') {
+            $this->barcode = mb_substr($code, 0, 15);
+        }
+        $this->openMlImport();
+    }
+
     public function openMlImport(): void
     {
         $this->resetMlImport();

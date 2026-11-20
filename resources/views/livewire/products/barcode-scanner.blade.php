@@ -1121,6 +1121,9 @@
                                 <a href="{{ route('products.edit', $foundProduct['id']) }}" class="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all hover:scale-105">
                                     <i class="fas fa-pen-to-square text-xs"></i> Editar
                                 </a>
+                                <a href="{{ route('products.edit', $foundProduct['id']) }}?ml=1" wire:navigate title="Trazer fotos, descrição, ficha e medidas do Mercado Livre" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:scale-105" style="background:#ffe600;color:#2d3277">
+                                    <i class="bi bi-cloud-download text-xs"></i> Trazer do ML
+                                </a>
                             </div>
                             {{-- Price + stock grid (modern cards) --}}
                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
@@ -1227,6 +1230,10 @@
                                     <i wire:loading wire:target="applyOnlineData" class="fas fa-spinner fa-spin"></i>
                                     Aplicar dados
                                 </button>
+                                <a href="{{ route('products.edit', $foundProduct['id']) }}?ml=1" wire:navigate class="px-4 py-2.5 text-xs font-bold rounded-2xl shadow-lg transition-all hover:scale-105 flex items-center gap-1.5 self-start" style="background:#ffe600;color:#2d3277;box-shadow:0 8px 20px rgba(234,179,8,.3)">
+                                    <i class="bi bi-cloud-download"></i>
+                                    Trazer do Mercado Livre
+                                </a>
                                 @endif
                             </div>
 
@@ -1347,6 +1354,12 @@
                                        style="background:linear-gradient(135deg,#6366f1,#7c3aed)">
                                         <i class="fas fa-plus"></i>
                                         Cadastrar produto
+                                    </a>
+                                    <a href="{{ route('products.create') }}?ml=1&codigo={{ urlencode((string) ($onlineResult['barcode'] ?? $lastScannedBarcode)) }}" wire:navigate
+                                       class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm hover:scale-[1.02] transition-all"
+                                       style="background:#ffe600;color:#2d3277;box-shadow:0 8px 20px rgba(234,179,8,.3)">
+                                        <i class="bi bi-cloud-download"></i>
+                                        Cadastrar com dados do ML
                                     </a>
                                     @if($activeMode !== 'vincular')
                                     <button wire:click="setMode('vincular')"
