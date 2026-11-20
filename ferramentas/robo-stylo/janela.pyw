@@ -11,6 +11,7 @@ import json
 import os
 import queue
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -1211,6 +1212,13 @@ class App(ctk.CTk):
             self.ocupado_ml = False
             self.trazer_para_frente()
             self.paginas["concorrentes"].fim(t)
+        elif ev == "ia_imagem":
+            dlg = t[0]
+            try:
+                if dlg.winfo_exists():
+                    dlg.recebeu(*t[1:])
+            except Exception:
+                pass
         elif ev == "ia_textos":
             ed = self.paginas.get("editor")
             if ed:
@@ -2403,7 +2411,11 @@ class PaginaConfig(ctk.CTkFrame):
         campo2(9, "Chave do Gemini (IA)", "gemini_chave", "Opcional. Grátis em aistudio.google.com › Get API key. Sem chave, o robô "
                "monta o título e a descrição com os dados da ficha.", show="•")
         campo2(11, "Modelo do Gemini", "gemini_modelo", "")
-        ctk.CTkLabel(c2, text="").grid(row=13, column=0, pady=4)
+        campo2(12, "Modelo das imagens (IA)", "gemini_modelo_imagem", "Usado em Fotos › Criar com IA. A conta do Gemini precisa "
+               "estar com cobrança ativa para criar imagens.")
+        campo2(14, "Link do Canva IA", "canva_link", "Abre em Fotos › Criar no Canva, no seu navegador (entre no Canva lá uma vez).")
+        campo2(16, "Pasta de downloads", "pasta_downloads", "Onde o navegador salva o que você baixa. Vazio = Downloads do Windows.")
+        ctk.CTkLabel(c2, text="").grid(row=18, column=0, pady=4)
         c3 = ctk.CTkFrame(raiz, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA)
         c3.grid(row=2, column=0, sticky="new", padx=(18, 8), pady=(16, 10))
         c3.grid_columnconfigure(1, weight=1)
@@ -2483,6 +2495,9 @@ class PaginaConfig(ctk.CTkFrame):
         r["marca_dagua"] = self.campos["marca_dagua"].get().strip()
         r["gemini_chave"] = self.campos["gemini_chave"].get().strip()
         r["gemini_modelo"] = self.campos["gemini_modelo"].get().strip() or "gemini-2.5-flash"
+        r["gemini_modelo_imagem"] = self.campos["gemini_modelo_imagem"].get().strip() or "gemini-3.1-flash-image"
+        r["canva_link"] = self.campos["canva_link"].get().strip() or "https://www.canva.com/ai"
+        r["pasta_downloads"] = self.campos["pasta_downloads"].get().strip()
         r["preco_de_pct"] = str(self.campos["preco_de_pct"].valor() or "")
         r["folga_caixa"] = decimal_txt(self.campos["folga_caixa"].valor() or 4).replace(",", ".")
         r["completar_ao_importar"] = "sim" if self.auto_imp.get() else "nao"
@@ -3463,6 +3478,8 @@ class Editor(ctk.CTkFrame):
         s = Secao(self.corpo, "Fotos", "A primeira é a capa. Escolha se cada foto vale para todas as variações ou só para uma.")
         s.grid(row=4, column=0, sticky="ew", padx=10, pady=8)
         Botao(s.acoes, "✦  Deixar prontas", "fantasma", width=140, command=lambda: FotosProntas(self)).pack(side="right", padx=(6, 0))
+        Botao(s.acoes, "Gemini", "fantasma", width=80, command=lambda: ImagensIA(self)).pack(side="right", padx=(6, 0))
+        Botao(s.acoes, "✦  Criar no Canva", "suave", width=140, command=lambda: ImagensIA(self, "canva")).pack(side="right", padx=(6, 0))
         Botao(s.acoes, "Colar imagem", "fantasma", width=120, command=self.colar_imagem).pack(side="right", padx=(6, 0))
         Botao(s.acoes, "＋  Adicionar fotos", "suave", width=150, command=self.escolher_fotos).pack(side="right")
         self.grade_fotos = ctk.CTkFrame(s, fg_color="transparent")
@@ -4167,6 +4184,306 @@ class FotosProntas(Dialogo):
         self.destroy()
         self.app.toast("Fotos prontas. Toque em Salvar ficha para guardar." if not falhas else f"{falhas} foto(s) não deu para tratar",
                        VERDE if not falhas else AMBAR)
+
+
+class ImagensIA(Dialogo):
+    """Imagens de anúncio a partir das fotos do produto.
+
+    modo "gemini": o robô manda as fotos e o pedido para a IA do Gemini (chave em Configurações).
+    modo "canva": o robô abre o Canva IA no navegador da pessoa, copia o pedido e separa as fotos;
+    as imagens que ela baixar do Canva entram aqui sozinhas (vigia a pasta Downloads)."""
+
+    def __init__(self, editor, modo="gemini"):
+        app = editor.app
+        self.modo = modo
+        if modo == "canva":
+            titulo, sub = "Criar imagens no Canva", ("O robô abre o Canva IA, copia o pedido e separa as fotos. Você gera lá e baixa; "
+                                                     "as imagens baixadas aparecem aqui sozinhas.")
+        else:
+            titulo, sub = "Criar imagens com o Gemini", ("Escolha as fotos do produto e os tipos de imagem. A IA cria no estilo do "
+                                                         "Mercado Livre; confira se a peça ficou igual antes de usar.")
+        super().__init__(app, titulo, sub, larg=1040, alt=700)
+        self.editor = editor
+        self.d = json.loads(json.dumps(editor.montar(), default=str))
+        self.chave = (app.cfg["robo"].get("gemini_chave") or "").strip()
+        self.modelo = (app.cfg["robo"].get("gemini_modelo_imagem") or "gemini-3.1-flash-image").strip()
+        self.fotos = [f for f in editor.fotos if not f.removida]
+        self.criadas = []          # [{"estilo", "rotulo", "dado", "var", "check"}]
+        self.rodando = False
+        sw = dict(font=F(13), text_color=TEXTO, fg_color=ROXO, hover_color=ROXO, border_color=BORDA, checkbox_width=20, checkbox_height=20)
+
+        esq = ctk.CTkScrollableFrame(self.corpo, fg_color="transparent", width=360)
+        esq.grid(row=0, column=0, sticky="nsew", padx=(12, 4), pady=12)
+        self.corpo.grid_rowconfigure(0, weight=1)
+
+        ctk.CTkLabel(esq, text="Fotos do produto", font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(fill="x")
+        ctk.CTkLabel(esq, text="A IA olha estas fotos para copiar a peça (até 6).", font=F(11), text_color=MUDO, anchor="w").pack(fill="x")
+        grade = ctk.CTkFrame(esq, fg_color="transparent")
+        grade.pack(fill="x", pady=(6, 10))
+        self.marcadas = []
+        for i, f in enumerate(self.fotos[:12]):
+            cel = ctk.CTkFrame(grade, fg_color="transparent")
+            cel.grid(row=i // 4, column=i % 4, padx=3, pady=3)
+            img = miniatura(f.caminho, 70)
+            app._refs.append(img)
+            ctk.CTkLabel(cel, text="" if img else "—", image=img, width=70, height=70, fg_color=SUAVE if not img else "transparent",
+                         corner_radius=10).pack()
+            cb = ctk.CTkCheckBox(cel, text="usar", width=20, command=self._contar, **{**sw, "font": F(11)})
+            if i < 3:
+                cb.select()
+            cb.pack(pady=(2, 0))
+            self.marcadas.append((cb, f))
+        if not self.fotos:
+            ctk.CTkLabel(grade, text="A ficha ainda não tem foto. Adicione pelo menos uma.", font=F(12), text_color=AMBAR).grid(row=0, column=0)
+
+        ctk.CTkLabel(esq, text="Variação", font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(fill="x", pady=(6, 0))
+        self.vars = [v for v in self.d.get("variacoes") or [] if isinstance(v, dict)]
+        nomes = [str(v.get("valor") or f"Opção {i + 1}") for i, v in enumerate(self.vars)] or ["Produto"]
+        if len(self.vars) > 1:
+            nomes = ["Todas as variações"] + nomes
+        self.var_menu = ctk.CTkOptionMenu(esq, values=nomes, width=300, font=F(13), fg_color=SUAVE, button_color=ROXO,
+                                          text_color=TEXTO, dropdown_font=F(13))
+        self.var_menu.pack(anchor="w", pady=(4, 2))
+        ctk.CTkLabel(esq, text="Escolha uma opção para as imagens ficarem só nela (e para a foto com medidas usar as medidas dela).",
+                     font=F(11), text_color=MUDO, anchor="w", justify="left", wraplength=320).pack(fill="x")
+
+        ctk.CTkLabel(esq, text="Imagens para criar", font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(fill="x", pady=(12, 2))
+        self.estilos = []
+        for chave, rot, _ in recursos.ESTILOS_IMAGEM:
+            cb = ctk.CTkCheckBox(esq, text=rot, command=self._contar, **sw)
+            if chave in ("capa", "ambiente", "medidas"):
+                cb.select()
+            cb.pack(anchor="w", pady=3)
+            self.estilos.append((cb, chave, rot))
+        ctk.CTkLabel(esq, text="Pedido extra (opcional)", font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(fill="x", pady=(12, 2))
+        self.extra = Entrada(esq, width=320, placeholder_text="ex.: com plantas, parede de tijolinho")
+        self.extra.pack(anchor="w")
+
+        dir_ = ctk.CTkFrame(self.corpo, fg_color="transparent")
+        dir_.grid(row=0, column=1, sticky="nsew", padx=(4, 12), pady=12)
+        dir_.grid_columnconfigure(0, weight=1)
+        dir_.grid_rowconfigure(3, weight=1)
+        if modo == "canva":
+            passos = ctk.CTkFrame(dir_, fg_color=SUAVE, corner_radius=14)
+            passos.grid(row=0, column=0, sticky="ew", pady=(0, 8))
+            for i, t in enumerate(("1. Toque em “Abrir o Canva e as fotos”: abre o Canva IA no seu navegador e a pasta com as fotos.",
+                                   "2. No Canva, arraste as fotos para a caixa e cole o pedido (Ctrl+V). O primeiro já está copiado.",
+                                   "3. Baixe as imagens que gostar. Elas aparecem aqui embaixo sozinhas.")):
+                ctk.CTkLabel(passos, text=t, font=F(12), text_color=TEXTO, anchor="w", justify="left", wraplength=500).grid(
+                    row=i, column=0, sticky="w", padx=14, pady=(10 if i == 0 else 2, 10 if i == 2 else 2))
+            self.pedidos = ctk.CTkFrame(dir_, fg_color="transparent")
+            self.pedidos.grid(row=1, column=0, sticky="ew")
+            self.capa_sw = ctk.CTkSwitch(dir_, text="A primeira imagem marcada vira a capa", progress_color=ROXO, font=F(12), text_color=TEXTO)
+            self.capa_sw.select()
+        ctk.CTkLabel(dir_, text="Imagens baixadas do Canva" if modo == "canva" else "Imagens criadas", font=F(14, "bold"),
+                     text_color=TEXTO, anchor="w").grid(row=2, column=0, sticky="ew", pady=(4, 0))
+        self.res = ctk.CTkScrollableFrame(dir_, fg_color=CARD, corner_radius=14, border_width=1, border_color=BORDA)
+        self.res.grid(row=3, column=0, sticky="nsew", pady=(6, 0))
+        self.vazio = ctk.CTkLabel(self.res, text=("Esperando você baixar as imagens do Canva…\n(o robô olha a pasta Downloads)"
+                                                  if modo == "canva" else "As imagens aparecem aqui.\nMarque as que quer usar e toque em Adicionar."),
+                                  font=F(12), text_color=MUDO, justify="center")
+        self.vazio.pack(pady=60)
+        if modo == "canva":
+            self.capa_sw.grid(row=4, column=0, sticky="w", pady=(8, 0))
+
+        self.bt_add = Botao(self.rod, "Adicionar às fotos", "suave", width=160, height=38, command=self.adicionar, state="disabled")
+        self.botao_ok("Abrir o Canva e as fotos" if modo == "canva" else "✦  Criar imagens",
+                      self.abrir_canva if modo == "canva" else self.gerar)
+        self.bt_ok.grid(row=0, column=2, padx=6)
+        self.bt_add.grid(row=0, column=3)
+        if modo == "canva":
+            import time as _t
+            self.inicio = _t.time() - 2
+            self.vistos = {}
+            pasta = (app.cfg["robo"].get("pasta_downloads") or "").strip()
+            self.downloads = Path(os.path.expandvars(os.path.expanduser(pasta or "~/Downloads")))
+            self.after(1500, self._vigiar_downloads)
+        self._contar()
+        if modo != "canva" and not self.chave:
+            self.lbl_rod.configure(text="Falta a chave do Gemini em Configurações (a mesma do título e descrição).")
+            self.bt_ok.configure(state="disabled")
+
+    def _escolhidas(self):
+        return [f.caminho for cb, f in self.marcadas if cb.get()][:6]
+
+    def _contar(self):
+        if self.modo == "canva":
+            n = sum(1 for cb, *_ in self.estilos if cb.get())
+            self.bt_ok.configure(state="normal" if n and self._escolhidas() else "disabled")
+            if not self.criadas:
+                self.lbl_rod.configure(text="" if self._escolhidas() else "Marque pelo menos uma foto do produto.")
+            return
+        if self.rodando or not self.chave:
+            return
+        n = sum(1 for cb, *_ in self.estilos if cb.get())
+        ok = n and self._escolhidas()
+        self.bt_ok.configure(state="normal" if ok else "disabled", text=f"✦  Criar {n} imagem(ns)" if n else "✦  Criar imagens")
+        self.lbl_rod.configure(text="" if self._escolhidas() else "Marque pelo menos uma foto do produto.")
+
+    def _var_atual(self):
+        nome = self.var_menu.get()
+        for i, v in enumerate(self.vars):
+            if str(v.get("valor") or f"Opção {i + 1}") == nome:
+                return i, v
+        return None, (self.vars[0] if self.vars else {})
+
+    # ---- Canva assistido
+    def _copiar(self, texto, rot):
+        self.clipboard_clear()
+        self.clipboard_append(texto)
+        self.lbl_rod.configure(text=f"Pedido “{rot}” copiado. No Canva, cole com Ctrl+V.")
+
+    def abrir_canva(self):
+        estilos = [(k, r) for cb, k, r in self.estilos if cb.get()]
+        fotos = self._escolhidas()
+        if not estilos or not fotos:
+            return
+        idx, var = self._var_atual()
+        extra = self.extra.get()
+        # fotos numa pasta só, prontas para arrastar
+        pasta = self.editor.tmp / "para-o-canva"
+        shutil.rmtree(pasta, ignore_errors=True)
+        pasta.mkdir(parents=True, exist_ok=True)
+        for i, f in enumerate(fotos, 1):
+            try:
+                recursos.tratar_foto(f, pasta / f"foto-{i}.jpg", quadrada=False, lado=1600)
+            except Exception:
+                shutil.copy2(f, pasta / f"foto-{i}{Path(f).suffix}")
+        for w in self.pedidos.winfo_children():
+            w.destroy()
+        self.pedidos_txt = []
+        for i, (k, rot) in enumerate(estilos):
+            texto = recursos.prompt_imagem(self.d, k, var, extra)
+            self.pedidos_txt.append((k, rot, texto))
+            Botao(self.pedidos, f"⧉  {rot}", "suave" if i else "primario", height=30, font=F(12, "bold"),
+                  command=lambda t=texto, r=rot: self._copiar(t, r)).grid(row=i // 3, column=i % 3, padx=3, pady=3, sticky="ew")
+        for c in range(3):
+            self.pedidos.grid_columnconfigure(c, weight=1)
+        self.var_idx = idx
+        k, rot, texto = self.pedidos_txt[0]
+        self._copiar(texto, rot)
+        link = (self.app.cfg["robo"].get("canva_link") or "").strip() or "https://www.canva.com/ai"
+        webbrowser.open(link)
+        abrir_no_sistema(pasta)
+        self.bt_ok.configure(text="Abrir de novo")
+        self.lbl_rod.configure(text=f"Pedido “{rot}” copiado. Para os outros tipos, toque no botão de cada um acima.")
+
+    def _vigiar_downloads(self):
+        if not self.winfo_exists():
+            return
+        try:
+            arqs = [p for p in self.downloads.iterdir()
+                    if p.is_file() and p.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp") and p.stat().st_mtime >= self.inicio]
+        except OSError:
+            arqs = []
+        for p in sorted(arqs, key=lambda x: x.stat().st_mtime):
+            try:
+                tam = p.stat().st_size
+            except OSError:
+                continue
+            antes = self.vistos.get(p)
+            if antes == "ok":
+                continue
+            if antes != tam:          # ainda baixando: espera o tamanho parar
+                self.vistos[p] = tam
+                continue
+            self.vistos[p] = "ok"
+            try:
+                dado = p.read_bytes()
+            except OSError:
+                continue
+            self.vazio.pack_forget()
+            self.recebeu("canva", p.name if len(p.name) < 26 else p.name[:23] + "…", getattr(self, "var_idx", None), dado, None, 1, 1)
+        self.after(1500, self._vigiar_downloads)
+
+    def gerar(self):
+        estilos = [(k, r) for cb, k, r in self.estilos if cb.get()]
+        fotos = self._escolhidas()
+        if not estilos or not fotos or self.rodando:
+            return
+        self.rodando = True
+        self.bt_ok.configure(state="disabled", text="Criando…")
+        idx, var = self._var_atual()
+        extra = self.extra.get()
+        d, chave, modelo, fila = self.d, self.chave, self.modelo, self.app.fila
+        self.vazio.pack_forget()
+        self.lbl_rod.configure(text=f"Criando 1 de {len(estilos)}… cada imagem leva uns 10 a 30 segundos.")
+
+        def rodar():
+            for n, (k, rot) in enumerate(estilos, 1):
+                try:
+                    dado = recursos.gerar_imagem_ia(fotos, recursos.prompt_imagem(d, k, var, extra), chave, modelo)
+                    fila.put(("ia_imagem", None, (self, k, rot, idx, dado, None, n, len(estilos))))
+                except Exception as e:
+                    fila.put(("ia_imagem", None, (self, k, rot, idx, None, str(e).splitlines()[0] if str(e) else repr(e), n, len(estilos))))
+                    if "chave" in str(e).lower() or "limite" in str(e).lower():
+                        fila.put(("ia_imagem", None, (self, None, None, None, None, None, len(estilos), len(estilos))))
+                        return
+        threading.Thread(target=rodar, daemon=True).start()
+
+    def recebeu(self, estilo, rot, idx, dado, erro, n, total):
+        if estilo is not None:
+            card = ctk.CTkFrame(self.res, fg_color="transparent")
+            i = len(self.criadas)
+            card.grid(row=i // 3, column=i % 3, padx=6, pady=6, sticky="n")
+            if dado:
+                img = miniatura(dado, 140, 14)
+                self.app._refs.append(img)
+                lbl = ctk.CTkLabel(card, text="" if img else "sem prévia", image=img, width=140, height=140, corner_radius=14,
+                                   fg_color="transparent" if img else SUAVE)
+                lbl.pack()
+                cb = ctk.CTkCheckBox(card, text=rot, font=F(12), text_color=TEXTO, fg_color=ROXO, hover_color=ROXO,
+                                     checkbox_width=18, checkbox_height=18, command=self._botao_add)
+                cb.select()
+                cb.pack(pady=(4, 0))
+                lbl.bind("<Button-1>", lambda e, c=cb: (c.toggle()))
+                self.criadas.append({"estilo": estilo, "rotulo": rot, "dado": dado, "var": idx, "check": cb})
+            else:
+                ctk.CTkLabel(card, text=f"{rot}\nnão saiu:\n{erro}", width=140, height=140, corner_radius=14, fg_color=SUAVE,
+                             text_color=MUDO, font=F(11), wraplength=128, justify="center").pack()
+                self.criadas.append({"estilo": estilo, "rotulo": rot, "dado": None, "var": idx, "check": None})
+        if n >= total:
+            self.rodando = False
+            self._contar()
+            boas = sum(1 for c in self.criadas if c["dado"])
+            self.lbl_rod.configure(text=f"{boas} imagem(ns) {'baixada(s)' if self.modo == 'canva' else 'criada(s)'}. "
+                                   "Confira se a peça ficou igual à de verdade."
+                                   if boas else "Nenhuma imagem saiu. Veja o motivo em cada uma.")
+            if self.modo != "canva" and self.chave:
+                self.bt_ok.configure(text="✦  Criar de novo")
+        else:
+            self.lbl_rod.configure(text=f"Criando {n + 1} de {total}…")
+        self._botao_add()
+
+    def _botao_add(self):
+        n = sum(1 for c in self.criadas if c["dado"] and c["check"] and c["check"].get())
+        self.bt_add.configure(state="normal" if n else "disabled", text=f"Adicionar {n} às fotos" if n else "Adicionar às fotos")
+
+    def adicionar(self):
+        ed = self.editor
+        novas_capa, novas = [], []
+        capa_livre = self.modo == "canva" and bool(self.capa_sw.get())
+        for n, c in enumerate(self.criadas):
+            if not (c["dado"] and c["check"] and c["check"].get()):
+                continue
+            if capa_livre:
+                c["estilo"], capa_livre = "capa", False
+            import time as _t
+            destino = ed.tmp / f"ia-{c['estilo']}-{_t.strftime('%d%m-%H%M%S')}-{n + 1}.jpg"
+            try:
+                recursos.quadrar_imagem(c["dado"], destino)
+            except Exception:
+                continue
+            uso = "todas"
+            if c["var"] is not None and len(ed.linhas) > 1 and c["var"] < len(ed.linhas):
+                uso = ed.linhas[c["var"]]
+            (novas_capa if c["estilo"] == "capa" else novas).append(FotoEd(destino, nova=True, uso=uso))
+        if not novas_capa and not novas:
+            return
+        ed.fotos = novas_capa + ed.fotos + novas
+        ed.desenhar_fotos()
+        self.destroy()
+        self.app.toast(f"{len(novas_capa) + len(novas)} imagem(ns) adicionada(s). Toque em Salvar ficha para guardar.", VERDE)
 
 
 class ConferirFicha(Dialogo):

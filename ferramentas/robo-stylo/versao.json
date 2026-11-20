@@ -1,6 +1,6 @@
 {
-  "versao": 10,
-  "data": "2026-11-01",
+  "versao": 11,
+  "data": "2026-11-20",
   "arquivos": [
     "janela.pyw",
     "motor.py",
@@ -10,8 +10,9 @@
     "requirements.txt"
   ],
   "novidades": [
-    "Importar do Mercado Livre: o nome de cada cor vem certo (antes vinha \"Botón 1 de 5, Amarelo\"), inclusive a cor que já estava marcada no anúncio.",
-    "Cada cor fica só com as fotos dela (preto-01-ml.jpg, amarelo-01-ml.jpg...), sem foto de uma cor aparecer em outra.",
-    "Todas as fotos do anúncio vêm na maior resolução que o Mercado Livre tem, não só a capa."
+    "Fotos › “✦ Criar no Canva”: o robô abre o Canva IA no seu navegador, copia um pedido pronto (estilo Mercado Livre: capa com fundo branco, no ambiente, com as medidas…) e separa as fotos do produto para você arrastar.",
+    "As imagens que você baixar do Canva aparecem sozinhas no robô; marque as boas e elas entram nas fotos da ficha (a primeira vira a capa).",
+    "Fotos › “Gemini”: o mesmo, mas o robô cria as imagens sozinho com a chave do Gemini (precisa da conta com cobrança ativa).",
+    "Confira sempre se a peça ficou igual à de verdade antes de anunciar."
   ]
 }

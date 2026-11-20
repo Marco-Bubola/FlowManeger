@@ -261,6 +261,133 @@ def gerar_textos_ia(d, chave, modelo="gemini-2.5-flash", timeout=60):
         raise RuntimeError("O Gemini não devolveu o texto no formato esperado. Tente de novo.") from None
 
 
+# ------------------------------------------------------------ imagens com IA
+
+# (chave, rótulo, o que pedir). A ordem é a ordem das fotos no anúncio.
+ESTILOS_IMAGEM = [
+    ("capa", "Capa (fundo branco)",
+     "Foto de capa de anúncio do Mercado Livre: o produto inteiro, centralizado, ocupando cerca de 85% da imagem, "
+     "fundo 100% branco (#FFFFFF), luz de estúdio suave, sombra leve no chão, sem nenhum texto, logo, selo ou borda."),
+    ("ambiente", "No ambiente",
+     "Foto do produto num ambiente real e bonito de casa brasileira onde ele faz sentido (sala, varanda, quarto ou cozinha), "
+     "luz natural, decoração discreta que não tira a atenção do produto, produto em destaque e em escala real. Sem texto."),
+    ("medidas", "Com as medidas",
+     "Foto do produto em fundo branco com linhas de cota finas e as medidas escritas em centímetros "
+     "({medidas}), em fonte limpa e legível. Só essas medidas, sem outro texto."),
+    ("detalhe", "Detalhe do acabamento",
+     "Foto em close mostrando o acabamento, a solda, a textura da madeira e a pintura, com fundo desfocado. Sem texto."),
+    ("uso", "Em uso",
+     "Foto do produto sendo usado do jeito que ele foi feito para ser usado, com os objetos que ele segura ou apoia, "
+     "em ambiente de casa. Sem texto e sem pessoas de rosto visível."),
+]
+
+
+def medidas_texto(v):
+    m = v.get("medidas_peca_cm") if isinstance(v, dict) and isinstance(v.get("medidas_peca_cm"), dict) else {}
+    partes = []
+    for k, rot in (("altura", "altura"), ("largura", "largura"), ("profundidade", "profundidade"), ("diametro", "diâmetro")):
+        n = motor.numero(m.get(k))
+        if n:
+            partes.append(f"{rot} {str(round(n, 1)).replace('.0', '').replace('.', ',')} cm")
+    return ", ".join(partes)
+
+
+def prompt_imagem(d, estilo, variacao=None, extra=""):
+    """O pedido que vai para a IA junto com as fotos do produto."""
+    v = variacao or next((x for x in d.get("variacoes") or [] if isinstance(x, dict)), {}) or {}
+    medidas = medidas_texto(v)
+    texto = dict((k, t) for k, _, t in ESTILOS_IMAGEM)[estilo].replace("{medidas}", medidas or "as medidas da peça")
+    dados = [f"Produto: {d.get('nome') or 'móvel'}"]
+    if v.get("valor"):
+        dados.append(f"Opção: {v.get('valor')}")
+    if medidas:
+        dados.append(f"Medidas da peça: {medidas}")
+    for k, rot in (("material", "Material"), ("acabamento", "Acabamento"), ("uso", "Uso")):
+        if d.get(k):
+            dados.append(f"{rot}: {d.get(k)}")
+    return (
+        "As fotos enviadas são de um produto real da Móveis Stylo (móveis de ferro e madeira feitos à mão). "
+        "Crie UMA imagem nova desse mesmo produto para o anúncio no Mercado Livre.\n"
+        "Regras: mantenha exatamente o formato, a cor, o material, as proporções e os detalhes do produto das fotos; "
+        "não invente peças, gavetas, rodinhas ou enfeites que ele não tem; imagem quadrada 1:1; "
+        "aparência de foto profissional, não de desenho; sem marca d'água, sem logo, sem preço.\n"
+        f"Estilo: {texto}\n" + "\n".join(dados) + (f"\nPedido extra: {extra.strip()}" if extra and extra.strip() else ""))
+
+
+def _foto_base64(caminho, lado=1024):
+    import base64
+    if Image is None:
+        return "image/jpeg", base64.b64encode(Path(caminho).read_bytes()).decode()
+    with Image.open(caminho) as im:
+        im = ImageOps.exif_transpose(im).convert("RGB")
+        im.thumbnail((lado, lado))
+        buf = __import__("io").BytesIO()
+        im.save(buf, "JPEG", quality=90)
+    return "image/jpeg", base64.b64encode(buf.getvalue()).decode()
+
+
+def gerar_imagem_ia(fotos, prompt, chave, modelo="gemini-3.1-flash-image", timeout=180):
+    """Manda as fotos do produto e o pedido para o Gemini e devolve os bytes da imagem criada."""
+    import base64
+    if not chave:
+        raise RuntimeError("Falta a chave do Gemini em Configurações.")
+    partes = [{"text": prompt}]
+    for f in list(fotos)[:6]:
+        mime, dado = _foto_base64(f)
+        partes.append({"inline_data": {"mime_type": mime, "data": dado}})
+    corpo = json.dumps({"contents": [{"role": "user", "parts": partes}],
+                        "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]}}).encode("utf-8")
+    ultimo = None
+    for versao in ("v1beta", "v1"):
+        url = f"https://generativelanguage.googleapis.com/{versao}/models/{modelo}:generateContent"
+        req = urllib.request.Request(url, data=corpo, headers={"Content-Type": "application/json", "x-goog-api-key": chave})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                resp = json.loads(r.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as e:
+            detalhe = e.read().decode("utf-8", "replace")[:300]
+            if e.code == 404:
+                ultimo = f"O modelo {modelo} não foi encontrado. Confira o nome em Configurações."
+                continue
+            if e.code in (401, 403) or (e.code == 400 and "API key" in detalhe):
+                raise RuntimeError("A chave do Gemini não foi aceita. Confira em Configurações.") from None
+            if e.code == 429:
+                raise RuntimeError("O limite de imagens da sua conta do Gemini acabou por agora. Tente mais tarde.") from None
+            raise RuntimeError(f"O Gemini respondeu com erro {e.code}: {detalhe}") from None
+        except urllib.error.URLError:
+            raise RuntimeError("Sem conexão com o Gemini. Confira a internet.") from None
+    else:
+        raise RuntimeError(ultimo or "O Gemini não respondeu.")
+    for c in resp.get("candidates") or []:
+        for p in (c.get("content") or {}).get("parts") or []:
+            dado = (p.get("inlineData") or p.get("inline_data") or {}).get("data")
+            if dado:
+                return base64.b64decode(dado)
+    motivo = ""
+    try:
+        motivo = resp["candidates"][0].get("finishReason") or ""
+        motivo = motivo or resp["candidates"][0]["content"]["parts"][0].get("text", "")[:160]
+    except Exception:
+        motivo = (resp.get("promptFeedback") or {}).get("blockReason", "")
+    raise RuntimeError("O Gemini não devolveu imagem" + (f" ({motivo})" if motivo else "") + ". Tente de novo ou mude o pedido.")
+
+
+def quadrar_imagem(dado, destino, lado=1200):
+    """Salva a imagem da IA quadrada (fundo branco nas sobras) em JPG."""
+    destino = Path(destino)
+    if Image is None:
+        destino.write_bytes(dado)
+        return destino
+    with Image.open(__import__("io").BytesIO(dado)) as im:
+        im = im.convert("RGB")
+        im.thumbnail((lado, lado))
+        fundo = Image.new("RGB", (lado, lado), "white")
+        fundo.paste(im, ((lado - im.width) // 2, (lado - im.height) // 2))
+        fundo.save(destino, "JPEG", quality=92)
+    return destino
+
+
 # ------------------------------------------------------------ fotos prontas
 
 def _fonte(tamanho, negrito=False):

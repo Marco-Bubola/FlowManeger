@@ -117,6 +117,19 @@ ATUALIZAR UM PRODUTO JÁ CADASTRADO
 - O anúncio do Mercado Livre não muda sozinho: atualize no site, em Mercado
   Livre › Produtos, se precisar.
 
+IMAGENS COM IA (no editor, seção Fotos)
+- "✦ Criar no Canva": marque as fotos do produto, a variação e os tipos de
+  imagem (capa com fundo branco, no ambiente, com as medidas, detalhe, em uso)
+  e toque em "Abrir o Canva e as fotos". O robô abre o Canva IA no seu
+  navegador, copia o pedido (cole com Ctrl+V) e abre a pasta com as fotos para
+  você arrastar. Cada tipo tem um botão para copiar o pedido dele.
+- Baixe do Canva as imagens que gostar: elas aparecem sozinhas no robô (ele
+  olha a pasta Downloads; outra pasta em Configurações). Marque as boas e toque
+  em "Adicionar às fotos"; a primeira vira a capa. Depois, Salvar ficha.
+- "Gemini": o robô cria as imagens sozinho com a chave do Gemini das
+  Configurações (a conta precisa estar com cobrança ativa).
+- A IA às vezes muda um detalhe da peça: confira antes de anunciar.
+
 CUSTO E PREÇO (no editor)
 - Ficha de custo: materiais e "＋ Mão de obra" (horas × sua hora, que fica em
   Configurações). "Usar como custo de todas" passa o total para as variações.
