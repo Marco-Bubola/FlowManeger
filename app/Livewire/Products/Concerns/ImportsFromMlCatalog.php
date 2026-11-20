@@ -24,8 +24,9 @@ trait ImportsFromMlCatalog
     public array $mlCandidates = [];
     public array $mlData = [];          // produto do catálogo escolhido
     public array $mlPhotos = [];        // [índice => bool] fotos marcadas
-    public array $mlTake = [];          // o que levar: desc, specs, brand, name, cover
+    public array $mlTake = [];          // o que levar: desc, specs, brand, model, gtin, name, cover, category, dims
     public string $mlSearchError = '';
+    public string $mlCatChoice = '';    // categoria do app para a categoria do ML: id_category ou 'new'
 
     // Produto novo: fotos e capa esperam o produto ser salvo
     public array $mlPendingPhotos = [];
@@ -53,6 +54,142 @@ trait ImportsFromMlCatalog
             return $p->image && $p->image !== 'product-placeholder.png';
         }
         return (bool) ($this->image ?? null) || $this->mlPendingCover !== '';
+    }
+
+    /**
+     * O que o produto tem hoje, para a janela mostrar "hoje: ..." ao lado do que vem do ML.
+     * O envio de PDF sobrescreve (lê do card).
+     */
+    protected function mlCurrentValues(): array
+    {
+        $dims = [];
+        if (property_exists($this, 'weight_kg')) {
+            $dims = array_filter([
+                'weight_kg' => $this->weight_kg, 'length_cm' => $this->length_cm,
+                'width_cm' => $this->width_cm, 'height_cm' => $this->height_cm,
+            ], fn ($v) => trim((string) $v) !== '' && (float) str_replace(',', '.', (string) $v) > 0);
+        }
+        return [
+            'name'        => (string) ($this->name ?? ''),
+            'brand'       => (string) ($this->brand ?? ''),
+            'model'       => (string) ($this->model ?? ''),
+            'barcode'     => (string) ($this->barcode ?? ''),
+            'category_id' => (string) ($this->category_id ?? ''),
+            'dims'        => $dims,
+        ];
+    }
+
+    /** A tela consegue guardar peso e medidas? (o envio de PDF guarda no card) */
+    protected function mlSupportsDims(): bool
+    {
+        return property_exists($this, 'weight_kg');
+    }
+
+    private ?\Illuminate\Support\Collection $mlCatsMemo = null;
+
+    /** Categorias de produto do usuário (para escolher onde a categoria do ML entra). */
+    public function mlAppCategories(): \Illuminate\Support\Collection
+    {
+        return $this->mlCatsMemo ??= \App\Models\Category::where('user_id', Auth::id())
+            ->where('type', 'product')
+            ->where('is_active', 1)
+            ->orderBy('name')
+            ->get(['id_category', 'name']);
+    }
+
+    /** Categoria do app que mais parece com a do ML (da mais específica para a mais geral). */
+    protected function mlGuessCategory(array $mlCat): ?int
+    {
+        $norm = function (string $t) {
+            $t = mb_strtolower(\Illuminate\Support\Str::ascii(trim($t)));
+            $t = preg_replace('/[^a-z0-9 ]+/', ' ', $t);
+            return trim(preg_replace('/\s+/', ' ', $t));
+        };
+        $sing = fn (string $t) => preg_replace('/(oes|aes|es|s)\b/', '', $t);
+        $cats = $this->mlAppCategories()->map(fn ($c) => ['id' => (int) $c->id_category, 'n' => $norm($c->name)])->filter(fn ($c) => $c['n'] !== '');
+
+        foreach (array_reverse($mlCat['path'] ?? []) as $level) {
+            $l = $norm($level);
+            if ($l === '') {
+                continue;
+            }
+            foreach ($cats as $c) {
+                if ($c['n'] === $l || $sing($c['n']) === $sing($l)) {
+                    return $c['id'];
+                }
+            }
+            foreach ($cats as $c) {
+                if (mb_strlen($c['n']) >= 4 && (str_contains($l, $c['n']) || str_contains($c['n'], $l))) {
+                    return $c['id'];
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Id da categoria escolhida na janela; 'new' cria (ou reaproveita) uma com o nome do ML. */
+    protected function mlResolveCategory(): ?int
+    {
+        $choice = $this->mlCatChoice;
+        $mlCat = $this->mlData['category'] ?? null;
+        if ($choice === 'new') {
+            if (empty($mlCat['name'])) {
+                return null;
+            }
+            $name = mb_substr($mlCat['name'], 0, 100);
+            $existing = \App\Models\Category::where('user_id', Auth::id())->where('type', 'product')->where('name', $name)->first();
+            if ($existing) {
+                if (!$existing->is_active) {
+                    $existing->update(['is_active' => 1]);
+                }
+                return (int) $existing->id_category;
+            }
+            $cat = \App\Models\Category::create([
+                'name'              => $name,
+                'desc_category'     => 'Do Mercado Livre: ' . implode(' › ', $mlCat['path'] ?? [$name]),
+                'hexcolor_category' => '#f59e0b',
+                'icone'             => 'fas fa-tag',
+                'is_active'         => 1,
+                'user_id'           => Auth::id(),
+                'type'              => 'product',
+            ]);
+            $this->mlCatsMemo = null;
+            return (int) $cat->id_category;
+        }
+        if ($choice !== '' && $this->mlAppCategories()->contains('id_category', (int) $choice)) {
+            return (int) $choice;
+        }
+        return null;
+    }
+
+    /** Peso e medidas do ML no formato dos campos da tela (kg e cm com vírgula). */
+    protected function mlDimsForForm(array $dims): array
+    {
+        $fmt = fn ($v) => $v === null ? '' : str_replace('.', ',', rtrim(rtrim(number_format((float) $v, 3, '.', ''), '0'), '.'));
+        return array_filter([
+            'weight_kg' => isset($dims['weight_g']) ? $fmt($dims['weight_g'] / 1000) : '',
+            'length_cm' => isset($dims['length_cm']) ? $fmt($dims['length_cm']) : '',
+            'width_cm'  => isset($dims['width_cm']) ? $fmt($dims['width_cm']) : '',
+            'height_cm' => isset($dims['height_cm']) ? $fmt($dims['height_cm']) : '',
+        ], fn ($v) => $v !== '');
+    }
+
+    /** O ML trouxe esse campo? */
+    public function mlAvailable(string $k): bool
+    {
+        $d = $this->mlData;
+        return match ($k) {
+            'desc'     => ($d['description'] ?? '') !== '' || !empty($d['features']),
+            'specs'    => !empty($d['specs']),
+            'brand'    => !empty($d['brand']),
+            'model'    => !empty($d['model']),
+            'gtin'     => !empty($d['gtin']),
+            'name'     => ($d['name'] ?? '') !== '',
+            'cover'    => !empty($d['pictures']),
+            'category' => !empty($d['category']['name']),
+            'dims'     => $this->mlSupportsDims() && count(array_diff_key($d['dims'] ?? [], ['from' => 1])) > 0,
+            default    => false,
+        };
     }
 
     /** As outras variações da família do produto (vazio se não tiver variações). */
@@ -114,6 +251,9 @@ trait ImportsFromMlCatalog
             if (!empty($take['brand'])) {
                 if ($saved->brand) { $data['brand'] = $saved->brand; }
                 if ($saved->model) { $data['model'] = $saved->model; }
+            }
+            if (!empty($take['category']) && $saved->category_id) {
+                $data['category_id'] = $saved->category_id;
             }
             if ($data) {
                 $other->update($data);
@@ -214,6 +354,7 @@ trait ImportsFromMlCatalog
         $this->mlPhotos = [];
         $this->mlTake = [];
         $this->mlSearchError = '';
+        $this->mlCatChoice = '';
     }
 
     public function searchMlCatalog(): void
@@ -266,13 +407,24 @@ trait ImportsFromMlCatalog
         // Fotos que o produto já tem não aparecem marcadas de novo.
         $have = $this->mlKnownPhotoUrls();
         $this->mlPhotos = collect($data['pictures'])->map(fn ($u) => !in_array($u, $have, true))->all();
+        $now = $this->mlCurrentValues();
         $this->mlTake = [
-            'desc'  => ($data['description'] !== '' || !empty($data['features'])),
-            'specs' => !empty($data['specs']),
-            'brand' => (bool) ($data['brand'] || $data['model'] || $data['gtin']),
-            'name'  => false,
-            'cover' => !$this->mlHasMainImage() && !empty($data['pictures']),
+            'desc'     => $this->mlAvailable('desc'),
+            'specs'    => $this->mlAvailable('specs'),
+            'brand'    => $this->mlAvailable('brand'),
+            'model'    => $this->mlAvailable('model'),
+            'gtin'     => $this->mlAvailable('gtin') && trim($now['barcode']) === '',
+            'name'     => false,
+            'cover'    => !$this->mlHasMainImage() && !empty($data['pictures']),
+            // Categoria só se você quiser; peso e medidas quando o produto ainda não tem.
+            'category' => false,
+            'dims'     => $this->mlAvailable('dims') && empty($now['dims']),
         ];
+        $this->mlCatChoice = '';
+        if (!empty($data['category'])) {
+            $guess = $this->mlGuessCategory($data['category']);
+            $this->mlCatChoice = $guess ? (string) $guess : 'new';
+        }
     }
 
     public function backToMlResults(): void
@@ -280,6 +432,7 @@ trait ImportsFromMlCatalog
         $this->mlData = [];
         $this->mlPhotos = [];
         $this->mlTake = [];
+        $this->mlCatChoice = '';
     }
 
     /** Texto da descrição montado com o que veio do catálogo. */
@@ -324,11 +477,27 @@ trait ImportsFromMlCatalog
             $this->specs = $merged->values()->take(60)->all();
             $done[] = 'ficha técnica';
         }
-        if (!empty($t['brand'])) {
-            if ($d['brand']) { $this->brand = mb_substr($d['brand'], 0, 100); }
-            if ($d['model']) { $this->model = mb_substr($d['model'], 0, 100); }
-            if ($d['gtin'] && !$this->barcode) { $this->barcode = mb_substr($d['gtin'], 0, 15); }
-            $done[] = 'marca e modelo';
+        if (!empty($t['brand']) && !empty($d['brand'])) {
+            $this->brand = mb_substr($d['brand'], 0, 100);
+            $done[] = 'marca';
+        }
+        if (!empty($t['model']) && !empty($d['model'])) {
+            $this->model = mb_substr($d['model'], 0, 100);
+            $done[] = 'modelo';
+        }
+        if (!empty($t['gtin']) && !empty($d['gtin'])) {
+            $this->barcode = mb_substr($d['gtin'], 0, 15);
+            $done[] = 'código de barras';
+        }
+        if (!empty($t['category']) && !empty($d['category']) && ($catId = $this->mlResolveCategory())) {
+            $this->category_id = (string) $catId;
+            $done[] = 'categoria';
+        }
+        if (!empty($t['dims']) && $this->mlSupportsDims() && ($dims = $this->mlDimsForForm($d['dims'] ?? []))) {
+            foreach ($dims as $field => $v) {
+                $this->{$field} = $v;
+            }
+            $done[] = 'peso e medidas';
         }
 
         $chosen = collect($d['pictures'])->filter(fn ($u, $i) => !empty($this->mlPhotos[$i]))->values();
@@ -376,9 +545,10 @@ trait ImportsFromMlCatalog
 
         if ($others->isNotEmpty() && $done) {
             $this->mlFamilyTake = array_filter([
-                'desc'  => !empty($t['desc']),
-                'specs' => !empty($t['specs']) && !empty($d['specs']),
-                'brand' => !empty($t['brand']),
+                'desc'     => !empty($t['desc']),
+                'specs'    => !empty($t['specs']) && !empty($d['specs']),
+                'brand'    => !empty($t['brand']) || !empty($t['model']),
+                'category' => !empty($t['category']) && in_array('categoria', $done, true),
             ]);
             $done[] = 'também nas ' . $others->count() . ' outras variações';
         }

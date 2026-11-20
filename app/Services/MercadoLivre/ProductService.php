@@ -760,7 +760,7 @@ class ProductService extends MercadoLivreService
         }
 
         // Campos internos do ML que não interessam ao cliente.
-        $skip = ['BRAND', 'MODEL', 'GTIN', 'SELLER_SKU', 'ITEM_CONDITION', 'EXCLUSIVE_CHANNEL', 'PRODUCT_DATA_SOURCE', 'IS_KIT', 'IS_SUITABLE_FOR_SHIPMENT',
+        $skip = ['BRAND', 'MODEL', 'GTIN', 'PACKAGE_WEIGHT', 'PACKAGE_LENGTH', 'PACKAGE_WIDTH', 'PACKAGE_HEIGHT', 'SELLER_SKU', 'ITEM_CONDITION', 'EXCLUSIVE_CHANNEL', 'PRODUCT_DATA_SOURCE', 'IS_KIT', 'IS_SUITABLE_FOR_SHIPMENT',
                  'IS_FLAMMABLE', 'HAS_COMPATIBILITIES', 'MPN', 'SYI_PYMES_ID', 'CATALOG_TITLE', 'GIFTABLE', 'IS_HIGHLIGHT_BRAND'];
 
         $attrs = collect($p['attributes'] ?? []);
@@ -783,6 +783,7 @@ class ProductService extends MercadoLivreService
 
         $byId = $attrs->keyBy('id');
         $features = collect($p['main_features'] ?? [])->pluck('text')->map(fn ($t) => trim((string) $t))->filter()->values()->all();
+        $name = trim((string) ($p['name'] ?? ''));
 
         return [
             'success'     => true,
@@ -795,7 +796,101 @@ class ProductService extends MercadoLivreService
             'brand'       => isset($byId['BRAND']) ? $value($byId['BRAND']) : null,
             'model'       => isset($byId['MODEL']) ? $value($byId['MODEL']) : null,
             'gtin'        => isset($byId['GTIN']) ? preg_replace('/\D+/', '', explode(',', $value($byId['GTIN']))[0]) : null,
+            'category'    => $this->catalogCategory($res['category_id'] ?? null, $name, $userId),
+            'dims'        => self::catalogDimensions($byId),
+            'price'       => isset($p['buy_box_winner']['price']) ? (float) $p['buy_box_winner']['price'] : null,
+            'permalink'   => (string) ($p['permalink'] ?? ''),
         ];
+    }
+
+    /**
+     * Categoria do ML do produto do catálogo: id, nome e o caminho
+     * (ex.: Beleza e Cuidado Pessoal › Perfumes › Body Splash).
+     * Quando o catálogo não traz a categoria, o ML adivinha pelo nome (domain_discovery).
+     */
+    public function catalogCategory(?string $categoryId, string $name, ?int $userId = null): ?array
+    {
+        try {
+            $token = $userId ? (new AuthService())->getActiveToken($userId)?->access_token : null;
+            if (!$categoryId && $name !== '') {
+                $guess = $this->makeRequest('GET', '/sites/MLB/domain_discovery/search?limit=1&q=' . rawurlencode(mb_substr($name, 0, 120)), [], $token, $userId);
+                $categoryId = $guess[0]['category_id'] ?? null;
+            }
+            if (!$categoryId) {
+                return null;
+            }
+            $cat = $this->makeRequest('GET', '/categories/' . $categoryId, [], $token, $userId);
+            $path = collect($cat['path_from_root'] ?? [])->pluck('name')->map(fn ($n) => trim((string) $n))->filter()->values()->all();
+            $leaf = trim((string) ($cat['name'] ?? (end($path) ?: '')));
+            if ($leaf === '') {
+                return null;
+            }
+            return ['id' => (string) $categoryId, 'name' => $leaf, 'path' => $path ?: [$leaf]];
+        } catch (\Throwable $e) {
+            Log::info('catalogCategory: sem categoria', ['category' => $categoryId, 'e' => $e->getMessage()]);
+            return null;
+        }
+    }
+
+    /**
+     * Peso (g) e medidas (cm) dos atributos do catálogo. Prefere as da embalagem
+     * (é o que vai no frete) e usa as do produto quando a embalagem não vem.
+     */
+    public static function catalogDimensions($byId): array
+    {
+        $num = function ($a, array $units) {
+            if (!$a) {
+                return null;
+            }
+            $n = $a['value_struct']['number'] ?? null;
+            $u = $a['value_struct']['unit'] ?? null;
+            if ($n === null) {
+                $raw = (string) ($a['value_name'] ?? '');
+                if (!preg_match('/([\d.,]+)\s*([a-zA-Z]+)?/', $raw, $m)) {
+                    return null;
+                }
+                $n = (float) str_replace(',', '.', $m[1]);
+                $u = $m[2] ?? null;
+            }
+            $u = mb_strtolower((string) $u);
+            $factor = $units[$u] ?? ($units[''] ?? 1);
+            $v = round((float) $n * $factor, 2);
+            return $v > 0 ? $v : null;
+        };
+        $len = ['cm' => 1, 'mm' => 0.1, 'm' => 100, '"' => 2.54, 'in' => 2.54, '' => 1];
+        $wgt = ['g' => 1, 'kg' => 1000, 'mg' => 0.001, 'lb' => 453.6, 'oz' => 28.35, '' => 1];
+
+        $pick = function (array $ids, array $units) use ($byId, $num) {
+            foreach ($ids as $id) {
+                if (($v = $num($byId[$id] ?? null, $units)) !== null) {
+                    return $v;
+                }
+            }
+            return null;
+        };
+
+        $pkg = [
+            'weight_g'  => $pick(['PACKAGE_WEIGHT'], $wgt),
+            'length_cm' => $pick(['PACKAGE_LENGTH'], $len),
+            'width_cm'  => $pick(['PACKAGE_WIDTH'], $len),
+            'height_cm' => $pick(['PACKAGE_HEIGHT'], $len),
+        ];
+        $item = [
+            'weight_g'  => $pick(['WEIGHT', 'UNIT_WEIGHT', 'NET_WEIGHT', 'PRODUCT_WEIGHT'], $wgt),
+            'length_cm' => $pick(['LENGTH', 'DEPTH', 'PRODUCT_LENGTH'], $len),
+            'width_cm'  => $pick(['WIDTH', 'PRODUCT_WIDTH'], $len),
+            'height_cm' => $pick(['HEIGHT', 'PRODUCT_HEIGHT'], $len),
+        ];
+        $usePkg = count(array_filter($pkg)) >= 2;
+        $out = [];
+        foreach ($pkg as $k => $v) {
+            $out[$k] = $usePkg ? ($v ?? $item[$k]) : ($item[$k] ?? $v);
+        }
+        $out = array_filter($out);
+        if ($out) {
+            $out['from'] = $usePkg ? 'embalagem' : 'produto';
+        }
+        return $out;
     }
 
     public function getCategoryAttributes(string $categoryId, ?int $userId = null): array

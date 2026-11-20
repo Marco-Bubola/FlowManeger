@@ -141,6 +141,26 @@ class UploadProducts extends Component
         return !empty($row['image_base64']) || !empty($row['temp_image']);
     }
 
+    /** O que o card tem hoje (a janela mostra "hoje: ..." ao lado do ML). */
+    protected function mlCurrentValues(): array
+    {
+        $row = $this->productsUpload[$this->mlIndex] ?? [];
+        return [
+            'name'        => (string) ($row['name'] ?? ''),
+            'brand'       => '',
+            'model'       => '',
+            'barcode'     => (string) ($row['barcode'] ?? ''),
+            'category_id' => (string) ($row['category_id'] ?? ''),
+            'dims'        => [],
+        ];
+    }
+
+    // Peso e medidas ficam no card e entram no produto quando a lista é salva.
+    protected function mlSupportsDims(): bool
+    {
+        return true;
+    }
+
     public function openMlForRow(int $index): void
     {
         $row = $this->productsUpload[$index] ?? null;
@@ -189,8 +209,9 @@ class UploadProducts extends Component
             'description' => !empty($t['desc']) ? $this->mlDescriptionText() : '',
             'specs'       => !empty($t['specs']) ? collect($d['specs'])->map(fn ($s) => ['n' => $s['n'], 'v' => mb_substr($s['v'], 0, 255)])->take(60)->all() : [],
             'brand'       => !empty($t['brand']) ? mb_substr((string) $d['brand'], 0, 100) : '',
-            'model'       => !empty($t['brand']) ? mb_substr((string) $d['model'], 0, 100) : '',
-            'gtin'        => !empty($t['brand']) ? mb_substr((string) $d['gtin'], 0, 15) : '',
+            'model'       => !empty($t['model']) ? mb_substr((string) $d['model'], 0, 100) : '',
+            'gtin'        => !empty($t['gtin']) ? mb_substr((string) $d['gtin'], 0, 15) : '',
+            'dims'        => !empty($t['dims']) ? array_diff_key($d['dims'] ?? [], ['from' => 1]) : [],
             'photos'      => $photos,
             'cover'       => !empty($t['cover']) ? ($photos[0] ?? ($d['pictures'][0] ?? '')) : '',
         ]);
@@ -198,12 +219,18 @@ class UploadProducts extends Component
         if (!empty($t['name']) && ($d['name'] ?? '') !== '') {
             $this->productsUpload[$i]['name'] = mb_substr($d['name'], 0, 255);
         }
-        // Código de barras do ML preenche o campo do card se estiver vazio
-        if (!empty($ml['gtin']) && empty($this->productsUpload[$i]['barcode'])) {
+        // Código de barras marcado vai para o campo do card
+        if (!empty($ml['gtin'])) {
             $this->productsUpload[$i]['barcode'] = preg_replace('/\D/', '', $ml['gtin']);
         }
+        // Categoria marcada vai direto para o card
+        $catSet = false;
+        if (!empty($t['category']) && !empty($d['category']) && ($catId = $this->mlResolveCategory())) {
+            $this->productsUpload[$i]['category_id'] = $catId;
+            $catSet = true;
+        }
 
-        $count = count(array_diff(array_keys($ml), ['id', 'title']));
+        $count = count(array_diff(array_keys($ml), ['id', 'title'])) + ($catSet ? 1 : 0);
         if ($count === 0) {
             $this->dispatch('show-toast', ['type' => 'error', 'message' => 'Nada marcado para trazer.']);
             return;
@@ -236,6 +263,13 @@ class UploadProducts extends Component
             }
             if (!empty($ml['gtin']) && empty($product->barcode)) {
                 $data['barcode'] = preg_replace('/\D/', '', $ml['gtin']);
+            }
+            // Peso e medidas: só preenche o que o produto ainda não tem
+            $dims = $ml['dims'] ?? [];
+            foreach (['weight_g' => 'weight_grams', 'length_cm' => 'length_cm', 'width_cm' => 'width_cm', 'height_cm' => 'height_cm'] as $k => $col) {
+                if (!empty($dims[$k]) && empty($product->{$col})) {
+                    $data[$col] = $col === 'weight_grams' ? (int) round($dims[$k]) : $dims[$k];
+                }
             }
             if ($data) {
                 $product->update($data);
