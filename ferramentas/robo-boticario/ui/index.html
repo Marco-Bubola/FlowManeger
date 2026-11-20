@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-BR" data-tema="aurora">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Robô Boticário</title>
+<link rel="icon" href="/ui/icone.svg">
+<link rel="stylesheet" href="/ui/estilo.css">
+</head>
+<body>
+<div class="fundo" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i><span class="grao"></span></div>
+
+<header class="topo vidro">
+  <div class="marca">
+    <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2c3 3.2 4.6 6 4.6 8.4A4.6 4.6 0 0 1 12 15a4.6 4.6 0 0 1-4.6-4.6C7.4 8 9 5.2 12 2Z"/><path d="M6 16.5h12M8 20h8" stroke-linecap="round"/></svg></div>
+    <div><b>Robô Boticário</b><small>Fotos e códigos de barras no upload</small></div>
+  </div>
+  <ol class="passos" id="passos">
+    <li data-p="1"><span>1</span>Nota</li>
+    <li data-p="2"><span>2</span>Robô trabalhando</li>
+    <li data-p="3"><span>3</span>Conferir e salvar</li>
+  </ol>
+  <div class="topo-acoes">
+    <span class="pilula" id="pil-estado"><i></i><em>Pronto</em></span>
+    <button class="bt-rotulo" id="bt-arrumar" title="Arrumar a pasta de imagens"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="m9 13 2 2 4-4"/></svg><span>Arrumar pasta</span></button>
+    <button class="bt-icone" id="bt-tema" title="Temas"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1 0 1.6-.8 1.6-1.6 0-.5-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6h1.9A4.7 4.7 0 0 0 21 11c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="10.5" r="1.2"/><circle cx="10.5" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg></button>
+    <button class="bt-icone" id="bt-ajustes" title="Ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button>
+  </div>
+</header>
+
+<main class="grade">
+  <!-- coluna 1: nova nota -->
+  <section class="col-nota">
+    <div class="cartao vidro">
+      <h2>Nova nota</h2>
+      <p class="sub">Arraste o PDF da nota aqui (pode ser mais de uma). O robô envia no FlowManeger, acha as fotos e os códigos de barras.</p>
+      <label class="soltar" id="soltar">
+        <input type="file" id="arquivo" accept=".pdf,.csv" multiple hidden>
+        <div class="soltar-ico"><svg viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M12 18v-6M9.5 14.5 12 12l2.5 2.5"/></svg></div>
+        <b id="soltar-titulo">Solte as notas aqui</b>
+        <small id="soltar-sub">ou clique para escolher (uma ou várias)</small>
+      </label>
+      <div class="opcoes">
+        <label class="opc"><span><b>Lojas do grupo</b><small>boticario.com.br, eudora.com.br…</small></span><input type="checkbox" data-cfg="usar_lojas_publicas"><i></i></label>
+        <label class="opc"><span><b>Site de revendedores</b><small>quando não achar na pasta</small></span><input type="checkbox" data-cfg="usar_site_revendedor"><i></i></label>
+        <label class="opc"><span><b>Código de barras</b><small>preenche os que estão vazios</small></span><input type="checkbox" data-cfg="preencher_codigo_barras"><i></i></label>
+        <label class="opc"><span><b>Tirar amostras</b><small>flaconetes e demonstradores</small></span><input type="checkbox" data-cfg="remover_amostras"><i></i></label>
+      </div>
+      <button class="bt-grande" id="bt-comecar"><svg viewBox="0 0 24 24"><path d="M7 4v16l13-8Z"/></svg><span>Começar</span></button>
+      <button class="bt-link" id="bt-sem-nota">Já enviei a nota no site, só completar</button>
+      <button class="bt-perigo escondido" id="bt-parar"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>Parar o robô</button>
+    </div>
+    <div class="cartao vidro dicas">
+      <h3>Onde o robô procura</h3>
+      <ol>
+        <li><i style="--c:#a78bfa">1</i><span><b>Sua pasta de imagens</b><small id="dica-pasta">—</small></span></li>
+        <li><i style="--c:#34d399">2</i><span><b>Lojas do grupo</b><small>foto grande e código de barras</small></span></li>
+        <li><i style="--c:#f472b6">3</i><span><b>Site de revendedores</b><small>pesquisa em /departamentos</small></span></li>
+        <li><i style="--c:#fbbf24">4</i><span><b>Você ajuda</b><small>ALT + clique na foto, se nada der certo</small></span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- coluna 2: progresso -->
+  <section class="col-trabalho">
+    <div class="cartao vidro heroi" id="heroi">
+      <div class="anel">
+        <svg viewBox="0 0 120 120"><defs><linearGradient id="gAnel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--a1)"/><stop offset="1" stop-color="var(--a2)"/></linearGradient></defs>
+          <circle cx="60" cy="60" r="52" class="anel-fundo"/><circle cx="60" cy="60" r="52" class="anel-cheio" id="anel"/></svg>
+        <div class="anel-txt"><b id="anel-num">0</b><small id="anel-de">de 0</small></div>
+      </div>
+      <div class="heroi-txt">
+        <small class="rotulo" id="heroi-rotulo">Tudo pronto</small>
+        <h1 id="heroi-titulo">Envie uma nota para começar</h1>
+        <p id="heroi-sub">O robô abre o FlowManeger no Chrome dele, coloca as fotos e os códigos de barras nos cards. Você só confere e salva.</p>
+        <div class="contas" id="contas">
+          <span style="--c:#a78bfa"><b data-k="pasta">0</b>da pasta</span>
+          <span style="--c:#34d399"><b data-k="loja">0</b>das lojas</span>
+          <span style="--c:#f472b6"><b data-k="site">0</b>do site</span>
+          <span style="--c:#fb7185"><b data-k="sem">0</b>sem foto</span>
+          <span style="--c:#60a5fa"><b data-k="barras">0</b>cód. de barras</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="acao vidro escondido" id="acao">
+      <div class="acao-ico" id="acao-ico">!</div>
+      <div class="acao-txt"><b id="acao-titulo"></b><p id="acao-texto"></p></div>
+      <div class="acao-bts" id="acao-bts"></div>
+    </div>
+
+    <div class="cartao vidro lista-cartao">
+      <div class="lista-cab">
+        <h2>Produtos da nota</h2>
+        <div class="filtros" id="filtros">
+          <button data-f="todos" class="ativo">Todos</button><button data-f="sem">Sem foto</button><button data-f="barras">Sem cód.</button><button data-f="ok">Prontos</button>
+        </div>
+      </div>
+      <div class="produtos" id="produtos">
+        <div class="vazio"><svg viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg><b>Nenhum produto ainda</b><small>Os produtos da nota aparecem aqui, um card por produto, com a foto que o robô achou.</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- coluna 3: atividade -->
+  <aside class="col-log cartao vidro">
+    <div class="lista-cab"><h2>Atividade</h2><button class="bt-mini" id="bt-relatorios">Relatórios</button></div>
+    <div class="log" id="log"></div>
+    <div class="log-rodape">
+      <button class="bt-mini" id="bt-pasta">Abrir pasta de imagens</button>
+      <button class="bt-mini" id="bt-copiar">Copiar atividade</button>
+    </div>
+  </aside>
+</main>
+
+<!-- temas -->
+<div class="pop vidro escondido" id="pop-tema">
+  <h3>Tema</h3>
+  <div class="temas" id="temas"></div>
+</div>
+
+<!-- ajustes -->
+<div class="veu escondido" id="veu">
+  <div class="folha vidro" role="dialog" aria-label="Ajustes">
+    <div class="folha-cab"><h2>Ajustes</h2><button class="bt-icone" id="bt-fechar-ajustes" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="campos">
+      <label class="campo largo"><span>Pasta das imagens</span><div class="linha"><input data-cfg="pasta_imagens"><button class="bt-mini" id="bt-escolher-pasta">Escolher…</button></div></label>
+      <label class="campo"><span>Endereço do FlowManeger</span><input data-cfg="site_app"></label>
+      <label class="campo"><span>Pesquisa do site de revendedores</span><input data-cfg="pagina_busca"><small>Página de pesquisa de quem já está logado.</small></label>
+      <label class="campo"><span>Navegador do robô</span><select data-cfg="navegador"><option value="chrome">Google Chrome</option><option value="msedge">Microsoft Edge</option><option value="playwright">Navegador do robô</option></select></label>
+      <label class="campo"><span>Nome parecido (0 a 100)</span><input data-cfg="similaridade_minima" inputmode="numeric"><small>Quanto o nome precisa bater para usar uma foto da pasta.</small></label>
+      <label class="campo"><span>Pausa entre buscas (segundos)</span><input data-cfg="pausa_entre_buscas" inputmode="decimal"></label>
+      <label class="campo largo"><span>Amostras que o robô pula</span><input data-cfg="pular_produtos"><small>Começo do nome ou palavra, separados por |</small></label>
+      <label class="opc largo"><span><b>Pedir minha ajuda</b><small>se não achar a foto, espera você clicar nela com ALT</small></span><input type="checkbox" data-cfg="modo_assistido"><i></i></label>
+    </div>
+    <div class="folha-rodape"><button class="bt-mini" id="bt-abrir-robo">Abrir pasta do robô</button><button class="bt-grande pequeno" id="bt-salvar-ajustes">Salvar ajustes</button></div>
+  </div>
+</div>
+
+<!-- arrumar a pasta de imagens -->
+<div class="veu escondido" id="veu-arrumar">
+  <div class="folha vidro larga" role="dialog" aria-label="Arrumar a pasta de imagens">
+    <div class="folha-cab">
+      <div><h2>Arrumar a pasta de imagens</h2><small class="arr-sub" id="arr-sub">—</small></div>
+      <button class="bt-icone" id="bt-fechar-arrumar" title="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div class="arr-resumo" id="arr-resumo">
+      <button data-a="repetidas" class="ativo" style="--c:#a78bfa"><b>0</b><span>Repetidas</span></button>
+      <button data-a="nomes" style="--c:#fbbf24"><b>0</b><span>Nomes ruins</span></button>
+      <button data-a="pequenas" style="--c:#60a5fa"><b>0</b><span>Fotos pequenas</span></button>
+      <button data-a="sem_foto" style="--c:#fb7185"><b>0</b><span>Produtos sem foto</span></button>
+    </div>
+    <p class="arr-dica" id="arr-dica"></p>
+    <div class="arr-lista" id="arr-lista"><div class="vazio"><b>Olhando a pasta…</b></div></div>
+    <div class="folha-rodape">
+      <div class="arr-acoes-esq"><button class="bt-mini" id="bt-arr-denovo">Olhar de novo</button><button class="bt-mini" id="bt-arr-abrir">Abrir a pasta</button></div>
+      <button class="bt-grande pequeno" id="bt-arr-aplicar">Aplicar o que está marcado</button>
+    </div>
+  </div>
+</div>
+
+<div class="aviso escondido" id="aviso"></div>
+<script src="/ui/app.js"></script>
+</body>
+</html>

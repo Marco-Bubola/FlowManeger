@@ -1,0 +1,11 @@
+{
+  "versao": 3,
+  "data": "2026-11-20",
+  "arquivos": ["app.pyw", "robo.py", "atualizar.py", "arrumar.py", "ui/index.html", "ui/app.js", "ui/estilo.css", "ui/icone.svg",
+               "config-padrao.ini", "requirements.txt", "LEIA-ME.txt", "Abrir robo.vbs", "criar-atalho.ps1", "instalar.bat",
+               "rodar-robo.bat", "icone.ico"],
+  "novidades": [
+    "O robô se atualiza sozinho quando abre.",
+    "Novo botão Arrumar pasta: fotos repetidas, nomes ruins, fotos pequenas e produtos sem foto."
+  ]
+}

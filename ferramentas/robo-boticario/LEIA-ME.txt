@@ -1,0 +1,52 @@
+ROBÔ BOTICÁRIO (versão 2) - fotos e códigos de barras do upload do FlowManeger
+=============================================================================
+
+O que mudou
+-----------
+- Janela nova, moderna, com 8 temas (botão da paleta, no topo). Não abre mais a tela preta.
+- A busca no site de revendedores agora vai direto para a pesquisa:
+  https://revendedores.grupoboticario.com.br/departamentos
+  Se o site cair na página "Seja um revendedor", o robô entende que precisa de login,
+  fecha o aviso de cookies e mostra um aviso amarelo na janela até você entrar.
+- Código de barras e foto também vêm do catálogo público das lojas do grupo
+  (boticario.com.br, eudora.com.br, quemdisseberenice.com.br, oui.com.br).
+  Se ainda faltar, o robô lê o código de barras na página do produto do site de revendedores.
+
+Instalar (uma vez)
+------------------
+1. Extraia este zip por cima da pasta C:\projetos\robo-boticario (pode substituir tudo;
+   o seu config.ini e as suas imagens continuam).
+2. Dê dois cliques em instalar.bat e espere terminar.
+3. Vai aparecer o atalho "Robô Boticário" na Área de Trabalho.
+
+Usar
+----
+- Abra pelo atalho (ou arraste o PDF da nota em cima do atalho).
+- Na janela do robô, arraste a nota no quadro "Nova nota" e clique em Começar.
+- O robô abre o Chrome DELE (é outro Chrome, separado do seu). Na primeira vez entre no
+  FlowManeger e no site de revendedores nesse Chrome. Depois ele lembra.
+  O login feito no seu Chrome normal NÃO vale para o Chrome do robô.
+- Quando um aviso amarelo aparecer, faça o que ele pede (entrar no site, ou clicar na foto
+  segurando ALT). O botão Pular deixa o produto sem foto.
+- No final aparece o aviso verde: confira os cards no Chrome do robô, clique em SALVAR no
+  site e depois em "Terminei" na janela do robô.
+
+Ajustes (engrenagem)
+--------------------
+Pasta das imagens, endereço do FlowManeger, página de pesquisa do site de revendedores,
+navegador, amostras que ele pula, etc. Tudo também fica no config.ini.
+
+Relatórios
+----------
+Cada nota gera um relatorio-....csv na pasta "relatorios" (botão Relatórios na janela).
+
+ATUALIZAÇÃO SOZINHA
+Toda vez que abre, o robô vê se tem versão nova e se atualiza (leva alguns segundos).
+A versão anterior fica guardada em _versao-anterior. Para desligar, coloque no config.ini:
+  [atualizar]
+  desligado = sim
+
+ARRUMAR A PASTA
+O botão "Arrumar pasta", no alto da janela, mostra fotos repetidas, nomes que não dizem o
+produto, fotos pequenas e os produtos das notas que ainda estão sem foto. Nada é apagado:
+as repetidas vão para a subpasta _repetidas.
