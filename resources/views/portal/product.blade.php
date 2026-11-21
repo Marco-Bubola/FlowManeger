@@ -102,7 +102,11 @@
     @media (min-width: 768px) {
         .pp-buybar { display: none; }
         .pp-main { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 12px; align-items: start; padding: 20px 0 24px; }
-        .pp-main .ml-gal-wrap { position: sticky; top: 80px; }
+        .pp-main { grid-template-areas: "gal head" "gal info"; grid-template-rows: auto 1fr; row-gap: 0; }
+        .pp-main .ml-gal-wrap { grid-area: gal; position: sticky; top: 80px; }
+        .pp-head { grid-area: head; padding: 4px 24px 0 8px; }
+        .pp-head h1 { font-size: 24px; font-weight: 500; margin-bottom: 6px; }
+        .pp-info { grid-area: info; }
         .pp-main .ml-gal-track > div { max-height: 520px; }
         .pp-main .ml-thumbs { display: flex; gap: 8px; padding: 10px 16px 0; flex-wrap: wrap; }
         .pp-main .ml-thumbs button { width: 60px; height: 60px; border: 1px solid var(--ml-line); border-radius: 6px; background: #fff; padding: 3px; cursor: pointer; }
@@ -197,12 +201,62 @@
     .pp-rv-reply { margin-top: 8px; padding: 8px 12px; border-left: 3px solid var(--ml-blue); background: var(--ml-blue-soft); border-radius: 0 8px 8px 0; font-size: 13px; }
     .pp-rv-reply b { display: block; font-size: 12px; margin-bottom: 2px; }
     .pp-rv-empty { color: var(--ml-muted); font-size: 14px; margin: 0; }
+
+    /* Nome antes da foto */
+    .pp-head { padding: 4px 16px 8px; }
+    .pp-head .ml-cat-line { font-size: 12px; color: var(--ml-muted); }
+    .pp-head h1 { margin: 4px 0 4px; font-size: 19px; font-weight: 600; line-height: 1.3; color: var(--ml-text); }
+    .pp-head .pp-rate { margin: 2px 0 0; }
+
+    /* Foto ampliada */
+    .pp-zoomable { cursor: zoom-in; -webkit-tap-highlight-color: transparent; }
+    .pp-zoom-btn { position: absolute; right: 12px; bottom: 10px; z-index: 2; width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255,255,255,.95); box-shadow: 0 1px 6px rgba(0,0,0,.18); color: #555; font-size: 17px; cursor: pointer; }
+    html.pp-lock, html.pp-lock body { overflow: hidden; overscroll-behavior: none; }
+    .pp-lb { position: fixed; inset: 0; z-index: 200; background: #0b0b0d; color: #fff; display: flex; flex-direction: column; user-select: none; -webkit-user-select: none; }
+    .pp-lb-top { display: flex; align-items: center; gap: 12px; padding: calc(8px + env(safe-area-inset-top)) 10px 8px 16px; }
+    .pp-lb-n { flex-shrink: 0; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.12); }
+    .pp-lb-name { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .9; }
+    .pp-lb-x { flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,.12); color: #fff; font-size: 20px; cursor: pointer; }
+    .pp-lb-x:hover, .pp-lb-arrow:hover { background: rgba(255,255,255,.22); }
+    .pp-lb-stage { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; cursor: zoom-in; }
+    .pp-lb-stage.zoomed { cursor: grab; }
+    .pp-lb-stage.zoomed:active { cursor: grabbing; }
+    .pp-lb-stage img { max-width: 100%; max-height: 100%; object-fit: contain; will-change: transform; pointer-events: none; transform-origin: center center; background: #fff; border-radius: 4px; }
+    .pp-lb-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 48px; height: 48px; border-radius: 50%; border: 0; background: rgba(255,255,255,.12); color: #fff; font-size: 18px; cursor: pointer; display: none; }
+    .pp-lb-arrow.prev { left: 16px; }
+    .pp-lb-arrow.next { right: 16px; }
+    .pp-lb-bottom { padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .pp-lb-thumbs { display: flex; gap: 6px; max-width: 100%; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+    .pp-lb-thumbs::-webkit-scrollbar { display: none; }
+    .pp-lb-thumbs button { flex: 0 0 52px; height: 52px; padding: 2px; border-radius: 6px; border: 2px solid transparent; background: #fff; opacity: .55; cursor: pointer; }
+    .pp-lb-thumbs button.on { border-color: #3483fa; opacity: 1; }
+    .pp-lb-thumbs img { width: 100%; height: 100%; object-fit: contain; }
+    .pp-lb-hint { font-size: 12px; opacity: .65; text-align: center; }
+    @media (min-width: 768px) {
+        .pp-lb-stage { margin: 0 80px; }
+        .pp-lb-arrow { display: block; }
+        .pp-lb-thumbs button { flex-basis: 64px; height: 64px; }
+    }
+    @media (max-width: 767px) { .pp-lb-stage img { border-radius: 0; } }
 </style>
 @endpush
 
 <div class="ml-wrap pp" x-data="mlCatalog(@js($all), @js($cartUrl), @js($stockMap), {
         p: @js($d),
         setup() { if (! this.p.buyable) this.qty = 0; mlSeenPush(@js($owner), this.p.id); },
+        zoom: false, zoomAt: 0, zoomList: [],
+        zoomOpen(i, list = null) {
+            this.zoomList = list && list.length ? list : this.p.imgs;
+            if (! this.zoomList.length) return;
+            this.zoomAt = Math.min(Math.max(i, 0), this.zoomList.length - 1);
+            this.zoom = true;
+            document.documentElement.classList.add('pp-lock');
+        },
+        zoomClose() {
+            this.zoom = false;
+            document.documentElement.classList.remove('pp-lock');
+            if (this.zoomList === this.p.imgs && this.zoomAt !== this.slide) this.goTo(this.zoomAt);
+        },
         async share() {
             const data = { title: this.p.name, text: this.p.name + ' por ' + this.money(this.p.price), url: this.p.url };
             if (navigator.share) {
@@ -223,7 +277,7 @@
             mlSeenPush(@js($owner), next.id);
             document.title = next.name + ' · ' + @js($store?->name ?: config('app.name'));
         },
-    })" @keydown.escape.window="closeCart()" @open-cart.window="openCart()">
+    })" @keydown.escape.window="zoom ? zoomClose() : closeCart()" @open-cart.window="openCart()" @pp-buy.window="document.getElementById('comprar').scrollIntoView({ behavior: 'smooth', block: 'start' })">
 
     <nav class="pp-crumbs" aria-label="Você está em">
         <a href="{{ $catalogHome }}" class="pp-back" onclick="if (document.referrer.indexOf(location.host + '/portal/catalogo') !== -1 && history.length > 1) { history.back(); return false; }">
@@ -238,7 +292,21 @@
         </div>
     </nav>
 
-    <section class="ml-box pp-main">
+    @if($special)
+        @include('portal.partials.product-special-styles')
+        @include('portal.partials.product-special', ['where' => 'topo', 'name' => $d['name'], 'photos' => $d['imgs'] ?? [], 'phone' => $phone])
+    @endif
+
+    <section class="ml-box pp-main" id="comprar">
+        {{-- Nome antes da foto (no celular fica em cima; nas telas largas, no topo da coluna da direita). --}}
+        <div class="pp-head" data-testid="page-head">
+            <div class="ml-cat-line" x-text="[p.cat, p.brand].filter(Boolean).join(' · ') || 'Produto'">{{ collect([$d['cat'], $d['brand']])->filter()->join(' · ') ?: 'Produto' }}</div>
+            <h1 x-text="p.name">{{ $d['name'] }}</h1>
+            @if($rating)
+                <a href="#avaliacoes" class="pp-rate" data-testid="page-rating"><span class="rv-stars" style="--v: {{ $rating['avg'] }}">★★★★★</span><b>{{ number_format($rating['avg'], 1, ',', '') }}</b> ({{ $rating['n'] }} {{ $rating['n'] === 1 ? 'avaliação' : 'avaliações' }})</a>
+            @endif
+        </div>
+
         <div class="ml-gal-wrap">
             <div class="ml-gal">
                 <div class="ml-gal-track" x-ref="track" @scroll.debounce.60ms="slide = Math.round($el.scrollLeft / $el.clientWidth)">
@@ -246,9 +314,11 @@
                         <div><div class="ml-ph"><i class="fas fa-image"></i></div></div>
                     </template>
                     <template x-for="(src, i) in p.imgs" :key="p.id + '-' + i">
-                        <div><img :src="src" :alt="p.name" :loading="i ? 'lazy' : 'eager'" x-on:error="p.imgs = p.imgs.filter(x => x !== src)"></div>
+                        <div><img :src="src" :alt="p.name" :loading="i ? 'lazy' : 'eager'" x-on:error="p.imgs = p.imgs.filter(x => x !== src)"
+                                  class="pp-zoomable" @click="zoomOpen(i)" title="Ampliar foto" data-testid="page-photo"></div>
                     </template>
                 </div>
+                <button type="button" class="pp-zoom-btn" x-show="p.imgs.length" @click="zoomOpen(slide)" aria-label="Ampliar foto" data-testid="page-zoom"><i class="fas fa-magnifying-glass-plus"></i></button>
                 <span class="ml-gal-n" x-show="p.imgs.length > 1" x-text="(slide + 1) + ' / ' + p.imgs.length"></span>
                 <button type="button" class="pp-fav" :class="{ on: $store.favs.has(p.id) }" @click="fav(p.id)"
                         :aria-pressed="$store.favs.has(p.id)" :aria-label="$store.favs.has(p.id) ? 'Tirar dos favoritos' : 'Salvar nos favoritos'" data-testid="page-fav">
@@ -269,11 +339,6 @@
         </div>
 
         <div class="pp-info">
-            <div class="ml-cat-line" x-text="[p.cat, p.brand].filter(Boolean).join(' · ') || 'Produto'">{{ collect([$d['cat'], $d['brand']])->filter()->join(' · ') ?: 'Produto' }}</div>
-            <h1 x-text="p.name">{{ $d['name'] }}</h1>
-            @if($rating)
-                <a href="#avaliacoes" class="pp-rate" data-testid="page-rating"><span class="rv-stars" style="--v: {{ $rating['avg'] }}">★★★★★</span><b>{{ number_format($rating['avg'], 1, ',', '') }}</b> ({{ $rating['n'] }} {{ $rating['n'] === 1 ? 'avaliação' : 'avaliações' }})</a>
-            @endif
             <span class="ml-deal" x-show="p.pct" @if(! $d['pct']) x-cloak @endif>Oferta do dia</span>
             <div class="ml-old" x-show="p.old" x-text="money(p.old)" @if(! $d['old']) x-cloak @endif>@if($d['old'])R$ {{ number_format($d['old'], 2, ',', '.') }}@endif</div>
             <div class="ml-price-row" x-show="p.price > 0" @if(! ($d['price'] > 0)) x-cloak @endif>
@@ -392,7 +457,39 @@
         </div>
     </section>
 
-    @if($together->isNotEmpty())
+    @if($special)
+        @include('portal.partials.product-special', ['where' => 'meio', 'name' => $d['name'], 'photos' => $d['imgs'] ?? [], 'phone' => $phone])
+    @endif
+
+    {{-- Foto ampliada: toque/clique abre; pinça, toque duplo, roda do mouse e clique ampliam; arrasta para mover; desliza para trocar ou para baixo para fechar. --}}
+    <template x-teleport="body">
+        <div class="pp-lb" x-show="zoom" x-cloak x-transition.opacity.duration.150ms role="dialog" aria-modal="true" :aria-label="'Fotos de ' + p.name"
+             x-data="ppZoom()" x-effect="if (zoom) reset(true)" @keydown.window="zoom && key($event)" data-testid="zoom">
+            <div class="pp-lb-top">
+                <span class="pp-lb-n" x-text="(zoomAt + 1) + ' / ' + zoomList.length"></span>
+                <b class="pp-lb-name" x-text="p.name"></b>
+                <button type="button" class="pp-lb-x" @click="zoomClose()" aria-label="Fechar" data-testid="zoom-close"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="pp-lb-stage" x-ref="stage" :class="{ zoomed: s > 1.01 }"
+                 @pointerdown="down($event)" @pointermove="move($event)" @pointerup="up($event)" @pointercancel="up($event)"
+                 @wheel.prevent="wheel($event)" @dblclick.prevent>
+                <img x-ref="img" :src="zoomList[zoomAt]" :alt="p.name" draggable="false" @load="reset(true)"
+                     :style="'transform: translate3d(' + (x + dx) + 'px,' + (y + dy) + 'px,0) scale(' + s + ');' + (anim ? 'transition: transform .22s ease' : '') + ';opacity:' + fade">
+            </div>
+            <button type="button" class="pp-lb-arrow prev" x-show="zoomList.length > 1" @click="step(-1)" aria-label="Foto anterior"><i class="fas fa-chevron-left"></i></button>
+            <button type="button" class="pp-lb-arrow next" x-show="zoomList.length > 1" @click="step(1)" aria-label="Próxima foto"><i class="fas fa-chevron-right"></i></button>
+            <div class="pp-lb-bottom">
+                <div class="pp-lb-thumbs" x-show="zoomList.length > 1">
+                    <template x-for="(src, i) in zoomList" :key="'z' + p.id + '-' + i">
+                        <button type="button" :class="{ on: i === zoomAt }" @click="show(i)" :aria-label="'Foto ' + (i + 1)"><img :src="src" alt="" loading="lazy"></button>
+                    </template>
+                </div>
+                <small class="pp-lb-hint" x-text="s > 1.01 ? 'Arraste para ver os detalhes' : (touch ? 'Toque duas vezes ou use dois dedos para ampliar' : 'Clique na foto ou use a roda do mouse para ampliar')"></small>
+            </div>
+        </div>
+    </template>
+
+    @if($together->isNotEmpty() && ! ($special['settings']['hide_together'] ?? false))
         @php $tIds = $together->pluck('id')->all(); @endphp
         <section class="ml-box pp-buy2" data-testid="buy-together"
                  x-data="{ sel: @js(collect($tIds)->mapWithKeys(fn ($i) => [$i => true])), get items() { return [p].concat(@js($tIds).filter(i => this.sel[i]).map(i => products[i])).filter(x => x && x.buyable !== false && x.stock > 0); }, get total() { return this.items.reduce((s, x) => s + x.price, 0); } }">
@@ -423,7 +520,7 @@
         </section>
     @endif
 
-    <section class="ml-box pp-about" x-show="p.desc || p.brand || p.model || p.code || (p.specs && p.specs.length)">
+    <section class="ml-box pp-about" @if($special['settings']['hide_about'] ?? false) hidden @endif x-show="!{{ ($special['settings']['hide_about'] ?? false) ? 'true' : 'false' }} && (p.desc || p.brand || p.model || p.code || (p.specs && p.specs.length))">
         <div class="pp-about-in">
             <div x-show="p.desc">
                 <h2>Sobre o produto</h2>
@@ -442,7 +539,7 @@
         </div>
     </section>
 
-    @if(\App\Services\Portal\ReviewService::ready())
+    @if(\App\Services\Portal\ReviewService::ready() && ! ($special['settings']['hide_reviews'] ?? false))
         <section class="ml-box pp-reviews" id="avaliacoes" data-testid="reviews">
             <h2>Avaliações</h2>
             @if(session('success'))<p class="pp-rv-msg" role="status">{{ session('success') }}</p>@endif
@@ -502,7 +599,7 @@
         </section>
     @endif
 
-    @if($related->isNotEmpty())
+    @if($related->isNotEmpty() && ! ($special['settings']['hide_related'] ?? false))
         <section class="ml-box ml-offers pp-related" data-testid="related">
             <div class="ml-sec-head">
                 <h2><i class="fas fa-layer-group"></i> Produtos relacionados</h2>
@@ -561,6 +658,108 @@ function ppShip(url, myCep, owner) {
                 if (this.res.ok) { try { localStorage.setItem(key, this.mask(d)); } catch (e) {} }
             } catch (e) { this.res = { ok: false, message: 'Sem conexão. Tente de novo.' }; }
             this.busy = false;
+        },
+    };
+}
+</script>
+<script>
+// Foto ampliada na página do produto (sem biblioteca): pinça, toque duplo, roda do mouse, arrastar e deslizar.
+function ppZoom() {
+    const MAX = 4, STEP = 2.5;
+    return {
+        s: 1, x: 0, y: 0, dx: 0, dy: 0, anim: false, fade: 1, touch: matchMedia('(pointer: coarse)').matches,
+        pts: new Map(), start: null, lastTap: 0, moved: false,
+        reset(instant) { this.anim = ! instant; this.s = 1; this.x = this.y = this.dx = this.dy = 0; this.fade = 1; this.pts.clear(); this.start = null; },
+        key(e) {
+            if (e.key === 'ArrowRight') { e.preventDefault(); this.step(1); }
+            if (e.key === 'ArrowLeft') { e.preventDefault(); this.step(-1); }
+            if (e.key === '+' || e.key === '=') this.zoomTo(this.s * 1.5);
+            if (e.key === '-') this.zoomTo(this.s / 1.5);
+        },
+        show(i) { if (i === this.zoomAt) return; this.zoomAt = i; this.reset(true); },
+        step(d) {
+            const n = this.zoomList.length;
+            if (n < 2) { this.settle(); return; }
+            this.show((this.zoomAt + d + n) % n);
+        },
+        // Medidas da foto já encaixada na tela (sem a ampliação).
+        box() {
+            const st = this.$refs.stage.getBoundingClientRect(), im = this.$refs.img;
+            return { W: st.width, H: st.height, cx: st.left + st.width / 2, cy: st.top + st.height / 2, w: im.offsetWidth, h: im.offsetHeight };
+        },
+        clamp(s, x, y) {
+            const b = this.box(), mx = Math.max(0, (b.w * s - b.W) / 2), my = Math.max(0, (b.h * s - b.H) / 2);
+            return [Math.min(mx, Math.max(-mx, x)), Math.min(my, Math.max(-my, y))];
+        },
+        // Amplia mantendo o ponto (px, py) da tela no lugar.
+        zoomTo(ns, px, py, animate = true) {
+            const b = this.box();
+            ns = Math.min(MAX, Math.max(1, ns));
+            px = (px ?? b.cx) - b.cx; py = (py ?? b.cy) - b.cy;
+            const k = ns / this.s;
+            const [x, y] = this.clamp(ns, px - (px - this.x) * k, py - (py - this.y) * k);
+            this.anim = animate; this.s = ns; this.x = ns === 1 ? 0 : x; this.y = ns === 1 ? 0 : y;
+        },
+        settle() { this.anim = true; this.dx = this.dy = 0; this.fade = 1; [this.x, this.y] = this.clamp(this.s, this.x, this.y); },
+        wheel(e) { this.zoomTo(this.s * (e.deltaY < 0 ? 1.25 : 0.8), e.clientX, e.clientY, false); },
+        down(e) {
+            this.$refs.stage.setPointerCapture?.(e.pointerId);
+            this.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            this.anim = false; this.moved = false;
+            this.start = this.snap();
+        },
+        snap() {
+            const a = [...this.pts.values()];
+            if (a.length >= 2) {
+                return { two: true, d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1, mx: (a[0].x + a[1].x) / 2, my: (a[0].y + a[1].y) / 2, s: this.s, x: this.x, y: this.y };
+            }
+            return { two: false, px: a[0].x, py: a[0].y, x: this.x, y: this.y, t: Date.now() };
+        },
+        move(e) {
+            if (! this.pts.has(e.pointerId) || ! this.start) return;
+            this.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+            const a = [...this.pts.values()], st = this.start;
+            if (st.two && a.length >= 2) {
+                // Pinça: amplia em volta do meio dos dois dedos e acompanha o arrasto.
+                const d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y), mx = (a[0].x + a[1].x) / 2, my = (a[0].y + a[1].y) / 2;
+                const b = this.box(), ns = Math.min(MAX * 1.2, Math.max(0.8, st.s * d / st.d)), k = ns / st.s;
+                const ox = st.mx - b.cx, oy = st.my - b.cy;
+                this.s = ns; this.x = ox - (ox - st.x) * k + (mx - st.mx); this.y = oy - (oy - st.y) * k + (my - st.my);
+                this.moved = true;
+                return;
+            }
+            if (st.two) return;
+            const mx = e.clientX - st.px, my = e.clientY - st.py;
+            if (Math.abs(mx) + Math.abs(my) > 6) this.moved = true;
+            if (this.s > 1.01) { [this.x, this.y] = this.clamp(this.s, st.x + mx, st.y + my); return; }
+            // Sem ampliação: deslizar para os lados troca a foto; para baixo fecha.
+            if (Math.abs(my) > Math.abs(mx) && my > 0) { this.dy = my; this.dx = 0; this.fade = Math.max(0.3, 1 - my / 400); }
+            else { this.dx = mx; this.dy = 0; }
+        },
+        up(e) {
+            if (! this.pts.has(e.pointerId)) return;
+            this.pts.delete(e.pointerId);
+            const st = this.start;
+            if (this.pts.size) { this.start = this.snap(); return; }
+            this.start = null;
+            if (st && st.two) {
+                if (this.s < 1) this.zoomTo(1); else if (this.s > MAX) this.zoomTo(MAX); else this.settle();
+                return;
+            }
+            if (this.s <= 1.01) {
+                if (this.dy > 110) { this.zoomClose(); this.reset(true); return; }
+                if (Math.abs(this.dx) > 70) { this.step(this.dx < 0 ? 1 : -1); return; }
+            }
+            this.settle();
+            if (this.moved || e.type === 'pointercancel') return;
+            // Toque/clique sem arrastar: no mouse cada clique amplia/volta; no toque é o toque duplo.
+            const now = Date.now(), isMouse = e.pointerType === 'mouse';
+            if (isMouse || now - this.lastTap < 300) {
+                this.lastTap = 0;
+                this.s > 1.01 ? this.zoomTo(1) : this.zoomTo(STEP, e.clientX, e.clientY);
+            } else {
+                this.lastTap = now;
+            }
         },
     };
 }

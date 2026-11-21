@@ -311,6 +311,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/promotions/pix-e-pontos', \App\Livewire\Promotions\PortalRewards::class)->name('promotions.rewards');
     Route::get('/promotions/google-e-instagram', \App\Livewire\Promotions\PortalMarketing::class)->name('promotions.marketing');
     Route::get('/promotions/relatorio-do-site', \App\Livewire\Promotions\PortalReport::class)->name('promotions.site-report');
+    Route::get('/promotions/paginas-de-produto', \App\Livewire\Promotions\ProductPages::class)->name('promotions.product-pages');
+    Route::get('/promotions/paginas-de-produto/{product}', \App\Livewire\Promotions\ProductPageEditor::class)->whereNumber('product')->name('promotions.product-page.edit');
     Route::get('/promotions/vitrine/banner/novo', \App\Livewire\Promotions\BannerEditor::class)->name('promotions.storefront.banner.create');
     Route::get('/promotions/vitrine/banner/{banner}/editar', \App\Livewire\Promotions\BannerEditor::class)->whereNumber('banner')->name('promotions.storefront.banner.edit');
     Route::get('/promotions/vitrine/colecao/nova', \App\Livewire\Promotions\CollectionEditor::class)->name('promotions.storefront.collection.create');

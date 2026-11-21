@@ -177,6 +177,7 @@
             <button type="button" wire:click="$dispatch('openExportModal', { productId: {{ $v->id }} })" class="sph-tile is-sky"><i class="bi bi-image"></i>Card</button>
             <a href="{{ route('mercadolivre.products.publish', $v) }}" class="sph-tile is-yellow"><i class="bi bi-shop"></i>Mercado Livre</a>
             <a href="{{ route('shopee.products.publish', $v) }}" class="sph-tile is-orange"><i class="bi bi-bag"></i>Shopee</a>
+            <a href="{{ route('promotions.product-page.edit', $v->parent_id ?: $v->id) }}" wire:navigate class="sph-tile is-purple" data-testid="sph-special-page"><i class="bi bi-file-earmark-richtext"></i>Página especial</a>
             <a href="{{ route('portal.catalog', ['userId' => auth()->id(), 'search' => $v->name]) }}" target="_blank" rel="noopener" class="sph-tile is-purple"><i class="bi bi-shop-window"></i>Ver no catálogo</a>
             <button type="button" wire:click="duplicateProduct" wire:loading.attr="disabled" wire:target="duplicateProduct" class="sph-tile is-slate"><i class="bi bi-files"></i>Duplicar</button>
             <button type="button" wire:click="askDelete" class="sph-tile is-danger"><i class="bi bi-trash3"></i>Excluir</button>

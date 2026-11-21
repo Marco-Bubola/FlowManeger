@@ -18,6 +18,7 @@
             'inicio' => ['Página inicial', 'bi-house', 'Tema, cores e ordem dos blocos', 'tab', 'tema cores estilo fundo desenho cards botoes blocos ordem largura titulos natal black'],
             'banners' => ['Banners', 'bi-images', 'Carrossel, faixas e laterais', 'tab', 'carrossel faixa lateral imagem foto modelo'],
             'destaques' => ['Destaques', 'bi-star', 'Produtos da fileira de destaque', 'tab', 'fileira produtos estrela'],
+            'paginas' => ['Páginas de produto', 'bi-file-earmark-richtext', 'Página especial para um produto', 'promotions.product-pages', 'pagina especial produto blocos video medidas perguntas depoimentos landing'],
             'colecoes' => ['Coleções', 'bi-collection', 'Grupos de produtos com capa', 'tab', 'categoria grupo capa'],
             'aviso' => ['Aviso no topo', 'bi-megaphone', 'Uma linha em todas as páginas', 'tab', 'frete gratis mensagem topo faixa'],
         ],

@@ -1019,6 +1019,9 @@ class ClientPortalController extends Controller
             'myReview' => $myReview,
             'canReview' => $portalClient && (int) $portalClient->user_id === $userId,
             'together' => $together,
+            // Página especial do produto (o dono logado vê a salva mesmo desligada com ?previa=1).
+            'special' => \App\Services\Portal\ProductPageService::for($userId, $rootId,
+                $request->boolean('previa') && (int) Auth::guard('web')->id() === $userId),
         ]);
     }
 
