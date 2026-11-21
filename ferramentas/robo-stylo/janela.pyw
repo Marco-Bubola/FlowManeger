@@ -266,8 +266,8 @@ class Entrada(ctk.CTkEntry):
 
 
 def resumo(f):
-    vendas = [motor.numero(v.get("venda")) for v in f.variacoes if motor.numero(v.get("venda")) > 0]
-    estoque = sum(int(motor.numero(v.get("estoque"))) for v in f.variacoes)
+    vendas = [motor.numero(v.get("venda")) for v in f.ativas if motor.numero(v.get("venda")) > 0]
+    estoque = sum(int(motor.numero(v.get("estoque"))) for v in f.ativas)
     if not vendas:
         preco = "sem preço"
     elif min(vendas) == max(vendas):
@@ -2601,11 +2601,12 @@ class LinhaVariacao(ctk.CTkFrame):
         emb = v.get("embalagem") if isinstance(v.get("embalagem"), dict) else {}
         med = v.get("medidas_peca_cm") if isinstance(v.get("medidas_peca_cm"), dict) else {}
         self.grid_columnconfigure(1, weight=1)
+        self.ativa = v.get("ativa", True) is not False
 
         # foto da variação
         self.foto = ctk.CTkLabel(self, text="sem\nfoto", width=64, height=64, corner_radius=14, fg_color=SUAVE,
                                  text_color=MUDO, font=F(10))
-        self.foto.grid(row=0, column=0, rowspan=3, padx=(12, 10), pady=12, sticky="n")
+        self.foto.grid(row=0, column=0, rowspan=2, padx=(12, 10), pady=12, sticky="n")
 
         # linha 1: nome, código, selos e ações
         l1 = ctk.CTkFrame(self, fg_color="transparent")
@@ -2615,6 +2616,9 @@ class LinhaVariacao(ctk.CTkFrame):
                              fg_color=PAINEL, border_color=VIDRO_BORDA)
         self.valor.grid(row=0, column=0, sticky="ew")
         self.valor.bind("<FocusOut>", lambda e: (self._selos(), editor.atualizar_usos()), add="+")
+        self.liga = ctk.CTkSwitch(self, text="Sobe", width=60, switch_width=36, switch_height=20, progress_color=VERDE,
+                                  font=F(11, "bold"), text_color=MUDO, command=self._ligou)
+        self.liga.grid(row=2, column=0, sticky="nw", padx=(14, 0), pady=(0, 10))
         self.codigo = Entrada(l1, width=124, height=34, font=F(12), placeholder_text="código automático", fg_color=PAINEL,
                               border_color=VIDRO_BORDA)
         self.codigo.grid(row=0, column=1, padx=(6, 0))
@@ -2709,10 +2713,33 @@ class LinhaVariacao(ctk.CTkFrame):
         self.pd.definir(med.get("diametro"))
         for w in (self.peso, self.cc, self.cl, self.ca, self.pa, self.pl, self.pp, self.pd, self.canva_extra):
             w.bind("<FocusIn>", lambda e: self.abrir(), add="+")
+        if self.ativa:
+            self.liga.select()
         self._selos()
+        self._pintar()
         self.calc()
 
     # ações
+    def _ligou(self):
+        self.ativa = bool(self.liga.get())
+        self._pintar()
+        self.editor._resumo_var()
+
+    def ligar(self, sim):
+        (self.liga.select if sim else self.liga.deselect)()
+        self._ligou()
+
+    def _pintar(self):
+        """Desligada: cartão apagado, para ver na hora o que não vai subir."""
+        if self.ativa:
+            self.configure(fg_color=VIDRO, border_color=VIDRO_BORDA)
+            self.valor.configure(text_color=TEXTO)
+            self.liga.configure(text="Sobe", text_color=VERDE)
+        else:
+            self.configure(fg_color=("#eceef4", "#121726"), border_color=BORDA)
+            self.valor.configure(text_color=MUDO)
+            self.liga.configure(text="Não sobe", text_color=MUDO)
+
     def rotulo(self):
         return self.valor.get().strip() or f"variação {self.editor.linhas.index(self) + 1}"
 
@@ -2776,6 +2803,10 @@ class LinhaVariacao(ctk.CTkFrame):
         v["venda"] = self.venda.valor()
         v["preco_tabela"] = self.de.valor()
         v["estoque"] = self.estoque.valor() or 0
+        if self.ativa:
+            v.pop("ativa", None)
+        else:
+            v["ativa"] = False
         kit = self.kit.valor() or 1
         if kit > 1:
             v["kit"] = kit
@@ -3572,9 +3603,13 @@ class Editor(ctk.CTkFrame):
         barra.grid(row=2, column=0, columnspan=4, sticky="ew", padx=20, pady=(0, 4))
         self.lbl_resumo_var = ctk.CTkLabel(barra, text="", font=F(12, "bold"), text_color=MUDO, anchor="w")
         self.lbl_resumo_var.pack(side="left")
-        Botao(barra, "Recolher tudo", "fantasma", width=110, height=28, font=F(12),
+        Botao(barra, "Fechar", "fantasma", width=64, height=28, font=F(12),
               command=lambda: [l.alternar(False) for l in self.linhas]).pack(side="right")
-        Botao(barra, "Abrir tudo", "fantasma", width=96, height=28, font=F(12),
+        Botao(barra, "Desligar todas", "fantasma", width=104, height=28, font=F(12),
+              command=lambda: [l.ligar(False) for l in self.linhas]).pack(side="right", padx=(0, 12))
+        Botao(barra, "Ligar todas", "fantasma", width=90, height=28, font=F(12),
+              command=lambda: [l.ligar(True) for l in self.linhas]).pack(side="right", padx=(0, 6))
+        Botao(barra, "Abrir", "fantasma", width=60, height=28, font=F(12),
               command=lambda: [l.alternar(True) for l in self.linhas]).pack(side="right", padx=6)
         self.caixa_var = ctk.CTkFrame(s, fg_color="transparent")
         self.caixa_var.grid(row=3, column=0, columnspan=4, sticky="ew", padx=20)
@@ -3589,9 +3624,10 @@ class Editor(ctk.CTkFrame):
         if not getattr(self, "lbl_resumo_var", None) or not self.linhas:
             return
         n = len(self.linhas)
-        est = sum((l.estoque.valor() or 0) for l in self.linhas)
-        sem_preco = sum(1 for l in self.linhas if not l.venda.valor())
-        t = f"{n} variação(ões) · {est} em estoque"
+        lig = [l for l in self.linhas if l.ativa]
+        est = sum((l.estoque.valor() or 0) for l in lig)
+        sem_preco = sum(1 for l in lig if not l.venda.valor())
+        t = f"{len(lig)} de {n} ligada(s) para subir · {est} em estoque" if len(lig) < n else f"{n} variação(ões) · {est} em estoque"
         if sem_preco:
             t += f" · {sem_preco} sem preço de venda"
         self.lbl_resumo_var.configure(text=t, text_color=AMBAR if sem_preco else MUDO)
@@ -4608,7 +4644,8 @@ class ImagensIA(Dialogo):
         n = len(self.vars)
         for k in range(n):
             i = (de + k) % n
-            if not self._n_imagens(i):
+            l = self._linha(i)
+            if not self._n_imagens(i) and (l is None or l.ativa):
                 return i
         return de % n if n else 0
 

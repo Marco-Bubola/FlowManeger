@@ -122,6 +122,11 @@ class Ficha:
         return [x for x in v if isinstance(x, dict)] if isinstance(v, list) else []
 
     @property
+    def ativas(self):
+        """As variações ligadas (as desligadas ficam na ficha, mas não sobem para o site)."""
+        return [v for v in self.variacoes if v.get("ativa", True) is not False]
+
+    @property
     def pronta(self):
         return not self.erros and self.status in ("pronta", "falhou")
 
@@ -215,6 +220,13 @@ def ler_ficha(pasta):
         f.erros.append(f"São {len(variacoes)} variações; o máximo é 40.")
 
     multi = len(variacoes) > 1 or any(str(v.get("valor") or "").strip() for v in variacoes)
+    desligadas = [v for v in variacoes if v.get("ativa", True) is False]
+    if desligadas:
+        variacoes = [v for v in variacoes if v.get("ativa", True) is not False]
+        if not variacoes:
+            f.erros.append("Todas as variações estão desligadas: ligue pelo menos uma para subir.")
+        else:
+            f.avisos.append(f"{len(desligadas)} variação(ões) desligada(s): ficam na ficha, mas não sobem.")
     codigos = {}
     sem_peso, sem_custo = [], []
     soma_custo = sum((numero(i.get("quantidade")) or 1) * numero(i.get("valor"))
@@ -268,7 +280,14 @@ def ler_ficha(pasta):
             elif nome not in f.faltando:
                 f.faltando.append(nome)
     f.fotos = usadas
-    f.sobrando = sorted(p.name for p in na_pasta.values() if p not in usadas)
+    so_desligadas = set()
+    for v in desligadas:
+        for nome in v.get("fotos") or []:
+            nome = str(nome).strip().replace("\\", "/").split("/")[-1]
+            p = na_pasta.get(nome.lower()) or por_stem.get(Path(nome).stem.lower())
+            if p and p not in usadas:
+                so_desligadas.add(p)
+    f.sobrando = sorted(p.name for p in na_pasta.values() if p not in usadas and p not in so_desligadas)
     if f.faltando:
         f.avisos.append("Fotos citadas na ficha que não estão na pasta: " + ", ".join(f.faltando))
     if not usadas:
@@ -1451,6 +1470,19 @@ def mover_para_feitos(ficha, pasta_produtos):
         ficha.arquivo = destino / ficha.arquivo.relative_to(antiga)
 
 
+def ficha_para_envio(ficha, pasta_tmp):
+    """Se houver variações desligadas, manda para o site uma cópia da ficha só com as ligadas."""
+    import copy
+    if len(ficha.ativas) == len(ficha.variacoes):
+        return ficha
+    dados = json.loads(json.dumps(ficha.dados))
+    dados["variacoes"] = [v for v in dados.get("variacoes") or [] if isinstance(v, dict) and v.get("ativa", True) is not False]
+    envio = copy.copy(ficha)
+    envio.arquivo = Path(pasta_tmp) / "ficha.md"
+    envio.arquivo.write_text(texto_da_ficha(dados), encoding="utf-8")
+    return envio
+
+
 def rodar(fichas, cfg, avisar, parar, site=None, atualizar=False):
     """Cadastra as fichas prontas, uma por vez. avisar(evento, ficha, texto) atualiza a janela.
 
@@ -1473,7 +1505,7 @@ def rodar(fichas, cfg, avisar, parar, site=None, atualizar=False):
             tmp = Path(tempfile.mkdtemp(prefix="robo-stylo-"))
             try:
                 fotos = preparar_fotos(ficha, tmp, int(r.get("lado_maximo_foto")), int(r.get("tamanho_maximo_foto_kb")))
-                res = site.cadastrar(ficha, fotos, atualizar=atualizar)
+                res = site.cadastrar(ficha_para_envio(ficha, tmp), fotos, atualizar=atualizar)
                 if res is None:
                     ficha.status, ficha.mensagem = "ja", "Todos os códigos já estavam cadastrados."
                     if ja_feita:

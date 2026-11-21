@@ -1,5 +1,5 @@
 {
-  "versao": 13,
+  "versao": 14,
   "data": "2026-11-21",
   "arquivos": [
     "janela.pyw",
@@ -14,6 +14,8 @@
     "instalar.bat"
   ],
   "novidades": [
+    "Cada variação tem um botão liga/desliga “Sobe”: as desligadas ficam guardadas na ficha, mas não vão para o site nem entram nas pendências.",
+    "“Ligar todas” e “Desligar todas” na seção Variações; o resumo mostra quantas estão ligadas.",
     "Variações em cartões no estilo vidro: foto da variação, preço, margem, estoque com − e + e um botão ✦ para criar as imagens dela no Canva.",
     "Kits: crie variações de 2, 3, 4 unidades. O robô calcula custo, preço (com o desconto que você escolher) e peso da caixa.",
     "“Criar várias de uma vez”: tamanhos × modelos × kits num clique.",

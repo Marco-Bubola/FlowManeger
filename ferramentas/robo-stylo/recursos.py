@@ -789,7 +789,8 @@ def categoria_pelo_nome(nome):
 
 
 def _vs(d):
-    return [v for v in d.get("variacoes") or [] if isinstance(v, dict)]
+    """As variações ligadas (as desligadas não sobem, então não entram nas pendências)."""
+    return [v for v in d.get("variacoes") or [] if isinstance(v, dict) and v.get("ativa", True) is not False]
 
 
 def codigos_das_fichas(pasta_produtos, exceto=None):

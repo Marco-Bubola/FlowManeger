@@ -127,6 +127,9 @@ VARIAÇÕES (no editor)
   multiplica custo, preço (menos o desconto do kit) e peso da caixa. Só kits,
   sem tamanhos nem modelos, cria os kits das variações que já existem.
 - ⧉ duplica, ✕ remove (as fotos só dela ficam como "Não usar").
+- O botão "Sobe" embaixo da foto liga ou desliga a variação. Desligada, ela
+  fica guardada na ficha, mas não vai para o site (nem no Atualizar no site) e
+  não entra nas pendências. "Ligar todas" e "Desligar todas" mudam de uma vez.
 
 IMAGENS COM IA (no editor, seção Fotos ou no ✦ de cada variação)
 - "✦ Criar no Canva": escolha a variação (◀ ▶ ou "Próxima variação sem
