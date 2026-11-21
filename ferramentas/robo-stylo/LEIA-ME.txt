@@ -117,15 +117,30 @@ ATUALIZAR UM PRODUTO JÁ CADASTRADO
 - O anúncio do Mercado Livre não muda sozinho: atualize no site, em Mercado
   Livre › Produtos, se precisar.
 
-IMAGENS COM IA (no editor, seção Fotos)
-- "✦ Criar no Canva": marque as fotos do produto, a variação e os tipos de
-  imagem (capa com fundo branco, no ambiente, com as medidas, detalhe, em uso)
-  e toque em "Abrir o Canva e as fotos". O robô abre o Canva IA no seu
-  navegador, copia o pedido (cole com Ctrl+V) e abre a pasta com as fotos para
-  você arrastar. Cada tipo tem um botão para copiar o pedido dele.
+VARIAÇÕES (no editor)
+- Cada variação é um cartão: foto dela, nome, código, custo, venda, preço "de",
+  estoque com − e +, e "Kit (un.)" quando ela é um kit de várias peças.
+- "Medidas, caixa e pedido do Canva" abre as medidas da caixa e da peça e o
+  texto do que muda nesta variação para as imagens (ex.: troque o desenho).
+- "Criar várias de uma vez": tamanhos × modelos ou cores × kits, separados por
+  vírgula (ex.: 25 cm, 30 cm  ×  Logo, Sem gravura  ×  1, 2). Nos kits o robô
+  multiplica custo, preço (menos o desconto do kit) e peso da caixa. Só kits,
+  sem tamanhos nem modelos, cria os kits das variações que já existem.
+- ⧉ duplica, ✕ remove (as fotos só dela ficam como "Não usar").
+
+IMAGENS COM IA (no editor, seção Fotos ou no ✦ de cada variação)
+- "✦ Criar no Canva": escolha a variação (◀ ▶ ou "Próxima variação sem
+  imagem"), marque as fotos e os tipos de imagem (capa com fundo branco, fundo
+  branco em ângulo, ambiente, em uso, medidas, detalhe, kit, tamanho real,
+  presente) e toque em "Abrir o Canva e as fotos". O robô abre o Canva IA,
+  copia o pedido (cole com Ctrl+V) e abre a pasta com as fotos para arrastar.
+- O pedido já diz o tamanho, o modelo e o kit da variação, e o que muda em
+  relação às suas fotos (o texto "O que muda nesta variação" fica guardado
+  nela). Se perguntar, diga de qual variação são as fotos que você tirou.
 - Baixe do Canva as imagens que gostar: elas aparecem sozinhas no robô (ele
   olha a pasta Downloads; outra pasta em Configurações). Marque as boas e toque
-  em "Adicionar às fotos"; a primeira vira a capa. Depois, Salvar ficha.
+  em "Adicionar às fotos": elas ficam só naquela variação e o robô já passa
+  para a próxima. No fim, Salvar ficha.
 - "Gemini": o robô cria as imagens sozinho com a chave do Gemini das
   Configurações (a conta precisa estar com cobrança ativa).
 - A IA às vezes muda um detalhe da peça: confira antes de anunciar.

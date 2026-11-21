@@ -87,7 +87,8 @@
         "altura_cm": 5.0,
         "peso_kg": 1.4
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "Mantenha a gravura da cabeça de boi em traço preto queimado na madeira, no mesmo lugar e no mesmo estilo das fotos."
     },
     {
       "valor": "40 x 20 cm · Porco",
@@ -107,7 +108,8 @@
         "altura_cm": 5.0,
         "peso_kg": 1.4
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "No lugar da gravura da cabeça de boi, mostre uma cabeça de porco desenhada no mesmo estilo de gravura em traço preto queimado na madeira, do mesmo tamanho e no mesmo lugar (canto superior, ao lado das duas cavidades)."
     },
     {
       "valor": "40 x 20 cm · Sem gravura",
@@ -127,7 +129,8 @@
         "altura_cm": 5.0,
         "peso_kg": 1.4
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "Sem gravura: no lugar da cabeça de boi a madeira fica lisa, só com os veios naturais. A canaleta e as duas cavidades continuam iguais."
     },
     {
       "valor": "55 x 24 cm · Boi",
@@ -149,7 +152,8 @@
       },
       "fotos": [
         "01-tabua-55-boi.jpg"
-      ]
+      ],
+      "canva_extra": "Mantenha a gravura da cabeça de boi em traço preto queimado na madeira, no mesmo lugar e no mesmo estilo das fotos."
     },
     {
       "valor": "55 x 24 cm · Porco",
@@ -169,7 +173,8 @@
         "altura_cm": 5.0,
         "peso_kg": 2.3
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "No lugar da gravura da cabeça de boi, mostre uma cabeça de porco desenhada no mesmo estilo de gravura em traço preto queimado na madeira, do mesmo tamanho e no mesmo lugar (canto superior, ao lado das duas cavidades)."
     },
     {
       "valor": "55 x 24 cm · Sem gravura",
@@ -189,7 +194,8 @@
         "altura_cm": 5.0,
         "peso_kg": 2.3
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "Sem gravura: no lugar da cabeça de boi a madeira fica lisa, só com os veios naturais. A canaleta e as duas cavidades continuam iguais."
     },
     {
       "valor": "70 x 30 cm · Boi",
@@ -209,7 +215,8 @@
         "altura_cm": 5.0,
         "peso_kg": 3.8
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "Mantenha a gravura da cabeça de boi em traço preto queimado na madeira, no mesmo lugar e no mesmo estilo das fotos."
     },
     {
       "valor": "70 x 30 cm · Porco",
@@ -229,7 +236,8 @@
         "altura_cm": 5.0,
         "peso_kg": 3.8
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "No lugar da gravura da cabeça de boi, mostre uma cabeça de porco desenhada no mesmo estilo de gravura em traço preto queimado na madeira, do mesmo tamanho e no mesmo lugar (canto superior, ao lado das duas cavidades)."
     },
     {
       "valor": "70 x 30 cm · Sem gravura",
@@ -249,7 +257,8 @@
         "altura_cm": 5.0,
         "peso_kg": 3.8
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "Sem gravura: no lugar da cabeça de boi a madeira fica lisa, só com os veios naturais. A canaleta e as duas cavidades continuam iguais."
     }
   ],
   "mercado_livre": {

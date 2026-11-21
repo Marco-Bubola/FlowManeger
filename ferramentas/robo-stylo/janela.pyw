@@ -62,8 +62,8 @@ VERMELHO = "#e11d48"
 AMBAR = "#d97706"
 AMARELO_ML = "#ffe600"
 
-FUNDO = ("#f5f4fa", "#0e1117")
-PAINEL = ("#ffffff", "#161b26")
+FUNDO = ("#eceefb", "#0b0f1a")
+PAINEL = ("#ffffff", "#141a28")
 CARD = ("#ffffff", "#1b2130")
 CARD_H = ("#faf8ff", "#202739")
 BORDA = ("#e6e3f0", "#2a3142")
@@ -73,6 +73,9 @@ MUDO = ("#6b6880", "#9896ab")
 ROXO_CLARO = ("#ede9fe", "#2c2450")
 ROXO_TXT = ("#6d28d9", "#c4b5fd")
 LATERAL = ("#1c1033", "#090612")
+# "vidro": cartões claros e translúcidos sobre o fundo lilás, com borda branca
+VIDRO = ("#f4f5ff", "#1a2236")
+VIDRO_BORDA = ("#ffffff", "#2c3650")
 
 STATUS = {
     "pronta": ("Pronta", VERDE),
@@ -2559,7 +2562,7 @@ class PaginaConfig(ctk.CTkFrame):
 
 class Secao(ctk.CTkFrame):
     def __init__(self, master, titulo, sub=""):
-        super().__init__(master, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA)
+        super().__init__(master, fg_color=PAINEL, corner_radius=22, border_width=1, border_color=VIDRO_BORDA)
         self.titulo = titulo
         self.grid_columnconfigure((1, 3), weight=1)
         cab = ctk.CTkFrame(self, fg_color="transparent")
@@ -2588,45 +2591,105 @@ class Secao(ctk.CTkFrame):
 
 
 class LinhaVariacao(ctk.CTkFrame):
-    COLS = [("Variação", 140), ("Código", 104), ("Custo R$", 84), ("Venda R$", 84), ("Preço “de” R$", 88), ("Estoque", 62), ("Margem", 56)]
+    """Uma variação no editor, como um cartão: foto, nome, preços, estoque com − e +, kit, medidas e o pedido do Canva."""
 
     def __init__(self, master, editor, v):
-        super().__init__(master, fg_color=SUAVE, corner_radius=12)
+        super().__init__(master, fg_color=VIDRO, corner_radius=18, border_width=1, border_color=VIDRO_BORDA)
         self.editor = editor
         self.original = v
+        self.aberta = False
         emb = v.get("embalagem") if isinstance(v.get("embalagem"), dict) else {}
         med = v.get("medidas_peca_cm") if isinstance(v.get("medidas_peca_cm"), dict) else {}
-        l1 = ctk.CTkFrame(self, fg_color="transparent")
-        l1.pack(fill="x", padx=8, pady=(8, 2))
-        self.valor = Entrada(l1, width=140, placeholder_text="ex.: 30 cm · Preto")
-        self.valor.bind("<FocusOut>", lambda e: editor.atualizar_usos(), add="+")
-        self.codigo = Entrada(l1, width=104, placeholder_text="automático")
-        self.custo = Entrada(l1, "dinheiro", width=84, ao_mudar=self.calc)
-        self.venda = Entrada(l1, "dinheiro", width=84, ao_mudar=self.calc)
-        self.de = Entrada(l1, "dinheiro", width=88)
-        self.estoque = Entrada(l1, "inteiro", width=62, placeholder_text="0")
-        self.margem = ctk.CTkLabel(l1, text="—", width=56, font=F(13, "bold"), text_color=MUDO)
-        for w in (self.valor, self.codigo, self.custo, self.venda, self.de, self.estoque, self.margem):
-            w.pack(side="left", padx=3)
-        Botao(l1, "✕", "perigo", width=34, height=32, command=lambda: editor.remover_variacao(self)).pack(side="left", padx=(6, 0))
-        l2 = ctk.CTkFrame(self, fg_color="transparent")
-        l2.pack(fill="x", padx=8, pady=(0, 8))
+        self.grid_columnconfigure(1, weight=1)
 
-        def peq(rot, tipo, larg=58, ph=""):
-            ctk.CTkLabel(l2, text=rot, font=F(11), text_color=MUDO).pack(side="left", padx=(6, 2))
-            e = Entrada(l2, tipo, width=larg, height=28, font=F(12), placeholder_text=ph)
-            e.pack(side="left", padx=1)
+        # foto da variação
+        self.foto = ctk.CTkLabel(self, text="sem\nfoto", width=64, height=64, corner_radius=14, fg_color=SUAVE,
+                                 text_color=MUDO, font=F(10))
+        self.foto.grid(row=0, column=0, rowspan=3, padx=(12, 10), pady=12, sticky="n")
+
+        # linha 1: nome, código, selos e ações
+        l1 = ctk.CTkFrame(self, fg_color="transparent")
+        l1.grid(row=0, column=1, sticky="ew", padx=(0, 12), pady=(12, 0))
+        l1.grid_columnconfigure(0, weight=1)
+        self.valor = Entrada(l1, height=34, font=F(14, "bold"), placeholder_text="nome da variação (ex.: 30 cm · Preto · Kit com 2)",
+                             fg_color=PAINEL, border_color=VIDRO_BORDA)
+        self.valor.grid(row=0, column=0, sticky="ew")
+        self.valor.bind("<FocusOut>", lambda e: (self._selos(), editor.atualizar_usos()), add="+")
+        self.codigo = Entrada(l1, width=124, height=34, font=F(12), placeholder_text="código automático", fg_color=PAINEL,
+                              border_color=VIDRO_BORDA)
+        self.codigo.grid(row=0, column=1, padx=(6, 0))
+        self.selo_kit = ctk.CTkLabel(l1, text="", font=F(11, "bold"), corner_radius=10, height=24, fg_color=ROXO_CLARO,
+                                     text_color=ROXO_TXT)
+        self.margem = ctk.CTkLabel(l1, text="—", width=62, height=28, corner_radius=14, font=F(12, "bold"), fg_color=SUAVE,
+                                   text_color=MUDO)
+        self.margem.grid(row=0, column=3, padx=(8, 0))
+        pb = dict(width=34, height=32, font=F(13))
+        dica(Botao(l1, "✦", "suave", command=self.canva, **pb), "Criar as imagens desta variação no Canva").grid(row=0, column=4, padx=(8, 0))
+        dica(Botao(l1, "⧉", "fantasma", command=lambda: editor.duplicar_variacao(self), **pb), "Duplicar").grid(row=0, column=5, padx=(4, 0))
+        dica(Botao(l1, "✕", "perigo", command=lambda: editor.remover_variacao(self), **pb), "Remover").grid(row=0, column=6, padx=(4, 0))
+
+        # linha 2: preços, estoque, kit e o botão de detalhes
+        l2 = ctk.CTkFrame(self, fg_color="transparent")
+        l2.grid(row=1, column=1, sticky="ew", padx=(0, 12), pady=(8, 4))
+
+        def campo(rot, w, padx=(0, 10)):
+            caixa = ctk.CTkFrame(l2, fg_color="transparent")
+            caixa.pack(side="left", padx=padx)
+            ctk.CTkLabel(caixa, text=rot, font=F(10, "bold"), text_color=MUDO, anchor="w", height=14).pack(anchor="w")
+            return caixa
+        c = campo("CUSTO R$", None)
+        self.custo = Entrada(c, "dinheiro", width=86, ao_mudar=self.calc)
+        self.custo.pack()
+        c = campo("VENDA R$", None)
+        self.venda = Entrada(c, "dinheiro", width=86, ao_mudar=self.calc, font=F(13, "bold"))
+        self.venda.pack()
+        c = campo("PREÇO “DE”", None)
+        self.de = Entrada(c, "dinheiro", width=86)
+        self.de.pack()
+        c = campo("ESTOQUE", None)
+        ctrl = ctk.CTkFrame(c, fg_color=PAINEL, corner_radius=10, border_width=1, border_color=VIDRO_BORDA)
+        ctrl.pack()
+        Botao(ctrl, "−", "fantasma", width=30, height=30, border_width=0, command=lambda: self.somar(-1)).pack(side="left", padx=(2, 0), pady=2)
+        self.estoque = Entrada(ctrl, "inteiro", width=48, height=30, border_width=0, justify="center", placeholder_text="0")
+        self.estoque.pack(side="left")
+        Botao(ctrl, "+", "fantasma", width=30, height=30, border_width=0, command=lambda: self.somar(1)).pack(side="left", padx=(0, 2), pady=2)
+        c = campo("KIT (UN.)", None)
+        self.kit = Entrada(c, "inteiro", width=60, placeholder_text="1")
+        self.kit.pack()
+        self.kit.bind("<FocusOut>", lambda e: self._selos(), add="+")
+        self.bt_det = Botao(self, "▸  Medidas, caixa e pedido do Canva", "fantasma", height=26, font=F(12), border_width=0,
+                            text_color=ROXO_TXT, anchor="w", command=self.alternar)
+        self.bt_det.grid(row=2, column=1, sticky="w", padx=(0, 12), pady=(0, 10))
+
+        # detalhes (abre e fecha)
+        self.det = ctk.CTkFrame(self, fg_color=SUAVE, corner_radius=14)
+        l3 = ctk.CTkFrame(self.det, fg_color="transparent")
+        l3.pack(fill="x", padx=10, pady=(10, 4))
+
+        def peq(pai, rot, tipo="decimal", larg=58, ph="cm"):
+            ctk.CTkLabel(pai, text=rot, font=F(11), text_color=MUDO).pack(side="left", padx=(6, 3))
+            e = Entrada(pai, tipo, width=larg, height=30, font=F(12), placeholder_text=ph)
+            e.pack(side="left")
             return e
-        ctk.CTkLabel(l2, text="Caixa:", font=F(11, "bold"), text_color=MUDO).pack(side="left", padx=(4, 0))
-        self.peso = peq("peso kg", "decimal", 54)
-        self.cc = peq("C", "decimal", 46, "cm")
-        self.cl = peq("L", "decimal", 46, "cm")
-        self.ca = peq("A", "decimal", 46, "cm")
-        ctk.CTkLabel(l2, text="Peça:", font=F(11, "bold"), text_color=MUDO).pack(side="left", padx=(12, 0))
-        self.pa = peq("alt.", "decimal", 46, "cm")
-        self.pl = peq("larg.", "decimal", 46, "cm")
-        self.pp = peq("prof.", "decimal", 46, "cm")
-        self.pd = peq("Ø", "decimal", 46, "cm")
+        ctk.CTkLabel(l3, text="Caixa", font=F(12, "bold"), text_color=TEXTO).pack(side="left")
+        self.peso = peq(l3, "peso", larg=60, ph="kg")
+        self.cc = peq(l3, "comp.")
+        self.cl = peq(l3, "larg.")
+        self.ca = peq(l3, "alt.")
+        l3b = ctk.CTkFrame(self.det, fg_color="transparent")
+        l3b.pack(fill="x", padx=10, pady=(4, 4))
+        ctk.CTkLabel(l3b, text="Peça ", font=F(12, "bold"), text_color=TEXTO).pack(side="left")
+        l3 = l3b
+        self.pa = peq(l3, "alt.")
+        self.pl = peq(l3, "larg.")
+        self.pp = peq(l3, "prof.")
+        self.pd = peq(l3, "Ø")
+        l4 = ctk.CTkFrame(self.det, fg_color="transparent")
+        l4.pack(fill="x", padx=10, pady=(4, 10))
+        ctk.CTkLabel(l4, text="Pedido para o Canva", font=F(12, "bold"), text_color=TEXTO).pack(side="left")
+        self.canva_extra = Entrada(l4, height=30, font=F(12),
+                                   placeholder_text="o que muda nesta variação (ex.: troque o desenho do boi por um porco)")
+        self.canva_extra.pack(side="left", fill="x", expand=True, padx=(8, 0))
 
         self.valor.definir(v.get("valor"))
         self.codigo.definir(v.get("codigo"))
@@ -2634,6 +2697,8 @@ class LinhaVariacao(ctk.CTkFrame):
         self.venda.definir(v.get("venda"))
         self.de.definir(v.get("preco_tabela"))
         self.estoque.definir(v.get("estoque") if v.get("estoque") not in (None, "") else 0)
+        self.kit.definir(v.get("kit") if (motor.numero(v.get("kit")) or 0) > 1 else None)
+        self.canva_extra.definir(v.get("canva_extra"))
         self.peso.definir(emb.get("peso_kg"))
         self.cc.definir(emb.get("comprimento_cm"))
         self.cl.definir(emb.get("largura_cm"))
@@ -2642,10 +2707,50 @@ class LinhaVariacao(ctk.CTkFrame):
         self.pl.definir(med.get("largura"))
         self.pp.definir(med.get("profundidade"))
         self.pd.definir(med.get("diametro"))
+        for w in (self.peso, self.cc, self.cl, self.ca, self.pa, self.pl, self.pp, self.pd, self.canva_extra):
+            w.bind("<FocusIn>", lambda e: self.abrir(), add="+")
+        self._selos()
         self.calc()
 
+    # ações
     def rotulo(self):
         return self.valor.get().strip() or f"variação {self.editor.linhas.index(self) + 1}"
+
+    def somar(self, n):
+        self.estoque.definir(max(0, (self.estoque.valor() or 0) + n))
+        self.editor._resumo_var()
+
+    def abrir(self):
+        if not self.aberta:
+            self.alternar()
+
+    def alternar(self, abrir=None):
+        self.aberta = (not self.aberta) if abrir is None else abrir
+        if self.aberta:
+            self.det.grid(row=3, column=0, columnspan=2, sticky="ew", padx=12, pady=(0, 12))
+            self.bt_det.configure(text="▾  Medidas, caixa e pedido do Canva")
+        else:
+            self.det.grid_forget()
+            self.bt_det.configure(text="▸  Medidas, caixa e pedido do Canva")
+
+    def canva(self):
+        ImagensIA(self.editor, "canva", linha=self)
+
+    def _selos(self):
+        n = self.kit.valor() or 1
+        if n > 1:
+            self.selo_kit.configure(text=f"  kit {n} un.  ")
+            self.selo_kit.grid(row=0, column=2, padx=(8, 0))
+        else:
+            self.selo_kit.grid_forget()
+
+    def mostrar_foto(self, caminho):
+        img = miniatura(caminho, 64, 14) if caminho else None
+        if img:
+            self.editor.app._refs.append(img)
+            self.foto.configure(image=img, text="", fg_color="transparent")
+        else:
+            self.foto.configure(image=None, text="sem\nfoto", fg_color=SUAVE)
 
     def calc(self):
         venda = self.venda.valor()
@@ -2655,11 +2760,13 @@ class LinhaVariacao(ctk.CTkFrame):
         if venda and custo:
             m = (venda - custo) / venda * 100
             cor = VERDE if m >= 30 else AMBAR if m >= 10 else VERMELHO
-            self.margem.configure(text=f"{m:.0f}%", text_color=cor)
+            self.margem.configure(text=f"{m:.0f}%", text_color="white", fg_color=cor)
         else:
-            self.margem.configure(text="—", text_color=MUDO)
+            self.margem.configure(text="—", text_color=MUDO, fg_color=SUAVE)
         if hasattr(self.editor, "lbl_conta"):
             self.editor._conta()
+        if hasattr(self.editor, "lbl_resumo_var"):
+            self.editor._resumo_var()
 
     def dados(self):
         v = dict(self.original)
@@ -2669,6 +2776,16 @@ class LinhaVariacao(ctk.CTkFrame):
         v["venda"] = self.venda.valor()
         v["preco_tabela"] = self.de.valor()
         v["estoque"] = self.estoque.valor() or 0
+        kit = self.kit.valor() or 1
+        if kit > 1:
+            v["kit"] = kit
+        else:
+            v.pop("kit", None)
+        extra = self.canva_extra.valor()
+        if extra:
+            v["canva_extra"] = extra
+        else:
+            v.pop("canva_extra", None)
         emb = dict(self.original.get("embalagem") or {}) if isinstance(self.original.get("embalagem"), dict) else {}
         emb.update({"peso_kg": self.peso.valor(), "comprimento_cm": self.cc.valor(), "largura_cm": self.cl.valor(), "altura_cm": self.ca.valor()})
         v["embalagem"] = {k: x for k, x in emb.items() if x is not None}
@@ -3417,7 +3534,7 @@ class Editor(ctk.CTkFrame):
 
     def _variacoes(self):
         d = self.dados
-        s = Secao(self.corpo, "Variações", "Cada variação vira um produto no site, com o próprio código, preço e estoque.")
+        s = Secao(self.corpo, "Variações", "Cada uma vira um produto no site.")
         s.grid(row=3, column=0, sticky="ew", padx=10, pady=8)
         self.secao_var = s
         valores = list(self.VARIACAO_POR)
@@ -3428,19 +3545,37 @@ class Editor(ctk.CTkFrame):
                                               font=F(12, "bold"), height=32)
         self.var_por.set(atual)
         self.var_por.pack(side="right")
-        gerar = ctk.CTkFrame(s, fg_color=SUAVE, corner_radius=12)
-        gerar.grid(row=1, column=0, columnspan=4, sticky="ew", padx=20, pady=(6, 8))
-        ctk.CTkLabel(gerar, text="Gerar:", font=F(12, "bold"), text_color=MUDO).pack(side="left", padx=(12, 6), pady=10)
-        self.g_tam = Entrada(gerar, width=200, height=30, placeholder_text="tamanhos: 25 cm, 30 cm")
-        self.g_tam.pack(side="left", padx=4)
-        ctk.CTkLabel(gerar, text="×", font=F(14, "bold"), text_color=MUDO).pack(side="left", padx=4)
-        self.g_cor = Entrada(gerar, width=220, height=30, placeholder_text="cores: Preto, Branco")
-        self.g_cor.pack(side="left", padx=4)
-        Botao(gerar, "Gerar variações", "suave", width=130, height=30, font=F(12, "bold"), command=self.gerar).pack(side="left", padx=8)
-        cab = ctk.CTkFrame(s, fg_color="transparent")
-        cab.grid(row=2, column=0, columnspan=4, sticky="ew", padx=28, pady=(4, 0))
-        for rot, larg in LinhaVariacao.COLS:
-            ctk.CTkLabel(cab, text=rot.upper(), width=larg, anchor="w", font=F(10, "bold"), text_color=MUDO).pack(side="left", padx=3)
+
+        # gerador: tamanhos × modelos/cores × kits
+        gerar = ctk.CTkFrame(s, fg_color=VIDRO, corner_radius=16, border_width=1, border_color=VIDRO_BORDA)
+        gerar.grid(row=1, column=0, columnspan=4, sticky="ew", padx=20, pady=(6, 10))
+        ctk.CTkLabel(gerar, text="✦  Criar várias de uma vez", font=F(13, "bold"), text_color=TEXTO, anchor="w").grid(
+            row=0, column=0, columnspan=4, sticky="w", padx=14, pady=(12, 2))
+        ctk.CTkLabel(gerar, text="Separe por vírgula. O robô cria todas as combinações e calcula o kit (custo, preço e peso × unidades).",
+                     font=F(11), text_color=MUDO, anchor="w", justify="left", wraplength=560).grid(row=1, column=0, columnspan=4, sticky="w", padx=14)
+
+        def campo(col, rot, larg, ph, tipo="texto"):
+            ctk.CTkLabel(gerar, text=rot, font=F(10, "bold"), text_color=MUDO, anchor="w").grid(row=2, column=col, sticky="w",
+                                                                                                padx=(14 if col == 0 else 6, 0), pady=(8, 0))
+            e = Entrada(gerar, tipo, width=larg, height=32, placeholder_text=ph)
+            e.grid(row=3, column=col, sticky="ew", padx=(14 if col == 0 else 6, 14 if col == 3 else 0), pady=(2, 8))
+            gerar.grid_columnconfigure(col, weight=larg)
+            return e
+        self.g_tam = campo(0, "TAMANHOS", 150, "25 cm, 30 cm, 35 cm")
+        self.g_cor = campo(1, "MODELOS OU CORES", 190, "Logo, Desenho, Sem gravura")
+        self.g_kit = campo(2, "KITS (UNIDADES)", 90, "1, 2, 4")
+        self.g_desc = campo(3, "DESCONTO KIT %", 80, "5", "decimal")
+        Botao(gerar, "Criar variações", "primario", width=150, height=32, font=F(12, "bold"), command=self.gerar).grid(
+            row=4, column=0, sticky="w", padx=14, pady=(2, 14))
+
+        barra = ctk.CTkFrame(s, fg_color="transparent")
+        barra.grid(row=2, column=0, columnspan=4, sticky="ew", padx=20, pady=(0, 4))
+        self.lbl_resumo_var = ctk.CTkLabel(barra, text="", font=F(12, "bold"), text_color=MUDO, anchor="w")
+        self.lbl_resumo_var.pack(side="left")
+        Botao(barra, "Recolher tudo", "fantasma", width=110, height=28, font=F(12),
+              command=lambda: [l.alternar(False) for l in self.linhas]).pack(side="right")
+        Botao(barra, "Abrir tudo", "fantasma", width=96, height=28, font=F(12),
+              command=lambda: [l.alternar(True) for l in self.linhas]).pack(side="right", padx=6)
         self.caixa_var = ctk.CTkFrame(s, fg_color="transparent")
         self.caixa_var.grid(row=3, column=0, columnspan=4, sticky="ew", padx=20)
         for v in d.get("variacoes") or []:
@@ -3450,20 +3585,44 @@ class Editor(ctk.CTkFrame):
         Botao(s, "＋  Adicionar variação", "suave", width=170, command=lambda: self.adicionar_variacao()).grid(
             row=4, column=0, columnspan=4, sticky="w", padx=20, pady=(8, 16))
 
+    def _resumo_var(self):
+        if not getattr(self, "lbl_resumo_var", None) or not self.linhas:
+            return
+        n = len(self.linhas)
+        est = sum((l.estoque.valor() or 0) for l in self.linhas)
+        sem_preco = sum(1 for l in self.linhas if not l.venda.valor())
+        t = f"{n} variação(ões) · {est} em estoque"
+        if sem_preco:
+            t += f" · {sem_preco} sem preço de venda"
+        self.lbl_resumo_var.configure(text=t, text_color=AMBAR if sem_preco else MUDO)
+
+    def _fotos_var(self):
+        """Mostra no cartão de cada variação a foto que vai ser a capa dela."""
+        vis = [f for f in self.fotos if not f.removida]
+        for l in self.linhas:
+            cor = self._cor_da_linha(l)
+            propria = next((f for f in vis if f.uso is l or (isinstance(f.uso, str) and cor and f.uso == f"cor:{cor}")), None)
+            geral = next((f for f in vis if f.uso == "todas"), None)
+            l.mostrar_foto((propria or geral).caminho if (propria or geral) else None)
+
     def _desenhar_var(self):
-        for i, l in enumerate(self.linhas):
+        for l in self.linhas:
             l.pack_forget()
         for l in self.linhas:
-            l.pack(fill="x", pady=4)
+            l.pack(fill="x", pady=5)
+        self._resumo_var()
+
+    def _nova_base(self):
+        base = self.linhas[-1].dados() if self.linhas else {}
+        return {"valor": None, "codigo": "", "custo": base.get("custo"), "venda": base.get("venda"), "preco_tabela": base.get("preco_tabela"),
+                "estoque": 0, "embalagem": base.get("embalagem") or {}, "medidas_peca_cm": base.get("medidas_peca_cm") or {}, "fotos": []}
 
     def adicionar_variacao(self, v=None, redesenhar=True):
         if v is None:
-            base = self.linhas[-1].dados() if self.linhas else {}
-            v = {"valor": None, "codigo": "", "custo": base.get("custo"), "venda": base.get("venda"), "preco_tabela": base.get("preco_tabela"),
-                 "estoque": 0, "embalagem": base.get("embalagem") or {}, "medidas_peca_cm": {}, "fotos": []}
+            v = self._nova_base()
         if len(self.linhas) >= 40:
             messagebox.showinfo("Variações", "O máximo é 40 variações.")
-            return
+            return None
         l = LinhaVariacao(self.caixa_var, self, v)
         self.linhas.append(l)
         if redesenhar:
@@ -3472,6 +3631,23 @@ class Editor(ctk.CTkFrame):
             if len(self.linhas) > 1 and self.var_por.get() == "Sem variação":
                 self.var_por.set("Tamanho")
             l.valor.focus_set()
+        return l
+
+    def duplicar_variacao(self, linha):
+        v = json.loads(json.dumps(linha.dados(), default=str))
+        v["codigo"], v["fotos"], v["estoque"] = "", [], 0
+        v["valor"] = (v.get("valor") or "") + " (cópia)" if v.get("valor") else None
+        l = self.adicionar_variacao(v, redesenhar=False)
+        if l is None:
+            return
+        self.linhas.remove(l)
+        self.linhas.insert(self.linhas.index(linha) + 1, l)
+        self._desenhar_var()
+        self.atualizar_usos()
+        if self.var_por.get() == "Sem variação":
+            self.var_por.set("Tamanho")
+        l.valor.focus_set()
+        l.valor.select_range(0, "end")
 
     def remover_variacao(self, linha):
         if len(self.linhas) <= 1:
@@ -3480,7 +3656,7 @@ class Editor(ctk.CTkFrame):
         self.linhas.remove(linha)
         for f in self.fotos:
             if f.uso is linha:
-                f.uso = "todas"
+                f.uso = "nao"        # as fotos só dela ficam guardadas como "Não usar"
         linha.destroy()
         self._desenhar_var()
         self.atualizar_usos()
@@ -3488,32 +3664,62 @@ class Editor(ctk.CTkFrame):
     def gerar(self):
         tam = [t.strip() for t in self.g_tam.get().split(",") if t.strip()]
         cor = [c.strip() for c in self.g_cor.get().split(",") if c.strip()]
-        if not tam and not cor:
+        kits = sorted({int(k) for k in re.findall(r"\d+", self.g_kit.get()) if 0 < int(k) <= 50}) or [1]
+        desc = min(max(self.g_desc.valor() or 0, 0), 60) / 100
+        if not tam and not cor and kits == [1]:
             return
-        valores = [f"{t} · {c}" for t in tam for c in cor] if tam and cor else (tam or cor)
-        if len(valores) > 40:
-            messagebox.showinfo("Variações", f"Isso daria {len(valores)} variações; o máximo é 40.")
-            return
+        if not tam and not cor:      # só kits: em cima das variações que já existem
+            bases = [(l.valor.get().strip(), l.dados()) for l in self.linhas]
+        else:
+            nomes = [f"{t} · {c}" for t in tam for c in cor] if tam and cor else (tam or cor)
+            base = self.linhas[0].dados() if self.linhas else {}
+            bases = [(n, base) for n in nomes]
+        valores = []
+        for nome, base in bases:
+            for k in kits:
+                valores.append((" · ".join(x for x in (nome, f"Kit com {k}" if k > 1 else "") if x), base, k))
         existentes = {l.valor.get().strip().lower() for l in self.linhas}
-        base = self.linhas[0].dados() if self.linhas else {}
-        vazias = [l for l in self.linhas if not l.valor.get().strip()]
-        for l in vazias:
-            if len(self.linhas) > 1 or valores:
-                self.linhas.remove(l)
-                l.destroy()
+        if len([v for v in valores if v[0].lower() not in existentes]) + len(self.linhas) > 40:
+            messagebox.showinfo("Variações", f"Isso passaria de 40 variações (o máximo do site).")
+            return
+        if tam or cor:
+            for l in [l for l in self.linhas if not l.valor.get().strip()]:
+                if len(self.linhas) > 1 or valores:
+                    self.linhas.remove(l)
+                    l.destroy()
         novos = 0
-        for v in valores:
-            if v.lower() in existentes:
+        for nome, base, k in valores:
+            if nome.lower() in existentes:
                 continue
-            self.adicionar_variacao({"valor": v, "codigo": "", "custo": base.get("custo"), "venda": base.get("venda"),
-                                     "preco_tabela": base.get("preco_tabela"), "estoque": base.get("estoque") or 0,
-                                     "embalagem": base.get("embalagem") or {}, "medidas_peca_cm": {}, "fotos": []}, redesenhar=False)
+            emb = dict(base.get("embalagem") or {})
+            custo, venda, de = base.get("custo"), base.get("venda"), base.get("preco_tabela")
+            if k > 1:
+                custo = round(custo * k, 2) if custo else custo
+                venda = round(venda * k * (1 - desc), 2) if venda else venda
+                de = round(de * k, 2) if de else (round(base.get("venda") * k, 2) if base.get("venda") and desc else None)
+                if emb.get("peso_kg"):
+                    emb["peso_kg"] = round(emb["peso_kg"] * k, 2)
+                if emb.get("altura_cm"):
+                    emb["altura_cm"] = round(emb["altura_cm"] * k, 1)
+            v = {"valor": nome, "codigo": "", "custo": custo, "venda": venda, "preco_tabela": de,
+                 "estoque": 0 if k > 1 else (base.get("estoque") or 0), "embalagem": emb,
+                 "medidas_peca_cm": base.get("medidas_peca_cm") or {}, "fotos": []}
+            if k > 1:
+                v["kit"] = k
+            if base.get("canva_extra") and not (tam or cor):
+                v["canva_extra"] = base["canva_extra"]
+            self.adicionar_variacao(v, redesenhar=False)
             novos += 1
-        self.var_por.set("Tamanho e cor" if tam and cor else "Tamanho" if tam else "Cor")
+        if tam and cor:
+            self.var_por.set("Tamanho e cor")
+        elif tam or cor:
+            self.var_por.set("Tamanho" if tam else "Cor")
+        elif self.var_por.get() == "Sem variação":
+            self.var_por.set("Tamanho")
         self._desenhar_var()
         self.atualizar_usos()
-        self.g_tam.definir(None)
-        self.g_cor.definir(None)
+        for e in (self.g_tam, self.g_cor, self.g_kit):
+            e.definir(None)
         self.app.toast(f"{novos} variação(ões) criada(s)")
 
     # fotos
@@ -3577,8 +3783,8 @@ class Editor(ctk.CTkFrame):
     @staticmethod
     def _cor_da_linha(l):
         """Em "Tamanho e cor" a variação se chama "25 cm · Preto": devolve "Preto"."""
-        partes = [x.strip() for x in l.rotulo().split("·")]
-        return partes[-1] if len(partes) > 1 and partes[-1] else None
+        partes = [x.strip() for x in l.rotulo().split("·") if x.strip() and not re.match(r"(?i)kit\b", x.strip())]
+        return partes[-1] if len(partes) > 1 else None
 
     def _cores(self):
         return list(dict.fromkeys(c for c in (self._cor_da_linha(l) for l in self.linhas) if c))
@@ -3600,6 +3806,11 @@ class Editor(ctk.CTkFrame):
         self.desenhar_fotos()
 
     def desenhar_fotos(self):
+        self._desenhar_fotos()
+        if self.linhas:
+            self._fotos_var()
+
+    def _desenhar_fotos(self):
         for w in self.grade_fotos.winfo_children():
             w.destroy()
         vis = [f for f in self.fotos if not f.removida]
@@ -4236,7 +4447,7 @@ class ImagensIA(Dialogo):
     modo "canva": o robô abre o Canva IA no navegador da pessoa, copia o pedido e separa as fotos;
     as imagens que ela baixar do Canva entram aqui sozinhas (vigia a pasta Downloads)."""
 
-    def __init__(self, editor, modo="gemini"):
+    def __init__(self, editor, modo="gemini", linha=None):
         app = editor.app
         self.modo = modo
         if modo == "canva":
@@ -4245,8 +4456,9 @@ class ImagensIA(Dialogo):
         else:
             titulo, sub = "Criar imagens com o Gemini", ("Escolha as fotos do produto e os tipos de imagem. A IA cria no estilo do "
                                                          "Mercado Livre; confira se a peça ficou igual antes de usar.")
-        super().__init__(app, titulo, sub, larg=1040, alt=700)
+        super().__init__(app, titulo, sub, larg=1080, alt=720)
         self.editor = editor
+        self.aberto = False
         self.d = json.loads(json.dumps(editor.montar(), default=str))
         self.chave = (app.cfg["robo"].get("gemini_chave") or "").strip()
         self.modelo = (app.cfg["robo"].get("gemini_modelo_imagem") or "gemini-3.1-flash-image").strip()
@@ -4279,28 +4491,60 @@ class ImagensIA(Dialogo):
         if not self.fotos:
             ctk.CTkLabel(grade, text="A ficha ainda não tem foto. Adicione pelo menos uma.", font=F(12), text_color=AMBAR).grid(row=0, column=0)
 
-        ctk.CTkLabel(esq, text="Variação", font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(fill="x", pady=(6, 0))
         self.vars = [v for v in self.d.get("variacoes") or [] if isinstance(v, dict)]
-        nomes = [str(v.get("valor") or f"Opção {i + 1}") for i, v in enumerate(self.vars)] or ["Produto"]
+        self.nomes_var = [str(v.get("valor") or f"Opção {i + 1}") for i, v in enumerate(self.vars)] or ["Produto"]
+        nomes = (["Todas as variações"] + self.nomes_var) if len(self.vars) > 1 else self.nomes_var
+        vbox = ctk.CTkFrame(esq, fg_color=VIDRO, corner_radius=14, border_width=1, border_color=VIDRO_BORDA)
+        vbox.pack(fill="x", pady=(2, 10))
+        ctk.CTkLabel(vbox, text="Para qual variação?", font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(fill="x", padx=12, pady=(10, 0))
+        lin = ctk.CTkFrame(vbox, fg_color="transparent")
+        lin.pack(fill="x", padx=12, pady=(6, 2))
+        Botao(lin, "◀", "fantasma", width=32, height=32, command=lambda: self._andar(-1)).pack(side="left")
+        self.var_menu = ctk.CTkOptionMenu(lin, values=nomes, width=232, font=F(13), fg_color=PAINEL, button_color=ROXO,
+                                          text_color=TEXTO, dropdown_font=F(13), command=lambda _: self._trocou_var())
+        self.var_menu.pack(side="left", padx=4)
+        Botao(lin, "▶", "fantasma", width=32, height=32, command=lambda: self._andar(1)).pack(side="left")
+        self.lbl_var = ctk.CTkLabel(vbox, text="", font=F(11), text_color=MUDO, anchor="w", justify="left", wraplength=320)
+        self.lbl_var.pack(fill="x", padx=12, pady=(2, 4))
+        self.bt_prox = Botao(vbox, "Próxima variação sem imagem  ▶", "suave", height=30, font=F(12, "bold"), command=self._proxima_sem)
         if len(self.vars) > 1:
-            nomes = ["Todas as variações"] + nomes
-        self.var_menu = ctk.CTkOptionMenu(esq, values=nomes, width=300, font=F(13), fg_color=SUAVE, button_color=ROXO,
-                                          text_color=TEXTO, dropdown_font=F(13))
-        self.var_menu.pack(anchor="w", pady=(4, 2))
-        ctk.CTkLabel(esq, text="Escolha uma opção para as imagens ficarem só nela (e para a foto com medidas usar as medidas dela).",
-                     font=F(11), text_color=MUDO, anchor="w", justify="left", wraplength=320).pack(fill="x")
+            self.bt_prox.pack(fill="x", padx=12, pady=(0, 10))
+        # as fotos reais são de qual variação?
+        self.banner_ref = None
+        self.reais = [f for f in self.fotos if f.uso != "nao"]
+        if len(editor.linhas) > 1 and self.reais and all(f.uso == "todas" for f in self.reais):
+            self.banner_ref = ctk.CTkFrame(esq, fg_color=("#fff7ed", "#3a2a12"), corner_radius=12)
+            self.banner_ref.pack(fill="x", pady=(0, 10))
+            ctk.CTkLabel(self.banner_ref, text="As fotos que você tirou são de qual variação?", font=F(12, "bold"), text_color=TEXTO,
+                         anchor="w").pack(fill="x", padx=12, pady=(10, 0))
+            ctk.CTkLabel(self.banner_ref, text="Assim elas não aparecem nas outras e o pedido diz o que muda de uma para a outra.",
+                         font=F(11), text_color=MUDO, anchor="w", justify="left", wraplength=320).pack(fill="x", padx=12)
+            self.ref_menu = ctk.CTkOptionMenu(self.banner_ref, values=["Todas as variações"] + [l.rotulo() for l in editor.linhas],
+                                              width=300, font=F(12), fg_color=PAINEL, button_color=AMBAR, text_color=TEXTO,
+                                              dropdown_font=F(12), command=self._fotos_da)
+            self.ref_menu.pack(anchor="w", padx=12, pady=(6, 10))
+            dona = next((i for i, v in enumerate(self.vars) if v.get("fotos")), None)
+            if dona is not None and sum(1 for v in self.vars if v.get("fotos")) == 1 and dona < len(editor.linhas):
+                self.ref_menu.set(editor.linhas[dona].rotulo())
+                for f in self.reais:
+                    f.uso = editor.linhas[dona]
+                editor.desenhar_fotos()
 
         ctk.CTkLabel(esq, text="Imagens para criar", font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(fill="x", pady=(12, 2))
         self.estilos = []
         for chave, rot, _ in recursos.ESTILOS_IMAGEM:
             cb = ctk.CTkCheckBox(esq, text=rot, command=self._contar, **sw)
-            if chave in ("capa", "ambiente", "medidas"):
+            if chave in recursos.ESTILOS_PADRAO:
                 cb.select()
             cb.pack(anchor="w", pady=3)
             self.estilos.append((cb, chave, rot))
-        ctk.CTkLabel(esq, text="Pedido extra (opcional)", font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(fill="x", pady=(12, 2))
-        self.extra = Entrada(esq, width=320, placeholder_text="ex.: com plantas, parede de tijolinho")
-        self.extra.pack(anchor="w")
+        ctk.CTkLabel(esq, text="O que muda nesta variação", font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(fill="x", pady=(12, 0))
+        ctk.CTkLabel(esq, text="Fica guardado na variação e entra em todos os pedidos dela.", font=F(11), text_color=MUDO,
+                     anchor="w").pack(fill="x")
+        self.extra = ctk.CTkTextbox(esq, width=320, height=74, corner_radius=9, border_width=2, border_color=BORDA, fg_color=PAINEL,
+                                    font=F(12), wrap="word")
+        self.extra.pack(anchor="w", pady=(4, 0))
+        self.extra.bind("<FocusOut>", lambda e: self._guardar_extra(), add="+")
 
         dir_ = ctk.CTkFrame(self.corpo, fg_color="transparent")
         dir_.grid(row=0, column=1, sticky="nsew", padx=(4, 12), pady=12)
@@ -4341,10 +4585,114 @@ class ImagensIA(Dialogo):
             pasta = (app.cfg["robo"].get("pasta_downloads") or "").strip()
             self.downloads = Path(os.path.expandvars(os.path.expanduser(pasta or "~/Downloads")))
             self.after(1500, self._vigiar_downloads)
+        if linha is not None and linha in editor.linhas and len(self.vars) > 1:
+            self.var_menu.set(self.nomes_var[editor.linhas.index(linha)])
+        elif modo == "canva" and len(self.vars) > 1:
+            self.var_menu.set(self.nomes_var[self._indice_sem_imagem(0)])
+        self._trocou_var()
         self._contar()
         if modo != "canva" and not self.chave:
             self.lbl_rod.configure(text="Falta a chave do Gemini em Configurações (a mesma do título e descrição).")
             self.bt_ok.configure(state="disabled")
+
+    # ---- variação escolhida
+    def _linha(self, idx):
+        ls = self.editor.linhas
+        return ls[idx] if idx is not None and idx < len(ls) else None
+
+    def _n_imagens(self, idx):
+        l = self._linha(idx)
+        return sum(1 for f in self.editor.fotos if not f.removida and l is not None and f.uso is l)
+
+    def _indice_sem_imagem(self, de):
+        n = len(self.vars)
+        for k in range(n):
+            i = (de + k) % n
+            if not self._n_imagens(i):
+                return i
+        return de % n if n else 0
+
+    def _andar(self, passo):
+        if len(self.vars) <= 1:
+            return
+        idx, _ = self._var_atual()
+        idx = 0 if idx is None else (idx + passo) % len(self.vars)
+        self._guardar_extra()
+        self.var_menu.set(self.nomes_var[idx])
+        self._trocou_var()
+
+    def _proxima_sem(self):
+        idx, _ = self._var_atual()
+        self._guardar_extra()
+        self.var_menu.set(self.nomes_var[self._indice_sem_imagem(0 if idx is None else idx + 1)])
+        self._trocou_var()
+
+    def _guardar_extra(self):
+        idx, _ = self._var_atual()
+        l = self._linha(idx)
+        t = self.extra.get("1.0", "end").strip()
+        if l is not None:
+            l.canva_extra.definir(t or None)
+            if idx < len(self.vars):
+                self.vars[idx]["canva_extra"] = t or None
+
+    def _fotos_da(self, txt):
+        ed = self.editor
+        alvo = next((l for l in ed.linhas if l.rotulo() == txt), None)
+        for f in self.reais:
+            f.uso = alvo if alvo is not None else "todas"
+        ed.desenhar_fotos()
+        self._trocou_var()
+
+    def _trocou_var(self):
+        idx, var = self._var_atual()
+        l = self._linha(idx) if len(self.vars) > 1 else None
+        self.var_idx = idx if len(self.vars) > 1 else None
+        self.extra.delete("1.0", "end")
+        if var.get("canva_extra") or (l is not None and l.canva_extra.valor()):
+            self.extra.insert("1.0", (l.canva_extra.valor() if l is not None else None) or var.get("canva_extra") or "")
+        # marca as fotos desta variação (as dela e as que valem para todas)
+        cor = self.editor._cor_da_linha(l) if l is not None else None
+        for cb, f in self.marcadas:
+            dela = f.uso == "todas" or (l is not None and (f.uso is l or (isinstance(f.uso, str) and cor and f.uso == f"cor:{cor}")))
+            if l is None:
+                dela = f.uso != "nao"
+            if dela:
+                cb.select()
+            else:
+                cb.deselect()
+        if not self._escolhidas():          # variação sem foto real: usa as fotos reais do produto como referência
+            for cb, f in self.marcadas[:3]:
+                cb.select()
+        kit = recursos.kit_da_variacao(var)
+        for cb, k, _ in self.estilos:
+            if k == "kit":
+                (cb.select if kit > 1 else cb.deselect)()
+        com = sum(1 for i in range(len(self.vars)) if self._n_imagens(i))
+        if len(self.vars) > 1:
+            if idx is None:
+                t = "As imagens vão valer para todas as variações."
+            else:
+                n = self._n_imagens(idx)
+                t = (f"Variação {idx + 1} de {len(self.vars)} · {'já tem ' + str(n) + ' imagem(ns)' if n else 'ainda sem imagem própria'}"
+                     f" · {com} de {len(self.vars)} variações com imagem")
+            self.lbl_var.configure(text=t)
+        if self.aberto:
+            self._montar_pedidos(copiar=False)
+        self._contar()
+
+    def _referencia(self, idx):
+        """A variação que aparece nas fotos marcadas (para o pedido dizer o que muda)."""
+        donas = {f.uso for cb, f in self.marcadas if cb.get()}
+        ls = self.editor.linhas
+        if len(donas) == 1:
+            u = next(iter(donas))
+            if u in ls:
+                return self.vars[ls.index(u)] if ls.index(u) < len(self.vars) else None
+        com = [v for v in self.vars if v.get("fotos")]
+        if len(com) == 1 and len(self.vars) > 1:
+            return com[0]
+        return None
 
     def _escolhidas(self):
         return [f.caminho for cb, f in self.marcadas if cb.get()][:6]
@@ -4376,13 +4724,41 @@ class ImagensIA(Dialogo):
         self.clipboard_append(texto)
         self.lbl_rod.configure(text=f"Pedido “{rot}” copiado. No Canva, cole com Ctrl+V.")
 
+    def _pedido(self, k, idx, var):
+        v = dict(var)
+        t = self.extra.get("1.0", "end").strip()
+        v["canva_extra"] = t or None
+        return recursos.prompt_imagem(self.d, k, v, "", ref=self._referencia(idx))
+
+    def _montar_pedidos(self, copiar=True):
+        estilos = [(k, r) for cb, k, r in self.estilos if cb.get()]
+        if not estilos:
+            return
+        idx, var = self._var_atual()
+        for w in self.pedidos.winfo_children():
+            w.destroy()
+        self.pedidos_txt = []
+        for i, (k, rot) in enumerate(estilos):
+            texto = self._pedido(k, idx, var)
+            self.pedidos_txt.append((k, rot, texto))
+            Botao(self.pedidos, f"⧉  {rot}", "suave" if i else "primario", height=30, font=F(12, "bold"),
+                  command=lambda t=texto, r=rot: self._copiar(t, r)).grid(row=i // 3, column=i % 3, padx=3, pady=3, sticky="ew")
+        for c in range(3):
+            self.pedidos.grid_columnconfigure(c, weight=1)
+        if copiar:
+            k, rot, texto = self.pedidos_txt[0]
+            self._copiar(texto, rot)
+        else:
+            nome = self.var_menu.get()
+            self.lbl_rod.configure(text=f"Pedidos refeitos para “{nome}”. Toque em cada um para copiar.")
+
     def abrir_canva(self):
         estilos = [(k, r) for cb, k, r in self.estilos if cb.get()]
         fotos = self._escolhidas()
         if not estilos or not fotos:
             return
+        self._guardar_extra()
         idx, var = self._var_atual()
-        extra = self.extra.get()
         # fotos numa pasta só, prontas para arrastar
         pasta = self.editor.tmp / "para-o-canva"
         shutil.rmtree(pasta, ignore_errors=True)
@@ -4392,23 +4768,13 @@ class ImagensIA(Dialogo):
                 recursos.tratar_foto(f, pasta / f"foto-{i}.jpg", quadrada=False, lado=1600)
             except Exception:
                 shutil.copy2(f, pasta / f"foto-{i}{Path(f).suffix}")
-        for w in self.pedidos.winfo_children():
-            w.destroy()
-        self.pedidos_txt = []
-        for i, (k, rot) in enumerate(estilos):
-            texto = recursos.prompt_imagem(self.d, k, var, extra)
-            self.pedidos_txt.append((k, rot, texto))
-            Botao(self.pedidos, f"⧉  {rot}", "suave" if i else "primario", height=30, font=F(12, "bold"),
-                  command=lambda t=texto, r=rot: self._copiar(t, r)).grid(row=i // 3, column=i % 3, padx=3, pady=3, sticky="ew")
-        for c in range(3):
-            self.pedidos.grid_columnconfigure(c, weight=1)
-        self.var_idx = idx
-        k, rot, texto = self.pedidos_txt[0]
-        self._copiar(texto, rot)
+        self.aberto = True
+        self._montar_pedidos()
         link = (self.app.cfg["robo"].get("canva_link") or "").strip() or "https://www.canva.com/ai"
         webbrowser.open(link)
         abrir_no_sistema(pasta)
         self.bt_ok.configure(text="Abrir de novo")
+        k, rot, _ = self.pedidos_txt[0]
         self.lbl_rod.configure(text=f"Pedido “{rot}” copiado. Para os outros tipos, toque no botão de cada um acima.")
 
     def _vigiar_downloads(self):
@@ -4446,16 +4812,17 @@ class ImagensIA(Dialogo):
             return
         self.rodando = True
         self.bt_ok.configure(state="disabled", text="Criando…")
+        self._guardar_extra()
         idx, var = self._var_atual()
-        extra = self.extra.get()
-        d, chave, modelo, fila = self.d, self.chave, self.modelo, self.app.fila
+        pedidos = {k: self._pedido(k, idx, var) for k, _ in estilos}
+        chave, modelo, fila = self.chave, self.modelo, self.app.fila
         self.vazio.pack_forget()
         self.lbl_rod.configure(text=f"Criando 1 de {len(estilos)}… cada imagem leva uns 10 a 30 segundos.")
 
         def rodar():
             for n, (k, rot) in enumerate(estilos, 1):
                 try:
-                    dado = recursos.gerar_imagem_ia(fotos, recursos.prompt_imagem(d, k, var, extra), chave, modelo)
+                    dado = recursos.gerar_imagem_ia(fotos, pedidos[k], chave, modelo)
                     fila.put(("ia_imagem", None, (self, k, rot, idx, dado, None, n, len(estilos))))
                 except Exception as e:
                     fila.put(("ia_imagem", None, (self, k, rot, idx, None, str(e).splitlines()[0] if str(e) else repr(e), n, len(estilos))))
@@ -4470,11 +4837,13 @@ class ImagensIA(Dialogo):
             i = len(self.criadas)
             card.grid(row=i // 3, column=i % 3, padx=6, pady=6, sticky="n")
             if dado:
-                img = miniatura(dado, 140, 14)
+                img = miniatura(dado, 120, 14)
                 self.app._refs.append(img)
-                lbl = ctk.CTkLabel(card, text="" if img else "sem prévia", image=img, width=140, height=140, corner_radius=14,
+                lbl = ctk.CTkLabel(card, text="" if img else "sem prévia", image=img, width=120, height=120, corner_radius=14,
                                    fg_color="transparent" if img else SUAVE)
                 lbl.pack()
+                if idx is not None and len(self.vars) > 1 and idx < len(self.nomes_var):
+                    ctk.CTkLabel(card, text=self.nomes_var[idx][:24], font=F(10, "bold"), text_color=ROXO_TXT).pack()
                 cb = ctk.CTkCheckBox(card, text=rot, font=F(12), text_color=TEXTO, fg_color=ROXO, hover_color=ROXO,
                                      checkbox_width=18, checkbox_height=18, command=self._botao_add)
                 cb.select()
@@ -4525,8 +4894,21 @@ class ImagensIA(Dialogo):
             return
         ed.fotos = novas_capa + ed.fotos + novas
         ed.desenhar_fotos()
+        total = len(novas_capa) + len(novas)
+        if self.modo == "canva" and len(self.vars) > 1:
+            # continua aberto para a próxima variação
+            for w in self.res.winfo_children():
+                if w is not self.vazio:
+                    w.destroy()
+            self.criadas = []
+            self.vazio.pack(pady=60)
+            self.fotos = [f for f in ed.fotos if not f.removida]
+            self.app.toast(f"{total} imagem(ns) na variação. Agora a próxima.", VERDE)
+            self._proxima_sem()
+            self._botao_add()
+            return
         self.destroy()
-        self.app.toast(f"{len(novas_capa) + len(novas)} imagem(ns) adicionada(s). Toque em Salvar ficha para guardar.", VERDE)
+        self.app.toast(f"{total} imagem(ns) adicionada(s). Toque em Salvar ficha para guardar.", VERDE)
 
 
 class ConferirFicha(Dialogo):

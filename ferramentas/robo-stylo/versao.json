@@ -1,5 +1,5 @@
 {
-  "versao": 12,
+  "versao": 13,
   "data": "2026-11-21",
   "arquivos": [
     "janela.pyw",
@@ -14,7 +14,11 @@
     "instalar.bat"
   ],
   "novidades": [
-    "O robô agora aparece com o ícone da Móveis Stylo na barra de tarefas, nas janelas e no atalho (antes aparecia o ícone do Python).",
-    "Na primeira vez que abrir, ele recria sozinho o atalho “Robô Móveis Stylo” na Área de Trabalho e no menu Iniciar, já com o ícone."
+    "Variações em cartões no estilo vidro: foto da variação, preço, margem, estoque com − e + e um botão ✦ para criar as imagens dela no Canva.",
+    "Kits: crie variações de 2, 3, 4 unidades. O robô calcula custo, preço (com o desconto que você escolher) e peso da caixa.",
+    "“Criar várias de uma vez”: tamanhos × modelos × kits num clique.",
+    "Canva por variação: escolha a variação (ou vá para a próxima sem imagem), o pedido já diz o tamanho, o modelo, o kit e o que muda em relação às suas fotos, e as imagens baixadas ficam só naquela variação.",
+    "Pedidos do Canva mais completos e com mais tipos de imagem: capa, fundo branco em ângulo, ambiente, em uso, medidas, detalhe, kit, tamanho real e presente.",
+    "Cada variação guarda o seu “pedido para o Canva” (o que muda nela), em Medidas, caixa e pedido do Canva."
   ]
 }

@@ -266,20 +266,38 @@ def gerar_textos_ia(d, chave, modelo="gemini-2.5-flash", timeout=60):
 # (chave, rótulo, o que pedir). A ordem é a ordem das fotos no anúncio.
 ESTILOS_IMAGEM = [
     ("capa", "Capa (fundo branco)",
-     "Foto de capa de anúncio do Mercado Livre: o produto inteiro, centralizado, ocupando cerca de 85% da imagem, "
-     "fundo 100% branco (#FFFFFF), luz de estúdio suave, sombra leve no chão, sem nenhum texto, logo, selo ou borda."),
+     "Foto de CAPA do anúncio: o produto inteiro, de frente e levemente de cima, centralizado e ocupando cerca de 85% da imagem; "
+     "fundo 100% branco puro (#FFFFFF) em toda a imagem, luz de estúdio suave e uniforme, sombra leve e natural só embaixo do produto. "
+     "Nada além do produto: sem texto, sem logo, sem selo, sem moldura, sem objetos de decoração."),
+    ("angulo", "Fundo branco em ângulo",
+     "Foto em fundo 100% branco (#FFFFFF), produto inteiro girado em ângulo de 3/4 (cerca de 45 graus), mostrando a frente, "
+     "a lateral e a espessura real da peça. Luz de estúdio suave, sombra leve embaixo. Sem texto e sem outros objetos."),
     ("ambiente", "No ambiente",
-     "Foto do produto num ambiente real e bonito de casa brasileira onde ele faz sentido (sala, varanda, quarto ou cozinha), "
-     "luz natural, decoração discreta que não tira a atenção do produto, produto em destaque e em escala real. Sem texto."),
-    ("medidas", "Com as medidas",
-     "Foto do produto em fundo branco com linhas de cota finas e as medidas escritas em centímetros "
-     "({medidas}), em fonte limpa e legível. Só essas medidas, sem outro texto."),
-    ("detalhe", "Detalhe do acabamento",
-     "Foto em close mostrando o acabamento, a solda, a textura da madeira e a pintura, com fundo desfocado. Sem texto."),
+     "Foto lifestyle num ambiente real e bonito de casa brasileira onde esse produto é usado (cozinha, área gourmet, sala, varanda "
+     "ou quarto, o que fizer mais sentido para ele). Luz natural de janela, cores quentes, decoração discreta e desfocada ao fundo. "
+     "O produto é o protagonista, nítido, em primeiro plano e em escala real coerente com as medidas. Sem texto."),
     ("uso", "Em uso",
-     "Foto do produto sendo usado do jeito que ele foi feito para ser usado, com os objetos que ele segura ou apoia, "
-     "em ambiente de casa. Sem texto e sem pessoas de rosto visível."),
+     "Foto do produto sendo usado do jeito que ele foi feito para ser usado, com os itens que ele serve, segura ou apoia "
+     "(por exemplo comida, plantas, livros ou objetos), bem arrumados e apetitosos. Ambiente de casa, luz natural, "
+     "pessoas só se aparecerem as mãos. Sem texto."),
+    ("medidas", "Com as medidas",
+     "Foto técnica em fundo 100% branco: o produto inteiro com linhas de cota finas cinza-escuro e as medidas escritas em "
+     "centímetros ({medidas}), em fonte sem serifa limpa e legível, cada medida na direção certa. "
+     "O único texto da imagem são essas medidas."),
+    ("detalhe", "Detalhe do acabamento",
+     "Foto macro em close do acabamento: textura e veios da madeira, a gravação, as bordas arredondadas, a solda e a pintura, "
+     "com fundo bem desfocado e luz lateral suave que realça a textura. Mostra a qualidade do feito à mão. Sem texto."),
+    ("kit", "Kit (todas as unidades)",
+     "Foto em fundo 100% branco mostrando TODAS as unidades do kit juntas ({kit}), iguais entre si, bem organizadas "
+     "(lado a lado ou levemente empilhadas), para o cliente ver exatamente quantas peças recebe. Sem texto."),
+    ("escala", "Tamanho real",
+     "Foto que deixa claro o tamanho real do produto: ele numa bancada ou mesa ao lado de objetos comuns do dia a dia "
+     "(uma caneca, um celular ou uma mão adulta), tudo em escala correta para {medidas}. Luz natural. Sem texto."),
+    ("presente", "Para presente",
+     "Foto do produto como presente: sobre uma mesa clara de madeira, com papel kraft, fita e um pequeno cartão em branco ao lado, "
+     "clima aconchegante, luz natural suave. O produto aparece inteiro e é o destaque. Sem texto escrito."),
 ]
+ESTILOS_PADRAO = ("capa", "angulo", "ambiente", "uso", "medidas")
 
 
 def medidas_texto(v):
@@ -292,26 +310,80 @@ def medidas_texto(v):
     return ", ".join(partes)
 
 
-def prompt_imagem(d, estilo, variacao=None, extra=""):
-    """O pedido que vai para a IA junto com as fotos do produto."""
+def kit_da_variacao(v):
+    """Quantas unidades a variação tem (campo "kit" ou "Kit com N" no nome)."""
+    if not isinstance(v, dict):
+        return 1
+    n = motor.numero(v.get("kit"))
+    if not n:
+        m = re.search(r"(?i)kit\D{0,8}(\d+)", str(v.get("valor") or ""))
+        n = int(m.group(1)) if m else 1
+    return max(int(n or 1), 1)
+
+
+def prompt_imagem(d, estilo, variacao=None, extra="", ref=None):
+    """O pedido completo que vai para a IA (Canva ou Gemini) junto com as fotos do produto.
+
+    variacao = a opção para a qual a imagem é feita; ref = a opção que aparece nas fotos (para avisar o que muda)."""
     v = variacao or next((x for x in d.get("variacoes") or [] if isinstance(x, dict)), {}) or {}
     medidas = medidas_texto(v)
-    texto = dict((k, t) for k, _, t in ESTILOS_IMAGEM)[estilo].replace("{medidas}", medidas or "as medidas da peça")
-    dados = [f"Produto: {d.get('nome') or 'móvel'}"]
+    kit = kit_da_variacao(v)
+    kit_txt = f"kit com {kit} unidades" if kit > 1 else "1 unidade"
+    texto = dict((k, t) for k, _, t in ESTILOS_IMAGEM)[estilo]
+    texto = texto.replace("{medidas}", medidas or "as medidas da peça").replace("{kit}", kit_txt)
+    nome = d.get("nome") or "produto"
+
+    prod = [f"- Produto: {nome}"]
     if v.get("valor"):
-        dados.append(f"Opção: {v.get('valor')}")
+        prod.append(f"- Opção desta imagem: {v.get('valor')}")
     if medidas:
-        dados.append(f"Medidas da peça: {medidas}")
-    for k, rot in (("material", "Material"), ("acabamento", "Acabamento"), ("uso", "Uso")):
+        prod.append(f"- Medidas reais de UMA peça: {medidas}")
+    for k, rot in (("material", "Material"), ("acabamento", "Acabamento"), ("uso", "Para que serve")):
         if d.get(k):
-            dados.append(f"{rot}: {d.get(k)}")
-    return (
-        "As fotos enviadas são de um produto real da Móveis Stylo (móveis de ferro e madeira feitos à mão). "
-        "Crie UMA imagem nova desse mesmo produto para o anúncio no Mercado Livre.\n"
-        "Regras: mantenha exatamente o formato, a cor, o material, as proporções e os detalhes do produto das fotos; "
-        "não invente peças, gavetas, rodinhas ou enfeites que ele não tem; imagem quadrada 1:1; "
-        "aparência de foto profissional, não de desenho; sem marca d'água, sem logo, sem preço.\n"
-        f"Estilo: {texto}\n" + "\n".join(dados) + (f"\nPedido extra: {extra.strip()}" if extra and extra.strip() else ""))
+            prod.append(f"- {rot}: {d.get(k)}")
+    for item in (d.get("ficha_tecnica") or [])[:12]:
+        if isinstance(item, dict) and item.get("nome") and item.get("valor") and str(item["nome"]).lower() not in (
+                "marca", "material", "uso", "pode ir à lava-louças", "requer montagem") and " ou " not in str(item["valor"]):
+            prod.append(f"- {item['nome']}: {item['valor']}")
+    prod.append(f"- Quantidade: {kit_txt}")
+
+    muda = []
+    ref = ref if isinstance(ref, dict) else None
+    if ref is not None and ref is not v and (ref.get("valor") or "") != (v.get("valor") or ""):
+        muda.append(f"As fotos enviadas mostram a opção “{ref.get('valor') or 'original'}”. Esta imagem é da opção “{v.get('valor')}”.")
+        mr, mv = medidas_texto(ref), medidas_texto(v)
+        if mr and mv and mr != mv:
+            muda.append(f"O tamanho muda: nas fotos a peça tem {mr}; nesta opção ela tem {mv}. Mude só a escala, mantendo as "
+                        "mesmas proporções, a mesma espessura e os mesmos detalhes.")
+    if kit > 1:
+        if estilo in ("capa", "kit"):
+            muda.append(f"Esta opção é um kit: mostre as {kit} unidades iguais juntas na imagem.")
+        else:
+            muda.append(f"Esta opção é um kit com {kit} unidades; nesta imagem pode aparecer 1 ou todas, o que ficar mais claro.")
+    if v.get("canva_extra"):
+        muda.append(str(v.get("canva_extra")).strip())
+    if extra and extra.strip() and extra.strip() != str(v.get("canva_extra") or "").strip():
+        muda.append(extra.strip())
+
+    partes = [
+        "Crie UMA imagem para o anúncio no Mercado Livre de um produto real da Móveis Stylo, que faz peças de madeira e ferro à mão. "
+        "As fotos que enviei são a referência exata do produto.",
+        "TIPO DE IMAGEM\n" + texto,
+        "PRODUTO\n" + "\n".join(prod),
+    ]
+    if muda:
+        partes.append("O QUE MUDA EM RELAÇÃO ÀS FOTOS\n" + "\n".join(f"- {m}" for m in muda))
+    partes.append(
+        "REGRAS\n"
+        "- Copie fielmente o produto das fotos: mesmo formato, cor, madeira e veios, ferro, espessura, bordas, divisórias, "
+        "gravação e acabamento (só mude o que está em “O que muda”).\n"
+        "- Não invente peças, pés, alças, gavetas, rodinhas, enfeites ou textos que o produto não tem.\n"
+        "- Escala real e coerente com as medidas.\n"
+        "- Aparência de foto profissional de catálogo, realista, nítida e bem iluminada, não de desenho ou 3D.\n"
+        "- Imagem quadrada 1:1, alta resolução (pelo menos 1200 x 1200 px).\n"
+        "- Sem marca d'água, sem logo de loja, sem preço, sem selo e sem bordas."
+        + ("" if estilo == "medidas" else "\n- Sem nenhum texto na imagem."))
+    return "\n\n".join(partes)
 
 
 def _foto_base64(caminho, lado=1024):

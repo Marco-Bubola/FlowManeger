@@ -85,7 +85,8 @@
       },
       "fotos": [
         "01-petisqueira-25-logo.jpg"
-      ]
+      ],
+      "canva_extra": "No medalhão oval do centro, no lugar do logo “Móveis Stylo”, mostre um logo genérico de empresa escrito “SUA LOGO AQUI”, gravado a laser na madeira em tom escuro, no mesmo tamanho e estilo da gravação das fotos. As 4 divisórias continuam iguais."
     },
     {
       "valor": "25 cm · Desenho gravado",
@@ -105,7 +106,8 @@
         "altura_cm": 5.0,
         "peso_kg": 0.8
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "No medalhão oval do centro, no lugar do logo, mostre um desenho gravado a laser na madeira em traço escuro (uma taça de vinho com um queijo), no mesmo tamanho e estilo da gravação das fotos. As 4 divisórias continuam iguais."
     },
     {
       "valor": "25 cm · Com espaço para pote de molho",
@@ -125,7 +127,8 @@
         "altura_cm": 5.0,
         "peso_kg": 0.8
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "No centro, no lugar do medalhão oval com o logo, a peça tem um encaixe redondo rebaixado com um pequeno pote branco de cerâmica para molho encaixado dentro; as 4 divisórias ficam em volta do pote. O pote é só para mostrar o uso (não vem junto)."
     },
     {
       "valor": "25 cm · Sem gravura",
@@ -145,7 +148,8 @@
         "altura_cm": 5.0,
         "peso_kg": 0.8
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "Sem gravação: o medalhão oval do centro fica liso, só com a madeira e os veios, sem logo e sem desenho. As 4 divisórias continuam iguais."
     },
     {
       "valor": "30 cm · Logo personalizado",
@@ -165,7 +169,8 @@
         "altura_cm": 5.0,
         "peso_kg": 1.1
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "No medalhão oval do centro, no lugar do logo “Móveis Stylo”, mostre um logo genérico de empresa escrito “SUA LOGO AQUI”, gravado a laser na madeira em tom escuro, no mesmo tamanho e estilo da gravação das fotos. As 4 divisórias continuam iguais."
     },
     {
       "valor": "30 cm · Desenho gravado",
@@ -185,7 +190,8 @@
         "altura_cm": 5.0,
         "peso_kg": 1.1
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "No medalhão oval do centro, no lugar do logo, mostre um desenho gravado a laser na madeira em traço escuro (uma taça de vinho com um queijo), no mesmo tamanho e estilo da gravação das fotos. As 4 divisórias continuam iguais."
     },
     {
       "valor": "30 cm · Com espaço para pote de molho",
@@ -205,7 +211,8 @@
         "altura_cm": 5.0,
         "peso_kg": 1.1
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "No centro, no lugar do medalhão oval com o logo, a peça tem um encaixe redondo rebaixado com um pequeno pote branco de cerâmica para molho encaixado dentro; as 4 divisórias ficam em volta do pote. O pote é só para mostrar o uso (não vem junto)."
     },
     {
       "valor": "30 cm · Sem gravura",
@@ -225,7 +232,8 @@
         "altura_cm": 5.0,
         "peso_kg": 1.1
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "Sem gravação: o medalhão oval do centro fica liso, só com a madeira e os veios, sem logo e sem desenho. As 4 divisórias continuam iguais."
     },
     {
       "valor": "35 cm · Logo personalizado",
@@ -245,7 +253,8 @@
         "altura_cm": 5.0,
         "peso_kg": 1.4
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "No medalhão oval do centro, no lugar do logo “Móveis Stylo”, mostre um logo genérico de empresa escrito “SUA LOGO AQUI”, gravado a laser na madeira em tom escuro, no mesmo tamanho e estilo da gravação das fotos. As 4 divisórias continuam iguais."
     },
     {
       "valor": "35 cm · Desenho gravado",
@@ -265,7 +274,8 @@
         "altura_cm": 5.0,
         "peso_kg": 1.4
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "No medalhão oval do centro, no lugar do logo, mostre um desenho gravado a laser na madeira em traço escuro (uma taça de vinho com um queijo), no mesmo tamanho e estilo da gravação das fotos. As 4 divisórias continuam iguais."
     },
     {
       "valor": "35 cm · Com espaço para pote de molho",
@@ -285,7 +295,8 @@
         "altura_cm": 5.0,
         "peso_kg": 1.4
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "No centro, no lugar do medalhão oval com o logo, a peça tem um encaixe redondo rebaixado com um pequeno pote branco de cerâmica para molho encaixado dentro; as 4 divisórias ficam em volta do pote. O pote é só para mostrar o uso (não vem junto)."
     },
     {
       "valor": "35 cm · Sem gravura",
@@ -305,7 +316,8 @@
         "altura_cm": 5.0,
         "peso_kg": 1.4
       },
-      "fotos": []
+      "fotos": [],
+      "canva_extra": "Sem gravação: o medalhão oval do centro fica liso, só com a madeira e os veios, sem logo e sem desenho. As 4 divisórias continuam iguais."
     }
   ],
   "mercado_livre": {
