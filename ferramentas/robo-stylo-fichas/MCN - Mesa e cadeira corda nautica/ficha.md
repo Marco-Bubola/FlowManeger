@@ -93,7 +93,7 @@
         "comprimento_cm": 56.0,
         "largura_cm": 56.0,
         "altura_cm": 86.0,
-        "peso_kg": 6.0
+        "peso_kg": 10.0
       },
       "fotos": [
         "01-cadeira.jpg",
@@ -141,7 +141,7 @@
         "comprimento_cm": 88.0,
         "largura_cm": 88.0,
         "altura_cm": 84.0,
-        "peso_kg": 29.0
+        "peso_kg": 37.0
       },
       "fotos": [
         "05-conjunto.jpg",
@@ -166,7 +166,7 @@
         "comprimento_cm": 88.0,
         "largura_cm": 88.0,
         "altura_cm": 84.0,
-        "peso_kg": 41.0
+        "peso_kg": 57.0
       },
       "fotos": [
         "05-conjunto.jpg",
