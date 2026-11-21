@@ -130,6 +130,13 @@ VARIAÇÕES (no editor)
 - O botão "Sobe" embaixo da foto liga ou desliga a variação. Desligada, ela
   fica guardada na ficha, mas não vai para o site (nem no Atualizar no site) e
   não entra nas pendências. "Ligar todas" e "Desligar todas" mudam de uma vez.
+- "🎨 Escolher cores cadastradas": marque as cores da ferragem, do corano e da
+  madeira desta peça. O robô escreve as combinações (ex.: "Preto com corano
+  Verde") em Modelos ou cores; ponha os tamanhos e toque em Criar variações.
+  Cada variação já leva o pedido do Canva com as cores. Máximo de 40.
+- "Cadastrar / apagar" (na mesma janela, ou Configurações › Minhas cores)
+  cadastra cor nova com o tom dela ou apaga as que você não usa. As cores
+  ficam no arquivo cores.json, na pasta do robô.
 
 IMAGENS COM IA (no editor, seção Fotos ou no ✦ de cada variação)
 - "✦ Criar no Canva": escolha a variação (◀ ▶ ou "Próxima variação sem

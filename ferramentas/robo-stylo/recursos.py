@@ -5,6 +5,7 @@ preço do Mercado Livre, calculadora de custo e preço, concorrentes, título e 
 fotos prontas, atualização em lote, kits e etiquetas.
 """
 import json
+import os
 import math
 import re
 import shutil
@@ -264,6 +265,60 @@ def gerar_textos_ia(d, chave, modelo="gemini-2.5-flash", timeout=60):
 # ------------------------------------------------------------ imagens com IA
 
 # (chave, rótulo, o que pedir). A ordem é a ordem das fotos no anúncio.
+# ------------------------------------------------------------------ cores cadastradas (corano, ferragem, madeira)
+# Ficam em cores.json, na pasta do robô (é do seu PC: a atualização não mexe nele).
+
+ARQ_CORES = motor.BASE / "cores.json"
+
+CORES_PADRAO = {"grupos": [
+    {"chave": "ferragem", "nome": "Cor da ferragem", "prefixo": "", "canva": "estrutura de ferro pintada na cor {n}",
+     "itens": [["Preto", "#1f1f1f"], ["Branco", "#f4f4f2"], ["Cinza", "#a3a7ab"], ["Bege", "#d8c7a8"], ["Grafite", "#3d4045"],
+               ["Marrom", "#5a3e2b"], ["Bronze", "#6b4a2f"], ["Dourado", "#c9a24a"]]},
+    {"chave": "corano", "nome": "Corano / tecido", "prefixo": "corano", "canva": "assento estofado em corano (couro sintético) na cor {n}",
+     "itens": [["Preto", "#1d1d1d"], ["Branco", "#f2f0ea"], ["Creme", "#e8d9a8"], ["Caramelo", "#d9a35a"], ["Fendi", "#a99a8a"],
+               ["Marrom café", "#4e3428"], ["Amarelo", "#f2c500"], ["Laranja", "#f08a24"], ["Vermelho", "#d62a2a"],
+               ["Rosa pink", "#e0417a"], ["Lilás", "#b9a6d6"], ["Roxo", "#6b3fa0"], ["Azul royal", "#2d4fb0"],
+               ["Azul turquesa", "#1fb5c9"], ["Verde água", "#a7e3cf"], ["Verde", "#6aa53a"], ["Cinza claro", "#c9c9c9"],
+               ["Cinza escuro", "#6e6e6e"]]},
+    {"chave": "madeira", "nome": "Madeira / verniz", "prefixo": "madeira", "canva": "madeira no tom {n}",
+     "itens": [["Natural", "#d8b27a"], ["Mel", "#c58b46"], ["Castanho", "#7a4b2a"], ["Imbuia", "#5b3a24"], ["Preto", "#222222"]]},
+]}
+
+
+def ler_cores():
+    try:
+        d = json.loads(ARQ_CORES.read_text(encoding="utf-8"))
+        if isinstance(d, dict) and isinstance(d.get("grupos"), list):
+            return d
+    except Exception:
+        pass
+    return json.loads(json.dumps(CORES_PADRAO))
+
+
+def salvar_cores(d):
+    tmp = ARQ_CORES.with_suffix(".tmp")
+    tmp.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, ARQ_CORES)
+
+
+def combinar_cores(escolhas):
+    """escolhas: [(grupo, [nomes])] na ordem dos grupos. Devolve [(nome da variação, texto para o Canva)].
+
+    Ex.: ferragem Preto + corano Verde -> ("Preto com corano Verde", "estrutura … Preto; assento … Verde").
+    """
+    import itertools
+    listas = [[(g, n) for n in nomes] for g, nomes in escolhas if nomes]
+    saida = []
+    for combo in itertools.product(*listas) if listas else []:
+        partes = [(f"{g.get('prefixo') or ''} {n}".strip()) for g, n in combo]
+        nome = partes[0][:1].upper() + partes[0][1:]
+        if len(partes) > 1:
+            nome += " com " + " e ".join(partes[1:])
+        canva = "; ".join((g.get("canva") or "{n}").replace("{n}", n) for g, n in combo)
+        saida.append((nome.replace(",", " "), canva[:1].upper() + canva[1:] + "."))
+    return saida
+
+
 ESTILOS_IMAGEM = [
     ("capa", "Capa (fundo branco)",
      "Foto de CAPA do anúncio: o produto inteiro, de frente e levemente de cima, centralizado e ocupando cerca de 85% da imagem; "
