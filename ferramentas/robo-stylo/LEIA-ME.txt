@@ -138,6 +138,11 @@ VARIAÇÕES (no editor)
   cadastra cor nova com o tom dela ou apaga as que você não usa. As cores
   ficam no arquivo cores.json, na pasta do robô.
 
+FOTOS POR VARIAÇÃO
+- Embaixo de cada foto: "Todas as variações", "Só a cor", "Só: uma variação",
+  "Não usar", ou "☑ Quais variações" para marcar várias (ex.: a foto da mesa na
+  Mesa, Mesa + 2 e Mesa + 4, e não na Cadeira).
+
 IMAGENS COM IA (no editor, seção Fotos ou no ✦ de cada variação)
 - "✦ Criar no Canva": escolha a variação (◀ ▶ ou "Próxima variação sem
   imagem"), marque as fotos e os tipos de imagem (capa com fundo branco, fundo

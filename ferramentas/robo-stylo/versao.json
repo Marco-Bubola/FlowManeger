@@ -1,5 +1,5 @@
 {
-  "versao": 15,
+  "versao": 16,
   "data": "2026-11-21",
   "arquivos": [
     "janela.pyw",
@@ -14,12 +14,11 @@
     "instalar.bat"
   ],
   "novidades": [
+    "Fotos: cada foto pode entrar em várias variações que você escolher (ex.: a foto da mesa na Mesa, Mesa + 2 e Mesa + 4, e não na Cadeira). Toque em “☑ Quais variações” embaixo da foto e marque.",
+    "A ficha que já tinha uma foto em algumas variações agora abre do jeito certo (antes abria como “Todas as variações”).",
     "Minhas cores: as cores de ferragem, corano e madeira ficam cadastradas no robô, com a bolinha da cor. Já vem com a cartela de corano e as cores de ferragem; dá para cadastrar e apagar.",
     "Em Variações › Escolher cores cadastradas: marque as cores da peça e o robô monta as combinações (ex.: Preto com corano Verde) junto com os tamanhos.",
     "Cada variação criada assim já leva o pedido do Canva com a cor da ferragem e do corano.",
-    "A ficha lembra as cores que você marcou. Em Configurações tem o botão Minhas cores.",
-    "Cada variação tem um botão liga/desliga “Sobe”: as desligadas ficam guardadas na ficha, mas não vão para o site nem entram nas pendências.",
-    "“Ligar todas” e “Desligar todas” na seção Variações; o resumo mostra quantas estão ligadas.",
-    "Variações em cartões no estilo vidro: foto da variação, preço, margem, estoque com − e + e um botão ✦ para criar as imagens dela no Canva."
+    "A ficha lembra as cores que você marcou. Em Configurações tem o botão Minhas cores."
   ]
 }

@@ -2834,8 +2834,12 @@ class FotoEd:
     def __init__(self, caminho, nova=False, uso="todas"):
         self.caminho = Path(caminho)
         self.nova = nova
-        self.uso = uso          # "todas", "nao" ou a LinhaVariacao
+        self.uso = uso          # "todas", "nao", "cor:X", a LinhaVariacao ou uma tupla de LinhaVariacao (várias)
         self.removida = False
+
+    def de(self, linha):
+        """A foto vale para esta variação (sozinha ou junto com outras escolhidas)?"""
+        return self.uso is linha or (isinstance(self.uso, tuple) and linha in self.uso)
 
 
 class Editor(ctk.CTkFrame):
@@ -3645,7 +3649,7 @@ class Editor(ctk.CTkFrame):
         vis = [f for f in self.fotos if not f.removida]
         for l in self.linhas:
             cor = self._cor_da_linha(l)
-            propria = next((f for f in vis if f.uso is l or (isinstance(f.uso, str) and cor and f.uso == f"cor:{cor}")), None)
+            propria = next((f for f in vis if f.de(l) or (isinstance(f.uso, str) and cor and f.uso == f"cor:{cor}")), None)
             geral = next((f for f in vis if f.uso == "todas"), None)
             l.mostrar_foto((propria or geral).caminho if (propria or geral) else None)
 
@@ -3701,6 +3705,9 @@ class Editor(ctk.CTkFrame):
         for f in self.fotos:
             if f.uso is linha:
                 f.uso = "nao"        # as fotos só dela ficam guardadas como "Não usar"
+            elif isinstance(f.uso, tuple) and linha in f.uso:
+                resto = tuple(x for x in f.uso if x is not linha)
+                f.uso = resto[0] if len(resto) == 1 else (resto or "nao")
         linha.destroy()
         self._desenhar_var()
         self.atualizar_usos()
@@ -3834,7 +3841,7 @@ class Editor(ctk.CTkFrame):
                 cores = {self._cor_da_linha(self.linhas[i]) for i in em if i < len(self.linhas)}
                 cor = next(iter(cores)) if len(cores) == 1 else None
                 mesmas = {i for i, l in enumerate(self.linhas) if cor and self._cor_da_linha(l) == cor}
-                uso = f"cor:{cor}" if cor and em == mesmas else "todas"
+                uso = f"cor:{cor}" if cor and em == mesmas else tuple(self.linhas[i] for i in sorted(em) if i < len(self.linhas))
             else:
                 i = next(iter(em))
                 uso = self.linhas[i] if i < len(self.linhas) and len(cheias) > 1 else "todas"
@@ -3851,7 +3858,7 @@ class Editor(ctk.CTkFrame):
 
     def _opcoes_uso(self):
         return (["Todas as variações"] + [f"Só a cor: {c}" for c in self._cores()]
-                + [f"Só: {l.rotulo()}" for l in self.linhas] + ["Não usar"])
+                + [f"Só: {l.rotulo()}" for l in self.linhas] + ["Escolher variações…", "Não usar"])
 
     def _uso_txt(self, f):
         if f.uso == "todas":
@@ -3860,6 +3867,9 @@ class Editor(ctk.CTkFrame):
             return "Não usar"
         if isinstance(f.uso, str) and f.uso.startswith("cor:"):
             return f"Só a cor: {f.uso[4:]}" if f.uso[4:] in self._cores() else "Todas as variações"
+        if isinstance(f.uso, tuple):
+            n = len([l for l in f.uso if l in self.linhas])
+            return f"{n} variações" if n else "Todas as variações"
         return f"Só: {f.uso.rotulo()}" if f.uso in self.linhas else "Todas as variações"
 
     def atualizar_usos(self):
@@ -3901,6 +3911,9 @@ class Editor(ctk.CTkFrame):
                                   command=lambda v, f=f: self._mudar_uso(f, v))
             m.set(self._uso_txt(f))
             m.pack(padx=8, pady=(4, 2))
+            if len(self.linhas) > 1 and f.uso != "nao":
+                Botao(cel, "☑  Quais variações", "fantasma", width=150, height=24, font=F(11),
+                      command=lambda f=f: EscolherVariacoes(self, f)).pack(padx=8)
             bts = ctk.CTkFrame(cel, fg_color="transparent")
             bts.pack(pady=(2, 8))
             pb = dict(width=32, height=26, font=F(12))
@@ -3916,6 +3929,8 @@ class Editor(ctk.CTkFrame):
             f.uso = "nao"
         elif txt.startswith("Só a cor: "):
             f.uso = "cor:" + txt[len("Só a cor: "):]
+        elif txt == "Escolher variações…":
+            EscolherVariacoes(self, f)
         else:
             rot = txt[len("Só: "):]
             f.uso = next((l for l in self.linhas if l.rotulo() == rot), "todas")
@@ -4084,10 +4099,10 @@ class Editor(ctk.CTkFrame):
             gerais = [f.caminho.name for f in vis if f.uso == "todas"]
             cores = self._cores()
             de_cor = lambda f: isinstance(f.uso, str) and f.uso.startswith("cor:") and f.uso[4:] in cores
-            tem_propria = any(f.uso in self.linhas or de_cor(f) for f in vis)
+            tem_propria = any(f.uso in self.linhas or isinstance(f.uso, tuple) or de_cor(f) for f in vis)
             for l, v in zip(self.linhas, d["variacoes"]):
                 # mantém a ordem da tela: a primeira foto da variação vira a capa dela
-                v["fotos"] = [f.caminho.name for f in vis if f.uso == "todas" or f.uso is l
+                v["fotos"] = [f.caminho.name for f in vis if f.uso == "todas" or f.de(l)
                               or (de_cor(f) and f.uso[4:] == self._cor_da_linha(l))] if tem_propria else []
             if not tem_propria and d["variacoes"]:
                 d["variacoes"][0]["fotos"] = gerais
@@ -4117,8 +4132,9 @@ class Editor(ctk.CTkFrame):
     def _assinatura(self):
         try:
             d = json.loads(json.dumps(self.montar(), default=str))
-            fotos = [(str(f.caminho), f.removida, f.uso if isinstance(f.uso, str) else self.linhas.index(f.uso)
-                      if f.uso in self.linhas else -1) for f in self.fotos]
+            fotos = [(str(f.caminho), f.removida, f.uso if isinstance(f.uso, str) else
+                      [self.linhas.index(x) for x in f.uso if x in self.linhas] if isinstance(f.uso, tuple) else
+                      self.linhas.index(f.uso) if f.uso in self.linhas else -1) for f in self.fotos]
             return json.dumps([d, fotos], sort_keys=True, default=str)
         except Exception:
             return None
@@ -4654,6 +4670,57 @@ class EscolherCores(Dialogo):
         self.ao_usar(comb, marc)
 
 
+class EscolherVariacoes(Dialogo):
+    """Marca em quais variações uma foto entra (ex.: a foto da mesa na Mesa, Mesa + 2 e Mesa + 4, e não na Cadeira)."""
+
+    def __init__(self, editor, foto):
+        super().__init__(editor.app, "Esta foto entra em quais variações?", foto.caminho.name, larg=560, alt=620)
+        self.editor, self.foto = editor, foto
+        img = miniatura(foto.caminho, 96)
+        editor.app._refs.append(img)
+        topo = ctk.CTkFrame(self.corpo, fg_color="transparent")
+        topo.grid(row=0, column=0, columnspan=2, sticky="ew", padx=16, pady=(12, 4))
+        ctk.CTkLabel(topo, text="" if img else "foto", image=img, width=96, height=96).pack(side="left")
+        bts = ctk.CTkFrame(topo, fg_color="transparent")
+        bts.pack(side="left", padx=14)
+        Botao(bts, "Marcar todas", "fantasma", width=120, height=28, font=F(12), command=lambda: self._todas(True)).pack(anchor="w")
+        Botao(bts, "Desmarcar todas", "fantasma", width=120, height=28, font=F(12), command=lambda: self._todas(False)).pack(anchor="w", pady=4)
+        self.corpo.grid_rowconfigure(1, weight=1)
+        lista = ctk.CTkScrollableFrame(self.corpo, fg_color="transparent")
+        lista.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=10, pady=(0, 10))
+        self.caixas = []
+        for l in editor.linhas:
+            cb = ctk.CTkCheckBox(lista, text=l.rotulo(), font=F(13), text_color=TEXTO, fg_color=ROXO, hover_color=ROXO_H,
+                                 command=self._contar)
+            cb.pack(anchor="w", padx=8, pady=5)
+            if foto.uso == "todas" or foto.de(l) or (isinstance(foto.uso, str) and foto.uso.startswith("cor:")
+                                                     and editor._cor_da_linha(l) == foto.uso[4:]):
+                cb.select()
+            self.caixas.append((cb, l))
+        self.botao_ok("Usar nestas", self._ok)
+        self._contar()
+
+    def _todas(self, sim):
+        for cb, _ in self.caixas:
+            cb.select() if sim else cb.deselect()
+        self._contar()
+
+    def _contar(self):
+        n = sum(1 for cb, _ in self.caixas if cb.get())
+        self.lbl_rod.configure(text=f"{n} de {len(self.caixas)} marcada(s)" + (" · nenhuma = não usar" if not n else ""))
+
+    def _ok(self):
+        sel = tuple(l for cb, l in self.caixas if cb.get())
+        if not sel:
+            self.foto.uso = "nao"
+        elif len(sel) == len(self.caixas):
+            self.foto.uso = "todas"
+        else:
+            self.foto.uso = sel[0] if len(sel) == 1 else sel
+        self.destroy()
+        self.editor.desenhar_fotos()
+
+
 class ImagensIA(Dialogo):
     """Imagens de anúncio a partir das fotos do produto.
 
@@ -4816,7 +4883,7 @@ class ImagensIA(Dialogo):
 
     def _n_imagens(self, idx):
         l = self._linha(idx)
-        return sum(1 for f in self.editor.fotos if not f.removida and l is not None and f.uso is l)
+        return sum(1 for f in self.editor.fotos if not f.removida and l is not None and f.de(l))
 
     def _indice_sem_imagem(self, de):
         n = len(self.vars)
@@ -4869,7 +4936,7 @@ class ImagensIA(Dialogo):
         # marca as fotos desta variação (as dela e as que valem para todas)
         cor = self.editor._cor_da_linha(l) if l is not None else None
         for cb, f in self.marcadas:
-            dela = f.uso == "todas" or (l is not None and (f.uso is l or (isinstance(f.uso, str) and cor and f.uso == f"cor:{cor}")))
+            dela = f.uso == "todas" or (l is not None and (f.de(l) or (isinstance(f.uso, str) and cor and f.uso == f"cor:{cor}")))
             if l is None:
                 dela = f.uso != "nao"
             if dela:
