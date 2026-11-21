@@ -23,6 +23,26 @@ from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
 
+ICONE = Path(__file__).with_name("icone.ico")
+if sys.platform.startswith("win"):
+    # Sem isto o Windows mostra o ícone do Python na barra de tarefas e o do customtkinter nas janelas.
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("MoveisStylo.RoboCadastro")
+    except Exception:
+        pass
+
+    def _icone_stylo(janela):
+        try:
+            if ICONE.exists():
+                janela.iconbitmap(str(ICONE))
+        except Exception:
+            pass
+
+    for _cls in (ctk.CTk, ctk.CTkToplevel):
+        if hasattr(_cls, "_windows_set_titlebar_icon"):
+            _cls._windows_set_titlebar_icon = _icone_stylo
+
 try:
     from PIL import Image, ImageDraw, ImageOps
 except ImportError:
@@ -342,12 +362,12 @@ class App(ctk.CTk):
         self.geometry(f"{larg}x{alt}+{max((sw - larg) // 2, 0)}+{max((sh - alt) // 2 - 20, 0)}")
         self.minsize(1060, 660)
         self.configure(fg_color=FUNDO)
-        icone = Path(__file__).with_name("icone.ico")
-        if icone.exists() and sys.platform.startswith("win"):
+        if ICONE.exists() and sys.platform.startswith("win"):
             try:
-                self.iconbitmap(str(icone))
+                self.iconbitmap(str(ICONE), default=str(ICONE))
             except Exception:
                 pass
+            self.after(2500, self._conferir_atalho)
 
         self.fila = queue.Queue()      # robô → janela
         self.tarefas = queue.Queue()   # janela → robô (o navegador vive numa thread só)
@@ -1275,6 +1295,29 @@ class App(ctk.CTk):
         self.clipboard_clear()
         self.clipboard_append(arq.read_text(encoding="utf-8"))
         self.toast("Questionário copiado. Cole numa IA (Ctrl+V) com as fotos.")
+
+    def _conferir_atalho(self):
+        """Cria (uma vez por versão) os atalhos com o ícone na Área de Trabalho e no menu Iniciar."""
+        pasta = Path(__file__).parent
+        marca = pasta / ".atalho-ok"
+        versao = str((recursos.versao_local() or {}).get("versao", ""))
+        try:
+            if marca.exists() and marca.read_text(encoding="utf-8").strip() == versao:
+                return
+        except Exception:
+            pass
+        script = pasta / "criar-atalho.ps1"
+        if not script.exists():
+            return
+
+        def roda():
+            try:
+                subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script)],
+                               cwd=str(pasta), timeout=60, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                marca.write_text(versao, encoding="utf-8")
+            except Exception:
+                pass
+        threading.Thread(target=roda, daemon=True).start()
 
     def fechar(self):
         if self.rodando and not messagebox.askyesno("Fechar", "O robô está cadastrando. Fechar mesmo assim?"):

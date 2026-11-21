@@ -1,18 +1,20 @@
 {
-  "versao": 11,
-  "data": "2026-11-20",
+  "versao": 12,
+  "data": "2026-11-21",
   "arquivos": [
     "janela.pyw",
     "motor.py",
     "recursos.py",
     "LEIA-ME.txt",
     "questionario-produto-stylo.md",
-    "requirements.txt"
+    "requirements.txt",
+    "icone.ico",
+    "criar-atalho.ps1",
+    "Abrir robo.vbs",
+    "instalar.bat"
   ],
   "novidades": [
-    "Fotos › “✦ Criar no Canva”: o robô abre o Canva IA no seu navegador, copia um pedido pronto (estilo Mercado Livre: capa com fundo branco, no ambiente, com as medidas…) e separa as fotos do produto para você arrastar.",
-    "As imagens que você baixar do Canva aparecem sozinhas no robô; marque as boas e elas entram nas fotos da ficha (a primeira vira a capa).",
-    "Fotos › “Gemini”: o mesmo, mas o robô cria as imagens sozinho com a chave do Gemini (precisa da conta com cobrança ativa).",
-    "Confira sempre se a peça ficou igual à de verdade antes de anunciar."
+    "O robô agora aparece com o ícone da Móveis Stylo na barra de tarefas, nas janelas e no atalho (antes aparecia o ícone do Python).",
+    "Na primeira vez que abrir, ele recria sozinho o atalho “Robô Móveis Stylo” na Área de Trabalho e no menu Iniciar, já com o ícone."
   ]
 }
