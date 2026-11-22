@@ -657,7 +657,7 @@ class Site:
         """Pede ao site (já logado neste navegador) a chave do robô para salvar as fichas no banco."""
         self.abrir()
         url = self.base + "/robo/conectar?pc=" + urllib.parse.quote(nome_pc or "Robô Móveis Stylo")
-        self.page.goto(url, wait_until="domcontentloaded")
+        self.page.goto(self.url_ficha, wait_until="domcontentloaded")    # só confere o login; a chave não aparece na tela
         if self._na_tela_de_login():
             self.avisar("login")
             fim = time.time() + esperar_login
@@ -670,17 +670,12 @@ class Site:
                     raise RuntimeError("A janela do navegador foi fechada.")
                 time.sleep(1)
             time.sleep(1.5)
-            self.page.goto(url, wait_until="domcontentloaded")
         try:
             resp = self.ctx.request.get(url, headers={"Accept": "application/json"})   # usa o login deste navegador
             dados = resp.json()
             chave = dados["robo_chave"]
         except Exception:
             raise RuntimeError("O site ainda não tem a parte das fichas no banco. Ela precisa estar no ar.") from None
-        try:
-            self.page.goto(self.url_ficha, wait_until="domcontentloaded")   # tira a chave da tela
-        except Exception:
-            pass
         return chave, dados.get("usuario") or ""
 
     def mostrar(self, url):
