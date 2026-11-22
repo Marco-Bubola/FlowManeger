@@ -1,5 +1,5 @@
 {
-  "versao": 21,
+  "versao": 22,
   "data": "2026-11-22",
   "arquivos": [
     "janela.pyw",
@@ -14,11 +14,10 @@
     "instalar.bat"
   ],
   "novidades": [
-    "Fotos mais fáceis: na seção Fotos, “Por variação” mostra cada variação com as fotos dela. Toque em “Escolher fotos” e clique nas fotos que entram (a primeira vira a capa daquela variação).",
-    "Várias variações de uma vez: marque (ex.: todas de 54 cm) e use “☑ Fotos das marcadas”. “Todas as fotos em todas” volta tudo ao normal.",
-    "Em “Todas as fotos”, cada foto tem um botão só dizendo onde ela entra (Em todas, Só: Mesa, Em 3 variações, Não usada). O aviso mostra quantas variações estão sem foto.",
-    "Tabela de materiais: muitos tecidos novos (corano náutico, couro ecológico, matelassê, suede amassado, veludo, linhão, bouclê, chenille, jacquard, sarja, impermeável, tela sling, forros) com preço por metro.",
-    "Nova categoria Tinta spray: preto fosco, brilhante e acetinado, branco, cinza, bege, coloridas, metálicas (prata, dourado, cobre), cromado, martelado, envelhecido, texturizado, alta temperatura, primer, antiferrugem e verniz. Mais esmalte em galão, zarcão, lixa e desengraxante.",
-    "Minhas cores: mais cores de ferragem (preto fosco, champagne, cobre, rose gold, cromado, ouro velho, verde militar...), mais cores de corano, um grupo novo de Tecido (suede, linho, veludo, bouclê...) e mais tons de madeira. As cores que você já tinha continuam lá."
+    "Fichas no FlowManeger: em Configurações › “Fichas no FlowManeger” toque em Conectar e entre na sua conta uma vez. Depois disso todas as fichas e fotos ficam salvas no banco do site.",
+    "O robô sincroniza sozinho quando você salva e a cada 3 minutos. Na lateral aparece “☁ Salvas no site” com a hora (toque para sincronizar na hora).",
+    "Em outro PC: instale o robô e conecte. Ele traz todas as fichas do site.",
+    "O robô continua trabalhando no seu PC, mesmo sem internet. Quando a internet volta, ele manda o que mudou.",
+    "Nada é apagado: o que sai vai para a lixeira do robô, e o site guarda as últimas versões de cada ficha."
   ]
 }

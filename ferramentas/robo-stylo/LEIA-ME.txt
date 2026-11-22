@@ -147,6 +147,13 @@ MATERIAIS E CUSTOS (menu Ajustes)
   4,5 metros de tubo, 1,5 hora) e toque no material.
 - O questionário para a IA leva a tabela junto.
 
+FICHAS NO FLOWMANEGER
+- Configurações › "Fichas no FlowManeger" › Conectar: entre na sua conta uma vez
+  no navegador do robô. As fichas e fotos passam a ficar salvas no banco do site.
+- Sincroniza sozinho ao salvar e a cada 3 minutos (botão ☁ na lateral).
+- Em outro PC: instale, conecte, e o robô traz todas as fichas.
+- Nada é apagado: o que sai vai para produtos\_lixeira.
+
 FOTOS POR VARIAÇÃO
 - Seção Fotos › "Por variação": cada linha é uma variação com as fotos dela.
   Toque em "Escolher fotos" e clique nas fotos que entram. A primeira é a capa.
