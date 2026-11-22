@@ -18,6 +18,7 @@ import tempfile
 import threading
 import traceback
 import webbrowser
+from datetime import datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox
 
@@ -405,6 +406,10 @@ class App(ctk.CTk):
         self.parar_flag = threading.Event()
         self.site = None
         self.ml = None
+        self._sync_id = None
+        self._sync_rodando = False
+        self._sync_de_novo = False
+        self._sync_quieto = False
         self.mapa = {}
         self.paginas = {}
         self.pagina = None
@@ -427,6 +432,10 @@ class App(ctk.CTk):
         self.paginas["concorrentes"] = PaginaConcorrentes(self.area, self)
         self.paginas["materiais"] = PaginaMateriais(self.area, self)
         self.recarregar()
+        if motor.ler_conta():
+            self.bt_nuvem.configure(text="☁  FlowManeger conectado")
+        else:
+            self._mostrar_nuvem(None)
         self.ir("inicio")
         self._atalhos()
         self.after(120, self._ler_fila)
@@ -482,8 +491,11 @@ class App(ctk.CTk):
             self.tema.select()
         self.chip_nav = Chip(lat, "Navegador fechado", "#3b2a63")
         self.chip_nav.grid(row=11, column=0, sticky="w", padx=16, pady=(0, 6))
+        self.bt_nuvem = ctk.CTkButton(lat, text="☁  Fichas só neste PC", anchor="w", height=26, corner_radius=8, fg_color="#2a1d47",
+                                      hover_color="#3b2a63", text_color="#d6d0ea", font=F(11, "bold"), command=self.clique_nuvem)
+        self.bt_nuvem.grid(row=12, column=0, sticky="ew", padx=14, pady=(0, 6))
         self.lbl_site = ctk.CTkLabel(lat, text="", text_color="#8b84a8", font=F(11), anchor="w", justify="left", wraplength=190)
-        self.lbl_site.grid(row=12, column=0, sticky="ew", padx=18, pady=(0, 18))
+        self.lbl_site.grid(row=13, column=0, sticky="ew", padx=18, pady=(0, 18))
 
     def _rodape(self):
         rod = ctk.CTkFrame(self, corner_radius=0, fg_color=PAINEL, border_width=0, height=46)
@@ -590,6 +602,101 @@ class App(ctk.CTk):
             self.paginas["feitas"].carregar()
         if self.pagina is self.paginas.get("inicio"):
             self.paginas["inicio"].desenhar()
+        if self._sync_quieto:
+            self._sync_quieto = False
+        else:
+            self.agendar_sync(2500)
+
+    # ---------------------------------------------------------- fichas no banco do FlowManeger
+
+    def nuvem(self):
+        r = self.cfg["robo"]
+        ed = self.paginas.get("editor")
+        abertas = lambda: {str(ed.ficha.pasta)} if ed is not None and ed.winfo_exists() and getattr(ed, "ficha", None) else set()
+        return motor.Nuvem(r["site"], self.pasta(), avisar=lambda t: self.fila.put(("nuvem_aviso", None, t)), ocupadas=abertas)
+
+    def agendar_sync(self, ms=2500):
+        if self._sync_id:
+            try:
+                self.after_cancel(self._sync_id)
+            except Exception:
+                pass
+        self._sync_id = self.after(ms, self.sincronizar)
+
+    def sincronizar(self, avisar=False):
+        self._sync_id = None
+        if not motor.ler_conta():
+            self._mostrar_nuvem(None)
+            if avisar:
+                self.conectar_nuvem()
+            return
+        if self._sync_rodando:
+            self._sync_de_novo = True
+            return
+        if self.rodando:          # o cadastro mexe nas pastas: sincroniza quando acabar
+            self.agendar_sync(15000)
+            return
+        nv = self.nuvem()
+        self._sync_rodando = True
+        self._mostrar_nuvem("rodando")
+
+        def rodar():
+            try:
+                res = nv.sincronizar()
+                self.fila.put(("nuvem_ok", None, (res, avisar)))
+            except Exception as e:
+                self.fila.put(("nuvem_erro", None, (str(e), avisar, nv.conectada)))
+        threading.Thread(target=rodar, daemon=True).start()
+
+    def _mostrar_nuvem(self, estado, texto=None):
+        if estado is None:
+            self.bt_nuvem.configure(text="☁  Fichas só neste PC · conectar", fg_color="#2a1d47", text_color="#d6d0ea")
+        elif estado == "rodando":
+            self.bt_nuvem.configure(text="☁  Sincronizando…", fg_color="#2a1d47", text_color="#d6d0ea")
+        elif estado == "ok":
+            self.bt_nuvem.configure(text=f"☁  Salvas no site · {datetime.now():%H:%M}", fg_color="#1f3b2c", text_color="#bff0cf")
+        else:
+            self.bt_nuvem.configure(text="☁  " + (texto or "Não sincronizou"), fg_color="#4a3413", text_color="#ffd99a")
+        pc = self.paginas.get("config")
+        if pc is not None:
+            pc.mostrar_nuvem()
+
+    def clique_nuvem(self):
+        if motor.ler_conta():
+            self.sincronizar(avisar=True)
+        else:
+            self.conectar_nuvem()
+
+    def conectar_nuvem(self):
+        if self.rodando or self.ocupado_ml:
+            messagebox.showinfo("Robô", "Espere o robô terminar o que está fazendo.")
+            return
+        if not messagebox.askyesno("Salvar as fichas no FlowManeger",
+                                   "O robô vai abrir o navegador dele no site para você entrar na conta (só na primeira vez).\n\n"
+                                   "Depois disso, todas as fichas e fotos ficam guardadas no banco do FlowManeger. Este PC "
+                                   "continua com uma cópia para trabalhar, e em outro PC o robô traz as fichas sozinho.\n\nConectar agora?"):
+            return
+        self.status("Conectando ao FlowManeger… se aparecer o login no navegador, entre na sua conta.")
+        self._mostrar_nuvem("rodando")
+        self.tarefas.put(("conectar_nuvem", None))
+
+    def _conectar_nuvem(self):
+        try:
+            site = self._garantir_site()
+            if not site.visivel:
+                site.fechar()
+                site.visivel = True
+            chave, usuario = site.pegar_chave(nome_pc=os.environ.get("COMPUTERNAME") or "")
+            motor.salvar_conta(self.cfg["robo"]["site"], chave, usuario)
+            self.fila.put(("nuvem_conectada", None, usuario))
+        except Exception as e:
+            self.fila.put(("nuvem_erro", None, (str(e), True, False)))
+
+    def desconectar_nuvem(self):
+        if messagebox.askyesno("Desconectar", "Parar de salvar as fichas no FlowManeger neste PC?\n\n"
+                               "Nada é apagado: as fichas continuam no site e neste PC."):
+            motor.desconectar_conta()
+            self._mostrar_nuvem(None)
 
     def selecionar(self, cartao):
         self.paginas["fichas"].selecionar(cartao)
@@ -702,8 +809,14 @@ class App(ctk.CTk):
         self.tarefas.put(("ml_fotos", pastas))
 
     # ---------------------------------------------------------- atualização e cópia das fichas
+    def _sync_periodico(self):
+        if motor.ler_conta():
+            self.sincronizar()
+        self.after(180000, self._sync_periodico)
+
     def _ao_abrir(self):
         r = self.cfg["robo"]
+        self._sync_periodico()
         if motor.sim(r.get("copia_diaria", "sim")):
             def copiar():
                 try:
@@ -893,6 +1006,8 @@ class App(ctk.CTk):
                     self._ml_importar_lote(dado)
                 elif tipo == "ml_fotos":
                     self._ml_fotos(dado)
+                elif tipo == "conectar_nuvem":
+                    self._conectar_nuvem()
                 elif tipo == "fechar_site":
                     self._fechar_site()
                     self.fila.put(("site", None, "fechado"))
@@ -1127,6 +1242,55 @@ class App(ctk.CTk):
 
     def _evento(self, ev, f, t):
         pf = self.paginas["fichas"]
+        if ev == "nuvem_aviso":
+            self.escrever(t)
+            return
+        if ev == "nuvem_conectada":
+            self.toast(f"Conectado ao FlowManeger{(' como ' + t) if t else ''}. Salvando as fichas no site…", VERDE)
+            self.status("Pronto.")
+            self.sincronizar(avisar=True)
+            return
+        if ev in ("nuvem_ok", "nuvem_erro"):
+            self._sync_rodando = False
+            if ev == "nuvem_ok":
+                res, avisar = t
+                if res["erros"]:
+                    self._mostrar_nuvem("erro", f"{len(res['erros'])} ficha(s) não sincronizaram")
+                    for e in res["erros"]:
+                        self.escrever("Site: " + e)
+                    if avisar:
+                        self.status("Não sincronizou: " + " | ".join(res["erros"])[:300])
+                else:
+                    self._mostrar_nuvem("ok")
+                partes = []
+                if res["subiram"]:
+                    partes.append(f"{res['subiram']} salva(s) no site")
+                if res["desceram"]:
+                    partes.append(f"{res['desceram']} trazida(s) do site")
+                if res["excluidas"]:
+                    partes.append(f"{res['excluidas']} foram para a lixeira")
+                if partes:
+                    self.escrever("Fichas no FlowManeger: " + ", ".join(partes))
+                if res["desceram"] or res["excluidas"]:
+                    self._sync_quieto = True
+                    self.recarregar()
+                    self.toast("Fichas atualizadas pelo FlowManeger: " + ", ".join(partes), VERDE)
+                elif avisar:
+                    self.toast("Fichas salvas no FlowManeger" + (": " + ", ".join(partes) if partes else ", tudo em dia"), VERDE)
+            else:
+                msg, avisar, conectada = t
+                if not conectada and not motor.ler_conta():
+                    self._mostrar_nuvem(None)
+                else:
+                    self._mostrar_nuvem("erro", "Sem conexão com o site" if "conexão" in msg.lower() else "Não sincronizou")
+                self.escrever("Site: " + msg)
+                if avisar:
+                    self.status(msg[:300])
+                    messagebox.showwarning("FlowManeger", msg)
+            if self._sync_de_novo:
+                self._sync_de_novo = False
+                self.agendar_sync(1000)
+            return
         if ev == "ml_fotos_fim":
             self.ocupado_ml = False
             feitas, falhas = t
@@ -2450,6 +2614,19 @@ class PaginaConfig(ctk.CTkFrame):
         raiz = ctk.CTkScrollableFrame(self, fg_color="transparent")
         raiz.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=(0, 6), pady=(0, 10))
         raiz.grid_columnconfigure((0, 1), weight=1, uniform="cfg")
+        nv = ctk.CTkFrame(raiz, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA)
+        nv.grid(row=0, column=0, columnspan=2, sticky="new", padx=18, pady=(0, 16))
+        nv.grid_columnconfigure(0, weight=1)
+        ctk.CTkLabel(nv, text="☁  Fichas no FlowManeger", font=F(15, "bold"), text_color=TEXTO, anchor="w").grid(
+            row=0, column=0, sticky="w", padx=20, pady=(16, 0))
+        self.lbl_nuvem = ctk.CTkLabel(nv, text="", font=F(12), text_color=MUDO, anchor="w", justify="left", wraplength=760)
+        self.lbl_nuvem.grid(row=1, column=0, sticky="w", padx=20, pady=(4, 16))
+        bn = ctk.CTkFrame(nv, fg_color="transparent")
+        bn.grid(row=0, column=1, rowspan=2, sticky="e", padx=20)
+        self.bt_conectar = Botao(bn, "Conectar", "primario", width=150, command=app.conectar_nuvem)
+        self.bt_sync = Botao(bn, "⟳  Sincronizar agora", "suave", width=170, command=lambda: app.sincronizar(avisar=True))
+        self.bt_desc = Botao(bn, "Desconectar", "fantasma", width=120, command=app.desconectar_nuvem)
+        self.mostrar_nuvem()
         card = ctk.CTkFrame(raiz, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA)
         card.grid(row=1, column=0, sticky="new", padx=(18, 8))
         card.grid_columnconfigure(1, weight=1)
@@ -2565,6 +2742,22 @@ class PaginaConfig(ctk.CTkFrame):
         bts.grid(row=10, column=0, columnspan=2, sticky="e", padx=20, pady=20)
         Botao(bts, "Fechar o navegador do robô", "fantasma", width=200, command=lambda: app.tarefas.put(("fechar_site", None))).pack(side="left", padx=6)
         Botao(bts, "Salvar", "primario", width=140, command=self.salvar).pack(side="left")
+
+    def mostrar_nuvem(self):
+        conta = motor.ler_conta()
+        for b in (self.bt_conectar, self.bt_sync, self.bt_desc):
+            b.pack_forget()
+        if conta:
+            quem = f" na conta de {conta['usuario']}" if conta.get("usuario") else ""
+            self.lbl_nuvem.configure(text=f"Conectado{quem} ({conta.get('site')}). Cada ficha e as fotos dela ficam salvas no banco do site. "
+                                          "O robô sincroniza sozinho quando você salva e a cada 3 minutos; em outro PC, conecte e ele traz tudo. "
+                                          "Nada é apagado: o que sai vai para a lixeira.")
+            self.bt_sync.pack(side="left", padx=(0, 6))
+            self.bt_desc.pack(side="left")
+        else:
+            self.lbl_nuvem.configure(text="As fichas estão só neste PC. Conecte para guardar todas as fichas e fotos no banco do FlowManeger "
+                                          "(sem tela nova no site). O robô continua aqui e traz as fichas de lá em qualquer PC.")
+            self.bt_conectar.pack(side="left")
 
     def mostrar_versao(self, nova):
         atual = recursos.versao_local().get("versao") or "—"

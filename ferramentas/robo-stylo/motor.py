@@ -19,6 +19,11 @@ import shutil
 import sys
 import tempfile
 import time
+import hashlib
+import urllib.error
+import urllib.parse
+import urllib.request
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -647,6 +652,36 @@ class Site:
             "link": itens.nth(i).get_attribute("href"),
             "acao": itens.nth(i).locator(".if-tag").inner_text().strip() if itens.nth(i).locator(".if-tag").count() else "",
         } for i in range(itens.count())]
+
+    def pegar_chave(self, nome_pc="", esperar_login=600):
+        """Pede ao site (já logado neste navegador) a chave do robô para salvar as fichas no banco."""
+        self.abrir()
+        url = self.base + "/robo/conectar?pc=" + urllib.parse.quote(nome_pc or "Robô Móveis Stylo")
+        self.page.goto(url, wait_until="domcontentloaded")
+        if self._na_tela_de_login():
+            self.avisar("login")
+            fim = time.time() + esperar_login
+            while self._na_tela_de_login():
+                if self.parar():
+                    raise Parar()
+                if time.time() > fim:
+                    raise RuntimeError("O login não foi feito a tempo. Entre na conta e tente de novo.")
+                if self.page.is_closed():
+                    raise RuntimeError("A janela do navegador foi fechada.")
+                time.sleep(1)
+            time.sleep(1.5)
+            self.page.goto(url, wait_until="domcontentloaded")
+        try:
+            resp = self.ctx.request.get(url, headers={"Accept": "application/json"})   # usa o login deste navegador
+            dados = resp.json()
+            chave = dados["robo_chave"]
+        except Exception:
+            raise RuntimeError("O site ainda não tem a parte das fichas no banco. Ela precisa estar no ar.") from None
+        try:
+            self.page.goto(self.url_ficha, wait_until="domcontentloaded")   # tira a chave da tela
+        except Exception:
+            pass
+        return chave, dados.get("usuario") or ""
 
     def mostrar(self, url):
         try:
@@ -1563,3 +1598,279 @@ if __name__ == "__main__":
     if "--cadastrar" in sys.argv:
         feitas, falhas = rodar(fichas, cfg, lambda ev, f, t: print(ev, f.nome if f else "", t), lambda: False)
         print(f"Cadastradas: {feitas}  Falhas: {falhas}")
+
+
+# ------------------------------------------------------------ fichas no banco do site (FlowManeger)
+#
+# O site guarda cada ficha (ficha.md + fotos) na tabela robo_fichas. O robô continua trabalhando na pasta
+# produtos do PC (é a cópia local) e sincroniza: o que mudou aqui sobe, o que mudou no site (outro PC) desce.
+# Nada é apagado de verdade: aqui vai para _lixeira/_removidas, no site vai para o histórico/lixeira.
+
+ARQ_CONTA = BASE / "conta-site.json"
+ARQ_SYNC = BASE / "sync-fichas.json"
+EXTS_NUVEM = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".md", ".txt", ".json", ".csv", ".pdf"}
+
+
+class ErroNuvem(RuntimeError):
+    pass
+
+
+def ler_conta():
+    try:
+        d = json.loads(ARQ_CONTA.read_text(encoding="utf-8"))
+        return d if d.get("chave") else None
+    except Exception:
+        return None
+
+
+def salvar_conta(site, chave, usuario):
+    tmp = ARQ_CONTA.with_suffix(".tmp")
+    tmp.write_text(json.dumps({"site": site.rstrip("/"), "chave": chave, "usuario": usuario,
+                               "desde": datetime.now().isoformat(timespec="seconds")}, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, ARQ_CONTA)
+
+
+def desconectar_conta():
+    if ARQ_CONTA.exists():
+        ARQ_CONTA.replace(ARQ_CONTA.with_name("conta-site-antiga.json"))
+
+
+class Nuvem:
+    def __init__(self, site, pasta_produtos, avisar=lambda t: None, ocupadas=lambda: set()):
+        self.site = site.rstrip("/")
+        self.raiz = Path(pasta_produtos)
+        self.avisar = avisar
+        self.ocupadas = ocupadas
+        conta = ler_conta()
+        self.chave = conta["chave"] if conta and conta.get("site", "").rstrip("/") == self.site else None
+
+    @property
+    def conectada(self):
+        return bool(self.chave)
+
+    # ---- http
+    def _req(self, metodo, caminho, campos=None, arquivo=None, query=None, binario=False, tempo=60):
+        url = self.site + "/robo-api" + caminho + ("?" + urllib.parse.urlencode(query) if query else "")
+        cab = {"Authorization": "Bearer " + (self.chave or ""), "Accept": "application/json", "User-Agent": "RoboMoveisStylo"}
+        corpo = None
+        if metodo == "POST":
+            fronteira = "----robo" + uuid.uuid4().hex
+            partes = []
+            for k, v in (campos or {}).items():
+                partes.append(f'--{fronteira}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n'.encode() + str(v).encode("utf-8") + b"\r\n")
+            if arquivo:
+                nome_campo, caminho_arq, nome = arquivo
+                nome_seguro = nome.replace('"', "")
+                partes.append(f'--{fronteira}\r\nContent-Disposition: form-data; name="{nome_campo}"; filename="{nome_seguro}"\r\n'
+                              f"Content-Type: application/octet-stream\r\n\r\n".encode("utf-8") + Path(caminho_arq).read_bytes() + b"\r\n")
+            partes.append(f"--{fronteira}--\r\n".encode())
+            corpo = b"".join(partes)
+            cab["Content-Type"] = "multipart/form-data; boundary=" + fronteira
+        req = urllib.request.Request(url, data=corpo, headers=cab, method=metodo)
+        try:
+            with urllib.request.urlopen(req, timeout=tempo) as r:
+                dados = r.read()
+        except urllib.error.HTTPError as e:
+            texto = e.read().decode("utf-8", "replace")
+            try:
+                msg = json.loads(texto).get("erro") or json.loads(texto).get("message")
+            except Exception:
+                msg = ""
+            if e.code == 401:
+                self.chave = None
+                raise ErroNuvem(msg or "O robô não está conectado ao site. Conecte de novo nas Configurações.") from None
+            if e.code == 404 and caminho == "/eu":
+                raise ErroNuvem("O site ainda não tem a parte das fichas no banco.") from None
+            if e.code == 413:
+                raise ErroNuvem("Arquivo grande demais para o site.") from None
+            raise ErroNuvem(msg or f"O site respondeu com erro {e.code}.") from None
+        except urllib.error.URLError as e:
+            raise ErroNuvem(f"Sem conexão com o site ({e.reason}).") from None
+        return dados if binario else json.loads(dados.decode("utf-8") or "{}")
+
+    # ---- estado da última sincronização
+    def _ler_estado(self):
+        try:
+            d = json.loads(ARQ_SYNC.read_text(encoding="utf-8"))
+            if d.get("site") == self.site and d.get("pasta") == str(self.raiz):
+                return d
+        except Exception:
+            pass
+        return {"site": self.site, "pasta": str(self.raiz), "fichas": {}, "hash": {}}
+
+    def _gravar_estado(self, est):
+        tmp = ARQ_SYNC.with_suffix(".tmp")
+        tmp.write_text(json.dumps(est, ensure_ascii=False, indent=1), encoding="utf-8")
+        os.replace(tmp, ARQ_SYNC)
+
+    def _sha1(self, p, est):
+        st = p.stat()
+        chave = str(p)
+        c = est["hash"].get(chave)
+        if c and c[0] == st.st_size and c[1] == st.st_mtime_ns:
+            return c[2]
+        h = hashlib.sha1()
+        with open(p, "rb") as f:
+            for bloco in iter(lambda: f.read(1 << 20), b""):
+                h.update(bloco)
+        est["hash"][chave] = [st.st_size, st.st_mtime_ns, h.hexdigest()]
+        return h.hexdigest()
+
+    def _locais(self, est):
+        saida = {}
+        for situacao, raiz in (("aberta", self.raiz), ("feita", self.raiz / "feitos")):
+            if not raiz.is_dir():
+                continue
+            for p in raiz.iterdir():
+                if not p.is_dir() or p.name.startswith(".") or (situacao == "aberta" and p.name.lower() in IGNORAR):
+                    continue
+                if p.name in saida:
+                    continue
+                arqs = {a.name: self._sha1(a, est) for a in sorted(p.iterdir())
+                        if a.is_file() and a.suffix.lower() in EXTS_NUVEM and not a.name.startswith(".")}
+                saida[p.name] = {"dir": p, "situacao": situacao, "arquivos": arqs}
+        return saida
+
+    @staticmethod
+    def _editada(L):
+        return max([L["dir"].stat().st_mtime] + [(L["dir"] / n).stat().st_mtime for n in L["arquivos"]])
+
+    @staticmethod
+    def _assinatura(situacao, arquivos):
+        return situacao + "|" + "|".join(f"{n}:{h}" for n, h in sorted(arquivos.items()))
+
+    # ---- sincronizar
+    def testar(self):
+        return self._req("GET", "/eu")
+
+    def sincronizar(self, parar=lambda: False):
+        if not self.chave:
+            raise ErroNuvem("O robô não está conectado ao site.")
+        est = self._ler_estado()
+        remotas = {f["pasta"]: f for f in self._req("GET", "/fichas")["fichas"]}
+        locais = self._locais(est)
+        ocupadas = {Path(x).name for x in (self.ocupadas() or set())}
+        res = {"subiram": 0, "desceram": 0, "excluidas": 0, "erros": []}
+        for pasta in sorted(set(remotas) | set(locais)):
+            if parar():
+                break
+            if pasta in ocupadas:
+                continue
+            L, R, st = locais.get(pasta), remotas.get(pasta), est["fichas"].get(pasta)
+            try:
+                if L:
+                    sig_l = self._assinatura(L["situacao"], L["arquivos"])
+                    mudou_aqui = st is None or st.get("sig") != sig_l
+                if L and not R:
+                    self._subir(pasta, L, None, est); res["subiram"] += 1
+                elif L and R:
+                    sig_r = self._assinatura(R["situacao"], {a["nome"]: a["sha1"] for a in R["arquivos"]})
+                    mudou_la = st is None or st.get("versao") != R["versao"]
+                    if R["excluida"]:
+                        if mudou_aqui:
+                            self._subir(pasta, L, R, est); res["subiram"] += 1
+                        else:
+                            self._para_lixeira(L["dir"]); est["fichas"].pop(pasta, None); res["excluidas"] += 1
+                    elif sig_l == sig_r and R["completa"]:
+                        est["fichas"][pasta] = {"versao": R["versao"], "sig": sig_l}
+                    elif mudou_aqui and mudou_la:
+                        # mudou nos dois lugares: fica a mais nova; a outra é guardada (lixeira aqui ou histórico no site)
+                        recente_l = self._editada(L)
+                        try:
+                            recente_r = datetime.fromisoformat(R.get("editada_em") or R["atualizada"]).timestamp()
+                        except Exception:
+                            recente_r = 0
+                        if recente_l >= recente_r or not R["completa"]:
+                            self._subir(pasta, L, R, est); res["subiram"] += 1
+                        else:
+                            self._guardar_copia(L["dir"])
+                            self._descer(pasta, R, L, est); res["desceram"] += 1
+                    elif mudou_aqui or not R["completa"]:
+                        self._subir(pasta, L, R, est); res["subiram"] += 1
+                    elif mudou_la:
+                        self._descer(pasta, R, L, est); res["desceram"] += 1
+                elif R and not L:
+                    if R["excluida"]:
+                        est["fichas"].pop(pasta, None)
+                    elif st is not None and st.get("versao") == R["versao"]:
+                        # foi apagada (lixeira) neste PC: tira da lista do site também (lá não apaga os arquivos)
+                        self._req("POST", "/fichas/excluir", {"pasta": pasta})
+                        est["fichas"].pop(pasta, None); res["excluidas"] += 1
+                    elif R["completa"]:
+                        self._descer(pasta, R, None, est); res["desceram"] += 1
+            except ErroNuvem as e:
+                res["erros"].append(f"{pasta}: {e}")
+                if not self.chave:
+                    break
+            finally:
+                self._gravar_estado(est)
+        vivos = {str(v["dir"] / n) for v in locais.values() for n in v["arquivos"]}
+        est["hash"] = {k: v for k, v in est["hash"].items() if k in vivos}
+        self._gravar_estado(est)
+        return res
+
+    def _subir(self, pasta, L, R, est):
+        self.avisar(f"Salvando no site: {pasta}")
+        conteudo = ""
+        for nome in ("ficha.md", "ficha.txt", "ficha.json"):
+            if nome in L["arquivos"]:
+                conteudo = (L["dir"] / nome).read_text(encoding="utf-8", errors="replace")
+                break
+        else:
+            outro = next((n for n in L["arquivos"] if n.lower().endswith((".md", ".txt"))), None)
+            if outro:
+                conteudo = (L["dir"] / outro).read_text(encoding="utf-8", errors="replace")
+        lista = [{"nome": n, "sha1": h} for n, h in L["arquivos"].items()]
+        campos = {"pasta": pasta, "conteudo": conteudo, "situacao": L["situacao"], "arquivos": json.dumps(lista),
+                  "editada_em": datetime.fromtimestamp(self._editada(L)).astimezone().isoformat(timespec="seconds")}
+        if R:
+            campos["versao_base"] = R["versao"]
+        resp = self._req("POST", "/fichas/salvar", campos)
+        for nome in resp.get("faltam") or []:
+            self.avisar(f"Salvando no site: {pasta} · {nome}")
+            resp = self._req("POST", "/fichas/arquivo", {"pasta": pasta, "nome": nome}, arquivo=("arquivo", L["dir"] / nome, nome), tempo=180)
+        est["fichas"][pasta] = {"versao": resp["versao"], "sig": self._assinatura(L["situacao"], L["arquivos"])}
+
+    def _descer(self, pasta, R, L, est):
+        self.avisar(f"Trazendo do site: {pasta}")
+        destino = (self.raiz / "feitos" if R["situacao"] == "feita" else self.raiz) / pasta
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        if L and L["dir"] != destino:
+            if destino.exists():
+                self._para_lixeira(destino)
+            shutil.move(str(L["dir"]), str(destino))
+        destino.mkdir(exist_ok=True)
+        tmp = destino / ".baixando"
+        tmp.mkdir(exist_ok=True)
+        novos = {}
+        for a in R["arquivos"]:
+            atual = destino / a["nome"]
+            if atual.exists() and self._sha1(atual, est) == a["sha1"]:
+                novos[a["nome"]] = a["sha1"]
+                continue
+            dados = self._req("GET", "/fichas/arquivo", query={"pasta": pasta, "nome": a["nome"]}, binario=True, tempo=180)
+            if a.get("sha1") and hashlib.sha1(dados).hexdigest() != a["sha1"]:
+                raise ErroNuvem(f"o arquivo {a['nome']} veio incompleto")
+            (tmp / a["nome"]).write_bytes(dados)
+            novos[a["nome"]] = a["sha1"]
+        for p in list(destino.iterdir()):
+            if p.is_file() and p.suffix.lower() in EXTS_NUVEM and p.name not in novos and not p.name.startswith("."):
+                remover_foto(destino, p.name)       # vai para _removidas, não apaga
+        for p in tmp.iterdir():
+            os.replace(p, destino / p.name)
+        tmp.rmdir()
+        arqs = {n: self._sha1(destino / n, est) for n in novos}
+        est["fichas"][pasta] = {"versao": R["versao"], "sig": self._assinatura(R["situacao"], arqs)}
+
+    def _para_lixeira(self, pasta_dir):
+        lixo = self.raiz / "_lixeira"
+        lixo.mkdir(exist_ok=True)
+        destino = lixo / pasta_dir.name
+        if destino.exists():
+            destino = lixo / f"{pasta_dir.name} {datetime.now():%Y%m%d-%H%M%S}"
+        shutil.move(str(pasta_dir), str(destino))
+
+    def _guardar_copia(self, pasta_dir):
+        lixo = self.raiz / "_lixeira"
+        lixo.mkdir(exist_ok=True)
+        shutil.copytree(pasta_dir, lixo / f"{pasta_dir.name} (antes do site {datetime.now():%Y%m%d-%H%M%S})")
