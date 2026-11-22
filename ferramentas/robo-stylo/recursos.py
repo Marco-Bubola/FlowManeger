@@ -273,22 +273,64 @@ ARQ_CORES = motor.BASE / "cores.json"
 CORES_PADRAO = {"grupos": [
     {"chave": "ferragem", "nome": "Cor da ferragem", "prefixo": "", "canva": "estrutura de ferro pintada na cor {n}",
      "itens": [["Preto", "#1f1f1f"], ["Branco", "#f4f4f2"], ["Cinza", "#a3a7ab"], ["Bege", "#d8c7a8"], ["Grafite", "#3d4045"],
-               ["Marrom", "#5a3e2b"], ["Bronze", "#6b4a2f"], ["Dourado", "#c9a24a"]]},
-    {"chave": "corano", "nome": "Corano / tecido", "prefixo": "corano", "canva": "assento estofado em corano (couro sintético) na cor {n}",
+               ["Marrom", "#5a3e2b"], ["Bronze", "#6b4a2f"], ["Dourado", "#c9a24a"],
+               ["Preto fosco", "#262626"], ["Preto brilhante", "#0d0d0d"], ["Branco fosco", "#ecebe6"], ["Cinza platina", "#c4c6c8"],
+               ["Areia", "#cdb894"], ["Champagne", "#d6c29a"], ["Cobre", "#b0683c"], ["Rose gold", "#c99486"],
+               ["Prata", "#b9bcc0"], ["Cromado", "#dfe3e6"], ["Ouro velho", "#9a7b3c"], ["Ferrugem", "#8a4b2a"],
+               ["Verde militar", "#4b5a36"], ["Verde musgo", "#5f6b3a"], ["Azul marinho", "#1f2f55"], ["Vermelho", "#b3261e"],
+               ["Amarelo", "#e8b923"], ["Martelado prata", "#9ea3a8"]]},
+    {"chave": "corano", "nome": "Corano (couro sintético)", "prefixo": "corano", "canva": "assento estofado em corano (couro sintético) na cor {n}",
      "itens": [["Preto", "#1d1d1d"], ["Branco", "#f2f0ea"], ["Creme", "#e8d9a8"], ["Caramelo", "#d9a35a"], ["Fendi", "#a99a8a"],
                ["Marrom café", "#4e3428"], ["Amarelo", "#f2c500"], ["Laranja", "#f08a24"], ["Vermelho", "#d62a2a"],
                ["Rosa pink", "#e0417a"], ["Lilás", "#b9a6d6"], ["Roxo", "#6b3fa0"], ["Azul royal", "#2d4fb0"],
                ["Azul turquesa", "#1fb5c9"], ["Verde água", "#a7e3cf"], ["Verde", "#6aa53a"], ["Cinza claro", "#c9c9c9"],
-               ["Cinza escuro", "#6e6e6e"]]},
+               ["Cinza escuro", "#6e6e6e"],
+               ["Off white", "#ece6da"], ["Nude", "#d9b8a0"], ["Areia", "#cbb79a"], ["Conhaque", "#9a5a2c"], ["Tabaco", "#6f4a2e"],
+               ["Bordô", "#6d1a24"], ["Rosa bebê", "#f2c4cf"], ["Azul bebê", "#a9c8e8"], ["Azul marinho", "#1e2a4a"],
+               ["Verde musgo", "#5d6b3a"], ["Verde bandeira", "#1f7a3a"], ["Mostarda", "#c9a227"], ["Telha", "#b5532e"],
+               ["Grafite", "#3c3f44"], ["Dourado", "#c9a24a"], ["Prata", "#b9bcc0"]]},
+    {"chave": "tecido", "nome": "Tecido (suede, linho, veludo...)", "prefixo": "tecido",
+     "canva": "assento estofado em tecido {n}",
+     "itens": [["Suede cinza", "#8d8f93"], ["Suede bege", "#cdb79a"], ["Suede marrom", "#6b4a33"], ["Suede azul", "#3d5a80"],
+               ["Suede verde", "#5f7a4a"], ["Suede terracota", "#b5603c"], ["Linho cru", "#d9cfbd"], ["Linho cinza", "#a6a39c"],
+               ["Linho areia", "#cbb998"], ["Veludo verde", "#2f5d46"], ["Veludo azul", "#28406b"], ["Veludo rosa", "#d79aa6"],
+               ["Veludo mostarda", "#c29a2e"], ["Veludo cinza", "#7d7f84"], ["Bouclê off white", "#efe9dd"],
+               ["Bouclê cinza", "#bdb9b2"], ["Chenille bege", "#cbb69a"], ["Chenille cinza", "#8f8f8f"],
+               ["Jacquard cinza", "#9a9a9a"], ["Sarja preta", "#222222"], ["Impermeável cinza", "#7a7c80"]]},
     {"chave": "madeira", "nome": "Madeira / verniz", "prefixo": "madeira", "canva": "madeira no tom {n}",
-     "itens": [["Natural", "#d8b27a"], ["Mel", "#c58b46"], ["Castanho", "#7a4b2a"], ["Imbuia", "#5b3a24"], ["Preto", "#222222"]]},
+     "itens": [["Natural", "#d8b27a"], ["Mel", "#c58b46"], ["Castanho", "#7a4b2a"], ["Imbuia", "#5b3a24"], ["Preto", "#222222"],
+               ["Freijó", "#b98a57"], ["Carvalho", "#b48a5a"], ["Nogueira", "#6e4a30"], ["Cumaru", "#9a6a3c"],
+               ["Rústico", "#8a6440"], ["Branco", "#efece6"]]},
 ]}
 
 
+def _chaves_padrao_cores():
+    return sorted({f"{g['chave']}:{n}" for g in CORES_PADRAO["grupos"] for n, _ in g["itens"]} |
+                  {f"{g['chave']}:" for g in CORES_PADRAO["grupos"]})
+
+
 def ler_cores():
+    """Suas cores. Cores e grupos novos de uma versão nova entram sozinhos (as que você apagou não voltam)."""
     try:
         d = json.loads(ARQ_CORES.read_text(encoding="utf-8"))
         if isinstance(d, dict) and isinstance(d.get("grupos"), list):
+            vistos = d.get("padrao_visto")
+            if vistos is None:
+                vistos = {f"{g.get('chave')}:{n}" for g in d["grupos"] for n, *_ in g.get("itens", [])} | \
+                         {f"{g.get('chave')}:" for g in d["grupos"]}
+            vistos = set(vistos)
+            for gp in CORES_PADRAO["grupos"]:
+                g = next((x for x in d["grupos"] if x.get("chave") == gp["chave"]), None)
+                if g is None:
+                    if f"{gp['chave']}:" in vistos:
+                        continue
+                    g = json.loads(json.dumps({**gp, "itens": []}))
+                    pos = next((i for i, x in enumerate(d["grupos"]) if x.get("chave") == "madeira"), len(d["grupos"]))
+                    d["grupos"].insert(pos, g)
+                nomes = {str(n).lower() for n, *_ in g.get("itens", [])}
+                for n, h in gp["itens"]:
+                    if f"{gp['chave']}:{n}" not in vistos and n.lower() not in nomes:
+                        g.setdefault("itens", []).append([n, h])
             return d
     except Exception:
         pass
@@ -296,6 +338,8 @@ def ler_cores():
 
 
 def salvar_cores(d):
+    d = dict(d)
+    d["padrao_visto"] = _chaves_padrao_cores()
     tmp = ARQ_CORES.with_suffix(".tmp")
     tmp.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding="utf-8")
     os.replace(tmp, ARQ_CORES)
@@ -382,8 +426,24 @@ MATERIAIS_PADRAO = _tubos() + _ponteiras() + PES_E_RODIZIOS + [
     ["Espuma", "Espuma D33 5 cm", "m²", 75.0, ""],
     ["Espuma", "Espuma D33 10 cm", "m²", 140.0, ""],
     ["Tecido e estofado", "Corano (courino) largura 1,40 m", "m", 32.0, "1 m dá uns 12 assentos de 33 cm"],
+    ["Tecido e estofado", "Corano náutico (área externa, sol e chuva) 1,40 m", "m", 48.0, "não racha no sol; bom para varanda e piscina"],
+    ["Tecido e estofado", "Couro ecológico premium 1,40 m", "m", 58.0, "mais grosso e macio que o corano comum"],
+    ["Tecido e estofado", "Corano matelassê 1,40 m", "m", 52.0, "já vem costurado em gomos"],
     ["Tecido e estofado", "Suede largura 1,40 m", "m", 35.0, ""],
+    ["Tecido e estofado", "Suede amassado 1,40 m", "m", 38.0, ""],
+    ["Tecido e estofado", "Veludo 1,40 m", "m", 48.0, "brilho bonito em foto; marca com o uso"],
     ["Tecido e estofado", "Linho largura 1,40 m", "m", 45.0, ""],
+    ["Tecido e estofado", "Linhão (linho misto) 1,40 m", "m", 32.0, "visual de linho, mais barato"],
+    ["Tecido e estofado", "Bouclê 1,40 m", "m", 65.0, "tendência; peças de valor maior"],
+    ["Tecido e estofado", "Chenille 1,40 m", "m", 42.0, ""],
+    ["Tecido e estofado", "Jacquard 1,40 m", "m", 40.0, "estampado em relevo"],
+    ["Tecido e estofado", "Sarja 1,40 m", "m", 28.0, ""],
+    ["Tecido e estofado", "Tecido impermeável (tipo Acquablock) 1,40 m", "m", 58.0, "não mancha com líquido"],
+    ["Tecido e estofado", "Tela sling (área externa) 1,40 m", "m", 55.0, "cadeira de piscina, sem espuma"],
+    ["Tecido e estofado", "Oxford 1,50 m", "m", 12.0, "forro"],
+    ["Tecido e estofado", "Algodão cru 1,50 m", "m", 14.0, "forro por baixo do tecido"],
+    ["Tecido e estofado", "Linha de costura para estofado (cone)", "un", 18.0, ""],
+    ["Tecido e estofado", "Botão forrado para capitonê", "un", 0.8, ""],
     ["Tecido e estofado", "Manta acrílica", "m", 8.0, ""],
     ["Tecido e estofado", "TNT (fundo do assento)", "m", 2.5, ""],
     ["Tecido e estofado", "Grampos (caixa)", "un", 12.0, ""],
@@ -393,7 +453,32 @@ MATERIAIS_PADRAO = _tubos() + _ponteiras() + PES_E_RODIZIOS + [
     ["Pintura", "Pintura eletrostática terceirizada (por peça)", "un", 25.0, ""],
     ["Pintura", "Fundo / primer 900 ml", "un", 32.0, ""],
     ["Pintura", "Esmalte sintético 900 ml", "un", 42.0, ""],
+    ["Pintura", "Esmalte sintético galão 3,6 L", "un", 145.0, "pinta uns 40 m² por demão"],
+    ["Pintura", "Fundo antiferrugem (zarcão) 900 ml", "un", 38.0, ""],
     ["Pintura", "Thinner 1 L", "L", 22.0, ""],
+    ["Pintura", "Lixa d'água / ferro (folha)", "un", 2.5, ""],
+    ["Pintura", "Desengraxante / desengordurante 1 L", "L", 18.0, "limpar o ferro antes de pintar"],
+    ["Tinta spray", "Spray uso geral 400 ml (cores lisas)", "un", 22.0, "1 lata cobre uns 1,5 a 2 m² em 2 demãos"],
+    ["Tinta spray", "Spray preto fosco 400 ml", "un", 22.0, "a mais usada na ferragem"],
+    ["Tinta spray", "Spray preto brilhante 400 ml", "un", 22.0, ""],
+    ["Tinta spray", "Spray preto acetinado (semibrilho) 400 ml", "un", 24.0, ""],
+    ["Tinta spray", "Spray branco fosco 400 ml", "un", 22.0, ""],
+    ["Tinta spray", "Spray branco brilhante 400 ml", "un", 22.0, ""],
+    ["Tinta spray", "Spray cinza / grafite 400 ml", "un", 23.0, ""],
+    ["Tinta spray", "Spray bege / areia 400 ml", "un", 24.0, ""],
+    ["Tinta spray", "Spray colorido (vermelho, azul, verde, amarelo) 400 ml", "un", 23.0, ""],
+    ["Tinta spray", "Spray metálico prata / alumínio 400 ml", "un", 28.0, ""],
+    ["Tinta spray", "Spray metálico dourado 400 ml", "un", 32.0, ""],
+    ["Tinta spray", "Spray metálico cobre / bronze / rose 400 ml", "un", 32.0, ""],
+    ["Tinta spray", "Spray cromado (efeito espelho) 400 ml", "un", 38.0, ""],
+    ["Tinta spray", "Spray efeito martelado 400 ml", "un", 34.0, ""],
+    ["Tinta spray", "Spray efeito envelhecido / ferrugem 400 ml", "un", 36.0, "visual rústico/industrial"],
+    ["Tinta spray", "Spray texturizado 400 ml", "un", 34.0, "esconde marca de solda"],
+    ["Tinta spray", "Spray alta temperatura (até 600 °C) 400 ml", "un", 36.0, "churrasqueira, braseiro"],
+    ["Tinta spray", "Spray primer / fundo cinza 400 ml", "un", 24.0, "passar antes da cor"],
+    ["Tinta spray", "Spray fundo antiferrugem (zarcão) 400 ml", "un", 26.0, ""],
+    ["Tinta spray", "Spray verniz incolor fosco ou brilho 400 ml", "un", 26.0, "proteger madeira ou ferro"],
+    ["Tinta spray", "Spray premium secagem rápida 400 ml", "un", 30.0, "cobre mais, menos latas por peça"],
     ["Solda e corte", "Arame MIG 0,8 mm", "kg", 38.0, ""],
     ["Solda e corte", "Eletrodo 6013", "kg", 32.0, ""],
     ["Solda e corte", "Disco de corte", "un", 4.0, ""],

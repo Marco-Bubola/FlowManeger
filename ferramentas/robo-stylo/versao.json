@@ -1,5 +1,5 @@
 {
-  "versao": 20,
+  "versao": 21,
   "data": "2026-11-22",
   "arquivos": [
     "janela.pyw",
@@ -14,14 +14,11 @@
     "instalar.bat"
   ],
   "novidades": [
-    "Tabela de materiais: ponteiras internas e externas de cada medida de tubo redondo (5/8\" a 1 1/2\") e de metalon (15×15 a 50×50 e retangulares), pés niveladores 1/4\", 5/16\" e 3/8\", sapatas roscadas para tubo e metalon, porca garra e rodízios (plástico, nylon e silicone, com e sem trava).",
-    "Itens novos da tabela entram sozinhos nas próximas versões, sem apagar o que você mudou (os que você excluiu não voltam).",
-    "Variações: marque várias (caixinha no cartão, “Todas” ou “Marcar” pelo nome, ex.: 54 cm) e ponha custo, venda e preço “de” em todas de uma vez.",
-    "“▦ Montar custo”: monte o custo pela tabela de materiais só para uma variação (botão ▦ ao lado do custo) ou para todas as marcadas.",
-    "Materiais e custos (no menu): tabela pronta de tubos (redondo e metalon, chapa 18 e 20), barras, madeira, espuma, corano, pintura, solda, acessórios, embalagem e horas de trabalho. Os preços são estimativas da internet: mude, exclua ou adicione.",
-    "Na ficha de custo, “▦ Da tabela de materiais”: ponha a quantidade e toque no material; ele entra com o preço da tabela.",
-    "O questionário para a IA já leva a sua tabela, para ela montar a ficha de custo com os seus preços.",
-    "Cores em cada variação: o cartão mostra a ferragem e o corano com a bolinha da cor; o botão 🎨 troca a cor só daquela variação (nome e pedido do Canva mudam juntos).",
-    "Kits: embaixo do preço aparece o preço por unidade, e o botão “× kit” recalcula custo, preço e peso pela variação de 1 unidade."
+    "Fotos mais fáceis: na seção Fotos, “Por variação” mostra cada variação com as fotos dela. Toque em “Escolher fotos” e clique nas fotos que entram (a primeira vira a capa daquela variação).",
+    "Várias variações de uma vez: marque (ex.: todas de 54 cm) e use “☑ Fotos das marcadas”. “Todas as fotos em todas” volta tudo ao normal.",
+    "Em “Todas as fotos”, cada foto tem um botão só dizendo onde ela entra (Em todas, Só: Mesa, Em 3 variações, Não usada). O aviso mostra quantas variações estão sem foto.",
+    "Tabela de materiais: muitos tecidos novos (corano náutico, couro ecológico, matelassê, suede amassado, veludo, linhão, bouclê, chenille, jacquard, sarja, impermeável, tela sling, forros) com preço por metro.",
+    "Nova categoria Tinta spray: preto fosco, brilhante e acetinado, branco, cinza, bege, coloridas, metálicas (prata, dourado, cobre), cromado, martelado, envelhecido, texturizado, alta temperatura, primer, antiferrugem e verniz. Mais esmalte em galão, zarcão, lixa e desengraxante.",
+    "Minhas cores: mais cores de ferragem (preto fosco, champagne, cobre, rose gold, cromado, ouro velho, verde militar...), mais cores de corano, um grupo novo de Tecido (suede, linho, veludo, bouclê...) e mais tons de madeira. As cores que você já tinha continuam lá."
   ]
 }

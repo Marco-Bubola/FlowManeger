@@ -148,9 +148,12 @@ MATERIAIS E CUSTOS (menu Ajustes)
 - O questionário para a IA leva a tabela junto.
 
 FOTOS POR VARIAÇÃO
-- Embaixo de cada foto: "Todas as variações", "Só a cor", "Só: uma variação",
-  "Não usar", ou "☑ Quais variações" para marcar várias (ex.: a foto da mesa na
-  Mesa, Mesa + 2 e Mesa + 4, e não na Cadeira).
+- Seção Fotos › "Por variação": cada linha é uma variação com as fotos dela.
+  Toque em "Escolher fotos" e clique nas fotos que entram. A primeira é a capa.
+- Várias de uma vez: marque as variações (ex.: "54 cm" em Marcar) e use
+  "☑ Fotos das marcadas". "Todas as fotos em todas" volta ao normal.
+- "Todas as fotos": cada foto tem um botão que diz onde ela entra; toque nele
+  para trocar (ex.: a foto da mesa só na Mesa, Mesa + 2 e Mesa + 4).
 
 IMAGENS COM IA (no editor, seção Fotos ou no ✦ de cada variação)
 - "✦ Criar no Canva": escolha a variação (◀ ▶ ou "Próxima variação sem

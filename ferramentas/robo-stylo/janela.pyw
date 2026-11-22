@@ -3837,6 +3837,10 @@ class Editor(ctk.CTkFrame):
         if hasattr(self, "lbl_marcadas"):
             n = len(self.marcadas_var())
             self.lbl_marcadas.configure(text=f"{n} marcada(s)" if n else "")
+        try:
+            self.bt_fotos_marc.configure(text=f"☑  Fotos das marcadas ({len(self.marcadas_var())})")
+        except Exception:
+            pass
 
     def marcar_todas_var(self, sim):
         for l in self.linhas:
@@ -4050,15 +4054,22 @@ class Editor(ctk.CTkFrame):
 
     # fotos
     def _fotos(self):
-        s = Secao(self.corpo, "Fotos", "A primeira é a capa. Escolha se cada foto vale para todas as variações ou só para uma.")
+        s = Secao(self.corpo, "Fotos", "Adicione as fotos e diga em quais variações cada uma entra. A primeira de cada variação é a capa dela.")
         s.grid(row=4, column=0, sticky="ew", padx=10, pady=8)
         Botao(s.acoes, "✦  Deixar prontas", "fantasma", width=140, command=lambda: FotosProntas(self)).pack(side="right", padx=(6, 0))
         Botao(s.acoes, "Gemini", "fantasma", width=80, command=lambda: ImagensIA(self)).pack(side="right", padx=(6, 0))
         Botao(s.acoes, "✦  Criar no Canva", "suave", width=140, command=lambda: ImagensIA(self, "canva")).pack(side="right", padx=(6, 0))
         Botao(s.acoes, "Colar imagem", "fantasma", width=120, command=self.colar_imagem).pack(side="right", padx=(6, 0))
         Botao(s.acoes, "＋  Adicionar fotos", "suave", width=150, command=self.escolher_fotos).pack(side="right")
+        modo = ctk.CTkFrame(s, fg_color="transparent")
+        modo.grid(row=1, column=0, columnspan=4, sticky="ew", padx=20, pady=(0, 6))
+        self.modo_fotos = _seg(modo, ["Por variação", "Todas as fotos"], command=lambda v: self.desenhar_fotos())
+        self.modo_fotos.pack(side="left")
+        self.lbl_modo = ctk.CTkLabel(modo, text="", font=F(11), text_color=MUDO, anchor="w", justify="left", wraplength=520)
+        self.lbl_modo.pack(side="left", padx=12)
         self.grade_fotos = ctk.CTkFrame(s, fg_color="transparent")
-        self.grade_fotos.grid(row=1, column=0, columnspan=4, sticky="ew", padx=16, pady=(4, 16))
+        self.grade_fotos.grid(row=2, column=0, columnspan=4, sticky="ew", padx=16, pady=(4, 16))
+        self._mini_cache = {}
         self._carregar_fotos()
         self.desenhar_fotos()
 
@@ -4139,9 +4150,52 @@ class Editor(ctk.CTkFrame):
         if self.linhas:
             self._fotos_var()
 
+    # ---- quais variações usam cada foto
+    def _mini(self, caminho, lado):
+        k = (str(caminho), lado)
+        if k not in self._mini_cache:
+            self._mini_cache[k] = miniatura(caminho, lado, 10)
+            if self._mini_cache[k]:
+                self.app._refs.append(self._mini_cache[k])
+        return self._mini_cache[k]
+
+    def linhas_da_foto(self, f):
+        if f.removida or f.uso == "nao":
+            return []
+        if f.uso == "todas":
+            return list(self.linhas)
+        if isinstance(f.uso, str) and f.uso.startswith("cor:"):
+            return [l for l in self.linhas if self._cor_da_linha(l) == f.uso[4:]] or list(self.linhas)
+        return [l for l in self.linhas if f.de(l)]
+
+    def definir_linhas(self, f, linhas):
+        sel = [l for l in self.linhas if l in linhas]
+        if not sel:
+            f.uso = "nao"
+        elif len(sel) == len(self.linhas):
+            f.uso = "todas"
+        else:
+            f.uso = sel[0] if len(sel) == 1 else tuple(sel)
+
+    def fotos_da_linha(self, l):
+        return [f for f in self.fotos if not f.removida and l in self.linhas_da_foto(f)]
+
     def _desenhar_fotos(self):
         for w in self.grade_fotos.winfo_children():
             w.destroy()
+        vis = [f for f in self.fotos if not f.removida]
+        multi = len(self.linhas) > 1
+        if hasattr(self, "modo_fotos"):
+            if multi:
+                self.modo_fotos.pack(side="left")
+            else:
+                self.modo_fotos.pack_forget()
+            if multi and self.modo_fotos.get() == "Por variação" and vis:
+                self.lbl_modo.configure(text="Cada linha é uma variação: toque em “Escolher fotos” e marque as fotos dela. "
+                                             "Para várias de uma vez, marque as variações (caixinha) e use “Fotos das marcadas”.")
+                return self._desenhar_por_variacao(vis)
+            self.lbl_modo.configure(text="Arraste a ordem com ◀ ▶ (★ = capa). Em cada foto, “Variações” diz onde ela entra." if multi
+                                    else "A primeira foto é a capa. Use ◀ ▶ para mudar a ordem.")
         vis = [f for f in self.fotos if not f.removida]
         if not vis:
             ctk.CTkLabel(self.grade_fotos, text="Nenhuma foto. Toque em “＋ Adicionar fotos” (pode escolher uma por vez ou várias).",
@@ -4165,14 +4219,16 @@ class Editor(ctk.CTkFrame):
             if f.nova:
                 Chip(cel, "nova", VERDE).place(x=12 if i else 62, y=12)
             ctk.CTkLabel(cel, text=f.caminho.name[:22], font=F(10), text_color=MUDO).pack()
-            m = ctk.CTkOptionMenu(cel, values=opcoes, width=150, height=26, font=F(11), dropdown_font=F(11), corner_radius=8,
-                                  fg_color=PAINEL, button_color=ROXO_CLARO, button_hover_color=("#ddd6fe", "#3a2f68"), text_color=TEXTO,
-                                  command=lambda v, f=f: self._mudar_uso(f, v))
-            m.set(self._uso_txt(f))
-            m.pack(padx=8, pady=(4, 2))
-            if len(self.linhas) > 1 and f.uso != "nao":
-                Botao(cel, "☑  Quais variações", "fantasma", width=150, height=24, font=F(11),
-                      command=lambda f=f: EscolherVariacoes(self, f)).pack(padx=8)
+            n = len(self.linhas_da_foto(f))
+            if multi:
+                txt = "Em todas" if f.uso == "todas" else "Não usada" if not n else (
+                    f"Só: {cortar(self.linhas_da_foto(f)[0].rotulo(), 18)}" if n == 1 else f"Em {n} variações")
+                Botao(cel, f"☑  {txt}", "suave" if n else "fantasma", width=150, height=28, font=F(11, "bold"),
+                      text_color=ROXO_TXT if n else MUDO, command=lambda f=f: EscolherVariacoes(self, f)).pack(padx=8, pady=(4, 2))
+            else:
+                usada = f.uso != "nao"
+                Botao(cel, "✓  Usada" if usada else "Não usada", "suave" if usada else "fantasma", width=150, height=28, font=F(11, "bold"),
+                      command=lambda f=f: (setattr(f, "uso", "nao" if f.uso != "nao" else "todas"), self.desenhar_fotos())).pack(padx=8, pady=(4, 2))
             bts = ctk.CTkFrame(cel, fg_color="transparent")
             bts.pack(pady=(2, 8))
             pb = dict(width=32, height=26, font=F(12))
@@ -4180,6 +4236,43 @@ class Editor(ctk.CTkFrame):
             dica(Botao(bts, "★", "fantasma", command=lambda f=f: self._mover(f, -999), **pb), "Usar como capa").pack(side="left", padx=1)
             dica(Botao(bts, "▶", "fantasma", command=lambda f=f: self._mover(f, 1), **pb), "Mover para a direita").pack(side="left", padx=1)
             Botao(bts, "✕", "perigo", command=lambda f=f: self._remover_foto(f), **pb).pack(side="left", padx=(6, 1))
+
+    def _desenhar_por_variacao(self, vis):
+        g = self.grade_fotos
+        g.grid_columnconfigure(0, weight=1)
+        bar = ctk.CTkFrame(g, fg_color="transparent")
+        bar.grid(row=0, column=0, sticky="ew", pady=(0, 6))
+        marc = self.marcadas_var() if hasattr(self, "lote") else []
+        self.bt_fotos_marc = Botao(bar, f"☑  Fotos das marcadas ({len(marc)})", "suave", width=200, height=32, font=F(12, "bold"),
+                                   command=lambda: EscolherFotos(self, self.marcadas_var()) if self.marcadas_var()
+                                   else self.app.toast("Marque as variações em Variações (caixinha ou “Marcar”)", AMBAR))
+        self.bt_fotos_marc.pack(side="left")
+        Botao(bar, "Todas as fotos em todas", "fantasma", width=180, height=32, font=F(12),
+              command=lambda: ([setattr(f, "uso", "todas") for f in vis], self.desenhar_fotos())).pack(side="left", padx=8)
+        sem = [l for l in self.linhas if not self.fotos_da_linha(l)]
+        if sem:
+            ctk.CTkLabel(bar, text=f"{len(sem)} sem foto", font=F(12, "bold"), text_color=AMBAR).pack(side="left", padx=8)
+        for r, l in enumerate(self.linhas, 1):
+            suas = self.fotos_da_linha(l)
+            fr = ctk.CTkFrame(g, fg_color=VIDRO, corner_radius=14, border_width=1, border_color=VIDRO_BORDA if suas else AMBAR)
+            fr.grid(row=r, column=0, sticky="ew", pady=3)
+            fr.grid_columnconfigure(1, weight=1)
+            nome = ctk.CTkFrame(fr, fg_color="transparent", width=250)
+            nome.grid(row=0, column=0, sticky="w", padx=(12, 8), pady=8)
+            ctk.CTkLabel(nome, text=cortar(l.rotulo(), 34), font=F(13, "bold"), text_color=TEXTO if l.ativa else MUDO, anchor="w",
+                         width=250).pack(anchor="w")
+            ctk.CTkLabel(nome, text=(f"{len(suas)} foto(s)" if suas else "sem foto") + ("" if l.ativa else " · não sobe"), font=F(11),
+                         text_color=MUDO if suas else AMBAR, anchor="w").pack(anchor="w")
+            tira = ctk.CTkFrame(fr, fg_color="transparent")
+            tira.grid(row=0, column=1, sticky="w", pady=6)
+            for i, f in enumerate(suas[:9]):
+                img = self._mini(f.caminho, 52)
+                ctk.CTkLabel(tira, text="" if img else "foto", image=img, width=52, height=52, corner_radius=10,
+                             fg_color=ROXO if i == 0 else "transparent").pack(side="left", padx=2)
+            if len(suas) > 9:
+                ctk.CTkLabel(tira, text=f"+{len(suas) - 9}", font=F(12, "bold"), text_color=MUDO).pack(side="left", padx=4)
+            Botao(fr, "Escolher fotos", "suave", width=120, height=32, font=F(12, "bold"),
+                  command=lambda l=l: EscolherFotos(self, [l])).grid(row=0, column=2, padx=12)
 
     def _mudar_uso(self, f, txt):
         if txt == "Todas as variações":
@@ -5217,6 +5310,60 @@ class EscolherCores(Dialogo):
         self.ao_usar(comb, marc)
 
 
+class EscolherFotos(Dialogo):
+    """Marca quais fotos entram numa variação (ou em várias marcadas de uma vez)."""
+
+    def __init__(self, editor, linhas):
+        self.editor, self.alvos = editor, list(linhas)
+        titulo = f"Fotos de: {cortar(linhas[0].rotulo(), 40)}" if len(linhas) == 1 else f"Fotos das {len(linhas)} variações marcadas"
+        super().__init__(editor.app, titulo, "Toque nas fotos para marcar ou desmarcar. A primeira marcada (na ordem das fotos) vira a capa.",
+                         larg=820, alt=640)
+        self.corpo.grid_rowconfigure(0, weight=1)
+        grade = ctk.CTkScrollableFrame(self.corpo, fg_color="transparent")
+        grade.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=8, pady=8)
+        self.sel = {}
+        vis = [f for f in editor.fotos if not f.removida]
+        for i, f in enumerate(vis):
+            em = editor.linhas_da_foto(f)
+            marcada = all(l in em for l in self.alvos)
+            parcial = not marcada and any(l in em for l in self.alvos)
+            self.sel[f] = marcada
+            cel = ctk.CTkFrame(grade, fg_color=ROXO_CLARO if marcada else SUAVE, corner_radius=14, border_width=3,
+                               border_color=ROXO if marcada else BORDA)
+            cel.grid(row=i // 5, column=i % 5, padx=5, pady=5)
+            img = editor._mini(f.caminho, 120)
+            foto = ctk.CTkLabel(cel, text="" if img else "foto", image=img, width=120, height=120)
+            foto.pack(padx=6, pady=(6, 2))
+            rot = ctk.CTkLabel(cel, text=("✓ entra" if marcada else "em algumas" if parcial else "não entra"), font=F(11, "bold"),
+                               text_color=ROXO_TXT if marcada else MUDO)
+            rot.pack(pady=(0, 6))
+            for w in (cel, foto, rot):
+                w.bind("<Button-1>", lambda e, f=f, cel=cel, rot=rot: self._tocar(f, cel, rot))
+                w.configure(cursor="hand2")
+        self.botao_ok("Usar estas fotos", self.ok)
+        self._contar()
+
+    def _tocar(self, f, cel, rot):
+        self.sel[f] = not self.sel[f]
+        on = self.sel[f]
+        cel.configure(fg_color=ROXO_CLARO if on else SUAVE, border_color=ROXO if on else BORDA)
+        rot.configure(text="✓ entra" if on else "não entra", text_color=ROXO_TXT if on else MUDO)
+        self._contar()
+
+    def _contar(self):
+        n = sum(1 for v in self.sel.values() if v)
+        self.lbl_rod.configure(text=f"{n} foto(s) marcada(s)" + ("" if n else " · sem foto, o produto fica sem imagem"))
+
+    def ok(self):
+        for f, on in self.sel.items():
+            atual = self.editor.linhas_da_foto(f)
+            novo = [l for l in self.editor.linhas if (l in atual and l not in self.alvos) or (on and l in self.alvos)]
+            self.editor.definir_linhas(f, novo)
+        self.destroy()
+        self.editor.desenhar_fotos()
+        self.editor.app.toast("Fotos escolhidas")
+
+
 class EscolherVariacoes(Dialogo):
     """Marca em quais variações uma foto entra (ex.: a foto da mesa na Mesa, Mesa + 2 e Mesa + 4, e não na Cadeira)."""
 
@@ -5232,6 +5379,13 @@ class EscolherVariacoes(Dialogo):
         bts.pack(side="left", padx=14)
         Botao(bts, "Marcar todas", "fantasma", width=120, height=28, font=F(12), command=lambda: self._todas(True)).pack(anchor="w")
         Botao(bts, "Desmarcar todas", "fantasma", width=120, height=28, font=F(12), command=lambda: self._todas(False)).pack(anchor="w", pady=4)
+        filtro = ctk.CTkFrame(topo, fg_color="transparent")
+        filtro.pack(side="left", padx=10)
+        ctk.CTkLabel(filtro, text="Marcar as que têm:", font=F(11, "bold"), text_color=MUDO).pack(anchor="w")
+        self.filtro = Entrada(filtro, width=170, height=30, placeholder_text="ex.: 75 cm, Mesa")
+        self.filtro.pack(anchor="w")
+        self.filtro.bind("<Return>", lambda e: self._por_nome())
+        Botao(filtro, "Marcar", "suave", width=70, height=26, font=F(11, "bold"), command=self._por_nome).pack(anchor="w", pady=(4, 0))
         self.corpo.grid_rowconfigure(1, weight=1)
         lista = ctk.CTkScrollableFrame(self.corpo, fg_color="transparent")
         lista.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=10, pady=(0, 10))
@@ -5245,6 +5399,13 @@ class EscolherVariacoes(Dialogo):
                 cb.select()
             self.caixas.append((cb, l))
         self.botao_ok("Usar nestas", self._ok)
+        self._contar()
+
+    def _por_nome(self):
+        pedacos = [p.strip().lower() for p in re.split(r"[,;]", self.filtro.get()) if p.strip()]
+        for cb, l in self.caixas:
+            if pedacos and all(p in l.rotulo().lower() for p in pedacos):
+                cb.select()
         self._contar()
 
     def _todas(self, sim):
