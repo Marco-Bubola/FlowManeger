@@ -32,10 +32,13 @@ class FichasController extends Controller
     public function conectar(Request $request): JsonResponse
     {
         $chave = Str::random(56);
+        $nome = Str::limit((string) $request->query('pc', 'Robô Móveis Stylo'), 110, '');
+        // Um PC conectando de novo troca a chave: a antiga para de funcionar.
+        DB::table('robo_tokens')->where('user_id', $request->user()->id)->where('nome', $nome)->delete();
         DB::table('robo_tokens')->insert([
             'user_id' => $request->user()->id,
             'token_hash' => hash('sha256', $chave),
-            'nome' => Str::limit((string) $request->query('pc', 'Robô Móveis Stylo'), 110, ''),
+            'nome' => $nome,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
