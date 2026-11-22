@@ -1750,7 +1750,7 @@ class Nuvem:
                         else:
                             self._para_lixeira(L["dir"]); est["fichas"].pop(pasta, None); res["excluidas"] += 1
                     elif sig_l == sig_r and R["completa"]:
-                        est["fichas"][pasta] = {"versao": R["versao"], "sig": sig_l}
+                        est["fichas"][pasta] = {"versao": R["versao"], "sig": sig_l, "em": time.time()}
                     elif st is None and R["completa"]:
                         # Primeira vez deste PC e já existe no site uma ficha diferente com o mesmo nome (veio de
                         # outro PC): não mistura. A deste PC ganha o nome do PC e sobe separada; a do site desce.
@@ -1764,6 +1764,8 @@ class Nuvem:
                     elif mudou_aqui and mudou_la:
                         # mudou nos dois lugares: fica a mais nova; a outra é guardada (lixeira aqui ou histórico no site)
                         recente_l = self._editada(L)
+                        if st and recente_l <= float(st.get("em") or 0):
+                            recente_l = time.time()   # mudou depois da última sincronização (ex.: cópia antiga colocada de volta)
                         try:
                             recente_r = datetime.fromisoformat(R.get("editada_em") or R["atualizada"]).timestamp()
                         except Exception:
@@ -1822,14 +1824,15 @@ class Nuvem:
                 conteudo = (L["dir"] / outro).read_text(encoding="utf-8", errors="replace")
         lista = [{"nome": n, "sha1": h} for n, h in L["arquivos"].items()]
         campos = {"pasta": pasta, "conteudo": conteudo, "situacao": L["situacao"], "arquivos": json.dumps(lista),
-                  "editada_em": datetime.fromtimestamp(self._editada(L)).astimezone().isoformat(timespec="seconds")}
+                  "editada_em": datetime.fromtimestamp(max(self._editada(L), float((est["fichas"].get(pasta) or {}).get("em") or 0) + 1)
+                                                        ).astimezone().isoformat(timespec="seconds")}
         if R:
             campos["versao_base"] = R["versao"]
         resp = self._req("POST", "/fichas/salvar", campos)
         for nome in resp.get("faltam") or []:
             self.avisar(f"Salvando no site: {pasta} · {nome}")
             resp = self._req("POST", "/fichas/arquivo", {"pasta": pasta, "nome": nome}, arquivo=("arquivo", L["dir"] / nome, nome), tempo=180)
-        est["fichas"][pasta] = {"versao": resp["versao"], "sig": self._assinatura(L["situacao"], L["arquivos"])}
+        est["fichas"][pasta] = {"versao": resp["versao"], "sig": self._assinatura(L["situacao"], L["arquivos"]), "em": time.time()}
 
     def _descer(self, pasta, R, L, est):
         self.avisar(f"Trazendo do site: {pasta}")
@@ -1860,7 +1863,7 @@ class Nuvem:
             os.replace(p, destino / p.name)
         tmp.rmdir()
         arqs = {n: self._sha1(destino / n, est) for n in novos}
-        est["fichas"][pasta] = {"versao": R["versao"], "sig": self._assinatura(R["situacao"], arqs)}
+        est["fichas"][pasta] = {"versao": R["versao"], "sig": self._assinatura(R["situacao"], arqs), "em": time.time()}
 
     def _para_lixeira(self, pasta_dir):
         lixo = self.raiz / "_lixeira"
