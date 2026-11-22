@@ -1,5 +1,5 @@
 @props([
-    // Parte aberta agora (inicio, banners, destaques, colecoes, aviso, automacoes, kits, cupons, pagamentos, pedidos, avaliacoes)
+    // Parte aberta agora (identidade, leis, tema, inicio, banners, destaques, colecoes, aviso, automacoes, kits, cupons, pagamentos, pedidos, avaliacoes)
     'current' => 'geral',
     // Na Vitrine as partes dela trocam sem recarregar (wire:click); nas outras telas viram links.
     'wire' => false,
@@ -13,9 +13,13 @@
         'Comece aqui' => [
             'geral' => ['Visão geral', 'bi-speedometer2', 'O que está pronto e o que falta', 'tab', 'resumo checklist pronto falta inicio'],
         ],
-        'Aparência da loja' => [
-            'identidade' => ['Identidade da loja', 'bi-person-badge', 'Logo, nome, contatos e páginas', 'tab', 'logo whatsapp instagram facebook tiktok fonte rodape sobre trocas entrega contato endereco horario nome'],
-            'inicio' => ['Página inicial', 'bi-house', 'Tema, cores e ordem dos blocos', 'tab', 'tema cores estilo fundo desenho cards botoes blocos ordem largura titulos natal black'],
+        'Sua loja' => [
+            'identidade' => ['Informações da loja', 'bi-shop', 'Logo, endereço, contatos e CNPJ', 'tab', 'identidade logo nome whatsapp instagram facebook tiktok contato endereco cep rua numero bairro cidade horario cnpj cpf razao social mei rodape pagamento'],
+            'leis' => ['Páginas e leis', 'bi-file-earmark-text', 'Sobre, entrega, trocas, privacidade', 'tab', 'paginas sobre trocas entrega lei lgpd privacidade termos arrependimento codigo defesa consumidor cookies'],
+        ],
+        'Aparência' => [
+            'tema' => ['Tema e estilo', 'bi-palette', 'Cores, fonte, cards e fundo', 'tab', 'tema cores estilo fundo desenho cards botoes fonte titulos paleta cantos natal black'],
+            'inicio' => ['Página inicial', 'bi-house', 'Modelo e ordem dos blocos', 'tab', 'modelo blocos ordem secoes arrumacao vantagens texto largura'],
             'banners' => ['Banners', 'bi-images', 'Carrossel, faixas e laterais', 'tab', 'carrossel faixa lateral imagem foto modelo'],
             'destaques' => ['Destaques', 'bi-star', 'Produtos da fileira de destaque', 'tab', 'fileira produtos estrela'],
             'paginas' => ['Páginas de produto', 'bi-file-earmark-richtext', 'Página especial para um produto', 'promotions.product-pages', 'pagina especial produto blocos video medidas perguntas depoimentos landing'],
@@ -41,7 +45,6 @@
         ],
         'Clientes' => [
             'avaliacoes' => ['Avaliações', 'bi-star-half', 'Notas e comentários', 'promotions.reviews', 'estrelas comentario nota'],
-            'leis' => ['Site dentro da lei', 'bi-shield-check', 'Privacidade, termos e dados da loja', 'tab', 'lei lgpd privacidade termos cnpj cpf arrependimento codigo defesa consumidor cookies'],
         ],
     ];
     $now = collect($groups)->flatMap(fn ($g) => $g)->get($current) ?? $groups['Comece aqui']['geral'];

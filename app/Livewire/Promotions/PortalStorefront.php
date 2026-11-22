@@ -437,6 +437,36 @@ class PortalStorefront extends Component
         $this->identity['privacy_bar'] = (bool) ($this->identity['privacy_bar'] ?? true);
     }
 
+    /** Resposta da busca do CEP para a tela (ok | rua | erro). */
+    public string $cepMsg = '';
+
+    /** Digitou o CEP: rua, bairro, cidade e UF vêm do ViaCEP; falta só o número. */
+    public function updatedIdentity($value, $key): void
+    {
+        if ($key !== 'cep') {
+            return;
+        }
+        $d = preg_replace('/\D+/', '', (string) $value);
+        $this->identity['cep'] = strlen($d) > 5 ? substr($d, 0, 5) . '-' . substr($d, 5, 3) : $d;
+        $this->cepMsg = '';
+        if (strlen($d) !== 8) {
+            return;
+        }
+        $r = \App\Services\Portal\ShippingService::lookup($d);
+        if (! $r) {
+            $this->cepMsg = 'erro';
+
+            return;
+        }
+        $this->identity['street'] = $r['rua'];
+        $this->identity['district'] = $r['bairro'];
+        $this->identity['city'] = $r['cidade'];
+        $this->identity['uf'] = $r['uf'];
+        $this->identity['number'] = '';
+        $this->cepMsg = $r['rua'] !== '' ? 'ok' : 'rua';
+        $this->dispatch('cep-found', field: $r['rua'] !== '' ? 'id-number' : 'id-street');
+    }
+
     public function updatedLogoUpload(): void
     {
         $this->validate(['logoUpload' => ['image', 'max:3072']], [], ['logoUpload' => 'logo']);
@@ -474,13 +504,25 @@ class PortalStorefront extends Component
             'identity.facebook' => ['nullable', 'string', 'max:120'],
             'identity.tiktok' => ['nullable', 'string', 'max:120'],
             'identity.address' => ['nullable', 'string', 'max:200'],
+            'identity.cep' => ['nullable', 'regex:/^\d{5}-?\d{3}$/'],
+            'identity.street' => ['nullable', 'string', 'max:120'],
+            'identity.number' => ['nullable', 'string', 'max:20'],
+            'identity.complement' => ['nullable', 'string', 'max:60'],
+            'identity.district' => ['nullable', 'string', 'max:80'],
+            'identity.city' => ['nullable', 'string', 'max:80'],
+            'identity.uf' => ['nullable', 'string', 'max:2'],
             'identity.hours' => ['nullable', 'string', 'max:200'],
             'identity.legal_name' => ['nullable', 'string', 'max:120'],
             'identity.document' => ['nullable', 'string', 'max:30'],
             'pages.*' => ['nullable', 'string', 'max:5000'],
-        ], [], ['identity.name' => 'nome da loja', 'identity.email' => 'e-mail', 'pages.*' => 'texto']);
+        ], [], ['identity.name' => 'nome da loja', 'identity.email' => 'e-mail', 'identity.cep' => 'CEP', 'identity.number' => 'número', 'pages.*' => 'texto']);
         $data = array_intersect_key($this->identity, array_flip(\App\Services\Portal\StoreIdentity::FIELDS));
         $data = array_map(fn ($v) => is_string($v) ? trim($v) : $v, $data);
+        $data['uf'] = strtoupper((string) ($data['uf'] ?? ''));
+        if (($data['street'] ?? '') !== '') {
+            $data['address'] = \App\Services\Portal\StoreIdentity::composeAddress($data);
+            $this->identity['address'] = $data['address'];
+        }
         $data['payments'] = array_values(array_intersect(array_keys(\App\Services\Portal\StoreIdentity::PAYMENTS), (array) ($data['payments'] ?? [])));
         $data['show_name'] = (bool) ($data['show_name'] ?? true);
         $data['privacy_bar'] = (bool) ($data['privacy_bar'] ?? true);
@@ -491,7 +533,7 @@ class PortalStorefront extends Component
         \App\Services\Portal\StoreIdentity::forget(Auth::id());
         $this->previewKey++;
         if (! $quiet) {
-            $this->dispatch('notify', type: 'success', message: 'Identidade da loja salva.');
+            $this->dispatch('notify', type: 'success', message: 'Informações da loja salvas.');
         }
     }
 
@@ -529,8 +571,8 @@ class PortalStorefront extends Component
         $pay = \App\Models\PaymentSetting::for($uid);
 
         return [
-            ['dados', 'bi-building', 'Nome, CPF/CNPJ e endereço da loja', $hasData ? 'Aparecem no rodapé de todas as páginas.' : 'Quem vende pela internet precisa mostrar o nome (ou razão social), o CPF ou CNPJ e o endereço. Preencha abaixo.', $hasData ? 'ok' : 'falta', 'Decreto 7.962/2013, art. 2º', 'dados'],
-            ['contato', 'bi-headset', 'Contato fácil de achar', $contact ? 'E-mail e WhatsApp/telefone no rodapé.' : 'Coloque um e-mail e um WhatsApp ou telefone na Identidade da loja.', $contact ? 'ok' : 'falta', 'Decreto 7.962/2013, art. 2º', 'identidade'],
+            ['dados', 'bi-building', 'Nome, CPF/CNPJ e endereço da loja', $hasData ? 'Aparecem no rodapé de todas as páginas.' : 'Quem vende pela internet precisa mostrar o nome (ou razão social), o CPF ou CNPJ e o endereço. Preencha em Informações da loja.', $hasData ? 'ok' : 'falta', 'Decreto 7.962/2013, art. 2º', 'identidade'],
+            ['contato', 'bi-headset', 'Contato fácil de achar', $contact ? 'E-mail e WhatsApp/telefone no rodapé.' : 'Coloque um e-mail e um WhatsApp ou telefone em Informações da loja.', $contact ? 'ok' : 'falta', 'Decreto 7.962/2013, art. 2º', 'identidade'],
             ['privacidade', 'bi-person-lock', 'Política de privacidade', $own('privacidade') ? 'Com o seu texto, no rodapé.' : 'No ar com o texto pronto (explica que dados guardamos e para quê). Revise se quiser.', $own('privacidade') ? 'ok' : 'aviso', 'LGPD, Lei 13.709/2018', 'privacidade'],
             ['termos', 'bi-file-earmark-text', 'Termos de compra', $own('termos') ? 'Com o seu texto, no rodapé.' : 'No ar com o texto pronto (preços, pedido, pagamento, entrega). Revise se quiser.', $own('termos') ? 'ok' : 'aviso', 'Código de Defesa do Consumidor', 'termos'],
             ['trocas', 'bi-arrow-counterclockwise', 'Arrependimento em 7 dias', $trocasOk ? ($own('trocas') ? 'Seu texto de trocas fala dos 7 dias.' : 'No ar com o texto pronto de trocas e arrependimento.') : 'O seu texto de trocas não fala do direito de desistir em 7 dias. Use o texto pronto ou acrescente.', $trocasOk ? 'ok' : 'falta', 'CDC, art. 49', 'trocas'],
@@ -824,7 +866,7 @@ class PortalStorefront extends Component
             'picked'        => $picked,
             'pickCats'      => $this->pickFor !== '' ? \App\Models\Category::where('user_id', $uid)->whereIn('id_category', StorefrontService::categoryCounts($uid)->keys())->orderBy('name')->get(['id_category', 'name']) : collect(),
             'catalogUrl'    => route('portal.catalog', ['userId' => $uid]),
-            'themes'        => $this->tab === 'inicio' ? HomeLayout::themes($this->kind) : [],
+            'themes'        => $this->tab === 'tema' ? HomeLayout::themes($this->kind) : [],
             'dateThemes'    => $this->tab === 'automacoes' ? HomeLayout::dateThemes($this->kind) : [],
             'secInfo'       => $this->tab === 'inicio' ? $this->sectionInfo($uid, $banners, $collections) : [],
             'navInfo'       => $this->navInfo($banners, $collections),
@@ -857,9 +899,10 @@ class PortalStorefront extends Component
         return [
             'Deixe a loja com a sua cara' => [
                 ['logo', 'bi-image', 'Logo e nome da loja', ($id['logo'] ?? null) ? 'Sua logo aparece no topo do site.' : 'Coloque a sua logo e o nome no topo do site.', (bool) ($id['logo'] ?? null), 'Colocar logo', $tab('identidade'), false],
+                ['endereco', 'bi-geo-alt', 'Endereço e horário', filled($id['address'] ?? null) ? \Illuminate\Support\Str::limit((string) $id['address'], 48) : 'Digite o CEP e o número: o resto vem sozinho.', filled($id['address'] ?? null), 'Pôr endereço', $tab('identidade'), false],
                 ['contatos', 'bi-whatsapp', 'WhatsApp e redes', $contacts ? $n($contacts, 'contato', 'contatos') . ' no rodapé do site.' : 'O cliente acha você pelo WhatsApp e pelas redes no rodapé.', $contacts > 0, 'Pôr contatos', $tab('identidade'), false],
-                ['tema', 'bi-palette', 'Tema e estilo', $styled ? 'Tema: ' . (HomeLayout::THEMES[$this->home_theme]['name'] ?? 'Cores da loja') . '.' : 'Escolha um dos 30 temas ou monte o seu estilo.', $styled, 'Escolher tema', $tab('inicio'), false],
-                ['paginas', 'bi-file-earmark-text', 'Sobre, trocas e entrega', $pages ? $pages . ' de 3 páginas escritas.' : 'Páginas que passam confiança para quem compra a primeira vez.', $pages > 0, 'Escrever', $tab('identidade'), true],
+                ['tema', 'bi-palette', 'Tema e estilo', $styled ? 'Tema: ' . (HomeLayout::THEMES[$this->home_theme]['name'] ?? 'Cores da loja') . '.' : 'Escolha um dos 30 temas ou monte o seu estilo.', $styled, 'Escolher tema', $tab('tema'), false],
+                ['paginas', 'bi-file-earmark-text', 'Sobre, trocas e entrega', $pages ? $pages . ' de 3 páginas escritas.' : 'Páginas que passam confiança para quem compra a primeira vez.', $pages > 0, 'Escrever', $tab('leis'), true],
             ],
             'Monte a vitrine' => [
                 ['banner', 'bi-images', 'Banner no topo', $liveHero ? $n($liveHero, 'banner', 'banners') . ' no ar no carrossel.' : 'O carrossel do topo é a primeira coisa que o cliente vê.', $liveHero > 0, 'Criar banner', $tab('banners'), false],
@@ -898,8 +941,9 @@ class PortalStorefront extends Component
 
         return [
             'geral'     => null,
-            'identidade' => ($this->identity['logo'] ?? null) ? 'Com a sua logo' : 'Logo, nome, contatos e páginas',
-            'inicio'    => $theme ? 'Tema: ' . $theme : null,
+            'identidade' => ($this->identity['logo'] ?? null) ? 'Com a sua logo' : 'Logo, endereço e contatos',
+            'tema'      => $theme ? 'Tema: ' . $theme : null,
+            'inicio'    => (HomeLayout::MODELS[$this->home_model][0] ?? null) ? 'Modelo ' . HomeLayout::MODELS[$this->home_model][0] : null,
             'banners'   => $n($live, 'banner no ar', 'banners no ar'),
             'destaques' => $n(count($this->featuredIds), 'produto escolhido', 'produtos escolhidos'),
             'colecoes'  => $n($collections->where('active', true)->count(), 'coleção ligada', 'coleções ligadas'),
@@ -929,7 +973,7 @@ class PortalStorefront extends Component
             'vendidos'    => ['Pelas vendas dos últimos meses', null],
             'reviews'     => [\App\Services\Portal\ReviewService::ready() ? $n(\App\Models\PortalReview::where('user_id', $uid)->where('hidden', false)->count(), 'avaliação', 'avaliações') : '', null],
             'benefits'    => [$n(count($this->home_sec['benefits']['items'] ?? []), 'vantagem', 'vantagens'), null],
-            'whatsapp'    => ['Usa o WhatsApp da Identidade da loja', 'identidade'],
+            'whatsapp'    => ['Usa o WhatsApp das Informações da loja', 'identidade'],
             'texto'       => [($this->home_sec['texto']['title'] ?? '') !== '' ? $this->home_sec['texto']['title'] : 'Escreva em Ajustar', null],
         ];
     }

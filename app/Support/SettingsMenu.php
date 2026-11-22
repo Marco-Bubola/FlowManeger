@@ -35,6 +35,7 @@ class SettingsMenu
                 ['settings.notifications', 'Notificações', 'bi-bell', 'O que aparece no sino', 'from-orange-500 to-red-500'],
             ]],
             'loja' => ['Loja e vendas', 'bi-shop', [
+                ['promotions.storefront', 'Site da loja', 'bi-shop-window', 'Informações, endereço, tema e páginas', 'from-violet-500 to-fuchsia-600'],
                 ['settings.products', 'Produtos', 'bi-box-seam', 'Custo, variações e importação', 'from-lime-500 to-green-600'],
                 ['settings.payments', 'Pagamentos online', 'bi-qr-code', 'Pix, cartão, boleto e frete', 'from-sky-500 to-cyan-600'],
             ]],

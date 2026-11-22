@@ -43,7 +43,11 @@ class StoreIdentity
     /** Formas de pagamento que o rodapé pode mostrar. */
     public const PAYMENTS = ['pix' => 'Pix', 'cartao' => 'Cartão', 'boleto' => 'Boleto', 'dinheiro' => 'Dinheiro'];
 
-    public const FIELDS = ['name', 'tagline', 'logo', 'font', 'whatsapp', 'instagram', 'facebook', 'tiktok', 'email', 'phone', 'address', 'hours', 'payments', 'show_name', 'legal_name', 'document', 'privacy_bar'];
+    public const FIELDS = ['name', 'tagline', 'logo', 'font', 'whatsapp', 'instagram', 'facebook', 'tiktok', 'email', 'phone', 'address', 'hours', 'payments', 'show_name', 'legal_name', 'document', 'privacy_bar',
+        'cep', 'street', 'number', 'complement', 'district', 'city', 'uf'];
+
+    /** Partes do endereço (preenchidas pelo CEP); juntas viram o campo address usado no rodapé e nos textos. */
+    public const ADDRESS_PARTS = ['cep', 'street', 'number', 'complement', 'district', 'city', 'uf'];
 
     private static array $memo = [];
 
@@ -66,6 +70,9 @@ class StoreIdentity
         $s = self::ready() ? PortalSetting::where('user_id', $ownerId)->first() : null;
         $id = array_merge(self::defaults($ownerId), array_filter((array) ($s?->identity ?? []), fn ($v) => $v !== null && $v !== ''));
         $id['pages'] = array_filter((array) ($s?->pages ?? []), fn ($v) => trim((string) $v) !== '');
+        if (trim((string) ($id['street'] ?? '')) !== '') {
+            $id['address'] = self::composeAddress($id);
+        }
         $id['font_css'] = self::FONTS[$id['font']][1] ?? self::FONTS['padrao'][1];
         $id['font_url'] = ($g = self::FONTS[$id['font']][2] ?? null) ? 'https://fonts.googleapis.com/css2?family=' . $g . '&display=swap' : null;
         $id['logo_url'] = $id['logo'] ? asset('storage/' . $id['logo']) : null;
@@ -90,8 +97,28 @@ class StoreIdentity
         return [
             'name' => $user?->name ?: config('app.name'), 'tagline' => '', 'logo' => null, 'font' => 'padrao', 'show_name' => true,
             'whatsapp' => $user?->phone ?? '', 'instagram' => '', 'facebook' => '', 'tiktok' => '', 'email' => '', 'phone' => '',
-            'address' => '', 'hours' => '', 'payments' => [], 'legal_name' => '', 'document' => '', 'privacy_bar' => true,
+            'address' => '', 'hours' => '',
+            'cep' => '', 'street' => '', 'number' => '', 'complement' => '', 'district' => '', 'city' => '', 'uf' => '', 'payments' => [], 'legal_name' => '', 'document' => '', 'privacy_bar' => true,
         ];
+    }
+
+    /** "Rua X, 120 - Sala 2, Centro, Franca - SP, CEP 14400-000" a partir das partes. */
+    public static function composeAddress(array $a): string
+    {
+        $t = fn ($k) => trim((string) ($a[$k] ?? ''));
+        $line = $t('street');
+        if ($line === '') {
+            return trim((string) ($a['address'] ?? ''));
+        }
+        $line .= ', ' . ($t('number') !== '' ? $t('number') : 's/n');
+        if ($t('complement') !== '') {
+            $line .= ' - ' . $t('complement');
+        }
+        $place = $t('city') . ($t('uf') !== '' ? ($t('city') !== '' ? ' - ' : '') . strtoupper($t('uf')) : '');
+        $parts = array_filter([$line, $t('district'), $place]);
+        $cep = preg_replace('/\D+/', '', $t('cep'));
+
+        return implode(', ', $parts) . (strlen($cep) === 8 ? ', CEP ' . substr($cep, 0, 5) . '-' . substr($cep, 5) : '');
     }
 
     /** Todas as páginas da loja: [chave => [título, ícone]]. */

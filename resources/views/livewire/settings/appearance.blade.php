@@ -113,7 +113,7 @@ new class extends Component {
                         <span class="ap-ico bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500"><i class="bi bi-palette2"></i></span>
                         <div class="min-w-0">
                             <h2>Tema do app</h2>
-                            <p>Escolha um tema pronto. Só as cores mudam, as telas continuam no mesmo formato.</p>
+                            <p>Escolha um tema pronto. Só as cores mudam, as telas continuam no mesmo formato. Isto muda só o seu app; o tema do site dos clientes fica em <a href="{{ route('promotions.storefront', ['tab' => 'tema']) }}" wire:navigate class="font-semibold underline">Site da loja › Tema e estilo</a>.</p>
                         </div>
                         <span class="ap-saved" x-show="savedAt" x-transition.opacity x-cloak><i class="bi bi-cloud-check"></i> Salvo na conta</span>
                     </div>

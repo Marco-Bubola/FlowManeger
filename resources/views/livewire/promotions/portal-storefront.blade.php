@@ -52,7 +52,7 @@
 
     <x-portal-settings-nav :current="$tab" :wire="true" :info="$navInfo">
 
-    {{-- ===================== Identidade da loja ===================== --}}
+    {{-- ===================== Visão geral ===================== --}}
     @if($tab === 'geral')
         @php
             $all = collect($overview)->flatten(1);
@@ -90,7 +90,7 @@
             {{-- Atalhos --}}
             <section class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2" data-testid="overview-quick">
                 @foreach([
-                    ['bi-palette', 'Trocar o tema', ['tab', 'inicio'], 'from-violet-500 to-fuchsia-500'],
+                    ['bi-palette', 'Trocar o tema', ['tab', 'tema'], 'from-violet-500 to-fuchsia-500'],
                     ['bi-image', 'Novo banner', ['route', route('promotions.storefront.banner.create')], 'from-rose-500 to-orange-400'],
                     ['bi-star', 'Destaques', ['tab', 'destaques'], 'from-amber-500 to-yellow-400'],
                     ['bi-collection', 'Nova coleção', ['route', route('promotions.storefront.collection.create')], 'from-sky-500 to-cyan-400'],
@@ -136,22 +136,43 @@
         </div>
     @endif
 
+    {{-- ===================== Informações da loja ===================== --}}
     @if($tab === 'identidade')
         @php
             $SI = \App\Services\Portal\StoreIdentity::class;
             $logoUrl = ($identity['logo'] ?? null) ? asset('storage/' . $identity['logo']) : null;
             $fontCss = $SI::FONTS[$identity['font'] ?? 'padrao'][1] ?? $SI::FONTS['padrao'][1];
-            $fontLinks = collect($SI::FONTS)->pluck(2)->filter()->implode('&family=');
+            $hasStreet = trim((string) ($identity['street'] ?? '')) !== '';
+            $addrNow = $hasStreet ? $SI::composeAddress($identity) : trim((string) ($identity['address'] ?? ''));
+            $docDigits = preg_replace('/\D+/', '', (string) ($identity['document'] ?? ''));
+            $secHead = function ($icon, $tone, $title, $text, $done = null) use ($tones) {
+                $badge = $done === null ? '' : '<span class="ml-auto shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ' . ($done ? $tones['emerald'] : $tones['slate']) . '">' . ($done ? 'Pronto' : 'Falta') . '</span>';
+                return '<div class="flex items-start gap-3"><div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg ' . $tone . '"><i class="bi ' . $icon . '"></i></div><div class="min-w-0"><h2 class="font-bold text-slate-900 dark:text-white">' . e($title) . '</h2><p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">' . e($text) . '</p></div>' . $badge . '</div>';
+            };
+            $steps = [
+                ['id-logo', 'Logo e nome', 'bi-image', (bool) $logoUrl],
+                ['id-dados', 'Dados', 'bi-building', filled($identity['legal_name'] ?? null) && in_array(strlen($docDigits), [11, 14], true)],
+                ['id-endereco', 'Endereço', 'bi-geo-alt', $addrNow !== ''],
+                ['id-contatos', 'Contatos', 'bi-whatsapp', filled($identity['whatsapp'] ?? null) || filled($identity['phone'] ?? null)],
+            ];
         @endphp
-        <link href="https://fonts.googleapis.com/css2?family={{ $fontLinks }}&display=swap" rel="stylesheet">
-        <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start" data-testid="identity-panel">
+        <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_380px] xl:items-start" data-testid="identity-panel"
+             x-data="{ go(id) { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }) } }"
+             x-on:cep-found.window="$nextTick(() => { const f = document.getElementById($event.detail.field); f && (f.focus(), f.select && f.select()); })">
             <div class="space-y-4 min-w-0">
-                {{-- Logo e nome --}}
-                <section class="{{ $card }} p-4 sm:p-5 space-y-4">
-                    <div class="flex items-start gap-3">
-                        <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-violet-50 dark:bg-violet-500/15 text-violet-600 text-lg"><i class="bi bi-person-badge"></i></div>
-                        <div><h2 class="font-bold text-slate-900 dark:text-white">Logo e nome da loja</h2><p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Aparecem no topo de todas as páginas do catálogo e no rodapé.</p></div>
-                    </div>
+                {{-- Atalhos: cada parte com a situação (fica preso no alto ao rolar) --}}
+                <div class="sticky top-2 z-20 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/90 backdrop-blur shadow-sm p-1 grid grid-cols-4 gap-1" data-testid="identity-subnav">
+                    @foreach($steps as [$sid, $sname, $sico, $sdone])
+                        <button type="button" @click="go('{{ $sid }}')" class="relative rounded-xl py-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition inline-flex flex-col min-[480px]:flex-row items-center justify-center gap-0.5 min-[480px]:gap-1.5">
+                            <i class="bi {{ $sico }}"></i>{{ $sname }}
+                            <span class="absolute top-1 right-1 min-[480px]:static w-2 h-2 rounded-full {{ $sdone ? 'bg-emerald-500' : 'bg-amber-400' }}" title="{{ $sdone ? 'Pronto' : 'Falta' }}"></span>
+                        </button>
+                    @endforeach
+                </div>
+
+                {{-- 1. Logo e nome --}}
+                <section id="id-logo" class="{{ $card }} p-4 sm:p-5 space-y-4 scroll-mt-20">
+                    {!! $secHead('bi-image', 'bg-violet-50 dark:bg-violet-500/15 text-violet-600', 'Logo e nome da loja', 'Aparecem no topo de todas as páginas do site e no rodapé.', (bool) $logoUrl) !!}
                     <div class="flex flex-col sm:flex-row gap-4 sm:items-center">
                         <div class="shrink-0 w-28 h-28 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden relative">
                             @if($logoUrl)
@@ -166,7 +187,7 @@
                                 <input type="file" wire:model="logoUpload" accept="image/*" class="sr-only">
                             </label>
                             @if($logoUrl)<button type="button" wire:click="removeLogo" class="ml-1 text-xs font-semibold text-rose-600 hover:underline">Tirar a logo</button>@endif
-                            <p class="text-xs text-slate-500">PNG com fundo transparente fica melhor. Até 3 MB.</p>
+                            <p class="text-xs text-slate-500">PNG com fundo transparente fica melhor. Até 3 MB. Salva na hora.</p>
                             @error('logoUpload')<p class="text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
                         </div>
                     </div>
@@ -185,33 +206,98 @@
                         <input type="checkbox" wire:model.live="identity.show_name" class="rounded text-violet-500 focus:ring-violet-400">
                         Mostrar o nome ao lado da logo no topo <small class="text-slate-400">(no celular aparece só a logo)</small>
                     </label>
+                    <p class="text-xs text-slate-500 dark:text-slate-400"><i class="bi bi-fonts text-violet-500"></i> A fonte do nome e dos títulos fica em <button type="button" wire:click="$set('tab', 'tema')" class="font-semibold text-violet-600 dark:text-violet-300 hover:underline">Tema e estilo</button>.</p>
                 </section>
 
-                {{-- Fonte --}}
-                <section class="{{ $card }} p-4 sm:p-5 space-y-3">
-                    <div class="flex items-start gap-3">
-                        <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-sky-50 dark:bg-sky-500/15 text-sky-600 text-lg"><i class="bi bi-fonts"></i></div>
-                        <div><h2 class="font-bold text-slate-900 dark:text-white">Fonte dos títulos</h2><p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Muda o nome da loja e os títulos das seções. O texto dos produtos continua fácil de ler.</p></div>
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        @foreach($SI::FONTS as $fk => [$fname, $fcss])
-                            @php $fon = ($identity['font'] ?? 'padrao') === $fk; @endphp
-                            <button type="button" wire:click="setFont('{{ $fk }}')" data-testid="font-{{ $fk }}"
-                                    class="rounded-xl border p-3 text-left transition {{ $fon ? 'border-violet-400 bg-violet-50 dark:bg-violet-500/15 ring-1 ring-violet-300' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300' }}">
-                                <span class="block text-lg font-bold text-slate-900 dark:text-white truncate" style="font-family: {!! $fcss !!}">{{ \Illuminate\Support\Str::limit($identity['name'] ?? 'Sua loja', 14) }}</span>
-                                <small class="block text-[11px] text-slate-500 truncate">{{ $fname }}</small>
-                            </button>
-                        @endforeach
+                {{-- 2. Dados da loja (o que a lei pede no rodapé) --}}
+                <section id="id-dados" class="{{ $card }} p-4 sm:p-5 space-y-3 scroll-mt-20">
+                    {!! $secHead('bi-building', 'bg-sky-50 dark:bg-sky-500/15 text-sky-600', 'Dados da loja', 'Quem vende pela internet precisa mostrar o nome e o CPF ou CNPJ no rodapé. Também entram nos textos de privacidade e termos. Se você é MEI, use o CNPJ do MEI.', filled($identity['legal_name'] ?? null) && in_array(strlen($docDigits), [11, 14], true)) !!}
+                    <div class="grid gap-3 sm:grid-cols-2" x-data="{ maskDoc(v) { const d = v.replace(/\D/g, '').slice(0, 14); return d.length <= 11 ? d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2') : d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d)/, '$1-$2'); } }">
+                        <div>
+                            <label class="{{ $label }}" for="id-legal">Nome ou razão social</label>
+                            <input id="id-legal" type="text" wire:model.blur="identity.legal_name" maxlength="120" class="{{ $input }}" placeholder="Ex.: Maria Silva Cosméticos ME" data-testid="legal-name">
+                        </div>
+                        <div>
+                            <label class="{{ $label }}" for="id-doc">CPF ou CNPJ</label>
+                            <input id="id-doc" type="text" wire:model.blur="identity.document" maxlength="30" inputmode="numeric" class="{{ $input }}" placeholder="00.000.000/0001-00" x-on:input="$event.target.value = maskDoc($event.target.value)" data-testid="legal-document">
+                            @if($docDigits !== '' && ! in_array(strlen($docDigits), [11, 14], true))<p class="mt-1 text-xs font-semibold text-amber-600">CPF tem 11 números e CNPJ tem 14.</p>@endif
+                        </div>
                     </div>
                 </section>
 
-                {{-- Contatos --}}
-                <section class="{{ $card }} p-4 sm:p-5 space-y-3">
-                    <div class="flex items-start gap-3">
-                        <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 text-lg"><i class="bi bi-telephone"></i></div>
-                        <div><h2 class="font-bold text-slate-900 dark:text-white">Contatos e redes</h2><p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Ficam no rodapé do catálogo. Deixe em branco o que não quiser mostrar.</p></div>
+                {{-- 3. Endereço pelo CEP + horário --}}
+                <section id="id-endereco" class="{{ $card }} p-4 sm:p-5 space-y-3 scroll-mt-20" data-testid="id-address-box">
+                    {!! $secHead('bi-geo-alt', 'bg-rose-50 dark:bg-rose-500/15 text-rose-600', 'Endereço e horário', 'Digite o CEP: rua, bairro e cidade aparecem sozinhos. Depois é só pôr o número. No site, o endereço abre no mapa.', $addrNow !== '') !!}
+                    @if(! $hasStreet && $addrNow !== '')
+                        <p class="text-xs rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-200 px-3 py-2"><i class="bi bi-info-circle"></i> Endereço salvo antes: <b>{{ $addrNow }}</b>. Digite o CEP para separar em rua e número; enquanto isso o site continua mostrando este.</p>
+                    @endif
+                    <div class="grid gap-3 grid-cols-6" x-data="{ maskCep(v) { const d = v.replace(/\D/g, '').slice(0, 8); return d.length > 5 ? d.slice(0, 5) + '-' + d.slice(5) : d; } }">
+                        <div class="col-span-6 sm:col-span-3 lg:col-span-2">
+                            <label class="{{ $label }}" for="id-cep">CEP</label>
+                            <div class="relative">
+                                <input id="id-cep" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000"
+                                       wire:model.live.debounce.450ms="identity.cep" x-on:input="$event.target.value = maskCep($event.target.value)" class="{{ $input }} pr-10" data-testid="id-cep">
+                                <i wire:loading wire:target="identity.cep" class="bi bi-arrow-repeat animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-violet-500"></i>
+                                @if($cepMsg === 'ok')<i wire:loading.remove wire:target="identity.cep" class="bi bi-check-circle-fill absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500"></i>@endif
+                            </div>
+                            <a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener" class="mt-1 inline-block text-[11px] font-semibold text-violet-600 dark:text-violet-300 hover:underline">Não sei o CEP</a>
+                            @error('identity.cep')<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
+                        </div>
+                        <div class="col-span-6 sm:col-span-3 lg:col-span-4 self-center">
+                            @if($cepMsg === 'ok')
+                                <p class="text-xs font-semibold text-emerald-600 dark:text-emerald-300" data-testid="cep-ok"><i class="bi bi-check2"></i> Achei o endereço. Falta só o número.</p>
+                            @elseif($cepMsg === 'rua')
+                                <p class="text-xs font-semibold text-amber-600" data-testid="cep-rua"><i class="bi bi-info-circle"></i> Esse CEP é da cidade inteira. Escreva a rua e o número.</p>
+                            @elseif($cepMsg === 'erro')
+                                <p class="text-xs font-semibold text-rose-600" data-testid="cep-erro"><i class="bi bi-exclamation-circle"></i> Não achei esse CEP. Confira os números ou preencha à mão.</p>
+                            @endif
+                        </div>
+                        <div class="col-span-6 lg:col-span-4">
+                            <label class="{{ $label }}" for="id-street">Rua, avenida</label>
+                            <input id="id-street" type="text" wire:model.blur="identity.street" maxlength="120" class="{{ $input }}" placeholder="Vem pelo CEP" data-testid="id-street">
+                        </div>
+                        <div class="col-span-2 lg:col-span-1">
+                            <label class="{{ $label }}" for="id-number">Número</label>
+                            <input id="id-number" type="text" inputmode="numeric" wire:model.blur="identity.number" maxlength="20" class="{{ $input }} {{ $cepMsg === 'ok' && trim($identity['number'] ?? '') === '' ? 'ring-2 ring-violet-300 border-violet-400' : '' }}" placeholder="120" data-testid="id-number">
+                        </div>
+                        <div class="col-span-4 lg:col-span-1">
+                            <label class="{{ $label }}" for="id-compl">Complemento</label>
+                            <input id="id-compl" type="text" wire:model.blur="identity.complement" maxlength="60" class="{{ $input }}" placeholder="Sala 2">
+                        </div>
+                        <div class="col-span-6 sm:col-span-2">
+                            <label class="{{ $label }}" for="id-district">Bairro</label>
+                            <input id="id-district" type="text" wire:model.blur="identity.district" maxlength="80" class="{{ $input }}" data-testid="id-district">
+                        </div>
+                        <div class="col-span-4 sm:col-span-3">
+                            <label class="{{ $label }}" for="id-city">Cidade</label>
+                            <input id="id-city" type="text" wire:model.blur="identity.city" maxlength="80" class="{{ $input }}" data-testid="id-city">
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <label class="{{ $label }}" for="id-uf">UF</label>
+                            <input id="id-uf" type="text" wire:model.blur="identity.uf" maxlength="2" class="{{ $input }} uppercase" data-testid="id-uf">
+                        </div>
+                        <div class="col-span-6">
+                            <label class="{{ $label }}" for="id-hours"><i class="bi bi-clock text-slate-400"></i> Horário de atendimento</label>
+                            <input id="id-hours" type="text" wire:model.blur="identity.hours" placeholder="Seg a sex 9h às 18h · Sáb 9h às 13h" class="{{ $input }}">
+                            <div class="flex flex-wrap gap-1.5 mt-1.5">
+                                @foreach(['Seg a sex 9h às 18h', 'Seg a sex 9h às 18h · Sáb 9h às 13h', 'Seg a sáb 8h às 20h', 'Só com hora marcada', 'Atendimento pelo WhatsApp'] as $hp)
+                                    <button type="button" wire:click="$set('identity.hours', @js($hp))" class="rounded-full border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:border-violet-300 hover:text-violet-600">{{ $hp }}</button>
+                                @endforeach
+                            </div>
+                        </div>
                     </div>
-                    <div class="grid gap-3 sm:grid-cols-2">
+                    @if($addrNow !== '')
+                        <div class="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/70 px-3 py-2 text-xs text-slate-600 dark:text-slate-300" data-testid="address-preview">
+                            <i class="bi bi-geo-alt-fill text-rose-500"></i><span class="min-w-0 flex-1">{{ $addrNow }}</span>
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ rawurlencode($addrNow) }}" target="_blank" rel="noopener" class="shrink-0 font-semibold text-violet-600 dark:text-violet-300 hover:underline">Ver no mapa</a>
+                        </div>
+                    @endif
+                </section>
+
+                {{-- 4. Contatos, redes e pagamentos do rodapé --}}
+                <section id="id-contatos" class="{{ $card }} p-4 sm:p-5 space-y-3 scroll-mt-20">
+                    {!! $secHead('bi-whatsapp', 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600', 'Contatos e redes', 'Ficam no rodapé do site. O WhatsApp também é usado no botão de pedir pelo WhatsApp. Deixe em branco o que não quiser mostrar.', filled($identity['whatsapp'] ?? null) || filled($identity['phone'] ?? null)) !!}
+                    <div class="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
                         @foreach([
                             'whatsapp' => ['WhatsApp', 'bi-whatsapp', '(16) 99999-9999', 'tel'],
                             'phone' => ['Telefone fixo', 'bi-telephone', '(16) 3333-3333', 'tel'],
@@ -226,16 +312,8 @@
                                 @error('identity.' . $fk)<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
                             </div>
                         @endforeach
-                        <div class="sm:col-span-2">
-                            <label class="{{ $label }}" for="id-address"><i class="bi bi-geo-alt text-slate-400"></i> Endereço <span class="font-normal text-slate-400">(abre no mapa)</span></label>
-                            <input id="id-address" type="text" wire:model.blur="identity.address" placeholder="Rua, número, bairro, cidade" class="{{ $input }}">
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label class="{{ $label }}" for="id-hours"><i class="bi bi-clock text-slate-400"></i> Horário de atendimento</label>
-                            <input id="id-hours" type="text" wire:model.blur="identity.hours" placeholder="Seg a sex 9h às 18h · Sáb 9h às 13h" class="{{ $input }}">
-                        </div>
                     </div>
-                    <div>
+                    <div class="pt-1">
                         <span class="{{ $label }}">Formas de pagamento no rodapé</span>
                         <div class="flex flex-wrap gap-2">
                             @foreach($SI::PAYMENTS as $pk => $pn)
@@ -244,42 +322,24 @@
                                 </label>
                             @endforeach
                         </div>
+                        <p class="text-[11px] text-slate-400 mt-1.5">Só mostra os ícones. Para receber pelo site, ligue em <a href="{{ route('settings.payments') }}" wire:navigate class="font-semibold text-violet-600 dark:text-violet-300 hover:underline">Pagamento e frete</a>.</p>
                     </div>
                 </section>
 
-                {{-- Páginas --}}
-                <section class="{{ $card }} p-4 sm:p-5 space-y-3">
-                    <div class="flex items-start gap-3">
-                        <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-amber-50 dark:bg-amber-500/15 text-amber-600 text-lg"><i class="bi bi-file-earmark-text"></i></div>
-                        <div><h2 class="font-bold text-slate-900 dark:text-white">Páginas da loja</h2><p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Cada texto preenchido vira uma página com link no rodapé. Em branco, a página não aparece.</p></div>
-                    </div>
-                    @foreach($SI::PAGES as $pk => [$pt, $pi, $ph])
-                        <div x-data="{ open: {{ trim($pages[$pk] ?? '') !== '' ? 'true' : 'false' }} }" class="rounded-xl border border-slate-200 dark:border-slate-700">
-                            <button type="button" @click="open = !open" class="w-full flex items-center gap-3 p-3 text-left">
-                                <b class="flex-1 text-sm text-slate-800 dark:text-slate-100">{{ $pt }}</b>
-                                @if(trim($pages[$pk] ?? '') !== '')
-                                    <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $tones['emerald'] }}">No ar</span>
-                                    <a href="{{ route('portal.store-page', ['userId' => auth()->id(), 'page' => $pk]) }}" target="_blank" rel="noopener" @click.stop class="text-xs font-semibold text-violet-600">Ver</a>
-                                @else
-                                    <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $tones['slate'] }}">Vazia</span>
-                                @endif
-                                <i class="bi bi-chevron-down text-slate-400 transition" :class="open && 'rotate-180'"></i>
-                            </button>
-                            <div x-show="open" x-cloak class="px-3 pb-3">
-                                <textarea wire:model.blur="pages.{{ $pk }}" rows="5" maxlength="5000" placeholder="{{ $ph }}" class="{{ $input }}" data-testid="page-{{ $pk }}"></textarea>
-                            </div>
-                        </div>
-                    @endforeach
-                </section>
+                <div class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900 shadow-sm p-3 sm:p-4 flex items-center gap-3">
+                    <span class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-amber-50 dark:bg-amber-500/15 text-amber-600 text-lg"><i class="bi bi-file-earmark-text"></i></span>
+                    <span class="min-w-0 flex-1 text-sm text-slate-600 dark:text-slate-300"><b class="block text-slate-900 dark:text-white">Sobre nós, Entrega, Trocas e as páginas da lei</b>Agora ficam juntas em Páginas e leis.</span>
+                    <button type="button" wire:click="$set('tab', 'leis')" class="{{ $phBtn }} shrink-0">Abrir</button>
+                </div>
 
                 <div class="flex justify-end sticky bottom-20 lg:bottom-4 z-10">
-                    <button type="button" wire:click="saveIdentity" class="{{ $primary }}" data-testid="identity-save"><i class="bi bi-check2"></i><span wire:loading.remove wire:target="saveIdentity">Salvar identidade</span><span wire:loading wire:target="saveIdentity">Salvando…</span></button>
+                    <button type="button" wire:click="saveIdentity" class="{{ $primary }}" data-testid="identity-save"><i class="bi bi-check2"></i><span wire:loading.remove wire:target="saveIdentity">Salvar informações</span><span wire:loading wire:target="saveIdentity">Salvando…</span></button>
                 </div>
             </div>
 
             {{-- Como fica: topo e rodapé --}}
             <aside class="{{ $card }} p-4 space-y-3 xl:sticky xl:top-4">
-                <b class="block text-sm text-slate-900 dark:text-white">Como fica no catálogo</b>
+                <b class="block text-sm text-slate-900 dark:text-white">Como fica no site</b>
                 <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
                     <div class="flex items-center gap-2 px-3 h-14" style="background: linear-gradient(90deg, {{ $home_colors[0] ?? '#ec4899' }}, {{ $home_colors[1] ?? '#3b82f6' }})">
                         <span class="shrink-0 h-10 {{ $logoUrl ? 'px-1.5 min-w-10' : 'w-10' }} rounded-xl bg-white flex items-center justify-center shadow">
@@ -296,31 +356,40 @@
                     <div class="h-16 bg-slate-100 dark:bg-slate-800"></div>
                     <div class="bg-white dark:bg-slate-900 p-3 text-[11px] text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
                         <b class="block text-sm text-slate-900 dark:text-white" style="font-family: {!! $fontCss !!}">{{ $identity['name'] ?? '' }}</b>
-                        @foreach(['whatsapp' => 'bi-whatsapp', 'phone' => 'bi-telephone', 'email' => 'bi-envelope', 'address' => 'bi-geo-alt', 'hours' => 'bi-clock'] as $ck => $ci)
+                        @foreach(['whatsapp' => 'bi-whatsapp', 'phone' => 'bi-telephone', 'email' => 'bi-envelope', 'hours' => 'bi-clock'] as $ck => $ci)
                             @if(trim((string) ($identity[$ck] ?? '')) !== '')<p class="truncate"><i class="bi {{ $ci }} text-violet-500"></i> {{ $identity[$ck] }}</p>@endif
                         @endforeach
-                        @php $pv = collect($SI::PAGES)->filter(fn ($v, $k) => trim($pages[$k] ?? '') !== ''); @endphp
-                        @if($pv->isNotEmpty())<p class="text-violet-600 font-semibold">{{ $pv->pluck(0)->implode(' · ') }}</p>@endif
+                        @if($addrNow !== '')<p><i class="bi bi-geo-alt text-violet-500"></i> {{ $addrNow }}</p>@endif
+                        @php $docTxt = $SI::formatDocument($identity['document'] ?? ''); @endphp
+                        @if(($identity['legal_name'] ?? '') !== '' || $docTxt !== '')<p class="text-slate-400">{{ trim(($identity['legal_name'] ?? '') . ($docTxt !== '' ? ' · ' . $docTxt : ''), ' ·') }}</p>@endif
                         @if(! empty($identity['payments']))<p>{{ collect($identity['payments'])->map(fn ($k) => $SI::PAYMENTS[$k] ?? null)->filter()->implode(' · ') }}</p>@endif
                     </div>
                 </div>
-                <a href="{{ $catalogUrl }}" target="_blank" rel="noopener" class="{{ $phBtn }} w-full justify-center"><i class="bi bi-box-arrow-up-right text-violet-500"></i>Abrir o catálogo</a>
+                <a href="{{ $catalogUrl }}" target="_blank" rel="noopener" class="{{ $phBtn }} w-full justify-center"><i class="bi bi-box-arrow-up-right text-violet-500"></i>Abrir o site</a>
             </aside>
         </div>
     @endif
 
-    {{-- ===================== Página inicial ===================== --}}
-    @if($tab === 'inicio')
+    {{-- ===================== Tema e estilo ===================== --}}
+    @if($tab === 'tema')
         @php $home = \App\Services\Portal\HomeLayout::class; $cur = $themes[$home_theme] ?? null; @endphp
-        <div class="min-w-0" data-testid="home-builder">
+        @php
+            $SI = \App\Services\Portal\StoreIdentity::class;
+            $fontLinks = collect($SI::FONTS)->pluck(2)->filter()->implode('&family=');
+        @endphp
+        <link href="https://fonts.googleapis.com/css2?family={{ $fontLinks }}&display=swap" rel="stylesheet">
+        <div class="min-w-0" data-testid="theme-builder">
             <div class="space-y-4 min-w-0" x-data="{ sec: 'tema', go(id) { this.sec = id; document.getElementById('pi-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }">
                 {{-- Atalhos para as partes da página (fica preso no alto ao rolar) --}}
                 <div class="sticky top-2 z-20 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/90 backdrop-blur shadow-sm p-1 grid grid-cols-5 gap-1" data-testid="home-subnav">
-                    @foreach(['tema' => ['Tema', 'bi-palette'], 'cores' => ['Cores', 'bi-droplet-half'], 'estilo' => ['Estilo', 'bi-palette2'], 'blocos' => ['Blocos', 'bi-list-ol']] as $sk => [$sn, $si])
+                    @foreach(['tema' => ['Tema', 'bi-palette'], 'cores' => ['Cores', 'bi-droplet-half'], 'fonte' => ['Fonte', 'bi-fonts'], 'estilo' => ['Estilo', 'bi-palette2']] as $sk => [$sn, $si])
                         <button type="button" @click="go('{{ $sk }}')" :class="sec === '{{ $sk }}' ? 'bg-violet-500 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'" class="rounded-xl py-2 text-xs sm:text-sm font-semibold transition inline-flex flex-col min-[480px]:flex-row items-center justify-center gap-0.5 min-[480px]:gap-1.5"><i class="bi {{ $si }}"></i>{{ $sn }}</button>
                     @endforeach
                     <button type="button" @click="$dispatch('open-site-preview')" class="rounded-xl py-2 text-xs sm:text-sm font-semibold transition inline-flex flex-col min-[480px]:flex-row items-center justify-center gap-0.5 min-[480px]:gap-1.5 text-violet-600 dark:text-violet-300 bg-violet-50 dark:bg-violet-500/15 hover:bg-violet-100" data-testid="subnav-preview"><i class="bi bi-eye"></i>Prévia</button>
                 </div>
+                <p class="flex items-start gap-2 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900 px-3 py-2.5 text-xs text-slate-600 dark:text-slate-300" data-testid="theme-scope-note">
+                    <i class="bi bi-globe2 text-violet-500 mt-px"></i><span>Tudo aqui muda só o <b>site que o cliente vê</b>. As cores do seu app ficam em <a href="{{ route('settings.appearance') }}" wire:navigate class="font-semibold text-violet-600 dark:text-violet-300 hover:underline">Configurações › Aparência</a>. O formato da página inicial fica em <button type="button" wire:click="$set('tab', 'inicio')" class="font-semibold text-violet-600 dark:text-violet-300 hover:underline">Página inicial</button>.</span>
+                </p>
                 {{-- 1. Tema --}}
                 <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-themes" id="pi-tema" style="scroll-margin-top: 80px">
                     <div class="flex items-start gap-3">
@@ -427,59 +496,24 @@
                     </div>
                 </section>
 
-                {{-- 2a. Modelo da página inicial: o formato inteiro (Atual, Editorial, Elegante) --}}
-                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-model" id="pi-modelo" style="scroll-margin-top: 80px">
-                    <div class="min-w-0">
-                        <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-layout-text-window text-violet-500"></i>Modelo da página inicial</h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">O formato da página que o cliente vê primeiro. "Atual" deixa como está hoje. Os outros montam uma página de apresentação, com a lista de todos os produtos logo depois. Cada modelo traz as próprias cores e letras na página inicial; o resto do site continua com o estilo da loja.</p>
+                {{-- 3. Fonte dos títulos --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-font" id="pi-fonte" style="scroll-margin-top: 80px">
+                    <div class="flex items-start gap-3">
+                        <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-sky-50 dark:bg-sky-500/15 text-sky-600 text-lg"><i class="bi bi-fonts"></i></div>
+                        <div><h2 class="font-bold text-slate-900 dark:text-white">Fonte dos títulos</h2><p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Muda o nome da loja e os títulos das seções. O texto dos produtos continua fácil de ler.</p></div>
                     </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2">
-                        @foreach($home::MODELS as $mk => [$mn, $md, $mi])
-                            @php $on = $home_model === $mk; $sk = $home::MODEL_SKINS[$mk] ?? null; $ml = $home::modelLayout($mk); @endphp
-                            <button type="button" wire:click="setModel('{{ $mk }}')" data-testid="model-{{ $mk }}" aria-pressed="{{ $on ? 'true' : 'false' }}"
-                                class="relative text-left rounded-2xl border p-2 transition {{ $on ? 'border-violet-500 ring-2 ring-violet-200 dark:ring-violet-500/30 bg-violet-50/60 dark:bg-violet-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300' }}">
-                                <span class="hm-thumb hm-thumb-{{ $ml }}" aria-hidden="true"
-                                    @if($sk) style="--t-bg: {{ $sk['bg'] }}; --t-ink: {{ $sk['ink'] }}; --t-soft: {{ $sk['soft'] }}; --t-acc: {{ $sk['acc'] }}; --t-font: {{ $sk['font'] }}" @endif>
-                                    @if($ml === 'editorial')
-                                        <span class="a"><b>CONFORTO</b><b>QUE FICA</b><i></i></span><span class="b"><em></em></span>
-                                    @elseif($ml === 'botanico')
-                                        <span class="a"><b>Peças para</b><b><i>viver</i> bem</b></span><span class="c"><em></em><em></em><em></em></span>
-                                    @else
-                                        <span class="a"></span><span class="c"><em></em><em></em><em></em></span>
-                                    @endif
-                                </span>
-                                <span class="block mt-2 text-sm font-bold {{ $on ? 'text-violet-700 dark:text-violet-200' : 'text-slate-800 dark:text-slate-100' }}"><i class="bi {{ $mi }}"></i> {{ $mn }}</span>
-                                <span class="block text-[11px] leading-snug text-slate-500 dark:text-slate-400">{{ $md }}</span>
-                                @if($on)<i class="bi bi-check-circle-fill absolute -top-1.5 -right-1.5 text-violet-500 bg-white dark:bg-slate-900 rounded-full"></i>@endif
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        @foreach($SI::FONTS as $fk => [$fname, $fcss])
+                            @php $fon = ($identity['font'] ?? 'padrao') === $fk; @endphp
+                            <button type="button" wire:click="setFont('{{ $fk }}')" data-testid="font-{{ $fk }}"
+                                    class="rounded-xl border p-3 text-left transition {{ $fon ? 'border-violet-400 bg-violet-50 dark:bg-violet-500/15 ring-1 ring-violet-300' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300' }}">
+                                <span class="block text-lg font-bold text-slate-900 dark:text-white truncate" style="font-family: {!! $fcss !!}">{{ \Illuminate\Support\Str::limit($identity['name'] ?? 'Sua loja', 14) }}</span>
+                                <small class="block text-[11px] text-slate-500 truncate">{{ $fname }}</small>
                             </button>
                         @endforeach
                     </div>
-                    @if($home_model !== 'atual' && ($home_look['motion'] ?? 'nenhum') === 'nenhum')
-                        <p class="text-xs rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-200 px-3 py-2">Dica: para ficar igual aos vídeos, ligue também <b>Movimento ao rolar a página › Completo</b> em Estilo do site › Botões e textos.
-                            <button type="button" wire:click="setLook('motion', 'completo')" class="font-bold underline" data-testid="model-motion-on">Ligar agora</button></p>
-                    @endif
-                    <style>
-                        .hm-thumb { position: relative; display: flex; height: 5.2rem; border-radius: .8rem; overflow: hidden; background: var(--t-bg, #f4efe7); }
-                        .hm-thumb .a { flex: 1.2; display: flex; flex-direction: column; justify-content: center; gap: .15rem; padding: .5rem; }
-                        .hm-thumb-editorial .a { background: var(--t-ink, #2f3e34); color: var(--t-bg, #f4efe7); }
-                        .hm-thumb-editorial .a b { font: 900 .78rem/0.95 Impact, 'Oswald', sans-serif; letter-spacing: .02em; }
-                        .hm-thumb-editorial .a i { background: var(--t-acc, #f4efe7) !important; }
-                        .hm-thumb-editorial .a i { display: block; width: 1.6rem; height: .35rem; margin-top: .25rem; background: #f4efe7; }
-                        .hm-thumb-editorial .b { flex: 1; display: grid; place-items: center; }
-                        .hm-thumb-editorial .b em { width: 2rem; height: 2.4rem; border-radius: 1rem 1rem .4rem .4rem; background: var(--t-soft, #d8cbb8); box-shadow: 0 .4rem 0 -.1rem #b08a5a; }
-                        .hm-thumb-botanico { background: linear-gradient(180deg, var(--t-ink, #3b2f33) 0 55%, var(--t-bg, #f6efe9) 55%); flex-direction: column; }
-                        .hm-thumb-botanico .a { color: var(--t-bg, #fff); justify-content: flex-start; padding-top: .45rem; }
-                        .hm-thumb-botanico .a b { font: 600 .72rem/1.05 Georgia, serif; }
-                        .hm-thumb-botanico .a i { font-style: italic; font-weight: 400; }
-                        .hm-thumb .c { display: flex; gap: .3rem; padding: .35rem .5rem; }
-                        .hm-thumb .c em { flex: 1; height: 1.6rem; border-radius: .35rem; background: var(--t-soft, #e8dccd); }
-                        .hm-thumb-atual { flex-direction: column; background: #eef2ff; }
-                        .hm-thumb-atual .a { flex: none; height: 2.4rem; margin: .4rem .5rem 0; border-radius: .5rem; background: linear-gradient(90deg, #ec4899, #8b5cf6); }
-                        .hm-thumb-atual .c em { background: #fff; }
-                    </style>
                 </section>
-
-                {{-- 2b. Estilo do site --}}
+                {{-- 4. Estilo do site --}}
                 <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-look" id="pi-estilo" style="scroll-margin-top: 80px">
                     <div class="flex items-start justify-between gap-2">
                         <div class="min-w-0">
@@ -536,7 +570,73 @@
                     </div>
                 </section>
 
-                {{-- 3. Blocos --}}
+            </div>
+
+        </div>
+    @endif
+
+    {{-- ===================== Página inicial ===================== --}}
+    @if($tab === 'inicio')
+        @php $home = \App\Services\Portal\HomeLayout::class; @endphp
+        <div class="min-w-0" data-testid="home-builder">
+            <div class="space-y-4 min-w-0">
+                <div class="flex flex-wrap items-center gap-2 rounded-2xl border border-violet-200/70 dark:border-violet-500/25 bg-violet-50/70 dark:bg-violet-500/10 px-3 py-2.5 text-xs text-violet-800 dark:text-violet-200">
+                    <i class="bi bi-info-circle"></i><span class="min-w-0 flex-1">Aqui fica o <b>formato</b> da página que o cliente vê primeiro. Cores, fonte e o jeito dos cards ficam em <button type="button" wire:click="$set('tab', 'tema')" class="font-bold underline">Tema e estilo</button>.</span>
+                    <button type="button" @click="$dispatch('open-site-preview')" class="shrink-0 font-semibold hover:underline"><i class="bi bi-eye"></i> Ver como fica</button>
+                </div>
+                {{-- 1. Modelo da página inicial: o formato inteiro (Atual, Editorial, Elegante) --}}
+                <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-model" id="pi-modelo" style="scroll-margin-top: 80px">
+                    <div class="min-w-0">
+                        <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-layout-text-window text-violet-500"></i>Modelo da página inicial</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">O formato da página que o cliente vê primeiro. "Atual" deixa como está hoje. Os outros montam uma página de apresentação, com a lista de todos os produtos logo depois. Cada modelo traz as próprias cores e letras na página inicial; o resto do site continua com o estilo da loja.</p>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2">
+                        @foreach($home::MODELS as $mk => [$mn, $md, $mi])
+                            @php $on = $home_model === $mk; $sk = $home::MODEL_SKINS[$mk] ?? null; $ml = $home::modelLayout($mk); @endphp
+                            <button type="button" wire:click="setModel('{{ $mk }}')" data-testid="model-{{ $mk }}" aria-pressed="{{ $on ? 'true' : 'false' }}"
+                                class="relative text-left rounded-2xl border p-2 transition {{ $on ? 'border-violet-500 ring-2 ring-violet-200 dark:ring-violet-500/30 bg-violet-50/60 dark:bg-violet-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300' }}">
+                                <span class="hm-thumb hm-thumb-{{ $ml }}" aria-hidden="true"
+                                    @if($sk) style="--t-bg: {{ $sk['bg'] }}; --t-ink: {{ $sk['ink'] }}; --t-soft: {{ $sk['soft'] }}; --t-acc: {{ $sk['acc'] }}; --t-font: {{ $sk['font'] }}" @endif>
+                                    @if($ml === 'editorial')
+                                        <span class="a"><b>CONFORTO</b><b>QUE FICA</b><i></i></span><span class="b"><em></em></span>
+                                    @elseif($ml === 'botanico')
+                                        <span class="a"><b>Peças para</b><b><i>viver</i> bem</b></span><span class="c"><em></em><em></em><em></em></span>
+                                    @else
+                                        <span class="a"></span><span class="c"><em></em><em></em><em></em></span>
+                                    @endif
+                                </span>
+                                <span class="block mt-2 text-sm font-bold {{ $on ? 'text-violet-700 dark:text-violet-200' : 'text-slate-800 dark:text-slate-100' }}"><i class="bi {{ $mi }}"></i> {{ $mn }}</span>
+                                <span class="block text-[11px] leading-snug text-slate-500 dark:text-slate-400">{{ $md }}</span>
+                                @if($on)<i class="bi bi-check-circle-fill absolute -top-1.5 -right-1.5 text-violet-500 bg-white dark:bg-slate-900 rounded-full"></i>@endif
+                            </button>
+                        @endforeach
+                    </div>
+                    @if($home_model !== 'atual' && ($home_look['motion'] ?? 'nenhum') === 'nenhum')
+                        <p class="text-xs rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-200 px-3 py-2">Dica: para ficar igual aos vídeos, ligue também <b>Movimento ao rolar a página › Completo</b> em Estilo do site › Botões e textos.
+                            <button type="button" wire:click="setLook('motion', 'completo')" class="font-bold underline" data-testid="model-motion-on">Ligar agora</button></p>
+                    @endif
+                    <style>
+                        .hm-thumb { position: relative; display: flex; height: 5.2rem; border-radius: .8rem; overflow: hidden; background: var(--t-bg, #f4efe7); }
+                        .hm-thumb .a { flex: 1.2; display: flex; flex-direction: column; justify-content: center; gap: .15rem; padding: .5rem; }
+                        .hm-thumb-editorial .a { background: var(--t-ink, #2f3e34); color: var(--t-bg, #f4efe7); }
+                        .hm-thumb-editorial .a b { font: 900 .78rem/0.95 Impact, 'Oswald', sans-serif; letter-spacing: .02em; }
+                        .hm-thumb-editorial .a i { background: var(--t-acc, #f4efe7) !important; }
+                        .hm-thumb-editorial .a i { display: block; width: 1.6rem; height: .35rem; margin-top: .25rem; background: #f4efe7; }
+                        .hm-thumb-editorial .b { flex: 1; display: grid; place-items: center; }
+                        .hm-thumb-editorial .b em { width: 2rem; height: 2.4rem; border-radius: 1rem 1rem .4rem .4rem; background: var(--t-soft, #d8cbb8); box-shadow: 0 .4rem 0 -.1rem #b08a5a; }
+                        .hm-thumb-botanico { background: linear-gradient(180deg, var(--t-ink, #3b2f33) 0 55%, var(--t-bg, #f6efe9) 55%); flex-direction: column; }
+                        .hm-thumb-botanico .a { color: var(--t-bg, #fff); justify-content: flex-start; padding-top: .45rem; }
+                        .hm-thumb-botanico .a b { font: 600 .72rem/1.05 Georgia, serif; }
+                        .hm-thumb-botanico .a i { font-style: italic; font-weight: 400; }
+                        .hm-thumb .c { display: flex; gap: .3rem; padding: .35rem .5rem; }
+                        .hm-thumb .c em { flex: 1; height: 1.6rem; border-radius: .35rem; background: var(--t-soft, #e8dccd); }
+                        .hm-thumb-atual { flex-direction: column; background: #eef2ff; }
+                        .hm-thumb-atual .a { flex: none; height: 2.4rem; margin: .4rem .5rem 0; border-radius: .5rem; background: linear-gradient(90deg, #ec4899, #8b5cf6); }
+                        .hm-thumb-atual .c em { background: #fff; }
+                    </style>
+                </section>
+
+                {{-- 2. Blocos --}}
                 <section class="{{ $card }} p-4 sm:p-5 space-y-3" data-testid="home-sections" id="pi-blocos" style="scroll-margin-top: 80px">
                     <div>
                         <h2 class="font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-list-ol text-violet-500"></i>O que aparece e em que ordem</h2>
@@ -969,7 +1069,7 @@
         </section>
     @endif
 
-    {{-- ===================== Site dentro da lei ===================== --}}
+    {{-- ===================== Páginas e leis ===================== --}}
     @if($tab === 'leis')
         @php
             $SI = \App\Services\Portal\StoreIdentity::class;
@@ -977,7 +1077,9 @@
             $faltaN = collect($legal)->where(4, 'falta')->count();
             $pctL = count($legal) ? (int) round($okN / count($legal) * 100) : 0;
             $stTone = ['ok' => ['Em dia', 'emerald', 'bi-check-circle-fill'], 'falta' => ['Falta', 'rose', 'bi-exclamation-circle-fill'], 'aviso' => ['Revise', 'amber', 'bi-info-circle-fill']];
-            $legalTexts = ['trocas' => ['Trocas e devoluções', 'bi-arrow-counterclockwise', 'Precisa falar do direito de desistir em 7 dias depois de receber (compras pela internet).'],
+            $legalTexts = ['sobre' => ['Sobre nós', 'bi-shop', 'Quem você é, desde quando vende e o que tem de especial. Passa confiança para quem compra a primeira vez.'],
+                'entrega' => ['Entrega e retirada', 'bi-truck', 'Onde entrega, em quantos dias e se dá para retirar na loja.'],
+                'trocas' => ['Trocas e devoluções', 'bi-arrow-counterclockwise', 'Precisa falar do direito de desistir em 7 dias depois de receber (compras pela internet).'],
                 'privacidade' => ['Política de privacidade', 'bi-person-lock', 'Diz que dados você guarda, para quê, com quem divide e como o cliente pede para apagar.'],
                 'termos' => ['Termos de compra', 'bi-file-earmark-text', 'Regras de preço, pedido, pagamento, entrega e cancelamento.']];
             $sw = fn ($on) => 'relative inline-flex shrink-0 w-11 h-6 rounded-full transition ' . ($on ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600');
@@ -1022,19 +1124,14 @@
                 @endforeach
             </section>
 
-            <section id="leis-dados" class="{{ $card }} p-4 sm:p-5 space-y-3 scroll-mt-20">
-                <div class="flex items-start gap-3">
-                    <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-sky-50 dark:bg-sky-500/15 text-sky-600 text-lg"><i class="bi bi-building"></i></div>
-                    <div><h2 class="font-bold text-slate-900 dark:text-white">Dados da loja no rodapé</h2><p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Aparecem embaixo de todas as páginas e nos textos de privacidade e termos. Se você é MEI, use o CNPJ do MEI.</p></div>
+            @php $docTxt = $SI::formatDocument($identity['document'] ?? ''); $addrTxt = trim((string) (trim((string) ($identity['street'] ?? '')) !== '' ? $SI::composeAddress($identity) : ($identity['address'] ?? ''))); @endphp
+            <section id="leis-dados" class="{{ $card }} p-4 sm:p-5 scroll-mt-20 flex flex-col sm:flex-row sm:items-center gap-3" data-testid="legal-data-summary">
+                <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-sky-50 dark:bg-sky-500/15 text-sky-600 text-lg"><i class="bi bi-building"></i></div>
+                <div class="min-w-0 flex-1">
+                    <h2 class="font-bold text-slate-900 dark:text-white">Dados da loja no rodapé</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 break-words">{{ collect([$identity['legal_name'] ?? '', $docTxt, $addrTxt, $identity['email'] ?? '', $identity['whatsapp'] ?? ''])->map(fn ($v) => trim((string) $v))->filter()->implode(' · ') ?: 'Ainda sem nome, CPF/CNPJ e endereço.' }}</p>
                 </div>
-                <div class="grid gap-3 sm:grid-cols-2">
-                    <div><label class="{{ $label }}">Nome ou razão social</label><input type="text" wire:model="identity.legal_name" maxlength="120" class="{{ $input }}" placeholder="Ex.: Maria Silva Cosméticos ME" data-testid="legal-name"></div>
-                    <div><label class="{{ $label }}">CPF ou CNPJ</label><input type="text" wire:model="identity.document" maxlength="30" inputmode="numeric" class="{{ $input }}" placeholder="Só os números" data-testid="legal-document"></div>
-                    <div class="sm:col-span-2"><label class="{{ $label }}">Endereço (rua, número, cidade e estado)</label><input type="text" wire:model="identity.address" maxlength="200" class="{{ $input }}" placeholder="Ex.: Rua das Flores, 120, Centro, Franca - SP" data-testid="legal-address"></div>
-                    <div><label class="{{ $label }}">E-mail de atendimento</label><input type="email" wire:model="identity.email" maxlength="120" class="{{ $input }}" placeholder="contato@sualoja.com"></div>
-                    <div><label class="{{ $label }}">WhatsApp</label><input type="text" wire:model="identity.whatsapp" maxlength="30" class="{{ $input }}" placeholder="(16) 99999-9999"></div>
-                </div>
-                <div class="flex justify-end"><button type="button" wire:click="saveIdentity" class="{{ $primary }}" data-testid="legal-save"><i class="bi bi-check2"></i>Salvar dados</button></div>
+                <button type="button" wire:click="$set('tab', 'identidade')" class="{{ $phBtn }} shrink-0 self-start sm:self-center" data-testid="legal-edit-data"><i class="bi bi-pencil text-violet-500"></i>Editar em Informações da loja</button>
             </section>
 
             @foreach($legalTexts as $pk => [$pt, $pi, $pdesc])
@@ -1044,17 +1141,18 @@
                         <div class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-violet-50 dark:bg-violet-500/15 text-violet-600 text-lg"><i class="bi {{ $pi }}"></i></div>
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2"><h2 class="font-bold text-slate-900 dark:text-white">{{ $pt }}</h2>
-                                <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $mine ? $tones['emerald'] : $tones['sky'] }}">{{ $mine ? 'Seu texto' : 'Texto pronto no ar' }}</span></div>
+                                @php $ready = $pk === 'trocas' || isset($SI::LEGAL_PAGES[$pk]); @endphp
+                                <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $mine ? $tones['emerald'] : ($ready ? $tones['sky'] : $tones['slate']) }}">{{ $mine ? 'Seu texto' : ($ready ? 'Texto pronto no ar' : 'Vazia, não aparece') }}</span></div>
                             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $pdesc }}</p>
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <a href="{{ route('portal.store-page', ['userId' => auth()->id(), 'page' => $pk]) }}" target="_blank" rel="noopener" class="{{ $phBtn }}"><i class="bi bi-box-arrow-up-right text-violet-500"></i>Ver no site</a>
-                        <button type="button" @click="open = !open" class="{{ $phBtn }}"><i class="bi bi-pencil text-violet-500"></i><span x-text="open ? 'Fechar' : 'Escrever o meu'"></span></button>
-                        <button type="button" wire:click="useLegalText('{{ $pk }}')" @click="open = true" class="{{ $phBtn }}" data-testid="use-legal-{{ $pk }}"><i class="bi bi-magic text-violet-500"></i>{{ $mine ? 'Trocar pelo texto pronto' : 'Editar o texto pronto' }}</button>
+                        @if($mine || $ready)<a href="{{ route('portal.store-page', ['userId' => auth()->id(), 'page' => $pk]) }}" target="_blank" rel="noopener" class="{{ $phBtn }}"><i class="bi bi-box-arrow-up-right text-violet-500"></i>Ver no site</a>@endif
+                        <button type="button" @click="open = !open" class="{{ $phBtn }}" data-testid="write-{{ $pk }}"><i class="bi bi-pencil text-violet-500"></i><span x-text="open ? 'Fechar' : 'Escrever o meu'"></span></button>
+                        @if($ready)<button type="button" wire:click="useLegalText('{{ $pk }}')" @click="open = true" class="{{ $phBtn }}" data-testid="use-legal-{{ $pk }}"><i class="bi bi-magic text-violet-500"></i>{{ $mine ? 'Trocar pelo texto pronto' : 'Editar o texto pronto' }}</button>@endif
                     </div>
                     <div x-show="open" x-cloak class="space-y-2">
-                        <textarea wire:model.blur="pages.{{ $pk }}" rows="9" maxlength="5000" class="{{ $input }}" placeholder="Em branco, o site mostra o texto pronto." data-testid="legal-text-{{ $pk }}"></textarea>
+                        <textarea wire:model.blur="pages.{{ $pk }}" rows="9" maxlength="5000" class="{{ $input }}" placeholder="{{ $ready ? 'Em branco, o site mostra o texto pronto.' : ($SI::PAGES[$pk][2] ?? '') }}" data-testid="legal-text-{{ $pk }}"></textarea>
                         <div class="flex justify-end"><button type="button" wire:click="saveIdentity" class="{{ $primary }}"><i class="bi bi-check2"></i>Salvar texto</button></div>
                     </div>
                 </section>
@@ -1185,7 +1283,7 @@
 
     </x-portal-settings-nav>
 
-    @if(in_array($tab, ['geral', 'identidade', 'inicio', 'banners', 'destaques', 'colecoes', 'aviso', 'automacoes', 'leis'], true))
+    @if(in_array($tab, ['geral', 'identidade', 'tema', 'inicio', 'banners', 'destaques', 'colecoes', 'aviso', 'automacoes', 'leis'], true))
         @include('livewire.promotions.partials.storefront-preview')
     @endif
 
