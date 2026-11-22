@@ -354,6 +354,21 @@ class CartaoFicha(ctk.CTkFrame):
 
 # ------------------------------------------------------------------ app
 
+TAMANHOS_TELA = {"Automático": "auto", "Compacto": "compacto", "Normal": "normal", "Grande": "grande"}
+
+
+def escala_da_tela(escolha, sw, sh):
+    """Tamanho das letras e botões: automático pelo monitor, ou o que a pessoa escolheu em Configurações."""
+    fixo = {"compacto": 0.9, "normal": 1.0, "grande": 1.15}
+    if escolha in fixo:
+        return fixo[escolha]
+    if sw <= 1440 or sh <= 820:      # notebook 1366
+        return 0.92
+    if sw >= 2500 and sh >= 1300:    # ultrawide / 2K
+        return 1.12
+    return 1.0
+
+
 class App(ctk.CTk):
     def __init__(self):
         self.cfg = motor.ler_config()
@@ -361,9 +376,18 @@ class App(ctk.CTk):
         super().__init__()
         self.title("Robô de cadastro · Móveis Stylo")
         sw, sh = self.winfo_screenwidth(), self.winfo_screenheight()
-        larg, alt = min(1320, sw - 40), min(820, sh - 90)
-        self.geometry(f"{larg}x{alt}+{max((sw - larg) // 2, 0)}+{max((sh - alt) // 2 - 20, 0)}")
-        self.minsize(1060, 660)
+        self.escala = escala_da_tela(self.cfg["robo"].get("tamanho_tela"), sw, sh)
+        ctk.set_widget_scaling(self.escala)
+        ctk.set_window_scaling(self.escala)
+        if sw <= 1440 or sh <= 820:      # notebook: ocupa a tela toda
+            larg, alt = sw - 20, sh - 80
+        else:                            # monitor grande / ultrawide: janela confortável no meio
+            larg, alt = min(int(1560 * self.escala), sw - 80), min(int(940 * self.escala), sh - 110)
+        larg, alt = int(larg / self.escala), int(alt / self.escala)
+        self.geometry(f"{larg}x{alt}+{max((sw - int(larg * self.escala)) // 2, 0)}+{max((sh - int(alt * self.escala)) // 2 - 20, 0)}")
+        self.minsize(int(1000 / self.escala), int(620 / self.escala))
+        if (sw <= 1440 or sh <= 820) and sys.platform.startswith("win"):
+            self.after(60, lambda: self.state("zoomed"))
         self.configure(fg_color=FUNDO)
         if ICONE.exists() and sys.platform.startswith("win"):
             try:
@@ -429,14 +453,25 @@ class App(ctk.CTk):
         ctk.CTkLabel(txt, text="Móveis Stylo", text_color="white", font=F(15, "bold"), anchor="w").pack(anchor="w")
         ctk.CTkLabel(txt, text="Robô de cadastro", text_color="#a79fc4", font=F(12), anchor="w").pack(anchor="w")
         self.nav = {}
-        itens = [("inicio", "⌂   Início"), ("fichas", "☰   Fichas"), ("ml", "⌕   Mercado Livre"), ("concorrentes", "◎   Concorrentes"),
-                 ("feitas", "✓   Cadastradas"), ("config", "⚙   Configurações")]
-        for i, (chave, texto) in enumerate(itens, 1):
-            b = ctk.CTkButton(lat, text=texto, anchor="w", height=42, corner_radius=11, fg_color="transparent",
-                              hover_color="#2d1b52", text_color="#d6d0ea", font=F(14, "bold"),
-                              command=lambda c=chave: self.ir(c))
-            b.grid(row=i, column=0, sticky="ew", padx=12, pady=3)
-            self.nav[chave] = b
+        menu = ctk.CTkFrame(lat, fg_color="transparent")
+        menu.grid(row=1, column=0, sticky="new")
+        menu.grid_columnconfigure(0, weight=1)
+        grupos = [("PRODUTOS", [("inicio", "⌂", "Início"), ("fichas", "☰", "Fichas"), ("feitas", "✓", "Cadastradas")]),
+                  ("MERCADO LIVRE", [("ml", "⌕", "Buscar no ML"), ("concorrentes", "◎", "Concorrentes")]),
+                  ("AJUSTES", [("cores", "🎨", "Minhas cores"), ("config", "⚙", "Configurações")])]
+        r = 0
+        for titulo, itens in grupos:
+            ctk.CTkLabel(menu, text=titulo, text_color="#7d7499", font=F(10, "bold"), anchor="w").grid(
+                row=r, column=0, sticky="w", padx=24, pady=(10 if r else 0, 2))
+            r += 1
+            for chave, icone, texto in itens:
+                b = ctk.CTkButton(menu, text=f"{icone}   {texto}", anchor="w", height=38, corner_radius=11, fg_color="transparent",
+                                  hover_color="#2d1b52", text_color="#d6d0ea", font=F(14, "bold"),
+                                  command=(lambda: EscolherCores(self)) if chave == "cores" else (lambda c=chave: self.ir(c)))
+                b.grid(row=r, column=0, sticky="ew", padx=12, pady=2)
+                if chave != "cores":
+                    self.nav[chave] = b
+                r += 1
         Botao(lat, "Copiar questionário p/ IA", "fantasma", text_color="#d6d0ea", border_color="#3b2a63",
               hover_color="#2d1b52", command=self.questionario).grid(row=9, column=0, sticky="ew", padx=14, pady=(0, 8))
         self.tema = ctk.CTkSwitch(lat, text="Modo escuro", text_color="#d6d0ea", progress_color=ROXO, font=F(13),
@@ -2482,7 +2517,14 @@ class PaginaConfig(ctk.CTkFrame):
         self.auto_imp = ctk.CTkSwitch(c3, text="Completar a ficha sozinho ao importar do Mercado Livre", progress_color=ROXO, font=F(13), text_color=TEXTO)
         self.auto_imp.grid(row=7, column=0, columnspan=2, sticky="w", padx=20, pady=(12, 0))
         Botao(c3, "🎨  Minhas cores (ferragem, corano, madeira)", "suave", width=300,
-              command=lambda: EscolherCores(app)).grid(row=8, column=0, columnspan=2, sticky="w", padx=20, pady=(14, 18))
+              command=lambda: EscolherCores(app)).grid(row=8, column=0, columnspan=2, sticky="w", padx=20, pady=(14, 0))
+        ctk.CTkLabel(c3, text="Tamanho da tela", anchor="w", font=F(13, "bold"), text_color=TEXTO).grid(row=9, column=0, sticky="w", padx=20, pady=(14, 0))
+        self.tam_tela = _seg(c3, list(TAMANHOS_TELA))
+        atual = next((k for k, v in TAMANHOS_TELA.items() if v == r.get("tamanho_tela")), "Automático")
+        self.tam_tela.set(atual)
+        self.tam_tela.grid(row=9, column=1, sticky="w", padx=20, pady=(14, 0))
+        ctk.CTkLabel(c3, text="Letras e botões maiores ou menores. Automático = pelo seu monitor. Vale ao abrir o robô de novo.",
+                     text_color=MUDO, anchor="w", font=F(11), justify="left", wraplength=420).grid(row=10, column=0, columnspan=2, sticky="w", padx=20, pady=(2, 18))
         (self.auto_imp.select if motor.sim(r.get("completar_ao_importar", "sim")) else self.auto_imp.deselect)()
         c4 = ctk.CTkFrame(raiz, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA)
         c4.grid(row=2, column=1, sticky="new", padx=(8, 18), pady=(16, 10))
@@ -2553,6 +2595,7 @@ class PaginaConfig(ctk.CTkFrame):
         r["atualizar_sozinho"] = "sim" if self.auto_atu.get() else "nao"
         r["copia_diaria"] = "sim" if self.copia.get() else "nao"
         r["pasta_copias"] = self.campos["pasta_copias"].get().strip()
+        r["tamanho_tela"] = TAMANHOS_TELA.get(self.tam_tela.get(), "auto")
         motor.salvar_config(self.app.cfg)
         if self.app.site and not self.app.rodando:
             self.app.tarefas.put(("fechar_site", None))
@@ -2649,6 +2692,7 @@ class LinhaVariacao(ctk.CTkFrame):
         c = campo("VENDA R$", None)
         self.venda = Entrada(c, "dinheiro", width=86, ao_mudar=self.calc, font=F(13, "bold"))
         self.venda.pack()
+        self.lbl_un = ctk.CTkLabel(c, text="", font=F(10), text_color=MUDO, height=12)
         c = campo("PREÇO “DE”", None)
         self.de = Entrada(c, "dinheiro", width=86)
         self.de.pack()
@@ -2660,12 +2704,22 @@ class LinhaVariacao(ctk.CTkFrame):
         self.estoque.pack(side="left")
         Botao(ctrl, "+", "fantasma", width=30, height=30, border_width=0, command=lambda: self.somar(1)).pack(side="left", padx=(0, 2), pady=2)
         c = campo("KIT (UN.)", None)
-        self.kit = Entrada(c, "inteiro", width=60, placeholder_text="1")
-        self.kit.pack()
-        self.kit.bind("<FocusOut>", lambda e: self._selos(), add="+")
-        self.bt_det = Botao(self, "▸  Medidas, caixa e pedido do Canva", "fantasma", height=26, font=F(12), border_width=0,
+        kk = ctk.CTkFrame(c, fg_color="transparent")
+        kk.pack()
+        self.kit = Entrada(kk, "inteiro", width=60, placeholder_text="1")
+        self.kit.pack(side="left")
+        self.kit.bind("<FocusOut>", lambda e: (self._selos(), self.calc()), add="+")
+        self.bt_kit = dica(Botao(kk, "× kit", "suave", width=50, height=30, font=F(11, "bold"), command=self.calcular_kit),
+                           "Calcula custo, preço e peso do kit pelo preço de 1 unidade (a variação igual sem kit)")
+
+        # linha 3: detalhes + cores desta variação
+        l3x = ctk.CTkFrame(self, fg_color="transparent")
+        l3x.grid(row=2, column=1, sticky="ew", padx=(0, 12), pady=(0, 10))
+        self.bt_det = Botao(l3x, "▸  Medidas, caixa e pedido do Canva", "fantasma", height=26, font=F(12), border_width=0,
                             text_color=ROXO_TXT, anchor="w", command=self.alternar)
-        self.bt_det.grid(row=2, column=1, sticky="w", padx=(0, 12), pady=(0, 10))
+        self.bt_det.pack(side="left")
+        self.caixa_cores = ctk.CTkFrame(l3x, fg_color="transparent")
+        self.caixa_cores.pack(side="right")
 
         # detalhes (abre e fecha)
         self.det = ctk.CTkFrame(self, fg_color=SUAVE, corner_radius=14)
@@ -2717,6 +2771,10 @@ class LinhaVariacao(ctk.CTkFrame):
             w.bind("<FocusIn>", lambda e: self.abrir(), add="+")
         if self.ativa:
             self.liga.select()
+        self.cores = dict(v.get("cores") or {}) if isinstance(v.get("cores"), dict) else {}
+        if not self.cores:
+            self.cores = recursos.cores_do_nome(self._parte_cor() or "")
+        self._desenhar_cores()
         self._selos()
         self._pintar()
         self.calc()
@@ -2770,8 +2828,79 @@ class LinhaVariacao(ctk.CTkFrame):
         if n > 1:
             self.selo_kit.configure(text=f"  kit {n} un.  ")
             self.selo_kit.grid(row=0, column=2, padx=(8, 0))
+            self.bt_kit.pack(side="left", padx=(4, 0))
         else:
             self.selo_kit.grid_forget()
+            self.bt_kit.pack_forget()
+
+    # cores (ferragem, corano, madeira) desta variação
+    def _parte_cor(self):
+        partes = [x.strip() for x in self.valor.get().split("·") if x.strip()]
+        partes = [x for x in partes if not re.match(r"(?i)kit\b", x)]
+        if len(partes) > 1:
+            return partes[-1]
+        if len(partes) == 1 and recursos.cores_do_nome(partes[0]):
+            return partes[0]
+        return None
+
+    def _desenhar_cores(self):
+        for w in self.caixa_cores.winfo_children():
+            w.destroy()
+        dados = recursos.ler_cores()
+        nomes = {g["chave"]: g for g in dados["grupos"]}
+        for chave, nome in self.cores.items():
+            g = nomes.get(chave)
+            chip = ctk.CTkFrame(self.caixa_cores, fg_color=PAINEL, corner_radius=12, border_width=1, border_color=VIDRO_BORDA)
+            chip.pack(side="left", padx=(0, 6))
+            ctk.CTkFrame(chip, width=14, height=14, corner_radius=7, fg_color=recursos.hex_da_cor(chave, nome, dados) or "#888888",
+                         border_width=1, border_color=BORDA).pack(side="left", padx=(8, 5), pady=5)
+            rot = ((g or {}).get("prefixo") or "ferragem").capitalize() if g else chave
+            ctk.CTkLabel(chip, text=f"{rot}: {nome}", font=F(11), text_color=TEXTO).pack(side="left", padx=(0, 9))
+        dica(Botao(self.caixa_cores, "🎨  Cores" if not self.cores else "🎨", "suave", width=34 if self.cores else 80, height=26,
+                   font=F(11, "bold"), command=self.escolher_cores), "Escolher a ferragem, o corano ou a madeira desta variação").pack(side="left")
+
+    def escolher_cores(self):
+        def usar(comb, marc):
+            self.cores = {k: v[0] for k, v in marc.items() if v}
+            nome, canva = comb[0]
+            partes = [x.strip() for x in self.valor.get().split("·") if x.strip()]
+            kits = [x for x in partes if re.match(r"(?i)kit\b", x)]
+            resto = [x for x in partes if x not in kits]
+            antiga = self._parte_cor()
+            if antiga and antiga in resto:
+                resto[resto.index(antiga)] = nome
+            else:
+                resto.append(nome)
+            self.valor.definir(" · ".join(resto + kits))
+            ant_canva = self.canva_extra.valor() or ""
+            if not ant_canva or ant_canva.startswith(("Estrutura de ferro", "Assento estofado", "Madeira no tom")):
+                self.canva_extra.definir(canva)
+            self._desenhar_cores()
+            self.editor.atualizar_usos()
+            if self.editor.var_por.get() in ("Sem variação", "Tamanho") and len(resto) > 1:
+                self.editor.var_por.set("Tamanho e cor")
+        EscolherCores(self.editor.app, usar, marcadas={k: [v] for k, v in self.cores.items()}, unica=True)
+
+    def calcular_kit(self):
+        k = self.kit.valor() or 1
+        if k < 2:
+            self.editor.app.toast("Ponha a quantidade em KIT (UN.) primeiro", AMBAR)
+            return
+        base_nome = re.sub(r"(?i)\s*·\s*kit\b.*$", "", self.valor.get().strip()).strip().lower()
+        base = next((l for l in self.editor.linhas if l is not self and (l.kit.valor() or 1) == 1
+                     and l.valor.get().strip().lower() == base_nome), None)
+        base = base or next((l for l in self.editor.linhas if l is not self and (l.kit.valor() or 1) == 1 and l.venda.valor()), None)
+        if base is None or not base.venda.valor():
+            self.editor.app.toast("Não achei a variação de 1 unidade com preço", AMBAR)
+            return
+        desc = min(max(self.editor.g_desc.valor() or 0, 0), 60) / 100
+        self.venda.definir(round(base.venda.valor() * k * (1 - desc), 2))
+        if base.custo.valor():
+            self.custo.definir(round(base.custo.valor() * k, 2))
+        if base.peso.valor():
+            self.peso.definir(round(base.peso.valor() * k, 2))
+        self.calc()
+        self.editor.app.toast(f"Kit de {k} calculado pelo preço de “{base.rotulo()}”" + (f" com {desc * 100:.0f}% de desconto" if desc else ""))
 
     def mostrar_foto(self, caminho):
         img = miniatura(caminho, 64, 14) if caminho else None
@@ -2784,6 +2913,12 @@ class LinhaVariacao(ctk.CTkFrame):
     def calc(self):
         venda = self.venda.valor()
         custo = self.custo.valor()
+        k = self.kit.valor() or 1
+        if k > 1 and venda:
+            self.lbl_un.configure(text=f"R$ {reais(venda / k)} por un.")
+            self.lbl_un.pack(anchor="w")
+        else:
+            self.lbl_un.pack_forget()
         if custo is None:
             custo = self.editor.soma_custo()
         if venda and custo:
@@ -2809,6 +2944,10 @@ class LinhaVariacao(ctk.CTkFrame):
             v.pop("ativa", None)
         else:
             v["ativa"] = False
+        if self.cores:
+            v["cores"] = dict(self.cores)
+        else:
+            v.pop("cores", None)
         kit = self.kit.valor() or 1
         if kit > 1:
             v["kit"] = kit
@@ -3458,8 +3597,9 @@ class Editor(ctk.CTkFrame):
             sec = self.secoes[chave]
             nome = self.CURTOS.get(sec.titulo, sec.titulo)
             n = por_secao.get(chave, 0)
-            b.configure(text=f"{nome}  ·  {n}" if n else nome, border_color=AMBAR if n else BORDA,
-                        text_color=("#b45309", "#fcd34d") if n else TEXTO)
+            b.configure(text=f"!  {nome}  ·  {n}" if n else f"✓  {nome}", border_color=AMBAR if n else ("#a7f3d0", "#14532d"),
+                        fg_color=("#fffbeb", "#2a2110") if n else ("#ecfdf5", "#0f2a1f"),
+                        text_color=("#b45309", "#fcd34d") if n else ("#047857", "#6ee7b7"))
 
     def resolver(self, chaves):
         chaves = set(chaves)
@@ -3721,7 +3861,13 @@ class Editor(ctk.CTkFrame):
             self._marc_cores = marc
             self.g_cor.definir(", ".join(n for n, _ in comb))
             self.lbl_cores.configure(text=f"{len(comb)} cor(es) prontas · aperte Criar variações")
-        EscolherCores(self.app, usar, multiplicar=max(len(tam), 1) * len(kits), marcadas=self._marc_cores)
+        marc = self._marc_cores
+        if not marc:      # ficha sem marcação: começa com as cores que as variações já têm
+            marc = {}
+            for l in self.linhas:
+                for k, v in l.cores.items():
+                    marc.setdefault(k, set()).add(v)
+        EscolherCores(self.app, usar, multiplicar=max(len(tam), 1) * len(kits), marcadas=marc)
 
     def gerar(self):
         tam = [t.strip() for t in self.g_tam.get().split(",") if t.strip()]
@@ -4526,11 +4672,11 @@ class EscolherCores(Dialogo):
     Sem `ao_usar` a janela só serve para cadastrar e apagar cores (aberta em Configurações).
     """
 
-    def __init__(self, app, ao_usar=None, multiplicar=1, marcadas=None):
-        super().__init__(app, "Minhas cores", "Marque as cores desta peça. Se marcar ferragem e corano, o robô cria cada "
+    def __init__(self, app, ao_usar=None, multiplicar=1, marcadas=None, unica=False):
+        super().__init__(app, "Minhas cores", "Escolha uma cor de cada grupo para esta variação." if unica else "Marque as cores desta peça. Se marcar ferragem e corano, o robô cria cada "
                          "combinação (ex.: Preto com corano Verde)." if ao_usar else
                          "As cores que você usa. Elas aparecem para marcar em Variações › Escolher cores.", larg=760, alt=680)
-        self.ao_usar, self.multiplicar = ao_usar, max(multiplicar, 1)
+        self.ao_usar, self.multiplicar, self.unica = ao_usar, max(multiplicar, 1), unica
         self.dados = recursos.ler_cores()
         self.marcadas = {k: set(v) for k, v in (marcadas or {}).items()}
         self.editando = not ao_usar
@@ -4568,7 +4714,7 @@ class EscolherCores(Dialogo):
             ctk.CTkLabel(topo, text=g["nome"], font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(side="left")
             n = len(marc)
             ctk.CTkLabel(topo, text=f"  {n} marcada(s)" if n else "", font=F(12), text_color=ROXO_TXT).pack(side="left")
-            if self.ao_usar and not self.editando:
+            if self.ao_usar and not self.editando and not self.unica:
                 Botao(topo, "Limpar", "fantasma", width=60, height=24, font=F(11),
                       command=lambda k=g["chave"]: (self.marcadas[k].clear(), self.desenhar())).pack(side="right")
                 Botao(topo, "Todas", "fantasma", width=56, height=24, font=F(11),
@@ -4616,6 +4762,8 @@ class EscolherCores(Dialogo):
 
     def _marcar(self, chave, nome):
         m = self.marcadas.setdefault(chave, set())
+        if self.unica and nome not in m:
+            m.clear()
         m.symmetric_difference_update({nome})
         self.desenhar()
 

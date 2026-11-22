@@ -301,6 +301,42 @@ def salvar_cores(d):
     os.replace(tmp, ARQ_CORES)
 
 
+def hex_da_cor(chave, nome, dados=None):
+    g = next((g for g in (dados or ler_cores())["grupos"] if g["chave"] == chave), None)
+    return next((h for n, h in (g or {}).get("itens", []) if n.lower() == str(nome).lower()), None)
+
+
+def cores_do_nome(texto, dados=None):
+    """Lê "Preto com corano Verde e madeira Mel" (ou só "Preto", "Corano Verde") -> {"ferragem": "Preto", "corano": "Verde", ...}.
+
+    Só reconhece nomes que estão cadastrados; o que não reconhece fica de fora.
+    """
+    dados = dados or ler_cores()
+    txt = str(texto or "").strip()
+    if not txt:
+        return {}
+    grupos = dados["grupos"]
+    pedacos = re.split(r"\s+com\s+|\s+e\s+(?=(?:%s)\b)" % "|".join(re.escape(g["prefixo"]) for g in grupos if g.get("prefixo")), txt,
+                       flags=re.I)
+    saida = {}
+    for i, ped in enumerate(pedacos):
+        ped = ped.strip()
+        for g in grupos:
+            pre = (g.get("prefixo") or "").lower()
+            nome = ped
+            if pre:
+                if not ped.lower().startswith(pre + " "):
+                    continue
+                nome = ped[len(pre) + 1:].strip()
+            elif i > 0 and any(ped.lower().startswith((x.get("prefixo") or "~").lower() + " ") for x in grupos):
+                continue
+            achou = next((n for n, _ in g["itens"] if n.lower() == nome.lower()), None)
+            if achou and g["chave"] not in saida:
+                saida[g["chave"]] = achou
+                break
+    return saida
+
+
 def combinar_cores(escolhas):
     """escolhas: [(grupo, [nomes])] na ordem dos grupos. Devolve [(nome da variação, texto para o Canva)].
 
