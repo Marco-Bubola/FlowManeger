@@ -297,6 +297,17 @@
                 {{-- 4. Contatos, redes e pagamentos do rodapé --}}
                 <section id="id-contatos" class="{{ $card }} p-4 sm:p-5 space-y-3 scroll-mt-20">
                     {!! $secHead('bi-whatsapp', 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600', 'Contatos e redes', 'Ficam no rodapé do site. O WhatsApp também é usado no botão de pedir pelo WhatsApp. Deixe em branco o que não quiser mostrar.', filled($identity['whatsapp'] ?? null) || filled($identity['phone'] ?? null)) !!}
+                    @php $acc = \App\Support\ConnectedAccounts::for(auth()->id()); @endphp
+                    <div class="flex flex-wrap gap-1.5" data-testid="id-connected">
+                        @foreach($acc as $ak => $a)
+                            @if($a['on'])
+                                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold {{ $tones['emerald'] }}"><i class="bi {{ $a['icon'] }}"></i>{{ $a['name'] }}: {{ $a['handle'] }}</span>
+                            @else
+                                <a href="{{ route($a['manage']) }}" wire:navigate class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-violet-600 hover:border-violet-300"><i class="bi {{ $a['icon'] }}"></i>Conectar {{ $a['name'] }}</a>
+                            @endif
+                        @endforeach
+                    </div>
+                    <p class="text-[11px] text-slate-400 -mt-1">O Instagram conectado já entra aqui sozinho. Mercado Livre e Shopee conectados aparecem no rodapé como “Também estamos no…”.</p>
                     <div class="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
                         @foreach([
                             'whatsapp' => ['WhatsApp', 'bi-whatsapp', '(16) 99999-9999', 'tel'],
@@ -308,7 +319,12 @@
                         ] as $fk => [$fl, $fi, $fp, $ft])
                             <div>
                                 <label class="{{ $label }}" for="id-{{ $fk }}"><i class="bi {{ $fi }} text-slate-400"></i> {{ $fl }}</label>
+                                @if($fk === 'instagram' && ($acc['instagram']['on'] ?? false))
+                                    <input id="id-instagram" type="text" value="{{ $acc['instagram']['handle'] }}" readonly title="Vem do Instagram conectado" class="{{ $input }} bg-slate-50 dark:bg-slate-800/60" data-testid="id-instagram">
+                                    <p class="mt-1 text-[11px] font-semibold text-emerald-600"><i class="bi bi-check-circle-fill"></i> Da conta conectada</p>
+                                @else
                                 <input id="id-{{ $fk }}" type="{{ $ft }}" wire:model.blur="identity.{{ $fk }}" placeholder="{{ $fp }}" class="{{ $input }}" data-testid="id-{{ $fk }}">
+                                @endif
                                 @error('identity.' . $fk)<p class="mt-1 text-xs font-semibold text-rose-600">{{ $message }}</p>@enderror
                             </div>
                         @endforeach

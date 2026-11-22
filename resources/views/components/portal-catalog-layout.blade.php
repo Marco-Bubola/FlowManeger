@@ -482,6 +482,11 @@ document.addEventListener('alpine:init', () => {
                         @foreach($fSocial as $ic => $link)<a href="{{ $link }}" target="_blank" rel="noopener" aria-label="Rede social"><i class="{{ $ic }}"></i></a>@endforeach
                     </div>
                 @endif
+                @if(! empty($identity['marketplaces']))
+                    <p class="ml-foot2-mkt" style="margin-top:.6rem;font-size:.8rem;opacity:.85">Também estamos no
+                        @foreach($identity['marketplaces'] as $mn => $mu)<a href="{{ $mu }}" target="_blank" rel="noopener" style="font-weight:700;text-decoration:underline">{{ $mn }}</a>@if(! $loop->last) e @endif @endforeach
+                    </p>
+                @endif
             </div>
             @if($fContacts)
                 <div>

@@ -36,6 +36,11 @@ new class extends Component {
         $this->instagram = $user->instagram ?? '';
         $this->linkedin = $user->linkedin ?? '';
         $this->birth_date = $user->birth_date ?? '';
+        // Instagram conectado manda: o @ vem da conta ligada em Configurações › Instagram.
+        $ig = \App\Support\ConnectedAccounts::for($user->id)['instagram'] ?? null;
+        if ($ig && $ig['on']) {
+            $this->instagram = $ig['handle'];
+        }
     }
 
     public function updateProfileInformation(): void
@@ -56,6 +61,10 @@ new class extends Component {
             'birth_date' => ['nullable', 'string', 'max:20'],
         ]);
 
+        $ig = \App\Support\ConnectedAccounts::for($user->id)['instagram'] ?? null;
+        if ($ig && $ig['on']) {
+            $validated['instagram'] = $ig['handle'];
+        }
         $user->fill($validated);
 
         if ($this->profile_picture && is_object($this->profile_picture)) {
@@ -106,7 +115,7 @@ new class extends Component {
         ['Cidade', ! empty($au->location), 'acc-contato', 'bi-geo-alt'],
         ['Sobre você', ! empty($au->about_me), 'acc-dados', 'bi-chat-quote'],
         ['Aniversário', ! empty($au->birth_date), 'acc-dados', 'bi-cake2'],
-        ['Site ou rede social', ! empty($au->website) || ! empty($au->instagram) || ! empty($au->linkedin) || ! empty($au->twitter), 'acc-redes', 'bi-share'],
+        ['Site ou rede social', ! empty($au->website) || ! empty($au->instagram) || ! empty($au->linkedin) || ! empty($au->twitter) || collect(\App\Support\ConnectedAccounts::for($au->id))->contains('on', true), 'acc-redes', 'bi-share'],
     ];
     $done = collect($checks)->where(1, true)->count();
     $pct = (int) round($done / count($checks) * 100);
@@ -258,25 +267,51 @@ new class extends Component {
                     @endif
                 </div>
 
-                {{-- Redes --}}
+                {{-- Redes: primeiro as contas conectadas (vêm sozinhas), depois o que não tem conexão --}}
+                @php $acc = \App\Support\ConnectedAccounts::for(auth()->id()); $igOn = $acc['instagram']['on'] ?? false; @endphp
                 <div class="ap-card" id="acc-redes">
                     <div class="ap-card-head">
                         <span class="ap-ico bg-gradient-to-br from-pink-500 to-orange-400"><i class="bi bi-share"></i></span>
                         <div class="min-w-0">
-                            <h2>Site e redes sociais</h2>
-                            <p>Onde seus clientes encontram você. Tudo opcional.</p>
+                            <h2>Redes e contas</h2>
+                            <p>As contas que você conectou entram sozinhas, sem digitar. O resto é opcional.</p>
                         </div>
                     </div>
+                    <div class="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2 mb-4" data-testid="connected-accounts">
+                        @foreach($acc as $ak => $a)
+                            <div class="flex items-center gap-3 rounded-2xl border p-3 {{ $a['on'] ? 'border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/10' : 'border-slate-200 dark:border-slate-700' }}" data-testid="acc-{{ $ak }}" data-on="{{ $a['on'] ? '1' : '0' }}">
+                                <span class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg bg-gradient-to-br {{ $a['color'] }} {{ $a['on'] ? '' : 'opacity-50 grayscale' }}"><i class="bi {{ $a['icon'] }}"></i></span>
+                                <span class="min-w-0 flex-1">
+                                    <b class="block text-sm text-slate-900 dark:text-white">{{ $a['name'] }}</b>
+                                    @if($a['on'])
+                                        <small class="block text-xs text-emerald-700 dark:text-emerald-300 truncate"><i class="bi bi-check-circle-fill"></i> {{ $a['handle'] }}</small>
+                                    @else
+                                        <small class="block text-xs text-slate-500 dark:text-slate-400">Não conectado</small>
+                                    @endif
+                                </span>
+                                @if($a['on'] && $a['url'])
+                                    <a href="{{ $a['url'] }}" target="_blank" rel="noopener" class="shrink-0 text-xs font-semibold text-violet-600 dark:text-violet-300 hover:underline">Ver</a>
+                                @elseif(! $a['on'] && \Illuminate\Support\Facades\Route::has($a['manage']))
+                                    <a href="{{ route($a['manage']) }}" wire:navigate class="shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold text-white bg-violet-500 hover:bg-violet-600">Conectar</a>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
                     <div class="acc-fields acc-fields-2">
+                        <div class="acc-field">
+                            <label for="acc-ig">Instagram @if($igOn)<span class="ml-1 text-[11px] font-semibold text-emerald-600">conectado</span>@endif</label>
+                            @if($igOn)
+                                <div class="acc-input opacity-80"><i class="bi bi-instagram"></i><input id="acc-ig" type="text" value="{{ $acc['instagram']['handle'] }}" readonly title="Vem da conta conectada. Para trocar, conecte outra conta em Configurações › Instagram."></div>
+                            @else
+                                <div class="acc-input"><i class="bi bi-instagram"></i><input id="acc-ig" wire:model="instagram" type="text" placeholder="@sualoja"></div>
+                                <p class="text-[11px] text-slate-400 mt-1">Ou <a href="{{ route('settings.instagram') }}" wire:navigate class="font-semibold text-violet-600 hover:underline">conecte o Instagram</a> para postar pelo app e ele entra aqui sozinho.</p>
+                            @endif
+                            @error('instagram') <p class="acc-err">{{ $message }}</p> @enderror
+                        </div>
                         <div class="acc-field">
                             <label for="acc-site">Site</label>
                             <div class="acc-input"><i class="bi bi-globe2"></i><input id="acc-site" wire:model="website" type="url" placeholder="https://seusite.com.br"></div>
                             @error('website') <p class="acc-err">{{ $message }}</p> @enderror
-                        </div>
-                        <div class="acc-field">
-                            <label for="acc-ig">Instagram</label>
-                            <div class="acc-input"><i class="bi bi-instagram"></i><input id="acc-ig" wire:model="instagram" type="text" placeholder="@sualoja"></div>
-                            @error('instagram') <p class="acc-err">{{ $message }}</p> @enderror
                         </div>
                         <div class="acc-field">
                             <label for="acc-in">LinkedIn</label>
@@ -289,6 +324,7 @@ new class extends Component {
                             @error('twitter') <p class="acc-err">{{ $message }}</p> @enderror
                         </div>
                     </div>
+                    <p class="text-[11px] text-slate-400 mt-3">Facebook, TikTok e as redes que aparecem no site dos clientes ficam em <a href="{{ route('promotions.storefront', ['tab' => 'identidade']) }}" wire:navigate class="font-semibold text-violet-600 hover:underline">Site da loja › Informações da loja</a>.</p>
                 </div>
 
                 {{-- Barra de salvar: fica presa embaixo e acende quando algo mudou --}}

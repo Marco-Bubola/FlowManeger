@@ -77,10 +77,19 @@ class StoreIdentity
         $id['font_url'] = ($g = self::FONTS[$id['font']][2] ?? null) ? 'https://fonts.googleapis.com/css2?family=' . $g . '&display=swap' : null;
         $id['logo_url'] = $id['logo'] ? asset('storage/' . $id['logo']) : null;
         $id['wa_link'] = self::waLink($id['whatsapp']);
-        $id['ig_link'] = self::social($id['instagram'], 'https://instagram.com/');
         $id['fb_link'] = self::social($id['facebook'], 'https://facebook.com/');
         $id['tt_link'] = self::social($id['tiktok'], 'https://tiktok.com/@');
         $id['document_text'] = self::formatDocument($id['document']);
+        // Lojas nos marketplaces conectados: o rodapé mostra "Também estamos no ...".
+        $acc = \App\Support\ConnectedAccounts::for($ownerId);
+        if ($acc['instagram']['on'] ?? false) {
+            $id['instagram'] = $acc['instagram']['handle'];
+        }
+        $id['ig_link'] = self::social($id['instagram'], 'https://instagram.com/');
+        $id['marketplaces'] = array_filter([
+            'Mercado Livre' => ($acc['mercadolivre']['on'] ?? false) ? $acc['mercadolivre']['url'] : null,
+            'Shopee' => ($acc['shopee']['on'] ?? false) ? $acc['shopee']['url'] : null,
+        ]);
 
         return self::$memo[$ownerId] = $id;
     }
@@ -93,10 +102,11 @@ class StoreIdentity
     private static function defaults(?int $ownerId): array
     {
         $user = $ownerId ? User::find($ownerId) : null;
+        $acc = $ownerId ? \App\Support\ConnectedAccounts::for($ownerId) : [];
 
         return [
             'name' => $user?->name ?: config('app.name'), 'tagline' => '', 'logo' => null, 'font' => 'padrao', 'show_name' => true,
-            'whatsapp' => $user?->phone ?? '', 'instagram' => '', 'facebook' => '', 'tiktok' => '', 'email' => '', 'phone' => '',
+            'whatsapp' => $user?->phone ?? '', 'instagram' => ($acc['instagram']['on'] ?? false) ? $acc['instagram']['handle'] : ($user?->instagram ?? ''), 'facebook' => '', 'tiktok' => '', 'email' => '', 'phone' => '',
             'address' => '', 'hours' => '',
             'cep' => '', 'street' => '', 'number' => '', 'complement' => '', 'district' => '', 'city' => '', 'uf' => '', 'payments' => [], 'legal_name' => '', 'document' => '', 'privacy_bar' => true,
         ];
