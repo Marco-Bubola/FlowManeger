@@ -329,7 +329,44 @@ def _tubos():
     return itens
 
 
-MATERIAIS_PADRAO = _tubos() + [
+def _ponteiras():
+    itens = []
+    for bit, pi, pe in (("5/8\"", 0.45, 0.70), ("3/4\"", 0.50, 0.80), ("7/8\"", 0.55, 0.90), ("1\"", 0.60, 1.00),
+                        ("1 1/4\"", 0.90, 1.40), ("1 1/2\"", 1.20, 1.80)):
+        itens.append(["Ponteiras", f"Ponteira interna tubo redondo {bit}", "un", pi, "vai dentro do tubo"])
+        itens.append(["Ponteiras", f"Ponteira externa tubo redondo {bit}", "un", pe, "veste o tubo por fora"])
+    for bit, pi, pe in (("15×15", 0.40, 0.70), ("20×20", 0.50, 0.80), ("25×25", 0.60, 0.95), ("30×30", 0.70, 1.10),
+                        ("40×40", 1.00, 1.60), ("50×50", 1.40, 2.20), ("30×20", 0.65, 1.00), ("40×20", 0.80, 1.20),
+                        ("50×30", 1.10, 1.70)):
+        itens.append(["Ponteiras", f"Ponteira interna metalon {bit} mm", "un", pi, "vai dentro do tubo"])
+        itens.append(["Ponteiras", f"Ponteira externa metalon {bit} mm", "un", pe, "veste o tubo por fora"])
+    itens.append(["Ponteiras", "Ponteira de silicone (antirrisco)", "un", 1.20, ""])
+    itens.append(["Ponteiras", "Deslizador de feltro adesivo", "un", 0.40, ""])
+    return itens
+
+
+PES_E_RODIZIOS = [
+    ["Pés niveladores e sapatas", "Pé nivelador rosca 1/4\" (base 25 mm)", "un", 2.50, ""],
+    ["Pés niveladores e sapatas", "Pé nivelador rosca 1/4\" (base 40 mm)", "un", 3.20, ""],
+    ["Pés niveladores e sapatas", "Pé nivelador rosca 5/16\" (base 30 mm)", "un", 3.00, ""],
+    ["Pés niveladores e sapatas", "Pé nivelador rosca 5/16\" (base 50 mm)", "un", 4.20, ""],
+    ["Pés niveladores e sapatas", "Pé nivelador rosca 3/8\" (base 50 mm)", "un", 4.80, ""],
+    ["Pés niveladores e sapatas", "Sapata roscada 1/4\" para tubo redondo (tampão com rosca)", "un", 1.20, "o nivelador rosqueia nela"],
+    ["Pés niveladores e sapatas", "Sapata roscada 5/16\" para tubo redondo (tampão com rosca)", "un", 1.40, ""],
+    ["Pés niveladores e sapatas", "Sapata roscada 1/4\" para metalon (tampão com rosca)", "un", 1.30, ""],
+    ["Pés niveladores e sapatas", "Sapata roscada 5/16\" para metalon (tampão com rosca)", "un", 1.50, ""],
+    ["Pés niveladores e sapatas", "Porca garra / rebite-porca 1/4\"", "un", 0.50, ""],
+    ["Pés niveladores e sapatas", "Porca garra / rebite-porca 5/16\"", "un", 0.60, ""],
+    ["Rodízios", "Rodízio de plástico 35 mm sem trava", "un", 3.50, ""],
+    ["Rodízios", "Rodízio de plástico 35 mm com trava", "un", 5.50, ""],
+    ["Rodízios", "Rodízio de nylon 50 mm sem trava", "un", 8.00, ""],
+    ["Rodízios", "Rodízio de nylon 50 mm com trava", "un", 11.00, ""],
+    ["Rodízios", "Rodízio de silicone (gel) 50 mm com trava", "un", 14.00, "não risca o piso"],
+    ["Rodízios", "Rodízio de nylon 75 mm com trava", "un", 18.00, ""],
+]
+
+
+MATERIAIS_PADRAO = _tubos() + _ponteiras() + PES_E_RODIZIOS + [
     ["Madeira", "Compensado 15 mm", "m²", 70.0, "assento redondo de 33 cm ≈ 0,1 m²"],
     ["Madeira", "Compensado 10 mm", "m²", 52.0, ""],
     ["Madeira", "MDF 15 mm", "m²", 55.0, ""],
@@ -362,8 +399,6 @@ MATERIAIS_PADRAO = _tubos() + [
     ["Solda e corte", "Disco de corte", "un", 4.0, ""],
     ["Solda e corte", "Disco flap (lixa)", "un", 9.0, ""],
     ["Solda e corte", "Gás CO2 / mistura (por peça, média)", "un", 3.0, ""],
-    ["Acessórios", "Ponteira plástica", "un", 0.6, ""],
-    ["Acessórios", "Sapata niveladora", "un", 2.5, ""],
     ["Acessórios", "Parafuso + bucha", "un", 0.3, ""],
     ["Acessórios", "Rebite", "un", 0.1, ""],
     ["Acessórios", "Base giratória (lazy susan) 30 cm", "un", 45.0, ""],
@@ -383,18 +418,26 @@ def materiais_padrao():
 
 
 def ler_materiais():
+    """Sua tabela. Itens novos que vierem numa versão nova do robô entram sozinhos (os que você excluiu não voltam)."""
     try:
         d = json.loads(ARQ_MATERIAIS.read_text(encoding="utf-8"))
         if isinstance(d, dict) and isinstance(d.get("itens"), list):
-            return d["itens"]
+            itens = d["itens"]
+            vistos = set(d.get("padrao_visto") or [i.get("nome") for i in itens])
+            for novo in materiais_padrao():
+                if novo["nome"] not in vistos:
+                    pos = max((n for n, x in enumerate(itens) if x.get("cat") == novo["cat"]), default=len(itens) - 1) + 1
+                    itens.insert(pos, novo)
+            return itens
     except Exception:
         pass
     return materiais_padrao()
 
 
 def salvar_materiais(itens):
+    vistos = sorted({i["nome"] for i in materiais_padrao()})
     tmp = ARQ_MATERIAIS.with_suffix(".tmp")
-    tmp.write_text(json.dumps({"itens": itens}, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.write_text(json.dumps({"itens": itens, "padrao_visto": vistos}, ensure_ascii=False, indent=2), encoding="utf-8")
     os.replace(tmp, ARQ_MATERIAIS)
 
 
