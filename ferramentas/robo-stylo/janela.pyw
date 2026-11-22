@@ -2665,26 +2665,30 @@ class LinhaVariacao(ctk.CTkFrame):
         # linha 1: nome, código, selos e ações
         l1 = ctk.CTkFrame(self, fg_color="transparent")
         l1.grid(row=0, column=1, sticky="ew", padx=(0, 12), pady=(12, 0))
-        l1.grid_columnconfigure(0, weight=1)
+        l1.grid_columnconfigure(0, weight=0)
+        l1.grid_columnconfigure(1, weight=1)
+        self.marca = ctk.CTkCheckBox(l1, text="", width=24, checkbox_width=22, checkbox_height=22, fg_color=ROXO, hover_color=ROXO_H,
+                                     command=lambda: editor._contar_marcadas())
+        self.marca.grid(row=0, column=0, padx=(0, 6))
         self.valor = Entrada(l1, height=34, font=F(14, "bold"), placeholder_text="nome da variação (ex.: 30 cm · Preto · Kit com 2)",
                              fg_color=PAINEL, border_color=VIDRO_BORDA)
-        self.valor.grid(row=0, column=0, sticky="ew")
+        self.valor.grid(row=0, column=1, sticky="ew")
         self.valor.bind("<FocusOut>", lambda e: (self._selos(), editor.atualizar_usos()), add="+")
         self.liga = ctk.CTkSwitch(self, text="Sobe", width=60, switch_width=36, switch_height=20, progress_color=VERDE,
                                   font=F(11, "bold"), text_color=MUDO, command=self._ligou)
         self.liga.grid(row=2, column=0, sticky="nw", padx=(14, 0), pady=(0, 10))
         self.codigo = Entrada(l1, width=124, height=34, font=F(12), placeholder_text="código automático", fg_color=PAINEL,
                               border_color=VIDRO_BORDA)
-        self.codigo.grid(row=0, column=1, padx=(6, 0))
+        self.codigo.grid(row=0, column=2, padx=(6, 0))
         self.selo_kit = ctk.CTkLabel(l1, text="", font=F(11, "bold"), corner_radius=10, height=24, fg_color=ROXO_CLARO,
                                      text_color=ROXO_TXT)
         self.margem = ctk.CTkLabel(l1, text="—", width=62, height=28, corner_radius=14, font=F(12, "bold"), fg_color=SUAVE,
                                    text_color=MUDO)
-        self.margem.grid(row=0, column=3, padx=(8, 0))
+        self.margem.grid(row=0, column=4, padx=(8, 0))
         pb = dict(width=34, height=32, font=F(13))
-        dica(Botao(l1, "✦", "suave", command=self.canva, **pb), "Criar as imagens desta variação no Canva").grid(row=0, column=4, padx=(8, 0))
-        dica(Botao(l1, "⧉", "fantasma", command=lambda: editor.duplicar_variacao(self), **pb), "Duplicar").grid(row=0, column=5, padx=(4, 0))
-        dica(Botao(l1, "✕", "perigo", command=lambda: editor.remover_variacao(self), **pb), "Remover").grid(row=0, column=6, padx=(4, 0))
+        dica(Botao(l1, "✦", "suave", command=self.canva, **pb), "Criar as imagens desta variação no Canva").grid(row=0, column=5, padx=(8, 0))
+        dica(Botao(l1, "⧉", "fantasma", command=lambda: editor.duplicar_variacao(self), **pb), "Duplicar").grid(row=0, column=6, padx=(4, 0))
+        dica(Botao(l1, "✕", "perigo", command=lambda: editor.remover_variacao(self), **pb), "Remover").grid(row=0, column=7, padx=(4, 0))
 
         # linha 2: preços, estoque, kit e o botão de detalhes
         l2 = ctk.CTkFrame(self, fg_color="transparent")
@@ -2696,8 +2700,14 @@ class LinhaVariacao(ctk.CTkFrame):
             ctk.CTkLabel(caixa, text=rot, font=F(10, "bold"), text_color=MUDO, anchor="w", height=14).pack(anchor="w")
             return caixa
         c = campo("CUSTO R$", None)
-        self.custo = Entrada(c, "dinheiro", width=86, ao_mudar=self.calc)
-        self.custo.pack()
+        cc = ctk.CTkFrame(c, fg_color="transparent")
+        cc.pack()
+        self.custo = Entrada(cc, "dinheiro", width=86, ao_mudar=self.calc)
+        self.custo.pack(side="left")
+        self.itens_custo = [dict(i) for i in v.get("ficha_de_custo") or [] if isinstance(i, dict)]
+        self.bt_custo = dica(Botao(cc, "▦", "suave", width=30, height=30, font=F(12, "bold"), command=self.montar_custo),
+                             "Montar o custo só desta variação pela tabela de materiais")
+        self.bt_custo.pack(side="left", padx=(3, 0))
         c = campo("VENDA R$", None)
         self.venda = Entrada(c, "dinheiro", width=86, ao_mudar=self.calc, font=F(13, "bold"))
         self.venda.pack()
@@ -2784,6 +2794,7 @@ class LinhaVariacao(ctk.CTkFrame):
         if not self.cores:
             self.cores = recursos.cores_do_nome(self._parte_cor() or "")
         self._desenhar_cores()
+        self._pintar_custo()
         self._selos()
         self._pintar()
         self.calc()
@@ -2836,7 +2847,7 @@ class LinhaVariacao(ctk.CTkFrame):
         n = self.kit.valor() or 1
         if n > 1:
             self.selo_kit.configure(text=f"  kit {n} un.  ")
-            self.selo_kit.grid(row=0, column=2, padx=(8, 0))
+            self.selo_kit.grid(row=0, column=3, padx=(8, 0))
             self.bt_kit.pack(side="left", padx=(4, 0))
         else:
             self.selo_kit.grid_forget()
@@ -2889,6 +2900,13 @@ class LinhaVariacao(ctk.CTkFrame):
             if self.editor.var_por.get() in ("Sem variação", "Tamanho") and len(resto) > 1:
                 self.editor.var_por.set("Tamanho e cor")
         EscolherCores(self.editor.app, usar, marcadas={k: [v] for k, v in self.cores.items()}, unica=True)
+
+    def montar_custo(self):
+        CustoVariacao(self)
+
+    def _pintar_custo(self):
+        n = len(self.itens_custo)
+        self.bt_custo.configure(text=f"▦ {n}" if n else "▦", width=44 if n else 30)
 
     def calcular_kit(self):
         k = self.kit.valor() or 1
@@ -2953,6 +2971,10 @@ class LinhaVariacao(ctk.CTkFrame):
             v.pop("ativa", None)
         else:
             v["ativa"] = False
+        if self.itens_custo:
+            v["ficha_de_custo"] = [dict(i) for i in self.itens_custo]
+        else:
+            v.pop("ficha_de_custo", None)
         if self.cores:
             v["cores"] = dict(self.cores)
         else:
@@ -3773,14 +3795,95 @@ class Editor(ctk.CTkFrame):
               command=lambda: [l.ligar(True) for l in self.linhas]).pack(side="right", padx=(0, 6))
         Botao(barra, "Abrir", "fantasma", width=60, height=28, font=F(12),
               command=lambda: [l.alternar(True) for l in self.linhas]).pack(side="right", padx=6)
+        # várias de uma vez: marcar e aplicar custo / preço
+        lote = ctk.CTkFrame(s, fg_color=VIDRO, corner_radius=16, border_width=1, border_color=VIDRO_BORDA)
+        lote.grid(row=3, column=0, columnspan=4, sticky="ew", padx=20, pady=(2, 8))
+        l_a = ctk.CTkFrame(lote, fg_color="transparent")
+        l_a.pack(fill="x", padx=14, pady=(10, 4))
+        ctk.CTkLabel(l_a, text="☑  Marcar", font=F(13, "bold"), text_color=TEXTO).pack(side="left")
+        self.lote_filtro = Entrada(l_a, width=210, height=30, placeholder_text="as que têm… (ex.: 75 cm, corano Verde)")
+        self.lote_filtro.pack(side="left", padx=8)
+        self.lote_filtro.bind("<Return>", lambda e: self.marcar_por_texto())
+        Botao(l_a, "Marcar", "suave", width=70, height=30, font=F(12, "bold"), command=self.marcar_por_texto).pack(side="left")
+        Botao(l_a, "Todas", "fantasma", width=60, height=30, font=F(12), command=lambda: self.marcar_todas_var(True)).pack(side="left", padx=(8, 0))
+        Botao(l_a, "Nenhuma", "fantasma", width=70, height=30, font=F(12), command=lambda: self.marcar_todas_var(False)).pack(side="left", padx=4)
+        self.lbl_marcadas = ctk.CTkLabel(l_a, text="", font=F(12, "bold"), text_color=ROXO_TXT)
+        self.lbl_marcadas.pack(side="left", padx=8)
+        l_b = ctk.CTkFrame(lote, fg_color="transparent")
+        l_b.pack(fill="x", padx=14, pady=(2, 12))
+        ctk.CTkLabel(l_b, text="Nas marcadas:", font=F(12, "bold"), text_color=MUDO).pack(side="left")
+        self.lote = {}
+        for chave, rot in (("custo", "custo R$"), ("venda", "venda R$"), ("de", "preço “de” R$")):
+            ctk.CTkLabel(l_b, text=rot, font=F(11), text_color=MUDO).pack(side="left", padx=(10, 3))
+            self.lote[chave] = Entrada(l_b, "dinheiro", width=86, height=30)
+            self.lote[chave].pack(side="left")
+        Botao(l_b, "Aplicar", "primario", width=80, height=30, font=F(12, "bold"), command=self.aplicar_marcadas).pack(side="left", padx=(10, 0))
+        dica(Botao(l_b, "▦ Montar custo", "suave", width=120, height=30, font=F(12, "bold"), command=self.custo_marcadas),
+             "Monta o custo pela tabela de materiais e põe em todas as marcadas").pack(side="left", padx=(8, 0))
         self.caixa_var = ctk.CTkFrame(s, fg_color="transparent")
-        self.caixa_var.grid(row=3, column=0, columnspan=4, sticky="ew", padx=20)
+        self.caixa_var.grid(row=4, column=0, columnspan=4, sticky="ew", padx=20)
         for v in d.get("variacoes") or []:
             if isinstance(v, dict):
                 self.adicionar_variacao(v, redesenhar=False)
         self._desenhar_var()
         Botao(s, "＋  Adicionar variação", "suave", width=170, command=lambda: self.adicionar_variacao()).grid(
-            row=4, column=0, columnspan=4, sticky="w", padx=20, pady=(8, 16))
+            row=5, column=0, columnspan=4, sticky="w", padx=20, pady=(8, 16))
+        self._contar_marcadas()
+
+    def marcadas_var(self):
+        return [l for l in self.linhas if l.marca.get()]
+
+    def _contar_marcadas(self):
+        if hasattr(self, "lbl_marcadas"):
+            n = len(self.marcadas_var())
+            self.lbl_marcadas.configure(text=f"{n} marcada(s)" if n else "")
+
+    def marcar_todas_var(self, sim):
+        for l in self.linhas:
+            l.marca.select() if sim else l.marca.deselect()
+        self._contar_marcadas()
+
+    def marcar_por_texto(self):
+        """Marca (somando às já marcadas) as variações cujo nome tem todos os pedaços digitados."""
+        pedacos = [p.strip().lower() for p in re.split(r"[,;]", self.lote_filtro.get()) if p.strip()]
+        if not pedacos:
+            return
+        n = 0
+        for l in self.linhas:
+            nome = l.rotulo().lower()
+            if all(p in nome for p in pedacos):
+                l.marca.select()
+                n += 1
+        self._contar_marcadas()
+        self.app.toast(f"{n} variação(ões) marcada(s)" if n else "Nenhuma variação com esse nome", VERDE if n else AMBAR)
+
+    def aplicar_marcadas(self):
+        alvos = self.marcadas_var()
+        if not alvos:
+            self.app.toast("Marque as variações primeiro (caixinha no cartão ou “Marcar”)", AMBAR)
+            return
+        vals = {k: e.valor() for k, e in self.lote.items()}
+        if all(v is None for v in vals.values()):
+            self.app.toast("Ponha o custo, a venda ou o preço “de”", AMBAR)
+            return
+        for l in alvos:
+            if vals["custo"] is not None:
+                l.custo.definir(vals["custo"])
+            if vals["venda"] is not None:
+                l.venda.definir(vals["venda"])
+            if vals["de"] is not None:
+                l.de.definir(vals["de"])
+            l.calc()
+        for e in self.lote.values():
+            e.definir(None)
+        self.app.toast(f"Aplicado em {len(alvos)} variação(ões)")
+
+    def custo_marcadas(self):
+        alvos = self.marcadas_var()
+        if not alvos:
+            self.app.toast("Marque as variações primeiro", AMBAR)
+            return
+        CustoVariacao(alvos[0], alvos[1:])
 
     def _resumo_var(self):
         if not getattr(self, "lbl_resumo_var", None) or not self.linhas:
@@ -4823,10 +4926,90 @@ class PaginaMateriais(ctk.CTkFrame):
         self.desenhar()
 
 
+class CustoVariacao(Dialogo):
+    """Ficha de custo de UMA variação (ex.: a banqueta de 75 cm gasta mais tubo que a de 54 cm)."""
+
+    def __init__(self, linha, outras=None):
+        self.lv, self.editor = linha, linha.editor
+        self.alvos = [linha] + [l for l in (outras or []) if l is not linha]
+        titulo = f"Custo de: {linha.rotulo()}" if len(self.alvos) == 1 else f"Custo de {len(self.alvos)} variações marcadas"
+        super().__init__(linha.editor.app, titulo, "Monte o custo. O total vira o custo " +
+                         ("desta variação." if len(self.alvos) == 1 else "de todas as variações marcadas."), larg=800, alt=600)
+        self.corpo.grid_rowconfigure(2, weight=1)
+        bar = ctk.CTkFrame(self.corpo, fg_color="transparent")
+        bar.grid(row=0, column=0, columnspan=2, sticky="ew", padx=16, pady=(14, 6))
+        Botao(bar, "▦  Da tabela de materiais", "suave", width=190, command=lambda: EscolherMaterial(self.editor, self.add)).pack(side="left")
+        Botao(bar, "＋ Linha", "fantasma", width=80, command=lambda: self.add()).pack(side="left", padx=6)
+        Botao(bar, "Copiar da ficha de custo geral", "fantasma", width=210, command=self.copiar_geral).pack(side="left")
+        cab = ctk.CTkFrame(self.corpo, fg_color="transparent")
+        cab.grid(row=1, column=0, columnspan=2, sticky="ew", padx=20)
+        for rot, larg in [("Item", 330), ("Qtd.", 80), ("Valor R$", 90), ("Total", 90)]:
+            ctk.CTkLabel(cab, text=rot.upper(), width=larg, anchor="w", font=F(10, "bold"), text_color=MUDO).pack(side="left", padx=3)
+        self.caixa = ctk.CTkScrollableFrame(self.corpo, fg_color="transparent")
+        self.caixa.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=10, pady=(0, 8))
+        self.linhas = []
+        for i in linha.itens_custo:
+            self.add(i.get("item"), i.get("quantidade"), i.get("valor"))
+        self.botao_ok("Usar este custo", self.ok)
+        self.total()
+
+    def add(self, item=None, qtd=None, valor=None):
+        fr = ctk.CTkFrame(self.caixa, fg_color="transparent")
+        fr.pack(fill="x", pady=2)
+        a = Entrada(fr, width=330, height=30, placeholder_text="ex.: Tubo redondo 7/8 (m)")
+        b = Entrada(fr, "decimal", width=80, height=30, ao_mudar=self.total, placeholder_text="1")
+        c = Entrada(fr, "dinheiro", width=90, height=30, ao_mudar=self.total)
+        t = ctk.CTkLabel(fr, text="", width=90, anchor="w", font=F(12, "bold"), text_color=TEXTO)
+        for w in (a, b, c, t):
+            w.pack(side="left", padx=3)
+        a.definir(item)
+        b.definir(qtd)
+        c.definir(valor)
+        lin = (fr, a, b, c, t)
+        Botao(fr, "✕", "perigo", width=30, height=28, command=lambda: (self.linhas.remove(lin), fr.destroy(), self.total())).pack(side="left", padx=4)
+        self.linhas.append(lin)
+        self.total()
+
+    def copiar_geral(self):
+        for _, a, b, c, t in self.editor.custos:
+            if a.valor() or c.valor():
+                self.add(a.valor(), b.valor(), c.valor())
+
+    def soma(self):
+        return round(sum((b.valor() if b.valor() is not None else 1) * (c.valor() or 0) for _, a, b, c, t in self.linhas), 2)
+
+    def total(self):
+        for _, a, b, c, t in self.linhas:
+            v = (b.valor() if b.valor() is not None else 1) * (c.valor() or 0)
+            t.configure(text=("R$ " + reais(v)) if c.valor() else "")
+        venda = self.lv.venda.valor()
+        tot = self.soma()
+        txt = (f"Custo desta variação: R$ {reais(tot)}" if len(self.alvos) == 1 else
+               f"Custo de cada uma das {len(self.alvos)}: R$ {reais(tot)}")
+        if venda and tot:
+            txt += f"  ·  venda R$ {reais(venda)}  ·  margem {(venda - tot) / venda * 100:.0f}%"
+        self.lbl_rod.configure(text=txt, text_color=TEXTO)
+
+    def ok(self):
+        itens = [{"item": a.valor(), "quantidade": b.valor() if b.valor() is not None else 1, "valor": c.valor()}
+                 for _, a, b, c, t in self.linhas if a.valor() or c.valor()]
+        tot = self.soma()
+        for l in self.alvos:
+            l.itens_custo = [dict(x) for x in itens]
+            if itens:
+                l.custo.definir(tot)
+            l._pintar_custo()
+            l.calc()
+        self.destroy()
+        self.editor.app.toast(f"Custo R$ {reais(tot)} em {len(self.alvos)} variação(ões)" if len(self.alvos) > 1
+                              else f"Custo de “{self.lv.rotulo()}”: R$ {reais(tot)}")
+
+
 class EscolherMaterial(Dialogo):
     """Escolhe itens da tabela de materiais para a ficha de custo da peça."""
 
-    def __init__(self, editor):
+    def __init__(self, editor, ao_escolher=None):
+        self.ao_escolher = ao_escolher
         super().__init__(editor.app, "Da tabela de materiais", "Toque no material e diga quanto vai na peça. Ele entra na ficha de custo "
                          "com o preço da tabela.", larg=720, alt=640)
         self.editor = editor
@@ -4875,7 +5058,7 @@ class EscolherMaterial(Dialogo):
 
     def usar(self, i):
         qtd = self.qtd.valor() or 1
-        self.editor._linha_custo(f"{i['nome']} ({i.get('unid') or 'un'})", qtd, i.get("preco"))
+        (self.ao_escolher or self.editor._linha_custo)(f"{i['nome']} ({i.get('unid') or 'un'})", qtd, i.get("preco"))
         self.n += 1
         self.lbl_rod.configure(text=f"{self.n} adicionado(s). Último: {i['nome']} × {decimal_txt(qtd)}", text_color=VERDE)
         self.qtd.definir(None)
