@@ -1,5 +1,5 @@
 {
-  "versao": 24,
+  "versao": 25,
   "data": "2026-11-22",
   "arquivos": [
     "janela.pyw",
@@ -14,6 +14,7 @@
     "instalar.bat"
   ],
   "novidades": [
+    "Dois PCs: se uma ficha com o mesmo nome estiver diferente nos dois, o robô não mistura. A deste PC fica separada com o nome do PC, ex.: “CCN - Cadeira (DESKTOP-M7CG7I3)”, e as duas ficam no site.",
     "Comando para sincronizar sem abrir a janela: python motor.py --sincronizar (conecta se precisar e manda/traz todas as fichas).",
     "Conectar ao FlowManeger: a chave do robô não aparece mais na tela do navegador; o robô pega por trás, já com o seu login.",
     "Fichas no FlowManeger: em Configurações › “Fichas no FlowManeger” toque em Conectar e entre na sua conta uma vez. Depois disso todas as fichas e fotos ficam salvas no banco do site.",

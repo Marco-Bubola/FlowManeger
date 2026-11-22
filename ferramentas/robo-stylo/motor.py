@@ -1751,6 +1751,16 @@ class Nuvem:
                             self._para_lixeira(L["dir"]); est["fichas"].pop(pasta, None); res["excluidas"] += 1
                     elif sig_l == sig_r and R["completa"]:
                         est["fichas"][pasta] = {"versao": R["versao"], "sig": sig_l}
+                    elif st is None and R["completa"]:
+                        # Primeira vez deste PC e já existe no site uma ficha diferente com o mesmo nome (veio de
+                        # outro PC): não mistura. A deste PC ganha o nome do PC e sobe separada; a do site desce.
+                        novo = self._nome_livre(f"{pasta} ({self.pc})", remotas, locais)
+                        dest = L["dir"].with_name(novo)
+                        shutil.move(str(L["dir"]), str(dest))
+                        L2 = {**L, "dir": dest}
+                        self._subir(novo, L2, None, est); res["subiram"] += 1
+                        res.setdefault("separadas", []).append(novo)
+                        self._descer(pasta, R, None, est); res["desceram"] += 1
                     elif mudou_aqui and mudou_la:
                         # mudou nos dois lugares: fica a mais nova; a outra é guardada (lixeira aqui ou histórico no site)
                         recente_l = self._editada(L)
@@ -1786,6 +1796,18 @@ class Nuvem:
         est["hash"] = {k: v for k, v in est["hash"].items() if k in vivos}
         self._gravar_estado(est)
         return res
+
+    @property
+    def pc(self):
+        return (os.environ.get("COMPUTERNAME") or "outro PC").strip()
+
+    @staticmethod
+    def _nome_livre(nome, remotas, locais):
+        base, n = nome, 2
+        while nome in remotas or nome in locais:
+            nome = f"{base} {n}"
+            n += 1
+        return nome
 
     def _subir(self, pasta, L, R, est):
         self.avisar(f"Salvando no site: {pasta}")
@@ -1883,5 +1905,7 @@ if __name__ == "__main__":
             print(f"Conectado ao FlowManeger como {usuario}.")
         res = Nuvem(site_url, cfg["robo"]["pasta_produtos"], avisar=print).sincronizar()
         print(f"Salvas no site: {res['subiram']}  Trazidas do site: {res['desceram']}  Lixeira: {res['excluidas']}")
+        for n in res.get("separadas") or []:
+            print("   Mesmo nome com conteúdo diferente em outro PC; esta ficou separada como:", n)
         for e in res["erros"]:
             print("   ERRO:", e)
