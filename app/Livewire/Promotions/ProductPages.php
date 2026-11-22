@@ -12,6 +12,31 @@ use Livewire\Component;
 class ProductPages extends Component
 {
     public string $search = '';
+    public string $variants = 'botoes';
+    public string $variantsTheme = 'aurora';
+
+    public function mount(): void
+    {
+        $o = ProductPageService::storeOptions((int) Auth::id());
+        $this->variants = $o['variants'];
+        $this->variantsTheme = $o['variants_theme'];
+    }
+
+    /** Como as variações aparecem em todas as páginas de produto (a página especial pode mudar). */
+    public function setVariants(string $mode, ?string $theme = null): void
+    {
+        if (! isset(ProductPageService::VARIANT_MODES[$mode]) || ($theme !== null && ! isset(ProductPageService::VARIANT_THEMES[$theme]))) {
+            return;
+        }
+        $this->variants = $mode;
+        $this->variantsTheme = $theme ?? $this->variantsTheme;
+        $s = \App\Models\PortalSetting::for((int) Auth::id());
+        $home = (array) ($s->home ?? []);
+        $home['product_page'] = ['variants' => $this->variants, 'variants_theme' => $this->variantsTheme];
+        $s->home = $home;
+        $s->save();
+        $this->dispatch('notify', type: 'success', message: 'Pronto. Vale para todas as páginas de produto.');
+    }
 
     public function toggle(int $id): void
     {

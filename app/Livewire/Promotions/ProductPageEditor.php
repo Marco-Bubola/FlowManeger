@@ -288,6 +288,7 @@ class ProductPageEditor extends Component
             'photos' => $photos,
             'special' => $previewSpecial,
             'templates' => Svc::templates(),
+            'storeVariants' => Svc::storeOptions((int) Auth::id()),
             'pageUrl' => \App\Http\Controllers\ClientPortalController::productUrl($p) . '?previa=1',
         ]);
     }

@@ -34,6 +34,39 @@
         @endif
     </section>
 
+    <section class="{{ $card }} p-4 space-y-4" data-testid="pp-variants-setting">
+        <div>
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-ui-radios text-violet-500"></i>Variações na página do produto</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Como o cliente escolhe tamanho, cor ou modelo. Vale para todos os produtos; a página especial de um produto pode usar outro jeito.</p>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+            @foreach($svc::VARIANT_MODES as $k => [$n, $ic, $desc])
+                <button type="button" wire:click="setVariants('{{ $k }}')" data-testid="pp-variants-{{ $k }}"
+                        class="text-left rounded-2xl border-2 p-3 flex gap-3 items-start transition {{ $variants === $k ? 'border-violet-500 bg-violet-50/60 dark:bg-violet-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-violet-300' }}">
+                    <span class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $variants === $k ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500' }}"><i class="bi {{ $ic }}"></i></span>
+                    <span><b class="block text-sm text-slate-900 dark:text-white">{{ $n }}</b><small class="text-xs text-slate-500">{{ $desc }}</small></span>
+                    @if($variants === $k)<i class="bi bi-check-circle-fill text-violet-600 ml-auto"></i>@endif
+                </button>
+            @endforeach
+        </div>
+        @if($variants === 'lista')
+            <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] items-start">
+                <div>
+                    <span class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">Cores do menu</span>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($svc::VARIANT_THEMES as $k => [$n, $c1, $c2])
+                            <button type="button" wire:click="setVariants('lista', '{{ $k }}')" data-testid="pp-vtheme-{{ $k }}"
+                                    class="inline-flex items-center gap-2 rounded-full pl-1 pr-3 py-1 text-xs font-semibold border-2 {{ $variantsTheme === $k ? 'border-violet-500 text-violet-700 dark:text-violet-300' : 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300' }}">
+                                <span class="w-7 h-7 rounded-full" style="background: linear-gradient(135deg, {{ $c1 }}, {{ $c2 }})"></span>{{ $n }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+                @include('livewire.promotions.partials.variants-demo', ['theme' => $variantsTheme])
+            </div>
+        @endif
+    </section>
+
     @if($pages->isEmpty())
         <x-empty-state icon="bi-file-earmark-richtext" tone="violet" title="Nenhuma página especial ainda"
                        text="Busque um produto acima para montar a página dele com banner, fotos, vídeo, medidas, perguntas e depoimentos." />

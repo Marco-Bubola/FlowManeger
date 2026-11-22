@@ -238,6 +238,7 @@
         .pp-lb-thumbs button { flex-basis: 64px; height: 64px; }
     }
     @media (max-width: 767px) { .pp-lb-stage img { border-radius: 0; } }
+
 </style>
 @endpush
 
@@ -358,7 +359,39 @@
                 <span><b>Esgotado no momento</b><small>Toque no coração para salvar. Avisamos quando voltar ao estoque.</small></span>
             </div>
 
-            @if($family->count() > 1)
+            @if($family->count() > 1 && $variants['mode'] === 'lista')
+                {{-- Variações em lista suspensa colorida (Vitrine › Páginas de produto) --}}
+                @include('portal.partials.variants-dropdown-styles')
+                @php $vThumbs = $family->map(fn ($v) => $all[$v->id]['img'])->filter()->unique()->count() > 1; @endphp
+                <div class="pp-vd" x-data="{ vOpen: false }" @click.outside="vOpen = false" @keydown.escape.stop="vOpen = false"
+                     :class="{ open: vOpen }" style="--c1: {{ $variants['c1'] }}; --c2: {{ $variants['c2'] }}" data-testid="variations-dropdown">
+                    <button type="button" class="pp-vd-btn" @click="vOpen = ! vOpen" :aria-expanded="vOpen" aria-haspopup="listbox" data-testid="variations-toggle">
+                        <span class="pp-vd-av">
+                            @if($vThumbs)<img :src="p.img" alt="" x-show="p.img">@endif
+                            <i class="fas fa-layer-group" @if($vThumbs) x-show="!p.img" @endif></i>
+                        </span>
+                        <span class="pp-vd-txt"><small>{{ $attribute }}</small><b x-text="p.opt">{{ $d['opt'] ?? '' }}</b></span>
+                        <span class="pp-vd-n">{{ $family->count() }} opções</span>
+                        <span class="pp-vd-chev"><i class="fas fa-chevron-down"></i></span>
+                    </button>
+                    <div class="pp-vd-panel" role="listbox" aria-label="{{ $attribute }}" x-show="vOpen" x-cloak
+                         x-transition:enter="pp-vd-in" x-transition:enter-start="pp-vd-from" x-transition:leave="pp-vd-in" x-transition:leave-end="pp-vd-from">
+                        @foreach($family as $v)
+                            @php $o = $all[$v->id]; @endphp
+                            <button type="button" class="pp-vd-item" role="option" :aria-selected="p.id === {{ $v->id }}"
+                                    :class="{ on: p.id === {{ $v->id }}, off: !products[{{ $v->id }}].buyable }"
+                                    @click="pick({{ $v->id }}); vOpen = false" data-testid="variation-item">
+                                <span class="pp-vd-ic">
+                                    @if($vThumbs && $o['img'])<img src="{{ $o['img'] }}" alt="" loading="lazy" onerror="this.remove()">@else<i class="fas fa-circle"></i>@endif
+                                </span>
+                                <span class="pp-vd-name">{{ $o['opt'] }}</span>
+                                <span class="pp-vd-price">{{ $o['buyable'] ? ($o['price'] > 0 ? 'R$ ' . number_format($o['price'], 2, ',', '.') : '') : 'Esgotado' }}</span>
+                                <i class="fas fa-check pp-vd-ok"></i>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+            @elseif($family->count() > 1)
                 <div class="pp-opts" data-testid="variations">
                     <div class="pp-opts-label">{{ $attribute }}: <b x-text="p.opt">{{ $d['opt'] ?? '' }}</b></div>
                     <div class="pp-opts-list" role="radiogroup" aria-label="{{ $attribute }}">

@@ -74,7 +74,54 @@ class ProductPageService
         'hide_together' => false,
         'hide_related' => false,
         'hide_reviews' => false,
+        'variants' => '',        // '' = igual à loja | botoes | lista
+        'variants_theme' => '',  // '' = igual à loja | chave de VARIANT_THEMES
     ];
+
+    /** Como as variações aparecem na página do produto. */
+    public const VARIANT_MODES = [
+        'botoes' => ['Botões', 'bi-grid-3x2-gap', 'Todas as opções à mostra, lado a lado'],
+        'lista' => ['Lista suspensa', 'bi-menu-button-wide', 'Um botão que abre um menu colorido com as opções'],
+    ];
+
+    /** Cores do menu de variações: nome, cor do alto, cor de baixo. */
+    public const VARIANT_THEMES = [
+        'aurora' => ['Rosa e roxo', '#e8577e', '#584a8e'],
+        'oceano' => ['Oceano', '#22b8cf', '#3b4cca'],
+        'sol' => ['Pôr do sol', '#f59e0b', '#e11d48'],
+        'floresta' => ['Floresta', '#34d399', '#0f766e'],
+        'madeira' => ['Madeira', '#c2853d', '#3f2a1d'],
+        'noite' => ['Noite', '#475569', '#0f172a'],
+        'uva' => ['Uva', '#c084fc', '#6d28d9'],
+    ];
+
+    /** Escolha da loja para todas as páginas de produto. */
+    public static function storeOptions(int $ownerId): array
+    {
+        static $memo = [];
+        if (! isset($memo[$ownerId])) {
+            $home = Schema::hasTable('portal_settings') ? (\App\Models\PortalSetting::where('user_id', $ownerId)->value('home') ?? []) : [];
+            $home = is_string($home) ? (json_decode($home, true) ?: []) : (array) $home;
+            $o = (array) ($home['product_page'] ?? []);
+            $memo[$ownerId] = [
+                'variants' => isset(self::VARIANT_MODES[$o['variants'] ?? '']) ? $o['variants'] : 'botoes',
+                'variants_theme' => isset(self::VARIANT_THEMES[$o['variants_theme'] ?? '']) ? $o['variants_theme'] : 'aurora',
+            ];
+        }
+
+        return $memo[$ownerId];
+    }
+
+    /** Variações desta página: a escolha da página especial vence a da loja. */
+    public static function variantsFor(int $ownerId, ?array $special): array
+    {
+        $o = self::storeOptions($ownerId);
+        $s = $special['settings'] ?? [];
+        $mode = isset(self::VARIANT_MODES[$s['variants'] ?? '']) ? $s['variants'] : $o['variants'];
+        $theme = isset(self::VARIANT_THEMES[$s['variants_theme'] ?? '']) ? $s['variants_theme'] : $o['variants_theme'];
+
+        return ['mode' => $mode, 'theme' => $theme, 'c1' => self::VARIANT_THEMES[$theme][1], 'c2' => self::VARIANT_THEMES[$theme][2]];
+    }
 
     public const PALETTE = ['#7c3aed', '#db2777', '#e11d48', '#ea580c', '#d97706', '#16a34a', '#0d9488', '#0284c7', '#3483fa', '#4f46e5', '#0f172a', '#78350f'];
 
@@ -169,6 +216,8 @@ class ProductPageService
         foreach (['hide_about', 'hide_together', 'hide_related', 'hide_reviews'] as $k) {
             $s[$k] = (bool) $s[$k];
         }
+        $s['variants'] = isset(self::VARIANT_MODES[$s['variants']]) ? $s['variants'] : '';
+        $s['variants_theme'] = isset(self::VARIANT_THEMES[$s['variants_theme']]) ? $s['variants_theme'] : '';
 
         return $s;
     }

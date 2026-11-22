@@ -129,6 +129,25 @@
                             <button type="button" wire:click="$set('settings.bg', '{{ $c }}')" class="w-7 h-7 rounded-full border-2 {{ $settings['bg'] === $c ? 'border-violet-500' : 'border-slate-200 dark:border-slate-700' }}" style="background: {{ $c }}" aria-label="Fundo {{ $c }}"></button>
                         @endforeach
                     </div>
+                    <div data-testid="ppe-variants">
+                        <span class="{{ $label }}">Variações (tamanho, cor, modelo)</span>
+                        <div class="flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 max-w-md">
+                            <button type="button" wire:click="$set('settings.variants', '')" class="{{ $seg($settings['variants'] === '') }}">Igual à loja</button>
+                            <button type="button" wire:click="$set('settings.variants', 'botoes')" class="{{ $seg($settings['variants'] === 'botoes') }}">Botões</button>
+                            <button type="button" wire:click="$set('settings.variants', 'lista')" class="{{ $seg($settings['variants'] === 'lista') }}" data-testid="ppe-variants-lista">Lista suspensa</button>
+                        </div>
+                        @if($settings['variants'] === 'lista' || ($settings['variants'] === '' && $storeVariants['variants'] === 'lista'))
+                            <div class="flex flex-wrap items-center gap-2 mt-2">
+                                <span class="text-xs text-slate-500 mr-1">Cores do menu</span>
+                                <button type="button" wire:click="$set('settings.variants_theme', '')" class="{{ $chip }} !py-1 !px-3 {{ $settings['variants_theme'] === '' ? '!bg-violet-100 !text-violet-700' : '' }}">Igual à loja</button>
+                                @foreach($svc::VARIANT_THEMES as $k => [$n, $c1, $c2])
+                                    <button type="button" wire:click="$set('settings.variants_theme', '{{ $k }}')" title="{{ $n }}" aria-label="{{ $n }}"
+                                            class="w-8 h-8 rounded-full border-2 {{ $settings['variants_theme'] === $k ? 'border-slate-900 dark:border-white scale-110' : 'border-white dark:border-slate-800' }} shadow transition" style="background: linear-gradient(135deg, {{ $c1 }}, {{ $c2 }})"></button>
+                                @endforeach
+                            </div>
+                        @endif
+                        <small class="block text-xs text-slate-500 mt-1">Só aparece em produtos com variações. "Igual à loja" segue o que está em Vitrine › Páginas de produto.</small>
+                    </div>
                     <div>
                         <span class="{{ $label }}">Esconder partes da página normal</span>
                         <div class="grid gap-2 sm:grid-cols-2">
