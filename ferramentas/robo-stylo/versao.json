@@ -1,5 +1,5 @@
 {
-  "versao": 17,
+  "versao": 18,
   "data": "2026-11-22",
   "arquivos": [
     "janela.pyw",
@@ -14,12 +14,13 @@
     "instalar.bat"
   ],
   "novidades": [
+    "Materiais e custos (no menu): tabela pronta de tubos (redondo e metalon, chapa 18 e 20), barras, madeira, espuma, corano, pintura, solda, acessórios, embalagem e horas de trabalho. Os preços são estimativas da internet: mude, exclua ou adicione.",
+    "Na ficha de custo, “▦ Da tabela de materiais”: ponha a quantidade e toque no material; ele entra com o preço da tabela.",
+    "O questionário para a IA já leva a sua tabela, para ela montar a ficha de custo com os seus preços.",
     "Cores em cada variação: o cartão mostra a ferragem e o corano com a bolinha da cor; o botão 🎨 troca a cor só daquela variação (nome e pedido do Canva mudam juntos).",
     "Kits: embaixo do preço aparece o preço por unidade, e o botão “× kit” recalcula custo, preço e peso pela variação de 1 unidade.",
     "Menu lateral em grupos (Produtos, Mercado Livre, Ajustes) com “Minhas cores”.",
     "Tamanho da tela automático pelo monitor; em Configurações dá para escolher Compacto, Normal ou Grande.",
-    "Abas do editor em verde (✓ completa) ou laranja (o que falta).",
-    "Fotos: cada foto pode entrar em várias variações que você escolher (ex.: a foto da mesa na Mesa, Mesa + 2 e Mesa + 4, e não na Cadeira). Toque em “☑ Quais variações” embaixo da foto e marque.",
-    "A ficha que já tinha uma foto em algumas variações agora abre do jeito certo (antes abria como “Todas as variações”)."
+    "Abas do editor em verde (✓ completa) ou laranja (o que falta)."
   ]
 }

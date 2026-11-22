@@ -301,6 +301,116 @@ def salvar_cores(d):
     os.replace(tmp, ARQ_CORES)
 
 
+# ------------------------------------------------------------------ tabela de materiais e horas (custo)
+# Fica em materiais.json, na pasta do robô (é do seu PC: a atualização não mexe nele).
+# Os preços que vêm prontos são CHUTES pela internet (nov/2026): "est": true até você mudar o preço.
+
+ARQ_MATERIAIS = motor.BASE / "materiais.json"
+UNIDADES = ["m", "m²", "kg", "un", "h", "L", "barra 6 m", "pacote"]
+
+
+def _tubos():
+    itens = []
+    for parede, chapa, precos in (("1,20 mm (chapa 18)", "18", {"5/8\"": 38, "3/4\"": 45, "7/8\"": 52, "1\"": 58, "1 1/4\"": 75, "1 1/2\"": 90}),
+                                  ("0,90 mm (chapa 20)", "20", {"5/8\"": 30, "3/4\"": 35, "7/8\"": 40, "1\"": 45, "1 1/4\"": 58, "1 1/2\"": 70})):
+        for bit, barra in precos.items():
+            itens.append(["Tubos redondos", f"Tubo redondo {bit} parede {parede}", "m", round(barra / 6, 2), f"barra de 6 m ≈ R$ {barra},00"])
+    for parede, precos in (("1,20 mm (chapa 18)", {"15×15": 35, "20×20": 45, "25×25": 55, "30×30": 65, "40×40": 88, "50×50": 110,
+                                                   "30×20": 55, "40×20": 62, "50×30": 95}),
+                           ("0,90 mm (chapa 20)", {"20×20": 36, "30×30": 52, "40×40": 70, "30×20": 44})):
+        for bit, barra in precos.items():
+            itens.append(["Tubos quadrados e retangulares (metalon)", f"Metalon {bit} mm parede {parede}", "m", round(barra / 6, 2),
+                          f"barra de 6 m ≈ R$ {barra},00"])
+    for nome, barra in (("Barra chata 3/4\" × 1/8\"", 30), ("Barra chata 1\" × 1/8\"", 38), ("Barra chata 1 1/2\" × 1/8\" (lâmina de encosto)", 55),
+                        ("Barra chata 2\" × 3/16\"", 85), ("Cantoneira 1\" × 1/8\"", 48), ("Vergalhão / barra redonda 3/8\"", 32)):
+        itens.append(["Barras, chapas e cantoneiras", nome, "m", round(barra / 6, 2), f"barra de 6 m ≈ R$ {barra},00"])
+    itens.append(["Barras, chapas e cantoneiras", "Chapa de aço 1,20 mm (chapa 18)", "m²", 75.0, ""])
+    itens.append(["Barras, chapas e cantoneiras", "Chapa de aço 2,00 mm (chapa 14)", "m²", 120.0, ""])
+    return itens
+
+
+MATERIAIS_PADRAO = _tubos() + [
+    ["Madeira", "Compensado 15 mm", "m²", 70.0, "assento redondo de 33 cm ≈ 0,1 m²"],
+    ["Madeira", "Compensado 10 mm", "m²", 52.0, ""],
+    ["Madeira", "MDF 15 mm", "m²", 55.0, ""],
+    ["Madeira", "MDF 6 mm", "m²", 28.0, ""],
+    ["Madeira", "Tábua de pinus 30 cm × 2,5 cm", "m", 22.0, ""],
+    ["Madeira", "Ripa de madeira maciça 5 × 2 cm (cumaru/itaúba)", "m", 18.0, ""],
+    ["Madeira", "Ripa de eucalipto 5 × 2 cm", "m", 8.0, ""],
+    ["Madeira", "Tábua de madeira maciça 2 cm (tábua de churrasco)", "m²", 160.0, ""],
+    ["Madeira", "Verniz / seladora (900 ml)", "un", 45.0, ""],
+    ["Espuma", "Espuma D23 5 cm", "m²", 45.0, "placa 1 × 1 m"],
+    ["Espuma", "Espuma D28 3 cm", "m²", 38.0, ""],
+    ["Espuma", "Espuma D28 5 cm", "m²", 60.0, "a mais usada em assento"],
+    ["Espuma", "Espuma D33 5 cm", "m²", 75.0, ""],
+    ["Espuma", "Espuma D33 10 cm", "m²", 140.0, ""],
+    ["Tecido e estofado", "Corano (courino) largura 1,40 m", "m", 32.0, "1 m dá uns 12 assentos de 33 cm"],
+    ["Tecido e estofado", "Suede largura 1,40 m", "m", 35.0, ""],
+    ["Tecido e estofado", "Linho largura 1,40 m", "m", 45.0, ""],
+    ["Tecido e estofado", "Manta acrílica", "m", 8.0, ""],
+    ["Tecido e estofado", "TNT (fundo do assento)", "m", 2.5, ""],
+    ["Tecido e estofado", "Grampos (caixa)", "un", 12.0, ""],
+    ["Tecido e estofado", "Cola de contato 750 ml", "un", 38.0, ""],
+    ["Tecido e estofado", "Corda náutica 6 mm", "m", 3.5, ""],
+    ["Pintura", "Tinta pó eletrostática", "kg", 45.0, "1 kg pinta uns 8 a 10 m²"],
+    ["Pintura", "Pintura eletrostática terceirizada (por peça)", "un", 25.0, ""],
+    ["Pintura", "Fundo / primer 900 ml", "un", 32.0, ""],
+    ["Pintura", "Esmalte sintético 900 ml", "un", 42.0, ""],
+    ["Pintura", "Thinner 1 L", "L", 22.0, ""],
+    ["Solda e corte", "Arame MIG 0,8 mm", "kg", 38.0, ""],
+    ["Solda e corte", "Eletrodo 6013", "kg", 32.0, ""],
+    ["Solda e corte", "Disco de corte", "un", 4.0, ""],
+    ["Solda e corte", "Disco flap (lixa)", "un", 9.0, ""],
+    ["Solda e corte", "Gás CO2 / mistura (por peça, média)", "un", 3.0, ""],
+    ["Acessórios", "Ponteira plástica", "un", 0.6, ""],
+    ["Acessórios", "Sapata niveladora", "un", 2.5, ""],
+    ["Acessórios", "Parafuso + bucha", "un", 0.3, ""],
+    ["Acessórios", "Rebite", "un", 0.1, ""],
+    ["Acessórios", "Base giratória (lazy susan) 30 cm", "un", 45.0, ""],
+    ["Embalagem", "Papelão ondulado", "m²", 4.0, ""],
+    ["Embalagem", "Plástico bolha", "m", 3.0, ""],
+    ["Embalagem", "Fita adesiva (rolo)", "un", 6.0, ""],
+    ["Mão de obra", "Hora de serralheria (corte e solda)", "h", 25.0, ""],
+    ["Mão de obra", "Hora de estofado", "h", 25.0, ""],
+    ["Mão de obra", "Hora de marcenaria", "h", 25.0, ""],
+    ["Mão de obra", "Hora de pintura e acabamento", "h", 20.0, ""],
+    ["Mão de obra", "Hora de embalagem", "h", 15.0, ""],
+]
+
+
+def materiais_padrao():
+    return [{"cat": c, "nome": n, "unid": u, "preco": p, "nota": nt, "est": True} for c, n, u, p, nt in MATERIAIS_PADRAO]
+
+
+def ler_materiais():
+    try:
+        d = json.loads(ARQ_MATERIAIS.read_text(encoding="utf-8"))
+        if isinstance(d, dict) and isinstance(d.get("itens"), list):
+            return d["itens"]
+    except Exception:
+        pass
+    return materiais_padrao()
+
+
+def salvar_materiais(itens):
+    tmp = ARQ_MATERIAIS.with_suffix(".tmp")
+    tmp.write_text(json.dumps({"itens": itens}, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, ARQ_MATERIAIS)
+
+
+def texto_materiais(itens=None):
+    """A tabela em texto, para a IA usar na ficha_de_custo."""
+    itens = itens if itens is not None else ler_materiais()
+    linhas, cat = [], None
+    for i in itens:
+        if i.get("cat") != cat:
+            cat = i.get("cat")
+            linhas.append(f"\n{cat}:")
+        preco = f"{float(i.get('preco') or 0):.2f}".replace(".", ",")
+        linhas.append(f"- {i['nome']}: R$ {preco} por {i.get('unid') or 'un'}")
+    return "\n".join(linhas).strip()
+
+
 def hex_da_cor(chave, nome, dados=None):
     g = next((g for g in (dados or ler_cores())["grupos"] if g["chave"] == chave), None)
     return next((h for n, h in (g or {}).get("itens", []) if n.lower() == str(nome).lower()), None)

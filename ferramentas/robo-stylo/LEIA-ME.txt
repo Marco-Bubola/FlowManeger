@@ -138,6 +138,15 @@ VARIAÇÕES (no editor)
   cadastra cor nova com o tom dela ou apaga as que você não usa. As cores
   ficam no arquivo cores.json, na pasta do robô.
 
+MATERIAIS E CUSTOS (menu Ajustes)
+- Tabela com o preço de cada material por metro, m², kg, unidade ou hora.
+  Os que vieram prontos são estimativas (marcados "estimado"): mude o preço
+  e a marca some. "＋ Novo material" adiciona, ✕ exclui. Fica salvo no
+  arquivo materiais.json, na pasta do robô.
+- No editor, Custo › "▦ Da tabela de materiais": ponha a quantidade (ex.:
+  4,5 metros de tubo, 1,5 hora) e toque no material.
+- O questionário para a IA leva a tabela junto.
+
 FOTOS POR VARIAÇÃO
 - Embaixo de cada foto: "Todas as variações", "Só a cor", "Só: uma variação",
   "Não usar", ou "☑ Quais variações" para marcar várias (ex.: a foto da mesa na

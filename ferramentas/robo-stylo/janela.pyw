@@ -425,6 +425,7 @@ class App(ctk.CTk):
         self.paginas["feitas"] = PaginaFeitas(self.area, self)
         self.paginas["config"] = PaginaConfig(self.area, self)
         self.paginas["concorrentes"] = PaginaConcorrentes(self.area, self)
+        self.paginas["materiais"] = PaginaMateriais(self.area, self)
         self.recarregar()
         self.ir("inicio")
         self._atalhos()
@@ -458,7 +459,7 @@ class App(ctk.CTk):
         menu.grid_columnconfigure(0, weight=1)
         grupos = [("PRODUTOS", [("inicio", "⌂", "Início"), ("fichas", "☰", "Fichas"), ("feitas", "✓", "Cadastradas")]),
                   ("MERCADO LIVRE", [("ml", "⌕", "Buscar no ML"), ("concorrentes", "◎", "Concorrentes")]),
-                  ("AJUSTES", [("cores", "🎨", "Minhas cores"), ("config", "⚙", "Configurações")])]
+                  ("AJUSTES", [("materiais", "▦", "Materiais e custos"), ("cores", "🎨", "Minhas cores"), ("config", "⚙", "Configurações")])]
         r = 0
         for titulo, itens in grupos:
             ctk.CTkLabel(menu, text=titulo, text_color="#7d7499", font=F(10, "bold"), anchor="w").grid(
@@ -1330,8 +1331,16 @@ class App(ctk.CTk):
         if not arq.exists():
             messagebox.showwarning("Questionário", "Não achei o arquivo questionario-produto-stylo.md na pasta do robô.")
             return
+        texto = arq.read_text(encoding="utf-8")
+        try:
+            texto += ("\n\n## Minha tabela de materiais e horas (use para montar a ficha_de_custo)\n\n"
+                      "Monte a `ficha_de_custo` com estes itens e preços: estime a quantidade de cada um para a peça "
+                      "(metros de tubo, m² de espuma e madeira, metros de corano, kg de tinta, horas). "
+                      "Use o nome igual ao da tabela.\n\n" + recursos.texto_materiais() + "\n")
+        except Exception:
+            pass
         self.clipboard_clear()
-        self.clipboard_append(arq.read_text(encoding="utf-8"))
+        self.clipboard_append(texto)
         self.toast("Questionário copiado. Cole numa IA (Ctrl+V) com as fotos.")
 
     def _conferir_atalho(self):
@@ -3160,7 +3169,8 @@ class Editor(ctk.CTkFrame):
                   "Monte o custo pelos materiais e horas, veja quanto sobra no Mercado Livre e compare com os concorrentes.")
         s.grid(row=2, column=0, sticky="ew", padx=10, pady=8)
         Botao(s.acoes, "＋ Mão de obra", "fantasma", width=120, command=self._mao_de_obra).pack(side="right", padx=(6, 0))
-        Botao(s.acoes, "＋  Material", "suave", width=110, command=lambda: self._linha_custo()).pack(side="right")
+        Botao(s.acoes, "＋  Material", "fantasma", width=110, command=lambda: self._linha_custo()).pack(side="right", padx=(6, 0))
+        Botao(s.acoes, "▦  Da tabela de materiais", "suave", width=190, command=lambda: EscolherMaterial(self)).pack(side="right")
         cab = ctk.CTkFrame(s, fg_color="transparent")
         cab.grid(row=1, column=0, columnspan=4, sticky="ew", padx=24, pady=(4, 0))
         for rot, larg in [("Item", 260), ("Qtd. / horas", 96), ("Valor R$", 96), ("Total", 90)]:
@@ -4664,6 +4674,212 @@ class FotosProntas(Dialogo):
         self.destroy()
         self.app.toast("Fotos prontas. Toque em Salvar ficha para guardar." if not falhas else f"{falhas} foto(s) não deu para tratar",
                        VERDE if not falhas else AMBAR)
+
+
+class PaginaMateriais(ctk.CTkFrame):
+    """Tabela de materiais e horas: preço por metro, m², kg, unidade ou hora. Usada na ficha de custo."""
+
+    def __init__(self, master, app):
+        super().__init__(master, fg_color="transparent")
+        self.app = app
+        self.itens = recursos.ler_materiais()
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+        Cabecalho(self, "Materiais e custos", "Seus preços de material e de hora. Os que vieram prontos são estimativas da internet: "
+                  "confira com o seu fornecedor e mude o preço.").grid(row=0, column=0, sticky="ew", padx=24, pady=(20, 8))
+        bar = ctk.CTkFrame(self, fg_color="transparent")
+        bar.grid(row=1, column=0, sticky="ew", padx=24, pady=(0, 8))
+        bar.grid_columnconfigure(0, weight=1)
+        self.busca = Entrada(bar, height=36, placeholder_text="⌕  Buscar material (ex.: 7/8, espuma, corano)")
+        self.busca.grid(row=0, column=0, sticky="ew")
+        self.busca.bind("<KeyRelease>", lambda e: self._agendar())
+        self.cat = ctk.CTkOptionMenu(bar, values=["Todas"], width=230, height=36, font=F(12), dropdown_font=F(12), fg_color=PAINEL,
+                                     button_color=ROXO_CLARO, button_hover_color=("#ddd6fe", "#3a2f68"), text_color=TEXTO,
+                                     command=lambda v: self.desenhar())
+        self.cat.grid(row=0, column=1, padx=8)
+        Botao(bar, "＋  Novo material", "primario", width=150, height=36, command=self.novo).grid(row=0, column=2)
+        self.lbl = ctk.CTkLabel(bar, text="", font=F(11), text_color=MUDO, anchor="w")
+        self.lbl.grid(row=1, column=0, columnspan=3, sticky="w", pady=(4, 0))
+        self.lista = ctk.CTkScrollableFrame(self, fg_color=PAINEL, corner_radius=18, border_width=1, border_color=BORDA)
+        self.lista.grid(row=2, column=0, sticky="nsew", padx=24, pady=(0, 14))
+        self.lista.grid_columnconfigure(0, weight=1)
+        self._id = None
+        self.ok = False
+
+    def ao_mostrar(self):
+        if not self.ok:
+            self.ok = True
+            self.desenhar()
+
+    def _agendar(self):
+        if self._id:
+            self.after_cancel(self._id)
+        self._id = self.after(250, self.desenhar)
+
+    def _cats(self):
+        return list(dict.fromkeys(i.get("cat") or "Outros" for i in self.itens))
+
+    def salvar(self):
+        try:
+            recursos.salvar_materiais(self.itens)
+        except Exception as e:
+            messagebox.showerror("Materiais", f"Não deu para salvar: {e}")
+
+    def desenhar(self, foco=None):
+        for w in self.lista.winfo_children():
+            w.destroy()
+        cats = self._cats()
+        self.cat.configure(values=["Todas"] + cats)
+        termo = self.busca.get().strip()
+        filtro = self.cat.get()
+        r, mostrados = 0, 0
+        for cat in cats:
+            if filtro != "Todas" and cat != filtro:
+                continue
+            itens = [i for i in self.itens if (i.get("cat") or "Outros") == cat]
+            if termo:
+                itens = [i for i in itens if all(p in (i["nome"] + " " + cat).lower() for p in self.busca.get().lower().split())]
+            if not itens:
+                continue
+            cab = ctk.CTkFrame(self.lista, fg_color="transparent")
+            cab.grid(row=r, column=0, sticky="ew", padx=14, pady=(14, 4))
+            ctk.CTkLabel(cab, text=cat, font=F(15, "bold"), text_color=TEXTO).pack(side="left")
+            ctk.CTkLabel(cab, text=f"  {len(itens)}", font=F(12), text_color=MUDO).pack(side="left")
+            Botao(cab, "＋ aqui", "fantasma", width=70, height=26, font=F(11), command=lambda c=cat: self.novo(c)).pack(side="right")
+            r += 1
+            for i in itens:
+                self._linha(r, i, foco is i)
+                r += 1
+                mostrados += 1
+        est = sum(1 for i in self.itens if i.get("est"))
+        self.lbl.configure(text=f"{len(self.itens)} itens · {est} ainda com preço estimado (marcados “estimado”) · "
+                                "as mudanças já ficam salvas")
+        if not mostrados:
+            ctk.CTkLabel(self.lista, text="Nada encontrado.", text_color=MUDO, font=F(13)).grid(row=0, column=0, pady=30)
+
+    def _linha(self, r, i, foco=False):
+        fr = ctk.CTkFrame(self.lista, fg_color=VIDRO, corner_radius=12)
+        fr.grid(row=r, column=0, sticky="ew", padx=10, pady=2)
+        fr.grid_columnconfigure(0, weight=1)
+        nome = Entrada(fr, height=32, font=F(13), fg_color=PAINEL, border_color=VIDRO_BORDA)
+        nome.definir(i["nome"])
+        nome.grid(row=0, column=0, sticky="ew", padx=(8, 6), pady=6)
+        ctk.CTkLabel(fr, text="R$", font=F(12, "bold"), text_color=MUDO).grid(row=0, column=1)
+        preco = Entrada(fr, "dinheiro", width=92, height=32, font=F(13, "bold"), fg_color=PAINEL, border_color=VIDRO_BORDA)
+        preco.definir(i.get("preco"))
+        preco.grid(row=0, column=2, padx=(4, 4))
+        ctk.CTkLabel(fr, text="por", font=F(12), text_color=MUDO).grid(row=0, column=3)
+        unid = ctk.CTkOptionMenu(fr, values=recursos.UNIDADES, width=104, height=32, font=F(12), dropdown_font=F(12), fg_color=PAINEL,
+                                 button_color=ROXO_CLARO, button_hover_color=("#ddd6fe", "#3a2f68"), text_color=TEXTO)
+        unid.set(i.get("unid") or "un")
+        unid.grid(row=0, column=4, padx=(4, 6))
+        nota = Entrada(fr, width=220, height=32, font=F(11), placeholder_text="observação (ex.: barra de 6 m)", fg_color=PAINEL,
+                       border_color=VIDRO_BORDA)
+        nota.definir(i.get("nota") or None)
+        nota.grid(row=0, column=5, padx=(0, 6))
+        chip = ctk.CTkLabel(fr, text="estimado" if i.get("est") else "", font=F(10, "bold"), width=70, corner_radius=8,
+                            fg_color=("#fef3c7", "#3a2a0a") if i.get("est") else "transparent", text_color=("#b45309", "#fcd34d"))
+        chip.grid(row=0, column=6, padx=(0, 4))
+        Botao(fr, "✕", "perigo", width=30, height=30, command=lambda: self.excluir(i)).grid(row=0, column=7, padx=(0, 8))
+
+        def mudou(e=None):
+            novo_preco = preco.valor()
+            mudou_preco = novo_preco is not None and abs(float(novo_preco) - float(i.get("preco") or 0)) > 0.004
+            antes = (i["nome"], i.get("unid"), i.get("nota") or "", i.get("preco"))
+            i["nome"] = nome.get().strip() or i["nome"]
+            i["unid"] = unid.get()
+            i["nota"] = nota.get().strip()
+            if novo_preco is not None:
+                i["preco"] = round(float(novo_preco), 2)
+            if mudou_preco and i.get("est"):
+                i["est"] = False
+                chip.configure(text="", fg_color="transparent")
+            if antes != (i["nome"], i.get("unid"), i.get("nota") or "", i.get("preco")):
+                self.salvar()
+        for w in (nome, preco, nota):
+            w.bind("<FocusOut>", mudou, add="+")
+            w.bind("<Return>", mudou, add="+")
+        unid.configure(command=lambda v: mudou())
+        if foco:
+            nome.focus_set()
+            nome.select_range(0, "end")
+
+    def novo(self, cat=None):
+        cat = cat if isinstance(cat, str) else (self.cat.get() if self.cat.get() != "Todas" else "Outros")
+        i = {"cat": cat, "nome": "Material novo", "unid": "un", "preco": 0.0, "nota": "", "est": False}
+        pos = max((n for n, x in enumerate(self.itens) if x.get("cat") == cat), default=len(self.itens) - 1) + 1
+        self.itens.insert(pos, i)
+        self.salvar()
+        self.busca.definir(None)
+        self.cat.set(cat)          # mostra só o grupo dele, com o novo no fim
+        self.desenhar(foco=i)
+        self.after(120, lambda: self.lista._parent_canvas.yview_moveto(1.0))
+
+    def excluir(self, i):
+        if not messagebox.askyesno("Materiais", f"Excluir “{i['nome']}” da tabela?", parent=self):
+            return
+        self.itens.remove(i)
+        self.salvar()
+        self.desenhar()
+
+
+class EscolherMaterial(Dialogo):
+    """Escolhe itens da tabela de materiais para a ficha de custo da peça."""
+
+    def __init__(self, editor):
+        super().__init__(editor.app, "Da tabela de materiais", "Toque no material e diga quanto vai na peça. Ele entra na ficha de custo "
+                         "com o preço da tabela.", larg=720, alt=640)
+        self.editor = editor
+        self.itens = recursos.ler_materiais()
+        self.corpo.grid_rowconfigure(1, weight=1)
+        topo = ctk.CTkFrame(self.corpo, fg_color="transparent")
+        topo.grid(row=0, column=0, columnspan=2, sticky="ew", padx=14, pady=(12, 6))
+        topo.grid_columnconfigure(0, weight=1)
+        self.busca = Entrada(topo, height=34, placeholder_text="⌕  Buscar (ex.: 7/8, espuma D28, corano, hora)")
+        self.busca.grid(row=0, column=0, sticky="ew")
+        self.busca.bind("<KeyRelease>", lambda e: self.desenhar())
+        ctk.CTkLabel(topo, text="Quantidade", font=F(12, "bold"), text_color=MUDO).grid(row=0, column=1, padx=(10, 4))
+        self.qtd = Entrada(topo, "decimal", width=70, height=34, placeholder_text="1")
+        self.qtd.grid(row=0, column=2)
+        self.lista = ctk.CTkScrollableFrame(self.corpo, fg_color="transparent")
+        self.lista.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=8, pady=(0, 8))
+        self.lista.grid_columnconfigure(0, weight=1)
+        self.n = 0
+        self.lbl_rod.configure(text="Ponha a quantidade (metros, m², kg, horas…) antes de tocar no material.")
+        Botao(self.rod, "Pronto", "primario", width=120, command=self.destroy).grid(row=0, column=2)
+        self.after(200, self.busca.focus_set)
+        self.desenhar()
+
+    def desenhar(self):
+        for w in self.lista.winfo_children():
+            w.destroy()
+        termos = self.busca.get().lower().split()
+        r, cat = 0, None
+        for i in self.itens:
+            alvo = (i["nome"] + " " + (i.get("cat") or "")).lower()
+            if termos and not all(t in alvo for t in termos):
+                continue
+            if i.get("cat") != cat:
+                cat = i.get("cat")
+                ctk.CTkLabel(self.lista, text=cat, font=F(12, "bold"), text_color=MUDO, anchor="w").grid(
+                    row=r, column=0, sticky="w", padx=8, pady=(10, 2))
+                r += 1
+            b = ctk.CTkButton(self.lista, text=f"{i['nome']}      R$ {reais(i.get('preco'))} / {i.get('unid') or 'un'}"
+                              + ("   · estimado" if i.get("est") else ""), anchor="w", height=34, corner_radius=10,
+                              fg_color=VIDRO, hover_color=ROXO_CLARO, text_color=TEXTO, font=F(12),
+                              command=lambda i=i: self.usar(i))
+            b.grid(row=r, column=0, sticky="ew", padx=6, pady=2)
+            r += 1
+            if r > 160:
+                break
+
+    def usar(self, i):
+        qtd = self.qtd.valor() or 1
+        self.editor._linha_custo(f"{i['nome']} ({i.get('unid') or 'un'})", qtd, i.get("preco"))
+        self.n += 1
+        self.lbl_rod.configure(text=f"{self.n} adicionado(s). Último: {i['nome']} × {decimal_txt(qtd)}", text_color=VERDE)
+        self.qtd.definir(None)
+        self.qtd.focus_set()
 
 
 class EscolherCores(Dialogo):
