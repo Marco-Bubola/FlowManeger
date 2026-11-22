@@ -1578,23 +1578,6 @@ def rodar(fichas, cfg, avisar, parar, site=None, atualizar=False):
     return feitas, falhas
 
 
-if __name__ == "__main__":
-    cfg = ler_config()
-    if len(sys.argv) > 2 and sys.argv[1] == "--site":
-        cfg["robo"]["site"] = sys.argv[2]
-        del sys.argv[1:3]
-    fichas = listar_fichas(cfg["robo"]["pasta_produtos"])
-    for f in fichas:
-        print(f"[{f.status}] {f.pasta.name}: {len(f.variacoes)} variação(ões), {len(f.fotos)} foto(s)")
-        for e in f.erros:
-            print("   ERRO:", e)
-        for a in f.avisos:
-            print("   aviso:", a)
-    if "--cadastrar" in sys.argv:
-        feitas, falhas = rodar(fichas, cfg, lambda ev, f, t: print(ev, f.nome if f else "", t), lambda: False)
-        print(f"Cadastradas: {feitas}  Falhas: {falhas}")
-
-
 # ------------------------------------------------------------ fichas no banco do site (FlowManeger)
 #
 # O site guarda cada ficha (ficha.md + fotos) na tabela robo_fichas. O robô continua trabalhando na pasta
@@ -1869,3 +1852,36 @@ class Nuvem:
         lixo = self.raiz / "_lixeira"
         lixo.mkdir(exist_ok=True)
         shutil.copytree(pasta_dir, lixo / f"{pasta_dir.name} (antes do site {datetime.now():%Y%m%d-%H%M%S})")
+
+
+if __name__ == "__main__":
+    cfg = ler_config()
+    if len(sys.argv) > 2 and sys.argv[1] == "--site":
+        cfg["robo"]["site"] = sys.argv[2]
+        del sys.argv[1:3]
+    fichas = listar_fichas(cfg["robo"]["pasta_produtos"])
+    for f in fichas:
+        print(f"[{f.status}] {f.pasta.name}: {len(f.variacoes)} variação(ões), {len(f.fotos)} foto(s)")
+        for e in f.erros:
+            print("   ERRO:", e)
+        for a in f.avisos:
+            print("   aviso:", a)
+    if "--cadastrar" in sys.argv:
+        feitas, falhas = rodar(fichas, cfg, lambda ev, f, t: print(ev, f.nome if f else "", t), lambda: False)
+        print(f"Cadastradas: {feitas}  Falhas: {falhas}")
+    if "--sincronizar" in sys.argv:
+        # Conecta (abre o navegador do robô só se precisar entrar na conta) e manda/traz todas as fichas.
+        site_url = cfg["robo"]["site"].rstrip("/")
+        conta = ler_conta()
+        if not conta or conta.get("site", "").rstrip("/") != site_url:
+            s = Site(site_url, visivel=True, avisar=print)
+            try:
+                chave, usuario = s.pegar_chave(nome_pc=os.environ.get("COMPUTERNAME") or "")
+            finally:
+                s.fechar()
+            salvar_conta(site_url, chave, usuario)
+            print(f"Conectado ao FlowManeger como {usuario}.")
+        res = Nuvem(site_url, cfg["robo"]["pasta_produtos"], avisar=print).sincronizar()
+        print(f"Salvas no site: {res['subiram']}  Trazidas do site: {res['desceram']}  Lixeira: {res['excluidas']}")
+        for e in res["erros"]:
+            print("   ERRO:", e)
