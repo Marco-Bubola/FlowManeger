@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin'        => \App\Http\Middleware\EnsureAdmin::class,
             'portal.auth'  => \App\Http\Middleware\ClientPortalMiddleware::class,
             'subscription' => \App\Http\Middleware\CheckSubscription::class,
+            'robo.token'   => \App\Http\Middleware\RoboToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

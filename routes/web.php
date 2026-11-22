@@ -580,6 +580,19 @@ Route::prefix('mercadolivre')->middleware(['auth'])->name('mercadolivre.')->grou
         ->name('api.products.update-price');
 });
 
+// Robô Móveis Stylo: as fichas ficam no banco do site (sem tela). /robo/conectar dá a chave ao robô já logado.
+Route::middleware(['auth'])->get('/robo/conectar', [\App\Http\Controllers\Robo\FichasController::class, 'conectar'])->name('robo.conectar');
+Route::prefix('robo-api')->name('robo-api.')->withoutMiddleware(['web'])->middleware(['robo.token', 'throttle:600,1'])
+    ->controller(\App\Http\Controllers\Robo\FichasController::class)->group(function () {
+        Route::get('/eu', 'eu')->name('eu');
+        Route::get('/fichas', 'index')->name('fichas');
+        Route::get('/fichas/ver', 'ver')->name('fichas.ver');
+        Route::get('/fichas/arquivo', 'arquivo')->name('fichas.arquivo');
+        Route::post('/fichas/salvar', 'salvar')->name('fichas.salvar');
+        Route::post('/fichas/arquivo', 'enviarArquivo')->name('fichas.enviar-arquivo');
+        Route::post('/fichas/excluir', 'excluir')->name('fichas.excluir');
+    });
+
 // Aviso do Mercado Pago sobre pagamentos do portal (público; o pagamento é conferido na API)
 Route::post('/pagamentos/mercadopago/{user}/aviso', [\App\Http\Controllers\PortalPaymentController::class, 'webhook'])
     ->whereNumber('user')
