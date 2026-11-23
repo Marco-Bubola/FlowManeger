@@ -129,7 +129,8 @@
         @endif
 
         <div class="ep-card-b if-facts">
-            <span><i class="bi bi-hammer"></i>{{ $pr['made_to_order'] ? 'Sob encomenda' . ($pr['production_days'] ? ' · ' . $pr['production_days'] . ' dias' : '') : 'Pronta entrega' }}</span>
+            @php $mixMade = collect($plan['rows'])->pluck('made_to_order')->unique()->count() > 1; @endphp
+            <span><i class="bi bi-hammer"></i>{{ $mixMade ? 'Pronta entrega e sob encomenda (veja cada variação)' : ($pr['made_to_order'] ? 'Sob encomenda' . ($pr['production_days'] ? ' · ' . $pr['production_days'] . ' dias' : '') : 'Pronta entrega') }}</span>
             <span><i class="bi bi-shield-check"></i>Garantia {{ $pr['warranty_months'] }} {{ $pr['warranty_months'] == 1 ? 'mês' : 'meses' }}</span>
             <span><i class="bi bi-card-checklist"></i>{{ count($pr['specs']) }} itens na ficha técnica</span>
             @if($pr['cost_items'])<span><i class="bi bi-calculator"></i>Ficha de custo R$ {{ number_format(\App\Models\Product::costItemsTotal($pr['cost_items']), 2, ',', '.') }}</span>@endif
@@ -155,6 +156,7 @@
                             @if ($r['status'] !== 'update')<span><i class="bi bi-stack"></i>{{ $r['stock'] }}</span>@endif
                             @if($r['weight_grams'])<span><i class="bi bi-box-seam"></i>{{ rtrim(rtrim(number_format($r['weight_grams'] / 1000, 2, ',', ''), '0'), ',') }} kg</span>@endif
                             @if($r['length_cm'])<span>{{ (float) $r['length_cm'] }}×{{ (float) $r['width_cm'] }}×{{ (float) $r['height_cm'] }} cm</span>@endif
+                            @if($mixMade)<span><i class="bi bi-hammer"></i>{{ !empty($r['made_to_order']) ? 'Sob encomenda' . (!empty($r['production_days']) ? ' · ' . $r['production_days'] . ' dias' : '') : 'Pronta entrega' }}</span>@endif
                             <span><i class="bi bi-images"></i>{{ count($r['photos']) }}</span>
                         </p>
                     </div>

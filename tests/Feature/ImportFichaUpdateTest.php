@@ -132,4 +132,29 @@ class ImportFichaUpdateTest extends TestCase
         // Sem fotos enviadas, as fotos dos cadastrados ficam como estão
         $this->assertNotSame('product-placeholder.png', Product::where('product_code', 'MLF-50-CM')->value('image'));
     }
+
+    public function test_sob_encomenda_por_variacao(): void
+    {
+        $f = $this->ficha();
+        $f['variacoes'][0]['sob_encomenda'] = false;
+        $f['variacoes'][1]['prazo_dias'] = 30;
+        $f['variacoes'][] = ['valor' => '60 cm', 'custo' => 110, 'venda' => 279];
+        $this->importa($f, ['a.jpg', 'b.jpg'], false);
+
+        $p40 = Product::where('product_code', 'MLF-40-CM')->firstOrFail();
+        $p50 = Product::where('product_code', 'MLF-50-CM')->firstOrFail();
+        $p60 = Product::where('product_code', 'MLF-60-CM')->firstOrFail();
+        $this->assertFalse((bool) $p40->made_to_order);
+        $this->assertNull($p40->production_days);
+        $this->assertTrue((bool) $p50->made_to_order);
+        $this->assertSame(30, (int) $p50->production_days);
+        $this->assertTrue((bool) $p60->made_to_order);
+        $this->assertSame(15, (int) $p60->production_days);
+
+        // Atualizar também respeita a variação
+        $f['variacoes'][0]['sob_encomenda'] = true;
+        $this->importa($f, [], true);
+        $this->assertTrue((bool) $p40->refresh()->made_to_order);
+        $this->assertSame(15, (int) $p40->production_days);
+    }
 }

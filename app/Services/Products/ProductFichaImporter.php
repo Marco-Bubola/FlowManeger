@@ -144,8 +144,17 @@ class ProductFichaImporter
                 }
             }
 
+            // Sob encomenda pode vir por variação (ex.: 25 cm pronta entrega, 30 e 35 cm por encomenda)
+            $rowMade = array_key_exists('sob_encomenda', $v) ? $this->bool($v['sob_encomenda']) : $madeToOrder;
+            $rowDays = array_key_exists('prazo_dias', $v) && (int) $this->num($v['prazo_dias']) > 0 ? (int) $this->num($v['prazo_dias']) : $days;
+            if ($rowMade && $rowDays <= 0 && !$madeToOrder) {
+                $warnings[] = 'Variação "' . $value . '" sob encomenda sem "prazo_dias": entra sem prazo.';
+            }
+
             $row = [
                 'value' => $value,
+                'made_to_order' => $rowMade,
+                'production_days' => $rowMade && $rowDays > 0 ? min($rowDays, 365) : null,
                 'name' => $multi && mb_stripos($nome, $value) === false ? $nome . ' ' . $value : $nome,
                 'code' => $code,
                 'price' => round($cost, 2),
@@ -339,8 +348,8 @@ class ProductFichaImporter
                     'length_cm' => $r['length_cm'],
                     'width_cm' => $r['width_cm'],
                     'height_cm' => $r['height_cm'],
-                    'made_to_order' => $p['made_to_order'],
-                    'production_days' => $p['production_days'],
+                    'made_to_order' => $r['made_to_order'],
+                    'production_days' => $r['production_days'],
                     'specs' => $specs ?: null,
                     'cost_items' => $p['cost_items'] ?: null,
                 ], fn ($v) => $v !== null);
@@ -417,8 +426,8 @@ class ProductFichaImporter
         ], fn ($v) => $v !== null));
         // Preço "de" e prazo podem ter sido tirados da ficha
         $product->price_original = $r['price_original'];
-        $product->made_to_order = $p['made_to_order'];
-        $product->production_days = $p['production_days'];
+        $product->made_to_order = $r['made_to_order'];
+        $product->production_days = $r['production_days'];
         if ($product->is_variation_parent && $r['value'] !== '') {
             $product->variation_value = $r['value'];
         }
