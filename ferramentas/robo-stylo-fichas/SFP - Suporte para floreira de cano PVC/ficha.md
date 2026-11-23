@@ -92,57 +92,57 @@
         {
           "item": "Barra chata 3/4\" × 1/8\" (m) × 2 suportes",
           "quantidade": 1.6,
-          "valor_unitario": 5.0
+          "valor": 5.0
         },
         {
           "item": "Spray preto fosco 400 ml (un) · 1 lata pinta uns 8 suportes × 2 suportes",
           "quantidade": 0.25,
-          "valor_unitario": 22.0
+          "valor": 22.0
         },
         {
           "item": "Arame MIG 0,8 mm (kg) × 2 suportes",
           "quantidade": 0.04,
-          "valor_unitario": 38.0
+          "valor": 38.0
         },
         {
           "item": "Gás CO2 / mistura (por peça, média) (un) × 2 suportes",
           "quantidade": 2,
-          "valor_unitario": 3.0
+          "valor": 3.0
         },
         {
           "item": "Disco de corte (un) × 2 suportes",
           "quantidade": 0.5,
-          "valor_unitario": 4.0
+          "valor": 4.0
         },
         {
           "item": "Parafuso + bucha (un) × 2 suportes",
           "quantidade": 6,
-          "valor_unitario": 0.3
+          "valor": 0.3
         },
         {
           "item": "Hora de serralheria (corte e solda) (h) · cortar, curvar o U e a voluta, soldar e furar × 2 suportes",
           "quantidade": 0.5,
-          "valor_unitario": 25.0
+          "valor": 25.0
         },
         {
           "item": "Hora de pintura e acabamento (h) × 2 suportes",
           "quantidade": 0.1,
-          "valor_unitario": 20.0
+          "valor": 20.0
         },
         {
           "item": "Papelão ondulado (m²)",
           "quantidade": 0.18,
-          "valor_unitario": 4.0
+          "valor": 4.0
         },
         {
           "item": "Plástico bolha (m)",
           "quantidade": 0.5,
-          "valor_unitario": 3.0
+          "valor": 3.0
         },
         {
           "item": "Fita adesiva (rolo) (un)",
           "quantidade": 0.05,
-          "valor_unitario": 6.0
+          "valor": 6.0
         }
       ]
     },
@@ -177,57 +177,57 @@
         {
           "item": "Barra chata 3/4\" × 1/8\" (m) × 4 suportes",
           "quantidade": 3.2,
-          "valor_unitario": 5.0
+          "valor": 5.0
         },
         {
           "item": "Spray preto fosco 400 ml (un) · 1 lata pinta uns 8 suportes × 4 suportes",
           "quantidade": 0.5,
-          "valor_unitario": 22.0
+          "valor": 22.0
         },
         {
           "item": "Arame MIG 0,8 mm (kg) × 4 suportes",
           "quantidade": 0.08,
-          "valor_unitario": 38.0
+          "valor": 38.0
         },
         {
           "item": "Gás CO2 / mistura (por peça, média) (un) × 4 suportes",
           "quantidade": 4,
-          "valor_unitario": 3.0
+          "valor": 3.0
         },
         {
           "item": "Disco de corte (un) × 4 suportes",
           "quantidade": 1.0,
-          "valor_unitario": 4.0
+          "valor": 4.0
         },
         {
           "item": "Parafuso + bucha (un) × 4 suportes",
           "quantidade": 12,
-          "valor_unitario": 0.3
+          "valor": 0.3
         },
         {
           "item": "Hora de serralheria (corte e solda) (h) · cortar, curvar o U e a voluta, soldar e furar × 4 suportes",
           "quantidade": 1.0,
-          "valor_unitario": 25.0
+          "valor": 25.0
         },
         {
           "item": "Hora de pintura e acabamento (h) × 4 suportes",
           "quantidade": 0.2,
-          "valor_unitario": 20.0
+          "valor": 20.0
         },
         {
           "item": "Papelão ondulado (m²)",
           "quantidade": 0.24,
-          "valor_unitario": 4.0
+          "valor": 4.0
         },
         {
           "item": "Plástico bolha (m)",
           "quantidade": 0.7,
-          "valor_unitario": 3.0
+          "valor": 3.0
         },
         {
           "item": "Fita adesiva (rolo) (un)",
           "quantidade": 0.05,
-          "valor_unitario": 6.0
+          "valor": 6.0
         }
       ]
     },
@@ -262,57 +262,57 @@
         {
           "item": "Barra chata 3/4\" × 1/8\" (m) × 6 suportes",
           "quantidade": 4.8,
-          "valor_unitario": 5.0
+          "valor": 5.0
         },
         {
           "item": "Spray preto fosco 400 ml (un) · 1 lata pinta uns 8 suportes × 6 suportes",
           "quantidade": 0.75,
-          "valor_unitario": 22.0
+          "valor": 22.0
         },
         {
           "item": "Arame MIG 0,8 mm (kg) × 6 suportes",
           "quantidade": 0.12,
-          "valor_unitario": 38.0
+          "valor": 38.0
         },
         {
           "item": "Gás CO2 / mistura (por peça, média) (un) × 6 suportes",
           "quantidade": 6,
-          "valor_unitario": 3.0
+          "valor": 3.0
         },
         {
           "item": "Disco de corte (un) × 6 suportes",
           "quantidade": 1.5,
-          "valor_unitario": 4.0
+          "valor": 4.0
         },
         {
           "item": "Parafuso + bucha (un) × 6 suportes",
           "quantidade": 18,
-          "valor_unitario": 0.3
+          "valor": 0.3
         },
         {
           "item": "Hora de serralheria (corte e solda) (h) · cortar, curvar o U e a voluta, soldar e furar × 6 suportes",
           "quantidade": 1.5,
-          "valor_unitario": 25.0
+          "valor": 25.0
         },
         {
           "item": "Hora de pintura e acabamento (h) × 6 suportes",
           "quantidade": 0.3,
-          "valor_unitario": 20.0
+          "valor": 20.0
         },
         {
           "item": "Papelão ondulado (m²)",
           "quantidade": 0.3,
-          "valor_unitario": 4.0
+          "valor": 4.0
         },
         {
           "item": "Plástico bolha (m)",
           "quantidade": 0.9,
-          "valor_unitario": 3.0
+          "valor": 3.0
         },
         {
           "item": "Fita adesiva (rolo) (un)",
           "quantidade": 0.05,
-          "valor_unitario": 6.0
+          "valor": 6.0
         }
       ]
     },
@@ -344,57 +344,57 @@
         {
           "item": "Barra chata 3/4\" × 1/8\" (m) × 2 suportes",
           "quantidade": 1.6,
-          "valor_unitario": 5.0
+          "valor": 5.0
         },
         {
           "item": "Spray preto fosco 400 ml (un) · 1 lata pinta uns 8 suportes × 2 suportes",
           "quantidade": 0.25,
-          "valor_unitario": 22.0
+          "valor": 22.0
         },
         {
           "item": "Arame MIG 0,8 mm (kg) × 2 suportes",
           "quantidade": 0.04,
-          "valor_unitario": 38.0
+          "valor": 38.0
         },
         {
           "item": "Gás CO2 / mistura (por peça, média) (un) × 2 suportes",
           "quantidade": 2,
-          "valor_unitario": 3.0
+          "valor": 3.0
         },
         {
           "item": "Disco de corte (un) × 2 suportes",
           "quantidade": 0.5,
-          "valor_unitario": 4.0
+          "valor": 4.0
         },
         {
           "item": "Parafuso + bucha (un) × 2 suportes",
           "quantidade": 6,
-          "valor_unitario": 0.3
+          "valor": 0.3
         },
         {
           "item": "Hora de serralheria (corte e solda) (h) · cortar, curvar o U e a voluta, soldar e furar × 2 suportes",
           "quantidade": 0.5,
-          "valor_unitario": 25.0
+          "valor": 25.0
         },
         {
           "item": "Hora de pintura e acabamento (h) × 2 suportes",
           "quantidade": 0.1,
-          "valor_unitario": 20.0
+          "valor": 20.0
         },
         {
           "item": "Papelão ondulado (m²)",
           "quantidade": 0.18,
-          "valor_unitario": 4.0
+          "valor": 4.0
         },
         {
           "item": "Plástico bolha (m)",
           "quantidade": 0.5,
-          "valor_unitario": 3.0
+          "valor": 3.0
         },
         {
           "item": "Fita adesiva (rolo) (un)",
           "quantidade": 0.05,
-          "valor_unitario": 6.0
+          "valor": 6.0
         }
       ]
     },
@@ -426,57 +426,57 @@
         {
           "item": "Barra chata 3/4\" × 1/8\" (m) × 4 suportes",
           "quantidade": 3.2,
-          "valor_unitario": 5.0
+          "valor": 5.0
         },
         {
           "item": "Spray preto fosco 400 ml (un) · 1 lata pinta uns 8 suportes × 4 suportes",
           "quantidade": 0.5,
-          "valor_unitario": 22.0
+          "valor": 22.0
         },
         {
           "item": "Arame MIG 0,8 mm (kg) × 4 suportes",
           "quantidade": 0.08,
-          "valor_unitario": 38.0
+          "valor": 38.0
         },
         {
           "item": "Gás CO2 / mistura (por peça, média) (un) × 4 suportes",
           "quantidade": 4,
-          "valor_unitario": 3.0
+          "valor": 3.0
         },
         {
           "item": "Disco de corte (un) × 4 suportes",
           "quantidade": 1.0,
-          "valor_unitario": 4.0
+          "valor": 4.0
         },
         {
           "item": "Parafuso + bucha (un) × 4 suportes",
           "quantidade": 12,
-          "valor_unitario": 0.3
+          "valor": 0.3
         },
         {
           "item": "Hora de serralheria (corte e solda) (h) · cortar, curvar o U e a voluta, soldar e furar × 4 suportes",
           "quantidade": 1.0,
-          "valor_unitario": 25.0
+          "valor": 25.0
         },
         {
           "item": "Hora de pintura e acabamento (h) × 4 suportes",
           "quantidade": 0.2,
-          "valor_unitario": 20.0
+          "valor": 20.0
         },
         {
           "item": "Papelão ondulado (m²)",
           "quantidade": 0.24,
-          "valor_unitario": 4.0
+          "valor": 4.0
         },
         {
           "item": "Plástico bolha (m)",
           "quantidade": 0.7,
-          "valor_unitario": 3.0
+          "valor": 3.0
         },
         {
           "item": "Fita adesiva (rolo) (un)",
           "quantidade": 0.05,
-          "valor_unitario": 6.0
+          "valor": 6.0
         }
       ]
     },
@@ -508,57 +508,57 @@
         {
           "item": "Barra chata 3/4\" × 1/8\" (m) × 6 suportes",
           "quantidade": 4.8,
-          "valor_unitario": 5.0
+          "valor": 5.0
         },
         {
           "item": "Spray preto fosco 400 ml (un) · 1 lata pinta uns 8 suportes × 6 suportes",
           "quantidade": 0.75,
-          "valor_unitario": 22.0
+          "valor": 22.0
         },
         {
           "item": "Arame MIG 0,8 mm (kg) × 6 suportes",
           "quantidade": 0.12,
-          "valor_unitario": 38.0
+          "valor": 38.0
         },
         {
           "item": "Gás CO2 / mistura (por peça, média) (un) × 6 suportes",
           "quantidade": 6,
-          "valor_unitario": 3.0
+          "valor": 3.0
         },
         {
           "item": "Disco de corte (un) × 6 suportes",
           "quantidade": 1.5,
-          "valor_unitario": 4.0
+          "valor": 4.0
         },
         {
           "item": "Parafuso + bucha (un) × 6 suportes",
           "quantidade": 18,
-          "valor_unitario": 0.3
+          "valor": 0.3
         },
         {
           "item": "Hora de serralheria (corte e solda) (h) · cortar, curvar o U e a voluta, soldar e furar × 6 suportes",
           "quantidade": 1.5,
-          "valor_unitario": 25.0
+          "valor": 25.0
         },
         {
           "item": "Hora de pintura e acabamento (h) × 6 suportes",
           "quantidade": 0.3,
-          "valor_unitario": 20.0
+          "valor": 20.0
         },
         {
           "item": "Papelão ondulado (m²)",
           "quantidade": 0.3,
-          "valor_unitario": 4.0
+          "valor": 4.0
         },
         {
           "item": "Plástico bolha (m)",
           "quantidade": 0.9,
-          "valor_unitario": 3.0
+          "valor": 3.0
         },
         {
           "item": "Fita adesiva (rolo) (un)",
           "quantidade": 0.05,
-          "valor_unitario": 6.0
+          "valor": 6.0
         }
       ]
     }
