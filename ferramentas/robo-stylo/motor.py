@@ -730,6 +730,358 @@ class Site:
         self.ctx = self.page = self.pw = None
 
 
+# ------------------------------------------------------------ Canva IA (robô faz tudo)
+
+def _e_imagem(d):
+    return d[:3] == b"\xff\xd8\xff" or d[:8] == b"\x89PNG\r\n\x1a\n" or (d[:4] == b"RIFF" and d[8:12] == b"WEBP")
+
+
+def _lado(d):
+    try:
+        from PIL import Image
+        import io
+        with Image.open(io.BytesIO(d)) as im:
+            return max(im.size)
+    except Exception:
+        return 0
+
+
+class CanvaIA:
+    """Abre o Canva IA num navegador do robô (perfil próprio, login uma vez), manda as fotos e
+    os pedidos um por um e baixa as imagens que o Canva cria.
+
+    O Canva muda a tela de vez em quando: as buscas abaixo tentam vários jeitos (português e inglês).
+    Se algo não for achado, salva canva-erro.png e canva-erro.html na pasta do robô para conferir."""
+
+    CAIXA = ("textarea:visible", "[contenteditable='true'][role='textbox']:visible", "[contenteditable='true']:visible",
+             "[role='textbox']:visible")
+    ENVIAR = ("button[aria-label*='Enviar' i]", "button[aria-label*='Gerar' i]", "button[aria-label*='Criar' i]",
+              "button[aria-label*='Send' i]", "button[aria-label*='Submit' i]", "button[aria-label*='Generate' i]",
+              "button[type='submit']")
+    BAIXAR = ("button[aria-label*='Baixar' i]", "button[aria-label*='Download' i]", "a[download]",
+              "button:has-text('Baixar')", "button:has-text('Download')")
+    LOGIN = ("/login", "/signup", "/signin", "accounts.google", "/oauth", "/auth")
+
+    def __init__(self, link, avisar=print, parar=lambda: False, pasta_erro=None):
+        self.link = (link or "").strip() or "https://www.canva.com/ai"
+        self.avisar = avisar
+        self.parar = parar
+        self.pasta_erro = Path(pasta_erro or BASE)
+        self.pw = self.ctx = self.page = None
+
+    # ---- navegador
+    def abrir(self):
+        from playwright.sync_api import sync_playwright
+        self.pw = sync_playwright().start()
+        opcoes = dict(headless=False, viewport={"width": 1366, "height": 860}, accept_downloads=True,
+                      args=["--disable-blink-features=AutomationControlled"])
+        for canal in ("msedge", "chrome"):
+            try:
+                self.ctx = self.pw.chromium.launch_persistent_context(str(BASE / f"perfil-canva-{canal}"), channel=canal, **opcoes)
+                break
+            except Exception:
+                continue
+        if self.ctx is None:
+            self.ctx = self.pw.chromium.launch_persistent_context(
+                str(BASE / "perfil-canva"), executable_path=os.environ.get("ROBO_CHROMIUM") or None, **opcoes)
+        self.page = self.ctx.pages[0] if self.ctx.pages else self.ctx.new_page()
+        self.page.set_default_timeout(20000)
+
+    def fechar(self):
+        for f in (lambda: self.ctx.close(), lambda: self.pw.stop()):
+            try:
+                f()
+            except Exception:
+                pass
+        self.pw = self.ctx = self.page = None
+
+    def _checar(self):
+        if self.parar():
+            raise Parar()
+        if self.page is None or self.page.is_closed():
+            raise RuntimeError("A janela do Canva foi fechada.")
+
+    def _salvar_erro(self):
+        try:
+            self.page.screenshot(path=str(self.pasta_erro / "canva-erro.png"), full_page=False)
+            (self.pasta_erro / "canva-erro.html").write_text(self.page.content(), encoding="utf-8")
+        except Exception:
+            pass
+
+    def _caixa(self, espera=0):
+        fim = time.time() + espera
+        while True:
+            for sel in self.CAIXA:
+                try:
+                    loc = self.page.locator(sel)
+                    n = loc.count()
+                except Exception:
+                    continue
+                melhor, area = None, 0
+                for i in range(min(n, 12)):
+                    try:
+                        bb = loc.nth(i).bounding_box()
+                    except Exception:
+                        bb = None
+                    if bb and bb["width"] * bb["height"] > area and bb["width"] > 200:
+                        melhor, area = loc.nth(i), bb["width"] * bb["height"]
+                if melhor is not None:
+                    return melhor
+            if time.time() >= fim:
+                return None
+            self._checar()
+            time.sleep(1)
+
+    def _reabrir(self):
+        """A aba do Canva fechou (ou travou): abre outra no mesmo navegador. Devolve False se o navegador fechou."""
+        try:
+            self.page = self.ctx.new_page()
+        except Exception:
+            self.fechar()
+            try:
+                self.abrir()
+            except Exception:
+                return False
+        try:
+            self.page.set_default_timeout(20000)
+            self.page.goto(self.link, wait_until="domcontentloaded", timeout=60000)
+            return self._caixa(espera=20) is not None
+        except Exception:
+            return False
+
+    def _no_login(self):
+        try:
+            u = self.page.url.lower()
+        except Exception:
+            return False
+        return any(p in u for p in self.LOGIN)
+
+    def entrar(self, esperar_login=900):
+        """Abre o Canva IA. Se não estiver logado, espera a pessoa entrar na janela."""
+        if self.page is None:
+            self.abrir()
+        self.page.goto(self.link, wait_until="domcontentloaded", timeout=60000)
+        caixa = self._caixa(espera=12)
+        if caixa is None or self._no_login():
+            self.avisar("login")
+            fim = time.time() + esperar_login
+            while True:
+                self._checar()
+                if time.time() > fim:
+                    raise RuntimeError("O login no Canva não foi feito a tempo. Entre na conta e tente de novo.")
+                if not self._no_login() and "canva.com" in self.page.url:
+                    caixa = self._caixa(espera=0)
+                    if caixa is not None:
+                        break
+                    if "/ai" not in self.page.url and "/login" not in self.page.url:
+                        try:
+                            self.page.goto(self.link, wait_until="domcontentloaded", timeout=60000)
+                        except Exception:
+                            pass
+                time.sleep(2)
+        self.avisar("conectado")
+        return caixa
+
+    # ---- imagens na tela
+    def _imagens(self):
+        """[(src, largura, altura)] das imagens grandes na tela agora."""
+        try:
+            return self.page.evaluate("""() => [...document.images]
+                .filter(i => i.complete && i.naturalWidth >= 400 && i.naturalHeight >= 400)
+                .filter(i => { const r = i.getBoundingClientRect(); return r.width >= 120 && r.height >= 120; })
+                .map(i => { const s = i.currentSrc || i.src; i.dataset.roboSrc = s; return [s, i.naturalWidth, i.naturalHeight]; })""") or []
+        except Exception:
+            return []
+
+    def _ocupado(self):
+        try:
+            return bool(self.page.evaluate("""() => {
+                const t = document.body ? document.body.innerText : '';
+                if (/(Gerando|Criando|Generating|Creating|Pensando|Thinking)\\b/i.test(t.slice(-4000))) return true;
+                return !!document.querySelector('[role=progressbar], [aria-busy=true]');
+            }"""))
+        except Exception:
+            return False
+
+    def _bytes(self, src):
+        if src.startswith("data:"):
+            import base64
+            return base64.b64decode(src.split(",", 1)[1])
+        if src.startswith("blob:"):
+            import base64
+            b64 = self.page.evaluate("""async (u) => { const b = await (await fetch(u)).blob();
+                return await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result.split(',')[1]); f.readAsDataURL(b); }); }""", src)
+            return base64.b64decode(b64)
+        r = self.ctx.request.get(src, timeout=60000)
+        if not r.ok:
+            raise RuntimeError(f"o Canva respondeu {r.status}")
+        return r.body()
+
+    def _baixar_pelo_botao(self, src):
+        """Passa o mouse na imagem e clica em Baixar. Devolve os bytes ou None."""
+        try:
+            img = None
+            imgs = self.page.locator("img[data-robo-src]")
+            for i in range(imgs.count()):
+                if imgs.nth(i).get_attribute("data-robo-src") == src:
+                    img = imgs.nth(i)
+                    break
+            if img is None:
+                return None
+            img.scroll_into_view_if_needed(timeout=5000)
+            img.hover(timeout=5000)
+            time.sleep(0.6)
+            for sel in self.BAIXAR:
+                bt = self.page.locator(sel)
+                for i in range(min(bt.count(), 8)):
+                    b = bt.nth(i)
+                    if not b.is_visible():
+                        continue
+                    try:
+                        with self.page.expect_download(timeout=30000) as dl:
+                            b.click(timeout=5000)
+                        caminho = dl.value.path()
+                        return Path(caminho).read_bytes() if caminho else None
+                    except Exception:
+                        continue
+        except Exception:
+            return None
+        return None
+
+    def _enviar_fotos(self, fotos):
+        inp = self.page.locator("input[type=file]")
+        if not inp.count():
+            for sel in ("button[aria-label*='Adicionar' i]", "button[aria-label*='Enviar arquivo' i]", "button[aria-label*='Upload' i]",
+                        "button[aria-label*='Add' i]", "button[aria-label*='anexar' i]", "button[aria-label*='attach' i]"):
+                b = self.page.locator(sel)
+                if b.count() and b.first.is_visible():
+                    try:
+                        with self.page.expect_file_chooser(timeout=6000) as fc:
+                            b.first.click()
+                        fc.value.set_files([str(f) for f in fotos])
+                        return True
+                    except Exception:
+                        try:
+                            self.page.keyboard.press("Escape")
+                        except Exception:
+                            pass
+                        inp = self.page.locator("input[type=file]")
+                        if inp.count():
+                            break
+            if not inp.count():
+                return False
+        alvo = inp.first
+        for i in range(inp.count()):
+            acc = (inp.nth(i).get_attribute("accept") or "").lower()
+            if not acc or "image" in acc or ".png" in acc or ".jpg" in acc:
+                alvo = inp.nth(i)
+                break
+        multi = alvo.get_attribute("multiple") is not None
+        if multi:
+            alvo.set_input_files([str(f) for f in fotos])
+        else:
+            for f in fotos:
+                alvo.set_input_files(str(f))
+                time.sleep(2)
+        return True
+
+    def _escrever(self, caixa, texto):
+        caixa.click()
+        try:
+            self.page.keyboard.press("Control+A")
+            self.page.keyboard.press("Delete")
+        except Exception:
+            pass
+        self.page.keyboard.insert_text(texto)
+        time.sleep(0.8)
+
+    def _mandar(self, caixa):
+        for sel in self.ENVIAR:
+            b = self.page.locator(sel)
+            for i in range(min(b.count(), 6)):
+                try:
+                    if b.nth(i).is_visible() and b.nth(i).is_enabled():
+                        b.nth(i).click(timeout=4000)
+                        return
+                except Exception:
+                    continue
+        caixa.press("Enter")
+
+    def criar(self, fotos, pedidos, receber, espera_max=300):
+        """pedidos: [(chave, rótulo, texto)]. receber(chave, rótulo, n, total, [bytes], erro) é chamado a cada pedido."""
+        caixa = self.entrar()
+        conhecidas = {s for s, *_ in self._imagens()}
+        enviadas = False
+        total = len(pedidos)
+        for n, (k, rot, texto) in enumerate(pedidos, 1):
+            self._checar()
+            self.avisar(f"pedido:{n}:{total}:{rot}")
+            try:
+                caixa = self._caixa(espera=20)
+                if caixa is None:
+                    raise RuntimeError("não achei a caixa de texto do Canva IA")
+                if not enviadas and fotos:
+                    if not self._enviar_fotos(fotos):
+                        raise RuntimeError("não achei onde enviar as fotos no Canva IA")
+                    time.sleep(3 + 1.5 * len(fotos))
+                    fim = time.time() + 90
+                    while self._ocupado() and time.time() < fim:
+                        self._checar()
+                        time.sleep(1)
+                    conhecidas |= {s for s, *_ in self._imagens()}
+                    caixa = self._caixa(espera=10) or caixa
+                    enviadas = True
+                self._escrever(caixa, texto)
+                self._mandar(caixa)
+                # espera as imagens novas aparecerem e pararem de mudar
+                inicio, ultimo, novas = time.time(), None, []
+                time.sleep(5)
+                while time.time() - inicio < espera_max:
+                    self._checar()
+                    agora = [s for s, *_ in self._imagens() if s not in conhecidas]
+                    if any(s.startswith("http") for s in agora):      # as fotos enviadas voltam como blob:/data:
+                        agora = [s for s in agora if s.startswith("http")]
+                    if agora != novas:
+                        novas, ultimo = agora, time.time()
+                    if novas and not self._ocupado() and time.time() - ultimo > 6:
+                        break
+                    time.sleep(1.5)
+                if not novas:
+                    raise RuntimeError("o Canva não mostrou nenhuma imagem nova (demorou mais de "
+                                       f"{espera_max // 60} minutos ou pediu alguma coisa na tela)")
+                dados = []
+                for src in novas[:4]:
+                    self._checar()
+                    try:
+                        d = self._bytes(src)
+                    except Exception:
+                        d = None
+                    if not d or not _e_imagem(d) or _lado(d) < 600:      # prévia pequena: tenta o botão Baixar
+                        b = self._baixar_pelo_botao(src)
+                        if self.page is None or self.page.is_closed():
+                            if not self._reabrir():
+                                raise RuntimeError("o navegador do Canva fechou")
+                            enviadas = False
+                        if b and _e_imagem(b) and (not d or _lado(b) >= _lado(d)):
+                            d = b
+                    if d and _e_imagem(d):
+                        dados.append(d)
+                conhecidas |= set(novas)
+                if not dados:
+                    raise RuntimeError("as imagens apareceram mas não consegui baixar")
+                receber(k, rot, n, total, dados, None)
+            except Parar:
+                raise
+            except Exception as e:
+                if self.page is not None and not self.page.is_closed():
+                    self._salvar_erro()
+                receber(k, rot, n, total, [], str(e).splitlines()[0] if str(e) else repr(e))
+                if self.page is None or self.page.is_closed():
+                    if not self._reabrir():
+                        raise
+                    enviadas = False
+
+
 # ------------------------------------------------------------ Mercado Livre
 
 JS_BUSCA = r"""

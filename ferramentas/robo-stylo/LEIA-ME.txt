@@ -174,8 +174,15 @@ IMAGENS COM IA (no editor, seção Fotos ou no ✦ de cada variação)
 - "✦ Criar no Canva": escolha a variação (◀ ▶ ou "Próxima variação sem
   imagem"), marque as fotos e os tipos de imagem (capa com fundo branco, fundo
   branco em ângulo, ambiente, em uso, medidas, detalhe, kit, tamanho real,
-  presente) e toque em "Abrir o Canva e as fotos". O robô abre o Canva IA,
-  copia o pedido (cole com Ctrl+V) e abre a pasta com as fotos para arrastar.
+  presente) e toque em "⚡ Robô faz tudo no Canva". O robô abre o Canva IA
+  numa janela dele, manda as fotos marcadas e o primeiro pedido, espera ficar
+  pronto, baixa, cola o próximo pedido, espera, baixa, e assim até o último.
+  As imagens aparecem no robô (a primeira de cada pedido já vem marcada).
+  Na primeira vez, entre na sua conta do Canva nessa janela; depois ele lembra.
+  Não mexa na janela do Canva enquanto ele trabalha. "■ Parar" interrompe.
+  Se der erro, o robô salva canva-erro.png na pasta dele: mande para ajustar.
+- "Eu faço no Canva": o jeito antigo. Abre o Canva no seu navegador, copia o
+  pedido (cole com Ctrl+V) e abre a pasta com as fotos para arrastar.
 - O pedido já diz o tamanho, o modelo e o kit da variação, e o que muda em
   relação às suas fotos (o texto "O que muda nesta variação" fica guardado
   nela). Se perguntar, diga de qual variação são as fotos que você tirou.

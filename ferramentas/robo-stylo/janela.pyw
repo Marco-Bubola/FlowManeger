@@ -1451,6 +1451,13 @@ class App(ctk.CTk):
                     dlg.recebeu(*t[1:])
             except Exception:
                 pass
+        elif ev in ("canva_aviso", "canva_fim"):
+            dlg = t[0]
+            try:
+                if dlg.winfo_exists():
+                    (dlg.lbl_rod.configure(text=t[1]) if ev == "canva_aviso" else dlg.canva_fim(t[1]))
+            except Exception:
+                pass
         elif ev == "ia_textos":
             ed = self.paginas.get("editor")
             if ed:
@@ -5817,8 +5824,8 @@ class ImagensIA(Dialogo):
         app = editor.app
         self.modo = modo
         if modo == "canva":
-            titulo, sub = "Criar imagens no Canva", ("O robô abre o Canva IA, copia o pedido e separa as fotos. Você gera lá e baixa; "
-                                                     "as imagens baixadas aparecem aqui sozinhas.")
+            titulo, sub = "Criar imagens no Canva", ("Toque em “Robô faz tudo”: ele abre o Canva IA, manda as fotos marcadas e cada pedido "
+                                                     "marcado, um por vez, espera ficar pronto e baixa. As imagens aparecem aqui sozinhas.")
         else:
             titulo, sub = "Criar imagens com o Gemini", ("Escolha as fotos do produto e os tipos de imagem. A IA cria no estilo do "
                                                          "Mercado Livre; confira se a peça ficou igual antes de usar.")
@@ -5919,9 +5926,9 @@ class ImagensIA(Dialogo):
         if modo == "canva":
             passos = ctk.CTkFrame(dir_, fg_color=SUAVE, corner_radius=14)
             passos.grid(row=0, column=0, sticky="ew", pady=(0, 8))
-            for i, t in enumerate(("1. Toque em “Abrir o Canva e as fotos”: abre o Canva IA no seu navegador e a pasta com as fotos.",
-                                   "2. No Canva, arraste as fotos para a caixa e cole o pedido (Ctrl+V). O primeiro já está copiado.",
-                                   "3. Baixe as imagens que gostar. Elas aparecem aqui embaixo sozinhas.")):
+            for i, t in enumerate(("1. Marque as fotos, a variação e as imagens para criar. Toque em “⚡ Robô faz tudo no Canva”.",
+                                   "2. Na primeira vez, entre na sua conta do Canva na janela que o robô abre (depois ele lembra).",
+                                   "3. O robô cola as fotos e o primeiro pedido, espera, baixa, e segue para o próximo. Não mexa na janela do Canva enquanto ele trabalha.")):
                 ctk.CTkLabel(passos, text=t, font=F(12), text_color=TEXTO, anchor="w", justify="left", wraplength=500).grid(
                     row=i, column=0, sticky="w", padx=14, pady=(10 if i == 0 else 2, 10 if i == 2 else 2))
             self.pedidos = ctk.CTkFrame(dir_, fg_color="transparent")
@@ -5940,10 +5947,15 @@ class ImagensIA(Dialogo):
             self.capa_sw.grid(row=4, column=0, sticky="w", pady=(8, 0))
 
         self.bt_add = Botao(self.rod, "Adicionar às fotos", "suave", width=160, height=38, command=self.adicionar, state="disabled")
-        self.botao_ok("Abrir o Canva e as fotos" if modo == "canva" else "✦  Criar imagens",
-                      self.abrir_canva if modo == "canva" else self.gerar)
-        self.bt_ok.grid(row=0, column=2, padx=6)
-        self.bt_add.grid(row=0, column=3)
+        self.botao_ok("⚡  Robô faz tudo no Canva" if modo == "canva" else "✦  Criar imagens",
+                      self.robo_canva if modo == "canva" else self.gerar)
+        self.bt_ok.configure(width=210)
+        self._parar_canva = False
+        if modo == "canva":
+            self.bt_manual = Botao(self.rod, "Eu faço no Canva", "suave", width=140, height=38, command=self.abrir_canva)
+            self.bt_manual.grid(row=0, column=2, padx=(6, 0))
+        self.bt_ok.grid(row=0, column=3, padx=6)
+        self.bt_add.grid(row=0, column=4)
         if modo == "canva":
             import time as _t
             self.inicio = _t.time() - 2
@@ -6066,8 +6078,12 @@ class ImagensIA(Dialogo):
 
     def _contar(self):
         if self.modo == "canva":
+            if self.rodando:
+                return
             n = sum(1 for cb, *_ in self.estilos if cb.get())
-            self.bt_ok.configure(state="normal" if n and self._escolhidas() else "disabled")
+            self.bt_ok.configure(state="normal" if n and self._escolhidas() else "disabled",
+                                 text=f"⚡  Robô cria {n} no Canva" if n else "⚡  Robô faz tudo no Canva")
+            self.bt_manual.configure(state="normal" if n and self._escolhidas() else "disabled")
             if not self.criadas:
                 self.lbl_rod.configure(text="" if self._escolhidas() else "Marque pelo menos uma foto do produto.")
             return
@@ -6140,9 +6156,100 @@ class ImagensIA(Dialogo):
         link = (self.app.cfg["robo"].get("canva_link") or "").strip() or "https://www.canva.com/ai"
         webbrowser.open(link)
         abrir_no_sistema(pasta)
-        self.bt_ok.configure(text="Abrir de novo")
+        self.bt_manual.configure(text="Abrir de novo")
         k, rot, _ = self.pedidos_txt[0]
         self.lbl_rod.configure(text=f"Pedido “{rot}” copiado. Para os outros tipos, toque no botão de cada um acima.")
+
+    def _fotos_para_canva(self):
+        pasta = self.editor.tmp / "para-o-canva"
+        shutil.rmtree(pasta, ignore_errors=True)
+        pasta.mkdir(parents=True, exist_ok=True)
+        saida = []
+        for i, f in enumerate(self._escolhidas(), 1):
+            try:
+                recursos.tratar_foto(f, pasta / f"foto-{i}.jpg", quadrada=False, lado=1600)
+                saida.append(pasta / f"foto-{i}.jpg")
+            except Exception:
+                shutil.copy2(f, pasta / f"foto-{i}{Path(f).suffix}")
+                saida.append(pasta / f"foto-{i}{Path(f).suffix}")
+        return saida
+
+    def robo_canva(self):
+        """O robô faz o processo todo no Canva IA: fotos + um pedido por vez, espera, baixa."""
+        if self.rodando:
+            self._parar_canva = True
+            self.bt_ok.configure(state="disabled", text="Parando…")
+            return
+        estilos = [(k, r) for cb, k, r in self.estilos if cb.get()]
+        if not estilos or not self._escolhidas():
+            return
+        self._guardar_extra()
+        idx, var = self._var_atual()
+        pedidos = [(k, r, self._pedido(k, idx, var)) for k, r in estilos]
+        fotos = self._fotos_para_canva()
+        self.rodando = True
+        self._parar_canva = False
+        self.bt_ok.configure(state="normal", text="■  Parar")
+        self.bt_manual.configure(state="disabled")
+        self.vazio.pack_forget()
+        self.lbl_rod.configure(text="Abrindo o Canva IA…")
+        link = (self.app.cfg["robo"].get("canva_link") or "").strip() or "https://www.canva.com/ai"
+        fila, total = self.app.fila, len(pedidos)
+        pasta_robo = Path(motor.__file__).resolve().parent
+
+        def aviso(t):
+            if t == "login":
+                fila.put(("canva_aviso", None, (self, "Entre na sua conta do Canva na janela que abriu. Só precisa da primeira vez; "
+                                                      "o robô continua sozinho quando você entrar.")))
+            elif t == "conectado":
+                fila.put(("canva_aviso", None, (self, "Canva aberto. Mandando as fotos…")))
+            elif t.startswith("pedido:"):
+                _, n, tot, rot = t.split(":", 3)
+                fila.put(("canva_aviso", None, (self, f"Pedido {n} de {tot}: “{rot}”. Esperando o Canva criar e baixando… "
+                                                      "(não mexa na janela do Canva)")))
+
+        def receber(k, rot, n, tot, dados, erro):
+            if not dados:
+                fila.put(("ia_imagem", None, (self, k, rot, idx, None, erro or "sem imagem", n, tot)))
+                return
+            for j, d in enumerate(dados):
+                ultimo = j == len(dados) - 1
+                nome = rot if len(dados) == 1 else f"{rot} ({j + 1})"
+                fila.put(("ia_imagem", None, (self, k, nome, idx, d, None, n if ultimo else n - 1 if n > 1 else 0, tot, j == 0)))
+
+        def rodar():
+            cv = motor.CanvaIA(link, avisar=aviso, parar=lambda: self._parar_canva, pasta_erro=pasta_robo)
+            try:
+                cv.criar(fotos, pedidos, receber)
+                fila.put(("canva_fim", None, (self, None)))
+            except motor.Parar:
+                fila.put(("canva_fim", None, (self, "Parado. As imagens que já vieram ficaram aqui.")))
+            except Exception as e:
+                msg = str(e).splitlines()[0] if str(e) else repr(e)
+                if "Executable doesn't exist" in msg or "playwright" in msg.lower() and "install" in msg.lower():
+                    msg = "O navegador do robô não está instalado. Rode o instalar.bat de novo."
+                fila.put(("canva_fim", None, (self, f"O robô parou: {msg}. Se a tela do Canva mudou, mande o arquivo "
+                                                     "canva-erro.png da pasta do robô para eu ajustar.")))
+            finally:
+                cv.fechar()
+        threading.Thread(target=rodar, daemon=True).start()
+
+    def canva_fim(self, msg):
+        self.rodando = False
+        self._contar()
+        boas = sum(1 for c in self.criadas if c["dado"])
+        if msg:
+            self.lbl_rod.configure(text=msg)
+        else:
+            self.lbl_rod.configure(text=f"Pronto: {boas} imagem(ns) do Canva. Marque as que gostou e toque em Adicionar. "
+                                        "Confira se a peça ficou igual à de verdade.")
+        self.bt_ok.configure(state="normal", text="⚡  Robô faz de novo")
+        self.bt_manual.configure(state="normal")
+        self._botao_add()
+
+    def destroy(self):
+        self._parar_canva = True
+        super().destroy()
 
     def _vigiar_downloads(self):
         if not self.winfo_exists():
@@ -6198,7 +6305,7 @@ class ImagensIA(Dialogo):
                         return
         threading.Thread(target=rodar, daemon=True).start()
 
-    def recebeu(self, estilo, rot, idx, dado, erro, n, total):
+    def recebeu(self, estilo, rot, idx, dado, erro, n, total, marcar=True):
         if estilo is not None:
             card = ctk.CTkFrame(self.res, fg_color="transparent")
             i = len(self.criadas)
@@ -6213,7 +6320,8 @@ class ImagensIA(Dialogo):
                     ctk.CTkLabel(card, text=self.nomes_var[idx][:24], font=F(10, "bold"), text_color=ROXO_TXT).pack()
                 cb = ctk.CTkCheckBox(card, text=rot, font=F(12), text_color=TEXTO, fg_color=ROXO, hover_color=ROXO,
                                      checkbox_width=18, checkbox_height=18, command=self._botao_add)
-                cb.select()
+                if marcar:
+                    cb.select()
                 cb.pack(pady=(4, 0))
                 lbl.bind("<Button-1>", lambda e, c=cb: (c.toggle()))
                 self.criadas.append({"estilo": estilo, "rotulo": rot, "dado": dado, "var": idx, "check": cb})
@@ -6230,6 +6338,9 @@ class ImagensIA(Dialogo):
                                    if boas else "Nenhuma imagem saiu. Veja o motivo em cada uma.")
             if self.modo != "canva" and self.chave:
                 self.bt_ok.configure(text="✦  Criar de novo")
+            if self.modo == "canva":
+                self.bt_ok.configure(state="normal", text="⚡  Robô faz de novo")
+                self.bt_manual.configure(state="normal")
         else:
             self.lbl_rod.configure(text=f"Criando {n + 1} de {total}…")
         self._botao_add()
