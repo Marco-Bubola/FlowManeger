@@ -591,6 +591,8 @@ Route::prefix('robo-api')->name('robo-api.')->withoutMiddleware(['web'])->middle
         Route::post('/fichas/salvar', 'salvar')->name('fichas.salvar');
         Route::post('/fichas/arquivo', 'enviarArquivo')->name('fichas.enviar-arquivo');
         Route::post('/fichas/excluir', 'excluir')->name('fichas.excluir');
+        Route::get('/estoque', 'estoque')->name('estoque');
+        Route::post('/estoque/somar', 'somarEstoque')->name('estoque.somar');
     });
 
 // Aviso do Mercado Pago sobre pagamentos do portal (público; o pagamento é conferido na API)

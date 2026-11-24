@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Robo;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use App\Models\RoboFicha;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,6 +21,8 @@ use Illuminate\Support\Str;
  * POST /robo-api/fichas/salvar    pasta, conteudo, situacao, arquivos (json [{nome, sha1}]), versao_base, editada_em
  * POST /robo-api/fichas/arquivo   pasta, nome, arquivo (um por vez)
  * POST /robo-api/fichas/excluir   pasta  (não apaga: some da lista, os arquivos ficam)
+ * GET  /robo-api/estoque          ?codigos=A,B,C  estoque no site de cada código
+ * POST /robo-api/estoque/somar    itens (json [{codigo, somar}])  soma (ou tira) do estoque do site
  *
  * Nada é apagado de verdade: arquivo tirado da ficha vai para _lixeira e o conteúdo anterior fica em historico.
  */
@@ -184,6 +187,83 @@ class FichasController extends Controller
     }
 
     // ------------------------------------------------------------------
+
+    /** Estoque no site dos códigos da ficha (só os produtos desta conta). */
+    public function estoque(Request $request): JsonResponse
+    {
+        $codigos = collect(explode(',', (string) $request->query('codigos', '')))
+            ->map(fn ($c) => trim($c))->filter()->unique()->take(300)->values();
+        $achados = $this->produtosPorCodigo($request, $codigos->all());
+
+        return response()->json(['produtos' => $achados->map(fn ($ps) => $this->infoEstoque($ps))]);
+    }
+
+    /** Soma (ou tira, com número negativo) do estoque do site. Kit não tem estoque próprio. */
+    public function somarEstoque(Request $request): JsonResponse
+    {
+        $itens = json_decode((string) $request->input('itens', '[]'), true);
+        abort_unless(is_array($itens) && count($itens) <= 300, 422, 'Lista inválida.');
+        $pedidos = [];
+        foreach ($itens as $i) {
+            $cod = trim((string) ($i['codigo'] ?? ''));
+            $n = (int) ($i['somar'] ?? 0);
+            if ($cod !== '' && $n !== 0) {
+                $pedidos[mb_strtolower($cod)] = ['codigo' => $cod, 'somar' => max(-10000, min(10000, $n))];
+            }
+        }
+        $achados = $this->produtosPorCodigo($request, array_column($pedidos, 'codigo'));
+        $res = [];
+        foreach ($pedidos as $k => $ped) {
+            $ps = $achados->get($k);
+            if (! $ps) {
+                $res[$k] = ['codigo' => $ped['codigo'], 'erro' => 'Não está no site.'];
+                continue;
+            }
+            /** @var Product $p */
+            $p = $ps->first();
+            if ($p->isKit()) {
+                $res[$k] = $this->infoEstoque($ps) + ['erro' => 'É kit: o estoque vem dos itens.'];
+                continue;
+            }
+            $antes = (int) $p->stock_quantity;
+            $p->adjustStock(max($ped['somar'], -$antes));    // nunca fica negativo
+            $res[$k] = $this->infoEstoque(collect([$p->refresh()])->merge($ps->slice(1))) + ['antes' => $antes];
+        }
+
+        return response()->json(['produtos' => $res]);
+    }
+
+    /** código em minúsculas → produtos com esse código (o mais antigo primeiro). */
+    private function produtosPorCodigo(Request $request, array $codigos)
+    {
+        if (! $codigos) {
+            return collect();
+        }
+
+        return Product::withoutGlobalScope('team_visibility')
+            ->where('user_id', $request->user()->id)
+            ->whereIn('product_code', $codigos)
+            ->orderBy('id')
+            ->get()
+            ->groupBy(fn (Product $p) => mb_strtolower((string) $p->product_code));
+    }
+
+    private function infoEstoque($ps): array
+    {
+        /** @var Product $p */
+        $p = $ps->first();
+
+        return [
+            'id' => $p->id,
+            'codigo' => $p->product_code,
+            'nome' => $p->name,
+            'estoque' => $p->isKit() ? $p->availableStock() : (int) $p->stock_quantity,
+            'kit' => $p->isKit(),
+            'encomenda' => (bool) $p->made_to_order,
+            'venda' => (float) $p->price_sale,
+            'repetido' => $ps->count() > 1,
+        ];
+    }
 
     private function query(Request $request)
     {
