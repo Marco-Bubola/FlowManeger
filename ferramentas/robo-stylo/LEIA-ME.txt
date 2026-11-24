@@ -147,6 +147,14 @@ MATERIAIS E CUSTOS (menu Ajustes)
   4,5 metros de tubo, 1,5 hora) e toque no material.
 - O questionário para a IA leva a tabela junto.
 
+CADASTRADAS E ESTOQUE NO SITE
+- A tela Fichas mostra também as já cadastradas (etiqueta "Cadastrada").
+  Filtros: Na fila, Para atualizar, Cadastradas.
+- Editou uma cadastrada? Ela fica "Editada · subir". Marque e suba de novo:
+  o site recebe preços, textos, medidas e fotos (o estoque não muda).
+- Abrindo uma cadastrada aparece "Estoque no site" de cada variação. Digite em
+  "Subir" quantas peças somar (negativo tira) e toque em "Subir estoque".
+
 FICHAS NO FLOWMANEGER
 - Configurações › "Fichas no FlowManeger" › Conectar: entre na sua conta uma vez
   no navegador do robô. As fichas e fotos passam a ficar salvas no banco do site.

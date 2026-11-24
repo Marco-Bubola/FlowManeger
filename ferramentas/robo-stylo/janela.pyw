@@ -16,6 +16,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import traceback
 import webbrowser
 from datetime import datetime
@@ -82,6 +83,7 @@ STATUS = {
     "pronta": ("Pronta", VERDE),
     "erro": ("Com erro", VERMELHO),
     "feita": ("Cadastrada", ROXO),
+    "editada": ("Editada · subir", AMBAR),
     "ja": ("Já existia", "#64748b"),
     "falhou": ("Falhou", AMBAR),
     "rodando": ("Cadastrando…", ROXO),
@@ -290,6 +292,11 @@ def cortar(texto, n):
     return texto if len(texto) <= n else texto[:max(n - 1, 4)].rstrip() + "…"
 
 
+def pode_subir(f):
+    """Ficha nova pronta, ou cadastrada que foi editada depois (sobe de novo atualizando)."""
+    return f.pronta or (f.status == "editada" and not f.erros)
+
+
 class CartaoFicha(ctk.CTkFrame):
     def __init__(self, master, app, ficha, marcavel=True, letras=40):
         super().__init__(master, corner_radius=14, fg_color=CARD, border_width=1, border_color=BORDA)
@@ -303,7 +310,7 @@ class CartaoFicha(ctk.CTkFrame):
                                          corner_radius=6, fg_color=ROXO, hover_color=ROXO_H, border_color=BORDA,
                                          command=app.atualizar_botao)
             self.check.grid(row=0, column=0, rowspan=2, padx=(12, 2), pady=10)
-            if not ficha.pronta:
+            if not pode_subir(ficha):
                 self.check.configure(state="disabled")
         else:
             self.check = None
@@ -325,7 +332,9 @@ class CartaoFicha(ctk.CTkFrame):
         texto, cor = STATUS.get(ficha.status, (ficha.status, "#64748b"))
         self.chip = Chip(lado, texto, cor)
         self.chip.pack(anchor="e")
-        if ficha.avisos and ficha.status == "pronta":
+        if ficha.status in ("feita", "editada") and ficha.resultado:
+            ctk.CTkLabel(lado, text="no site", text_color=ROXO_TXT, font=F(11, "bold")).pack(anchor="e", pady=(2, 0))
+        elif ficha.avisos and ficha.status == "pronta":
             ctk.CTkLabel(lado, text=f"⚠ {len(ficha.avisos)} aviso{'s' if len(ficha.avisos) > 1 else ''}", text_color=AMBAR,
                          font=F(11, "bold")).pack(anchor="e", pady=(2, 0))
         for w in (self, self.titulo, self.sub, self.foto, lado):
@@ -594,9 +603,9 @@ class App(ctk.CTk):
         if self.rodando:
             return
         self.lbl_site.configure(text=f"{self.cfg['robo']['site']}\n{self.pasta()}")
-        fichas = motor.listar_fichas(self.pasta())
+        fichas = motor.listar_fichas(self.pasta(), incluir_feitas=True)
         self.paginas["fichas"].carregar(fichas, selecionar)
-        n = len(fichas)
+        n = sum(1 for f in fichas if f.status not in ("feita", "ja"))
         self.nav["fichas"].configure(text="☰   Fichas" + (f"   ·   {n}" if n else ""))
         if self.pagina is self.paginas["feitas"]:
             self.paginas["feitas"].carregar()
@@ -1764,7 +1773,7 @@ class Cabecalho(ctk.CTkFrame):
 
 
 class PaginaFichas(ctk.CTkFrame):
-    FILTROS = ["Todas", "Prontas", "Com erro", "Com aviso", "Sob encomenda"]
+    FILTROS = ["Todas", "Na fila", "Para atualizar", "Cadastradas", "Com erro", "Com aviso"]
     ORDENS = ["Mais recentes", "Nome A–Z", "Maior preço", "Menor preço", "Código"]
 
     def __init__(self, master, app):
@@ -1852,7 +1861,11 @@ class PaginaFichas(ctk.CTkFrame):
         self.app.mapa = {}
         prontas = sum(f.pronta for f in fichas)
         erros = sum(f.status == "erro" for f in fichas)
-        self.lbl_cont.configure(text=f"{len(fichas)} na fila  ·  {prontas} prontas" + (f"  ·  {erros} com erro" if erros else ""))
+        feitas = sum(f.status in ("feita", "editada") for f in fichas)
+        editadas = sum(f.status == "editada" for f in fichas)
+        fila = len(fichas) - feitas
+        self.lbl_cont.configure(text=f"{fila} na fila  ·  {prontas} prontas" + (f"  ·  {erros} com erro" if erros else "")
+                                + (f"  ·  {feitas} cadastradas" if feitas else "") + (f"  ·  {editadas} para atualizar" if editadas else ""))
         self.atual = None
         self.filtrar()
         alvo = None
@@ -1878,6 +1891,12 @@ class PaginaFichas(ctk.CTkFrame):
         filtro = self.filtro.get()
         if filtro == "Prontas":
             return f.pronta
+        if filtro == "Na fila":
+            return f.status not in ("feita", "editada", "ja")
+        if filtro == "Para atualizar":
+            return f.status == "editada"
+        if filtro == "Cadastradas":
+            return f.status in ("feita", "editada", "ja")
         if filtro == "Com erro":
             return f.status == "erro"
         if filtro == "Com aviso":
@@ -1912,7 +1931,7 @@ class PaginaFichas(ctk.CTkFrame):
 
     def marcar_todas(self, valor):
         for c in self.cartoes:
-            if c.check and c.ficha.pronta and c.ficha.status not in ("feita", "ja") and c.winfo_manager():
+            if c.check and pode_subir(c.ficha) and c.winfo_manager():
                 c.var.set(valor)
         self.atualizar_botao()
 
@@ -1922,25 +1941,34 @@ class PaginaFichas(ctk.CTkFrame):
         return marcadas or [c.ficha for c in self.cartoes if c.winfo_manager()]
 
     def marcadas(self):
-        return [c for c in self.cartoes if c.var.get() and c.ficha.pronta]
+        return [c for c in self.cartoes if c.var.get() and pode_subir(c.ficha)]
 
     def atualizar_botao(self):
-        n = len(self.marcadas())
-        self.bt_cad.configure(text=f"Cadastrar {n} {'produto' if n == 1 else 'produtos'} no site" if n else "Marque as fichas para cadastrar",
-                              state="normal" if n and not self.app.rodando else "disabled")
+        m = self.marcadas()
+        novas = sum(c.ficha.status != "editada" for c in m)
+        edit = len(m) - novas
+        if not m:
+            txt = "Marque as fichas para cadastrar"
+        elif not edit:
+            txt = f"Cadastrar {novas} {'produto' if novas == 1 else 'produtos'} no site"
+        elif not novas:
+            txt = f"Atualizar {edit} no site"
+        else:
+            txt = f"Cadastrar {novas} e atualizar {edit} no site"
+        self.bt_cad.configure(text=txt, state="normal" if m and not self.app.rodando else "disabled")
 
     def cadastrar_marcadas(self, cartoes=None):
         cartoes = cartoes or self.marcadas()
         if not cartoes:
             return
         self.app.mapa = {id(c.ficha): c for c in cartoes}
-        self.app.cadastrar([c.ficha for c in cartoes])
+        self.app.cadastrar([c.ficha for c in cartoes], atualizar=any(c.ficha.status == "editada" for c in cartoes))
 
     def rodando(self, sim_):
         self.bt_parar.configure(state="normal" if sim_ else "disabled")
         for c in self.cartoes:
             if c.check:
-                c.check.configure(state="disabled" if sim_ or not c.ficha.pronta or c.ficha.status in ("feita", "ja") else "normal")
+                c.check.configure(state="disabled" if sim_ or not pode_subir(c.ficha) else "normal")
         if sim_:
             self.bt_cad.configure(state="disabled", text="Cadastrando…")
         else:
@@ -2019,6 +2047,9 @@ class PaginaFichas(ctk.CTkFrame):
         if f.pronta and f.status not in ("feita", "ja"):
             Botao(acoes, "Cadastrar esta", "fantasma", width=118, state=trava,
                   command=lambda: self.cadastrar_marcadas([self.atual])).pack(side="left", padx=6)
+        elif f.status == "editada" and not f.erros:
+            Botao(acoes, "⟳  Subir edições", "primario", width=130, state=trava,
+                  command=lambda: self.cadastrar_marcadas([self.atual])).pack(side="left", padx=6)
         por(acoes, sticky="w", pady=(10, 2))
         acoes2 = ctk.CTkFrame(self.det, fg_color="transparent")
         Botao(acoes2, "Etiquetas", "fantasma", width=90, command=lambda: Etiquetas(app, [f])).pack(side="left", padx=(0, 6))
@@ -2048,7 +2079,7 @@ class PaginaFichas(ctk.CTkFrame):
                              text_color=cor, corner_radius=10, height=32, padx=12, font=F(12)))
         for e in f.erros:
             faixa("✕  " + e, ("#fff1f2", "#3a1420"), ("#be123c", "#fda4af"))
-        if f.avisos and f.status not in ("feita", "ja"):
+        if f.avisos and f.status not in ("feita", "ja", "editada"):
             acoes_pend = {}
             for p in recursos.pendencias(f.dados, cfg=dict(app.cfg["robo"])):
                 acoes_pend.setdefault(p["chave"], p["acao"])
@@ -2078,11 +2109,15 @@ class PaginaFichas(ctk.CTkFrame):
                           command=lambda: app.editar(f)).grid(row=i, column=1, sticky="e", padx=(0, 10), pady=3)
             ctk.CTkLabel(av, text="").grid(row=len(f.avisos) + 1, column=0, pady=1)
             por(av, pady=(4, 6))
+        if f.mensagem and f.status == "editada":
+            faixa("✎  " + f.mensagem, ("#fffbeb", "#2a2110"), ("#b45309", "#fcd34d"))
         if f.mensagem and f.status in ("falhou", "feita", "ja"):
             faixa(("✓  " if f.status == "feita" else "•  ") + f.mensagem, ROXO_CLARO, ROXO_TXT)
             if f.status in ("feita", "ja"):
                 por(Botao(self.det, "⟳  Atualizar no site com esta ficha", "suave", height=32, font=F(12, "bold"), state=trava,
                           command=lambda: app.atualizar_no_site([f])), sticky="w")
+        if f.status in ("feita", "editada", "ja"):
+            por(PainelEstoque(self.det, app, f, wrap), pady=(8, 6))
         for res in f.resultado:
             rot = f"↗  {res.get('codigo') or ''}  ·  {res.get('nome') or ''}"
             maxc = max(wrap // 8, 30)
@@ -2137,6 +2172,155 @@ class PaginaFichas(ctk.CTkFrame):
                           justify="left", cursor="hand2")
         lp.bind("<Button-1>", lambda e=None: abrir_no_sistema(f.pasta))
         por(lp, pady=(12, 20))
+
+
+class PainelEstoque(ctk.CTkFrame):
+    """Estoque no site de cada variação de uma ficha cadastrada, e quantas subir de cada."""
+
+    def __init__(self, master, app, ficha, wrap=440):
+        super().__init__(master, fg_color=SUAVE, corner_radius=12)
+        self.app, self.ficha, self.wrap = app, ficha, wrap
+        self.linhas = motor.codigos_no_site(ficha)
+        self.campos = {}
+        self.grid_columnconfigure(0, weight=1)
+        topo = ctk.CTkFrame(self, fg_color="transparent")
+        topo.grid(row=0, column=0, sticky="ew", padx=12, pady=(10, 2))
+        ctk.CTkLabel(topo, text="Estoque no site", font=F(14, "bold"), text_color=TEXTO).pack(side="left")
+        dica(Botao(topo, "⟳", "fantasma", width=34, height=26, command=lambda: self.buscar(forcar=True)),
+             "Ler de novo o estoque do site").pack(side="right")
+        self.corpo = ctk.CTkFrame(self, fg_color="transparent")
+        self.corpo.grid(row=1, column=0, sticky="ew", padx=12, pady=(2, 10))
+        self.corpo.grid_columnconfigure(0, weight=1)
+        cache = getattr(app, "_estoque_cache", {}).get(str(ficha.pasta))
+        if cache and time.time() - cache[0] < 90:
+            self.desenhar(cache[1])
+        else:
+            self.buscar()
+
+    def _aviso(self, texto, cor=MUDO):
+        for w in self.corpo.winfo_children():
+            w.destroy()
+        ctk.CTkLabel(self.corpo, text=texto, text_color=cor, font=F(12), anchor="w", justify="left",
+                     wraplength=self.wrap - 40).grid(row=0, column=0, sticky="w", pady=4)
+
+    def _em_fundo(self, tarefa, pronto):
+        """Roda tarefa() numa thread e chama pronto(resultado, erro) na janela."""
+        caixa = {}
+
+        def rodar():
+            try:
+                caixa["r"] = tarefa()
+            except Exception as e:
+                caixa["e"] = str(e).splitlines()[0] if str(e) else repr(e)
+
+        th = threading.Thread(target=rodar, daemon=True)
+        th.start()
+
+        def conferir():
+            if not self.winfo_exists():
+                return
+            if th.is_alive():
+                self.after(150, conferir)
+            else:
+                pronto(caixa.get("r"), caixa.get("e"))
+        self.after(150, conferir)
+
+    def buscar(self, forcar=False):
+        if not motor.ler_conta():
+            self._aviso("Conecte o robô ao site (Configurações › Fichas no FlowManeger) para ver o estoque.")
+            return
+        cods = [c for _, c in self.linhas if c]
+        if not cods:
+            self._aviso("As variações não têm código: abra o produto no site para ver o estoque.")
+            return
+        self._aviso("Lendo o estoque do site…")
+        nv = self.app.nuvem()
+        self._em_fundo(lambda: nv.estoque(cods), self._lido)
+
+    def _lido(self, dados, erro):
+        if erro:
+            self._aviso("Não deu para ler o estoque: " + erro, VERMELHO)
+            return
+        if not hasattr(self.app, "_estoque_cache"):
+            self.app._estoque_cache = {}
+        self.app._estoque_cache[str(self.ficha.pasta)] = (time.time(), dados or {})
+        self.desenhar(dados or {})
+
+    def desenhar(self, dados):
+        for w in self.corpo.winfo_children():
+            w.destroy()
+        self.campos = {}
+        tab = ctk.CTkFrame(self.corpo, fg_color="transparent")
+        tab.grid(row=0, column=0, sticky="ew")
+        tab.grid_columnconfigure(0, weight=1)
+        for c, t in enumerate(["Variação", "Código", "No site", "Subir"]):
+            ctk.CTkLabel(tab, text=t.upper(), font=F(10, "bold"), text_color=MUDO).grid(row=0, column=c, padx=(0, 10), sticky="w")
+        letras = max(int((self.wrap - 260) / 8), 14)
+        total = 0
+        for i, (v, cod) in enumerate(self.linhas, 1):
+            info = dados.get((cod or "").lower()) if cod else None
+            ctk.CTkLabel(tab, text=cortar(str(v.get("valor") or self.ficha.nome), letras), font=F(12), text_color=TEXTO,
+                         anchor="w").grid(row=i, column=0, sticky="w", padx=(0, 10), pady=2)
+            ctk.CTkLabel(tab, text=cod or "—", font=F(11), text_color=MUDO).grid(row=i, column=1, sticky="w", padx=(0, 10))
+            if not info:
+                ctk.CTkLabel(tab, text="não está no site", font=F(11), text_color=AMBAR).grid(row=i, column=2, columnspan=2, sticky="w")
+                continue
+            n = int(info.get("estoque") or 0)
+            total += n
+            txt = str(n) + (" (kit)" if info.get("kit") else "") + (" · encomenda" if info.get("encomenda") and not n else "")
+            ctk.CTkLabel(tab, text=txt, font=F(13, "bold"), text_color=VERDE if n else TEXTO).grid(row=i, column=2, sticky="w", padx=(0, 10))
+            if info.get("kit"):
+                ctk.CTkLabel(tab, text="pelos itens", font=F(11), text_color=MUDO).grid(row=i, column=3, sticky="w")
+                continue
+            e = ctk.CTkEntry(tab, width=64, height=28, placeholder_text="+0", font=F(12), justify="center")
+            e.grid(row=i, column=3, sticky="w", pady=2)
+            e.bind("<Return>", lambda ev=None: self.subir())
+            self.campos[cod] = (e, n, v)
+        rod = ctk.CTkFrame(self.corpo, fg_color="transparent")
+        rod.grid(row=1, column=0, sticky="ew", pady=(8, 0))
+        ctk.CTkLabel(rod, text=f"Total no site: {total}", font=F(12, "bold"), text_color=TEXTO).pack(side="left")
+        if self.campos:
+            Botao(rod, "Subir estoque", "primario", width=130, height=30, font=F(12, "bold"),
+                  state="disabled" if self.app.rodando else "normal", command=self.subir).pack(side="right")
+            ctk.CTkLabel(rod, text="Número negativo tira.", font=F(11), text_color=MUDO).pack(side="right", padx=8)
+
+    def subir(self):
+        itens, linhas = [], []
+        for cod, (e, n, v) in self.campos.items():
+            t = e.get().strip().replace("+", "")
+            if not t:
+                continue
+            try:
+                q = int(t)
+            except ValueError:
+                messagebox.showwarning("Estoque", f"“{e.get()}” não é um número ({cod}).")
+                return
+            if q:
+                q = max(q, -n)
+                itens.append((cod, q))
+                linhas.append(f"• {v.get('valor') or cod}: {n} → {n + q}")
+        if not itens:
+            messagebox.showinfo("Estoque", "Digite em “Subir” quantas peças quer somar em cada variação.")
+            return
+        if not messagebox.askyesno("Subir estoque", "Mudar o estoque no site?\n\n" + "\n".join(linhas[:20])
+                                   + ("\n…" if len(linhas) > 20 else "") + "\n\nO Mercado Livre ligado ao produto acompanha."):
+            return
+        self._aviso("Mandando para o site…")
+        nv = self.app.nuvem()
+        self._em_fundo(lambda: nv.somar_estoque(itens), self._somado)
+
+    def _somado(self, dados, erro):
+        if erro:
+            self._aviso("Não deu para mudar o estoque: " + erro, VERMELHO)
+            return
+        falhas = [f"{x.get('codigo')}: {x.get('erro')}" for x in (dados or {}).values() if x.get("erro")]
+        self.app.toast("Estoque atualizado no site" if not falhas else "Parte não mudou: " + "; ".join(falhas)[:120],
+                       VERDE if not falhas else AMBAR)
+        cache = getattr(self.app, "_estoque_cache", {}).get(str(self.ficha.pasta), (0, {}))[1]
+        novo = dict(cache)
+        novo.update({k: x for k, x in (dados or {}).items() if not x.get("erro") or x.get("id")})
+        self.app._estoque_cache[str(self.ficha.pasta)] = (time.time(), novo)
+        self.desenhar(novo)
 
 
 # ------------------------------------------------------------------ página Cadastradas

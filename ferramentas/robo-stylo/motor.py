@@ -19,6 +19,7 @@ import shutil
 import sys
 import tempfile
 import time
+import unicodedata
 import hashlib
 import urllib.error
 import urllib.parse
@@ -322,16 +323,50 @@ def listar_fichas(pasta_produtos, incluir_feitas=False):
     return fichas
 
 
+def assinatura_ficha(f):
+    """O que vai para o site (textos, preços, medidas, fotos). O estoque fica de fora: atualizar não mexe nele."""
+    try:
+        dados = json.loads(json.dumps(f.dados))
+        for v in dados.get("variacoes") or []:
+            if isinstance(v, dict):
+                v.pop("estoque", None)
+        fotos = []
+        for q in f.todas_fotos:
+            try:
+                fotos.append([q.name, q.stat().st_size])
+            except OSError:
+                fotos.append([q.name, 0])
+        txt = json.dumps({"d": dados, "f": sorted(fotos)}, ensure_ascii=False, sort_keys=True)
+        return hashlib.sha1(txt.encode("utf-8")).hexdigest()
+    except Exception:
+        return ""
+
+
 def ler_feita(p):
-    """Uma ficha da pasta feitos, com o que o site devolveu no cadastro (resultado.json)."""
+    """Uma ficha da pasta feitos, com o que o site devolveu no cadastro (resultado.json).
+
+    Se a ficha mudou depois do último envio, fica "editada": pronta para subir de novo."""
     f = ler_ficha(Path(p))
     f.status, f.mensagem, f.resultado = "feita", "Já cadastrada no site.", []
+    arq = f.pasta / "resultado.json"
     try:
-        info = json.loads((f.pasta / "resultado.json").read_text(encoding="utf-8"))
+        info = json.loads(arq.read_text(encoding="utf-8"))
+    except Exception:
+        info = None
+    if isinstance(info, dict):
         f.resultado = info.get("produtos") or []
         f.mensagem = info.get("mensagem") or f.mensagem
-    except Exception:
-        pass
+        atual = assinatura_ficha(f)
+        if not info.get("assinatura") and atual:
+            # fichas cadastradas antes desta versão: guarda como estão agora
+            info["assinatura"] = atual
+            try:
+                arq.write_text(json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8")
+            except OSError:
+                pass
+        elif atual and info.get("assinatura") != atual and not f.erros:
+            f.status = "editada"
+            f.mensagem = "Editada depois do cadastro: suba de novo para o site levar as mudanças."
     return f
 
 
@@ -1486,6 +1521,31 @@ def anotar_relatorio(ficha):
         ])
 
 
+def _slug(t):
+    t = unicodedata.normalize("NFKD", str(t)).encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", "-", t).strip("-")
+
+
+def codigos_no_site(ficha):
+    """[(variação, código)] como o site cadastra: o código da variação ou o que o site cria (CODIGO-VALOR)."""
+    base = str(ficha.dados.get("codigo") or "").strip()
+    vs = ficha.variacoes
+    multi = len(vs) > 1 or bool(str((vs[0].get("valor") if vs else "") or "").strip())
+    feitos = [str(x.get("codigo") or "") for x in ficha.resultado or []]
+    out = []
+    for v in vs:
+        if v.get("ativa", True) is False:
+            continue
+        cod = str(v.get("codigo") or "").strip()
+        if not cod and base:
+            valor = str(v.get("valor") or "").strip() or ("Padrão" if multi else "")
+            cod = f"{base}-{_slug(valor).upper()}" if multi else base
+        if not cod and len(vs) == 1 and len(feitos) == 1:
+            cod = feitos[0]
+        out.append((v, cod))
+    return out
+
+
 def mover_para_feitos(ficha, pasta_produtos):
     destino_raiz = Path(pasta_produtos) / "feitos"
     destino_raiz.mkdir(exist_ok=True)
@@ -1530,7 +1590,8 @@ def rodar(fichas, cfg, avisar, parar, site=None, atualizar=False):
                 raise Parar()
             if not (ficha.pronta or (atualizar and not ficha.erros and ficha.dados)):
                 continue
-            ja_feita = ficha.status == "feita"
+            ja_feita = ficha.status in ("feita", "editada")
+            assinatura = assinatura_ficha(ficha)
             avisar("inicio", ficha, f"{'Atualizando' if atualizar else 'Cadastrando'} {ficha.nome}...")
             tmp = Path(tempfile.mkdtemp(prefix="robo-stylo-"))
             try:
@@ -1557,7 +1618,8 @@ def rodar(fichas, cfg, avisar, parar, site=None, atualizar=False):
                 try:
                     (ficha.pasta / "resultado.json").write_text(json.dumps({
                         "quando": datetime.now().isoformat(timespec="seconds"), "site": r.get("site"),
-                        "mensagem": ficha.mensagem, "produtos": ficha.resultado}, ensure_ascii=False, indent=2), encoding="utf-8")
+                        "mensagem": ficha.mensagem, "produtos": ficha.resultado, "assinatura": assinatura},
+                        ensure_ascii=False, indent=2), encoding="utf-8")
                 except OSError:
                     pass
                 if sim(r.get("mover_feitos")) and ficha.pasta.parent.name.lower() != "feitos":
@@ -1659,6 +1721,8 @@ class Nuvem:
                 raise ErroNuvem(msg or "O robô não está conectado ao site. Conecte de novo nas Configurações.") from None
             if e.code == 404 and caminho == "/eu":
                 raise ErroNuvem("O site ainda não tem a parte das fichas no banco.") from None
+            if e.code in (404, 405) and caminho.startswith("/estoque"):
+                raise ErroNuvem("o site ainda não tem a parte do estoque (precisa subir a atualização do site).") from None
             if e.code == 413:
                 raise ErroNuvem("Arquivo grande demais para o site.") from None
             raise ErroNuvem(msg or f"O site respondeu com erro {e.code}.") from None
@@ -1720,6 +1784,23 @@ class Nuvem:
     # ---- sincronizar
     def testar(self):
         return self._req("GET", "/eu")
+
+    # ---- estoque no site
+    def estoque(self, codigos):
+        """{codigo em minúsculas: {id, codigo, nome, estoque, kit, encomenda, venda, repetido}}"""
+        codigos = [c for c in dict.fromkeys(str(c).strip() for c in codigos) if c]
+        if not self.chave:
+            raise ErroNuvem("O robô não está conectado ao site. Conecte em Configurações.")
+        if not codigos:
+            return {}
+        return self._req("GET", "/estoque", query={"codigos": ",".join(codigos)}, tempo=30).get("produtos") or {}
+
+    def somar_estoque(self, itens):
+        """itens = [(codigo, quantos)]. Devolve o mesmo formato de estoque(), com "antes" e "erro"."""
+        lista = [{"codigo": c, "somar": int(n)} for c, n in itens if str(c).strip() and int(n)]
+        if not lista:
+            return {}
+        return self._req("POST", "/estoque/somar", campos={"itens": json.dumps(lista)}, tempo=60).get("produtos") or {}
 
     def sincronizar(self, parar=lambda: False):
         if not self.chave:

@@ -1,6 +1,6 @@
 {
-  "versao": 26,
-  "data": "2026-11-22",
+  "versao": 27,
+  "data": "2026-11-24",
   "arquivos": [
     "janela.pyw",
     "motor.py",
@@ -14,14 +14,12 @@
     "instalar.bat"
   ],
   "novidades": [
+    "Fichas: as que já foram cadastradas agora aparecem na mesma lista, com a etiqueta “Cadastrada”. Use os filtros Na fila, Para atualizar e Cadastradas.",
+    "Se você editar uma ficha já cadastrada (preço, texto, medidas, fotos), ela fica “Editada · subir”. Marque e toque no botão de baixo, ou em “⟳ Subir edições”, e o site recebe as mudanças.",
+    "Estoque no site: abrindo uma ficha cadastrada aparece quanto tem de cada variação no site. Digite em “Subir” quantas peças quer somar (número negativo tira) e toque em “Subir estoque”. O Mercado Livre ligado ao produto acompanha.",
+    "Mudar só o estoque da ficha não marca como editada: o estoque do site muda pelo “Subir estoque”.",
     "Sincronização: se você colocar de volta uma cópia antiga de uma ficha, o robô entende que é a mudança mais nova e sobe ela (antes o site podia trocar de volta).",
     "Dois PCs: se uma ficha com o mesmo nome estiver diferente nos dois, o robô não mistura. A deste PC fica separada com o nome do PC, ex.: “CCN - Cadeira (DESKTOP-M7CG7I3)”, e as duas ficam no site.",
-    "Comando para sincronizar sem abrir a janela: python motor.py --sincronizar (conecta se precisar e manda/traz todas as fichas).",
-    "Conectar ao FlowManeger: a chave do robô não aparece mais na tela do navegador; o robô pega por trás, já com o seu login.",
-    "Fichas no FlowManeger: em Configurações › “Fichas no FlowManeger” toque em Conectar e entre na sua conta uma vez. Depois disso todas as fichas e fotos ficam salvas no banco do site.",
-    "O robô sincroniza sozinho quando você salva e a cada 3 minutos. Na lateral aparece “☁ Salvas no site” com a hora (toque para sincronizar na hora).",
-    "Em outro PC: instale o robô e conecte. Ele traz todas as fichas do site.",
-    "O robô continua trabalhando no seu PC, mesmo sem internet. Quando a internet volta, ele manda o que mudou.",
-    "Nada é apagado: o que sai vai para a lixeira do robô, e o site guarda as últimas versões de cada ficha."
+    "Comando para sincronizar sem abrir a janela: python motor.py --sincronizar (conecta se precisar e manda/traz todas as fichas)."
   ]
 }
