@@ -736,6 +736,10 @@ def _e_imagem(d):
     return d[:3] == b"\xff\xd8\xff" or d[:8] == b"\x89PNG\r\n\x1a\n" or (d[:4] == b"RIFF" and d[8:12] == b"WEBP")
 
 
+class PararCanva(RuntimeError):
+    """Um passo que não adianta repetir nos outros pedidos."""
+
+
 def _lado(d):
     try:
         from PIL import Image
@@ -804,7 +808,7 @@ class CanvaIA:
     def _salvar_erro(self):
         try:
             self.page.screenshot(path=str(self.pasta_erro / "canva-erro.png"), full_page=False)
-            (self.pasta_erro / "canva-erro.html").write_text(self.page.content(), encoding="utf-8")
+            (self.pasta_erro / "canva-erro.html").write_text(f"<!-- {self.page.url} -->\n" + self.page.content(), encoding="utf-8")
         except Exception:
             pass
 
@@ -856,22 +860,34 @@ class CanvaIA:
             return False
         return any(p in u for p in self.LOGIN)
 
+    def _logado(self):
+        """Sem botão Entrar / Cadastre-se visível na tela."""
+        try:
+            return not self.page.evaluate("""() => [...document.querySelectorAll('a,button,[role=button]')].some(b => {
+                const t = (b.innerText || '').trim();
+                if (!/^(entrar|fazer login|log in|login|sign in|cadastre-se|cadastrar|inscreva-se|sign up|registre-se|criar conta)$/i.test(t)) return false;
+                const r = b.getBoundingClientRect(); return r.width > 0 && r.height > 0; })""")
+        except Exception:
+            return True
+
     def entrar(self, esperar_login=900):
         """Abre o Canva IA. Se não estiver logado, espera a pessoa entrar na janela."""
         if self.page is None:
             self.abrir()
         self.page.goto(self.link, wait_until="domcontentloaded", timeout=60000)
         caixa = self._caixa(espera=12)
-        if caixa is None or self._no_login():
+        time.sleep(2)
+        if caixa is None or self._no_login() or not self._logado():
             self.avisar("login")
             fim = time.time() + esperar_login
             while True:
                 self._checar()
                 if time.time() > fim:
                     raise RuntimeError("O login no Canva não foi feito a tempo. Entre na conta e tente de novo.")
-                if not self._no_login() and "canva.com" in self.page.url:
+                if not self._no_login() and self._logado():
                     caixa = self._caixa(espera=0)
                     if caixa is not None:
+                        time.sleep(2)
                         break
                     if "/ai" not in self.page.url and "/login" not in self.page.url:
                         try:
@@ -948,11 +964,65 @@ class CanvaIA:
             return None
         return None
 
+    def _n_imgs(self):
+        try:
+            return self.page.evaluate("() => document.images.length")
+        except Exception:
+            return 0
+
+    def _apareceram(self, antes, espera=10):
+        fim = time.time() + espera
+        while time.time() < fim:
+            if self._n_imgs() > antes:
+                return True
+            time.sleep(0.5)
+        return False
+
+    def _colar_ou_soltar(self, caixa, fotos, jeito):
+        """Cola (paste) ou solta (drop) as fotos na caixa do Canva, como se fosse o Ctrl+V / arrastar."""
+        import base64
+        arqs = [{"nome": Path(f).name, "tipo": "image/png" if str(f).lower().endswith(".png") else "image/jpeg",
+                 "b64": base64.b64encode(Path(f).read_bytes()).decode()} for f in fotos]
+        caixa.evaluate("""(el, [arqs, jeito]) => {
+            const dt = new DataTransfer();
+            for (const a of arqs) {
+                const bin = atob(a.b64); const u = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+                dt.items.add(new File([u], a.nome, {type: a.tipo}));
+            }
+            el.focus();
+            if (jeito === 'colar') {
+                el.dispatchEvent(new ClipboardEvent('paste', {clipboardData: dt, bubbles: true, cancelable: true}));
+            } else {
+                for (const t of ['dragenter', 'dragover', 'drop'])
+                    el.dispatchEvent(new DragEvent(t, {dataTransfer: dt, bubbles: true, cancelable: true}));
+            }
+        }""", [arqs, jeito])
+
+    def _colocar_fotos(self, caixa, fotos):
+        """Tenta todos os jeitos. Devolve True se as fotos apareceram na tela."""
+        antes = self._n_imgs()
+        try:
+            if self._enviar_fotos(fotos) and self._apareceram(antes):
+                return True
+        except Exception:
+            pass
+        for jeito in ("colar", "soltar"):
+            try:
+                self._colar_ou_soltar(caixa, fotos, jeito)
+                if self._apareceram(antes, 8):
+                    return True
+            except Exception:
+                pass
+        return False
+
     def _enviar_fotos(self, fotos):
         inp = self.page.locator("input[type=file]")
         if not inp.count():
             for sel in ("button[aria-label*='Adicionar' i]", "button[aria-label*='Enviar arquivo' i]", "button[aria-label*='Upload' i]",
-                        "button[aria-label*='Add' i]", "button[aria-label*='anexar' i]", "button[aria-label*='attach' i]"):
+                        "button[aria-label*='Carregar' i]", "button[aria-label*='imagem' i]", "button[aria-label*='mídia' i]",
+                        "button[aria-label*='Add' i]", "button[aria-label*='anexar' i]", "button[aria-label*='attach' i]",
+                        "button:has-text('+')"):
                 b = self.page.locator(sel)
                 if b.count() and b.first.is_visible():
                     try:
@@ -1019,10 +1089,18 @@ class CanvaIA:
             try:
                 caixa = self._caixa(espera=20)
                 if caixa is None:
-                    raise RuntimeError("não achei a caixa de texto do Canva IA")
+                    self._salvar_erro()
+                    raise PararCanva("não achei a caixa de texto do Canva IA")
                 if not enviadas and fotos:
-                    if not self._enviar_fotos(fotos):
-                        raise RuntimeError("não achei onde enviar as fotos no Canva IA")
+                    if not self._colocar_fotos(caixa, fotos):
+                        self._salvar_erro()
+                        antes = self._n_imgs()
+                        self.avisar("fotos_manual")
+                        fim = time.time() + 300
+                        while time.time() < fim and not self._apareceram(antes, 2):
+                            self._checar()
+                        if time.time() >= fim:
+                            raise PararCanva("não consegui colocar as fotos no Canva IA")
                     time.sleep(3 + 1.5 * len(fotos))
                     fim = time.time() + 90
                     while self._ocupado() and time.time() < fim:
@@ -1070,7 +1148,7 @@ class CanvaIA:
                 if not dados:
                     raise RuntimeError("as imagens apareceram mas não consegui baixar")
                 receber(k, rot, n, total, dados, None)
-            except Parar:
+            except (Parar, PararCanva):
                 raise
             except Exception as e:
                 if self.page is not None and not self.page.is_closed():

@@ -1,5 +1,5 @@
 {
-  "versao": 28,
+  "versao": 29,
   "data": "2026-11-24",
   "arquivos": [
     "janela.pyw",
@@ -14,12 +14,11 @@
     "instalar.bat"
   ],
   "novidades": [
+    "Canva automático: se você ainda não entrou no Canva, o robô agora espera você entrar (antes ele desistia e fechava).",
+    "Ele tenta colocar as fotos de três jeitos. Se não conseguir, abre a pasta das fotos e pede para você arrastar; depois continua sozinho.",
+    "Se der erro, a janela do Canva fica aberta para você ver o que aconteceu (fecha quando você fecha a janela do robô ou tenta de novo).",
     "Criar imagens no Canva: botão novo “⚡ Robô faz tudo no Canva”. O robô abre o Canva IA, manda as fotos marcadas da variação e cada pedido marcado, um por vez: espera ficar pronto, baixa e passa para o próximo. As imagens aparecem no robô sozinhas.",
     "Na primeira vez, entre na sua conta do Canva na janela que o robô abre. Depois ele lembra. Não mexa nessa janela enquanto ele trabalha; “■ Parar” interrompe.",
-    "O jeito antigo continua no botão “Eu faço no Canva”.",
-    "Fichas: as que já foram cadastradas agora aparecem na mesma lista, com a etiqueta “Cadastrada”. Use os filtros Na fila, Para atualizar e Cadastradas.",
-    "Se você editar uma ficha já cadastrada (preço, texto, medidas, fotos), ela fica “Editada · subir”. Marque e toque no botão de baixo, ou em “⟳ Subir edições”, e o site recebe as mudanças.",
-    "Estoque no site: abrindo uma ficha cadastrada aparece quanto tem de cada variação no site. Digite em “Subir” quantas peças quer somar (número negativo tira) e toque em “Subir estoque”. O Mercado Livre ligado ao produto acompanha.",
-    "Mudar só o estoque da ficha não marca como editada: o estoque do site muda pelo “Subir estoque”."
+    "O jeito antigo continua no botão “Eu faço no Canva”."
   ]
 }

@@ -6203,6 +6203,13 @@ class ImagensIA(Dialogo):
                                                       "o robô continua sozinho quando você entrar.")))
             elif t == "conectado":
                 fila.put(("canva_aviso", None, (self, "Canva aberto. Mandando as fotos…")))
+            elif t == "fotos_manual":
+                try:
+                    abrir_no_sistema(fotos[0].parent)
+                except Exception:
+                    pass
+                fila.put(("canva_aviso", None, (self, "Não consegui colocar as fotos sozinho. Arraste as fotos da pasta que abri "
+                                                      "para a caixa do Canva. O robô continua sozinho quando elas aparecerem.")))
             elif t.startswith("pedido:"):
                 _, n, tot, rot = t.split(":", 3)
                 fila.put(("canva_aviso", None, (self, f"Pedido {n} de {tot}: “{rot}”. Esperando o Canva criar e baixando… "
@@ -6217,20 +6224,40 @@ class ImagensIA(Dialogo):
                 nome = rot if len(dados) == 1 else f"{rot} ({j + 1})"
                 fila.put(("ia_imagem", None, (self, k, nome, idx, d, None, n if ultimo else n - 1 if n > 1 else 0, tot, j == 0)))
 
+        antigo = getattr(self, "_fechar_canva", None)
+        if antigo is not None:
+            antigo.set()                      # fecha o navegador da tentativa anterior
+        fechar = self._fechar_canva = threading.Event()
+
         def rodar():
+            import traceback
             cv = motor.CanvaIA(link, avisar=aviso, parar=lambda: self._parar_canva, pasta_erro=pasta_robo)
+            deixar_aberto = False
             try:
                 cv.criar(fotos, pedidos, receber)
                 fila.put(("canva_fim", None, (self, None)))
             except motor.Parar:
                 fila.put(("canva_fim", None, (self, "Parado. As imagens que já vieram ficaram aqui.")))
             except Exception as e:
+                try:
+                    (pasta_robo / "canva-erro.txt").write_text(traceback.format_exc(), encoding="utf-8")
+                except Exception:
+                    pass
                 msg = str(e).splitlines()[0] if str(e) else repr(e)
                 if "Executable doesn't exist" in msg or "playwright" in msg.lower() and "install" in msg.lower():
                     msg = "O navegador do robô não está instalado. Rode o instalar.bat de novo."
-                fila.put(("canva_fim", None, (self, f"O robô parou: {msg}. Se a tela do Canva mudou, mande o arquivo "
-                                                     "canva-erro.png da pasta do robô para eu ajustar.")))
+                deixar_aberto = True
+                fila.put(("canva_fim", None, (self, f"O robô parou: {msg}. Deixei a janela do Canva aberta para você ver. "
+                                                     "Mande um print dela e do robô para eu ajustar.")))
             finally:
+                if deixar_aberto:             # o navegador fica aberto até fechar esta janela ou tentar de novo
+                    while not fechar.is_set():
+                        try:
+                            if cv.page is None or cv.page.is_closed():
+                                break
+                            cv.page.wait_for_timeout(1000)
+                        except Exception:
+                            break
                 cv.fechar()
         threading.Thread(target=rodar, daemon=True).start()
 
@@ -6249,6 +6276,8 @@ class ImagensIA(Dialogo):
 
     def destroy(self):
         self._parar_canva = True
+        if getattr(self, "_fechar_canva", None) is not None:
+            self._fechar_canva.set()
         super().destroy()
 
     def _vigiar_downloads(self):
