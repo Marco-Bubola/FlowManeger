@@ -1,9 +1,9 @@
-# Ficha · Arara de Roupa de Ferro Tubular 190 cm
+# Ficha · Arara de Roupa Desmontável de Ferro Tubular 190 cm
 
 ```json
 {
   "versao": 1,
-  "nome": "Arara de Roupa de Ferro Tubular 190 cm",
+  "nome": "Arara de Roupa Desmontável de Ferro Tubular 190 cm",
   "codigo": "ARA",
   "categoria": "Araras de roupa",
   "marca": "Móveis Stylo",
@@ -11,9 +11,9 @@
   "material": "Ferro",
   "acabamento": "Pintura eletrostática",
   "uso": "Quarto, closet, loja, ateliê e lavanderia",
-  "descricao": "Arara de roupa de ferro tubular, feita à mão pela Móveis Stylo.\n\n- Estrutura de tubo de ferro reforçado com cantos arredondados\n- Pés curvos com 47 cm de profundidade, firme no chão\n- Detalhe em espiral no alto\n- Altura de 190 cm, ótima para vestidos e casacos longos\n- Larguras: 100, 120, 150 e 180 cm\n\nPronta entrega na largura de 100 cm na cor preta. Sob encomenda nas outras larguras e nas cores preto, branco, rosé gold e cinza.\n\nIdeal para quarto, closet aberto, loja de roupas, ateliê, provador e lavanderia.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
-  "o_que_vem_na_caixa": "1 arara de roupa (cabides e roupas não acompanham)",
-  "montagem": "Vem montada",
+  "descricao": "Arara de roupa de ferro tubular, feita à mão pela Móveis Stylo.\n\n- Estrutura de tubo de ferro reforçado com cantos arredondados\n- Pés curvos com 47 cm de profundidade, firme no chão\n- Detalhe em espiral no alto\n- Desmontável: fácil de montar, desmontar e guardar ou levar para outro lugar\n- Altura de 190 cm, ótima para vestidos e casacos longos\n- Larguras: 100, 120, 150 e 180 cm\n\nPronta entrega na largura de 100 cm na cor preta. Sob encomenda nas outras larguras e nas cores preto, branco, rosé gold e cinza.\n\nIdeal para quarto, closet aberto, loja de roupas, ateliê, provador e lavanderia.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
+  "o_que_vem_na_caixa": "1 arara de roupa desmontada, com as peças para montar (cabides e roupas não acompanham)",
+  "montagem": "Desmontável, montagem simples",
   "carga_maxima_kg": null,
   "garantia_meses": 3,
   "condicao": "novo",
@@ -24,6 +24,10 @@
     {
       "nome": "Material",
       "valor": "Ferro tubular"
+    },
+    {
+      "nome": "Desmontável",
+      "valor": "Sim"
     },
     {
       "nome": "Altura",
@@ -43,7 +47,7 @@
     },
     {
       "nome": "Requer montagem",
-      "valor": "Não"
+      "valor": "Sim (desmontável)"
     },
     {
       "nome": "Marca",
@@ -425,7 +429,7 @@
   ],
   "mercado_livre": {
     "link_referencia": null,
-    "titulo_anuncio": "Arara de Roupa Ferro Tubular 190cm Reforçada Loja Closet",
+    "titulo_anuncio": "Arara de Roupa Desmontável Ferro Tubular 190cm Loja Closet",
     "tipo_anuncio": "classico",
     "quantidade_anuncio": 10
   }
