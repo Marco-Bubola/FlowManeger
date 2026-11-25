@@ -11,9 +11,9 @@
   "material": "Ferro (cantoneira) e MDF",
   "acabamento": "Pintura eletrostática",
   "uso": "Sala, cozinha, quarto, escritório, banheiro e loja",
-  "descricao": "Prateleira de parede estilo industrial, feita pela Móveis Stylo.\n\n- Moldura de cantoneira de ferro com tampo de MDF embutido\n- Firme para livros, plantas, temperos, objetos de decoração e mercadorias\n- Medidas: 100 cm de largura, 30 cm de profundidade e 15 cm de altura\n\nIdeal para sala, cozinha, quarto, escritório, banheiro e loja.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
-  "o_que_vem_na_caixa": "1 prateleira",
-  "montagem": "Fixação na parede (parafusos e buchas conforme a parede)",
+  "descricao": "Prateleira de parede estilo industrial, feita pela Móveis Stylo.\n\n- Moldura de cantoneira de ferro preta com tampo de MDF claro embutido\n- Mãos-francesas de ferro com arabescos já soldadas, com abas para parafusar na parede\n- Firme para livros, plantas, temperos, objetos de decoração e mercadorias\n- Medidas: 100 cm de largura, 30 cm de profundidade e 15 cm de altura\n\nIdeal para sala, cozinha, quarto, escritório, banheiro e loja.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
+  "o_que_vem_na_caixa": "1 prateleira com mãos-francesas soldadas (parafusos e buchas não acompanham)",
+  "montagem": "Pronta para fixar na parede com parafusos e buchas",
   "carga_maxima_kg": null,
   "garantia_meses": 3,
   "condicao": "novo",
@@ -24,6 +24,10 @@
     {
       "nome": "Material",
       "valor": "Cantoneira de ferro e MDF"
+    },
+    {
+      "nome": "Mãos-francesas",
+      "valor": "Soldadas, com arabescos"
     },
     {
       "nome": "Estilo",
@@ -54,8 +58,8 @@
   "variacao_por": "Cor",
   "variacoes": [
     {
-      "valor": "Padrão",
-      "codigo": "PRC-01",
+      "valor": "Preto com MDF claro",
+      "codigo": "PRC-PT",
       "custo": null,
       "venda": null,
       "preco_tabela": null,
@@ -72,7 +76,10 @@
         "altura_cm": 19.0,
         "peso_kg": 6.0
       },
-      "fotos": [],
+      "fotos": [
+        "01-prateleira-cima.jpg",
+        "02-prateleira-maos-francesas.jpg"
+      ],
       "canva_extra": null
     }
   ],
