@@ -1,5 +1,5 @@
 {
-  "versao": 32,
+  "versao": 33,
   "data": "2026-11-25",
   "arquivos": [
     "janela.pyw",
@@ -14,10 +14,10 @@
     "instalar.bat"
   ],
   "novidades": [
+    "Canva automático: quando o Canva pede “Confirme que é humano”, o robô avisa e espera você marcar o quadradinho; depois continua sozinho.",
     "Canva automático voltou para o Edge, como era antes (com a conta do Canva que você já entrou lá).",
     "Continua: janela maximizada, sem clicar em Baixar (que abria “Salvar no OneDrive”) e conversa nova quando a caixa de texto some.",
     "Canva automático: se você ainda não entrou no Canva, o robô agora espera você entrar (antes ele desistia e fechava).",
-    "Ele tenta colocar as fotos de três jeitos. Se não conseguir, abre a pasta das fotos e pede para você arrastar; depois continua sozinho.",
-    "Se der erro, a janela do Canva fica aberta para você ver o que aconteceu (fecha quando você fecha a janela do robô ou tenta de novo)."
+    "Ele tenta colocar as fotos de três jeitos. Se não conseguir, abre a pasta das fotos e pede para você arrastar; depois continua sozinho."
   ]
 }

@@ -812,9 +812,37 @@ class CanvaIA:
         except Exception:
             pass
 
+    def _verificacao(self):
+        """A tela do Canva/Cloudflare "Confirme que é humano"."""
+        try:
+            t = (self.page.title() or "").lower()
+            if "um momento" in t or "just a moment" in t:
+                return True
+            return bool(self.page.evaluate("""() => /confirme que (é|e) humano|verify you are human|voltar a criar designs em breve/i
+                .test(document.body ? document.body.innerText.slice(0, 3000) : '')"""))
+        except Exception:
+            return False
+
+    def _esperar_verificacao(self, limite=600):
+        """O Canva pediu para confirmar que é humano: quem marca é a pessoa. O robô só espera."""
+        if not self._verificacao():
+            return
+        self.avisar("humano")
+        fim = time.time() + limite
+        while self._verificacao():
+            self._checar()
+            if time.time() > fim:
+                raise PararCanva("o Canva pediu para confirmar que é humano e ninguém confirmou")
+            time.sleep(2)
+        time.sleep(3)
+        self.avisar("continuando")
+
     def _caixa(self, espera=0):
         fim = time.time() + espera
         while True:
+            if self._verificacao():
+                self._esperar_verificacao()
+                fim = time.time() + max(espera, 10)
             for sel in self.CAIXA:
                 try:
                     loc = self.page.locator(sel)

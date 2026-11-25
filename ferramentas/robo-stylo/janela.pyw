@@ -6203,6 +6203,11 @@ class ImagensIA(Dialogo):
                                                       "o robô continua sozinho quando você entrar.")))
             elif t == "conectado":
                 fila.put(("canva_aviso", None, (self, "Canva aberto. Mandando as fotos…")))
+            elif t == "humano":
+                fila.put(("canva_aviso", None, (self, "O Canva pediu “Confirme que é humano”. Marque o quadradinho na janela do "
+                                                      "Canva; o robô espera e continua sozinho.")))
+            elif t == "continuando":
+                fila.put(("canva_aviso", None, (self, "Confirmado. Continuando…")))
             elif t == "fotos_manual":
                 try:
                     abrir_no_sistema(fotos[0].parent)
