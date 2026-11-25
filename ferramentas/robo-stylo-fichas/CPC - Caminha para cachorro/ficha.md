@@ -1,18 +1,18 @@
-# Ficha · Caminha para Cachorro 51x51 com Encosto
+# Ficha · Caminha de Ferro para Cachorro Redonda com Almofada
 
 ```json
 {
   "versao": 1,
-  "nome": "Caminha para Cachorro 51x51 com Encosto",
+  "nome": "Caminha de Ferro para Cachorro Redonda com Almofada",
   "codigo": "CPC",
   "categoria": "Camas para pets",
   "marca": "Móveis Stylo",
   "modelo": null,
-  "material": "Ferro",
-  "acabamento": "Pintura eletrostática",
+  "material": "Ferro tubular e almofada de tecido",
+  "acabamento": "Pintura eletrostática branca e almofada de tecido estampado",
   "uso": "Sala, quarto, varanda e área de serviço",
-  "descricao": "Caminha para cachorro com encosto, feita pela Móveis Stylo.\n\n- Base elevada a 9 cm do chão, longe da umidade e do frio do piso\n- Encosto com 20 cm de altura\n- Medidas: 51 cm de largura e 51 cm de profundidade\n\nIdeal para cães de porte pequeno, e também para gatos.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
-  "o_que_vem_na_caixa": "1 caminha para cachorro",
+  "descricao": "Caminha de ferro para cachorro com almofada, feita pela Móveis Stylo.\n\n- Estrutura redonda de tubo de ferro branco, com encosto em volta\n- Base elevada a 9 cm do chão, longe da umidade e do frio do piso\n- Encosto com 20 cm de altura\n- Almofada de tecido estampado com dálmatas, presa com laços na estrutura\n- Medidas: 51 cm de largura e 51 cm de profundidade\n\nIdeal para cães de porte pequeno, e também para gatos.\n\nCuidados: limpe a estrutura com pano seco ou levemente úmido. A almofada pode ser retirada para lavar.",
+  "o_que_vem_na_caixa": "1 caminha de ferro e 1 almofada",
   "montagem": "Vem montada",
   "carga_maxima_kg": null,
   "garantia_meses": 3,
@@ -21,6 +21,18 @@
   "sob_encomenda": false,
   "prazo_dias": 15,
   "ficha_tecnica": [
+    {
+      "nome": "Material",
+      "valor": "Ferro tubular"
+    },
+    {
+      "nome": "Formato",
+      "valor": "Redondo"
+    },
+    {
+      "nome": "Almofada",
+      "valor": "Inclusa, removível"
+    },
     {
       "nome": "Largura",
       "valor": "51 cm"
@@ -50,8 +62,8 @@
   "variacao_por": "Cor",
   "variacoes": [
     {
-      "valor": "Padrão",
-      "codigo": "CPC-01",
+      "valor": "Branca com almofada azul de dálmatas",
+      "codigo": "CPC-BR",
       "custo": null,
       "venda": 169.0,
       "preco_tabela": null,
@@ -68,13 +80,16 @@
         "altura_cm": 24.0,
         "peso_kg": 4.0
       },
-      "fotos": [],
+      "fotos": [
+        "01-caminha-frente.jpg",
+        "02-caminha-angulo.jpg"
+      ],
       "canva_extra": null
     }
   ],
   "mercado_livre": {
     "link_referencia": null,
-    "titulo_anuncio": "Caminha para Cachorro Elevada 51x51 com Encosto Pet",
+    "titulo_anuncio": "Caminha Cachorro Ferro Redonda Elevada com Almofada 51cm",
     "tipo_anuncio": "classico",
     "quantidade_anuncio": 10
   }
