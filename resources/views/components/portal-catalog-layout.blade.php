@@ -99,9 +99,10 @@
         .ml-header-row { display: flex; align-items: center; gap: 10px; height: 60px; }
         .ml-logo { width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.18); }
         .ml-logo img { width: 28px; height: 28px; }
-        .ml-logo.own { width: auto; min-width: 40px; max-width: 120px; padding: 3px 6px; }
-        .ml-logo.own img { width: auto; height: 34px; max-width: 108px; object-fit: contain; }
-        @media (max-width: 767px) { .ml-logo.own { max-width: 72px; padding: 3px 4px; } .ml-logo.own img { max-width: 64px; height: 32px; } }
+        /* Logo da loja: sem caixa branca, para o PNG transparente ficar direto no cabeçalho */
+        .ml-logo.own, .lk-header-claro .ml-logo.own { width: auto; min-width: 40px; max-width: 130px; padding: 0; background: transparent; box-shadow: none; border-radius: 0; }
+        .ml-logo.own img { width: auto; height: 42px; max-width: 130px; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0,0,0,.25)); }
+        @media (max-width: 767px) { .ml-logo.own, .lk-header-claro .ml-logo.own { max-width: 88px; } .ml-logo.own img { max-width: 88px; height: 38px; } }
         .ml-brand { display: none; color: #fff; text-decoration: none; min-width: 0; max-width: 220px; line-height: 1.1; }
         .ml-brand b { display: block; font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--sf-font); }
         .ml-brand small { display: block; font-size: 11px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -162,7 +163,7 @@
         .lk-header-claro .ml-brand, .lk-header-claro .ml-icon-btn { color: var(--ml-text); }
         .lk-header-claro .ml-login { background: var(--ml-blue-soft); border-color: transparent; color: var(--ml-blue); }
         .lk-header-claro .ml-search input { background: var(--ml-bg); box-shadow: inset 0 0 0 1px var(--ml-line); color: var(--ml-text); }
-        .lk-header-claro .ml-logo { box-shadow: 0 0 0 1px var(--ml-line); }
+        .lk-header-claro .ml-logo:not(.own) { box-shadow: 0 0 0 1px var(--ml-line); }
         .lk-cards-elevado { --ml-shadow: 0 12px 28px -14px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.06); }
         .lk-cards-borda { --ml-shadow: 0 0 0 1px var(--ml-line); }
         .lk-cards-contorno { --ml-shadow: 0 0 0 2px color-mix(in srgb, var(--ml-blue) 45%, transparent); }
