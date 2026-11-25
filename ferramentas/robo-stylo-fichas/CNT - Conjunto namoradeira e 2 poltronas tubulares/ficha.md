@@ -17,10 +17,10 @@
   "nome": "Conjunto Namoradeira e 2 Poltronas Tubulares Estofadas em Camurça",
   "codigo": "CNT",
   "categoria": "Conjuntos de sofá",
-  "descricao": "Conjunto de ferro tubular em balanço: 1 namoradeira de 2 lugares e 2 poltronas, feito pela Móveis Stylo.\n\n- Estrutura de tubo de ferro preto com braços\n- Estofado grosso revestido em camurça (suede)\n- Namoradeira: 110 x 66 cm, 84 cm de altura\n- Poltronas: 56 x 66 cm, 84 cm de altura\n- Assento a 47 cm do chão\n\nIdeal para sala, escritório, recepção e varanda coberta.\n\nCuidados: limpe a estrutura com pano seco ou levemente úmido e o tecido com escova macia. Não use produtos abrasivos.",
+  "descricao": "Conjunto de ferro tubular em balanço: 1 namoradeira de 2 lugares e 2 poltronas, feito pela Móveis Stylo.\n\nPronta entrega na estrutura preta com camurça sépia/marrom.\n\n- Estrutura de tubo de ferro preto com braços\n- Estofado grosso revestido em camurça (suede)\n- Namoradeira: 110 x 66 cm, 84 cm de altura\n- Poltronas: 56 x 66 cm, 84 cm de altura\n- Assento a 47 cm do chão\n\nIdeal para sala, escritório, recepção e varanda coberta.\n\nCuidados: limpe a estrutura com pano seco ou levemente úmido e o tecido com escova macia. Não use produtos abrasivos.",
   "o_que_vem_na_caixa": "1 namoradeira e 2 poltronas",
   "montagem": "Vem montado",
-  "sob_encomenda": true,
+  "sob_encomenda": false,
   "prazo_dias": 20,
   "ficha_tecnica": [
     {
@@ -51,8 +51,8 @@
       "custo": null,
       "venda": 1790.0,
       "preco_tabela": null,
-      "estoque": 0,
-      "sob_encomenda": true,
+      "estoque": 1,
+      "sob_encomenda": false,
       "medidas_peca_cm": {
         "altura": 84.0,
         "largura": 222.0,
@@ -65,8 +65,7 @@
         "peso_kg": 44.0
       },
       "fotos": [],
-      "canva_extra": "Mostre o conjunto: 1 namoradeira de 2 lugares no meio e 2 poltronas do mesmo modelo das fotos, uma de cada lado.",
-      "prazo_dias": 20
+      "canva_extra": "Mostre o conjunto: 1 namoradeira de 2 lugares no meio e 2 poltronas do mesmo modelo das fotos, uma de cada lado."
     },
     {
       "valor": "Cor à escolha",

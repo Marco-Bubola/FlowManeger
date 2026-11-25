@@ -17,10 +17,10 @@
   "nome": "Namoradeira Tubular em Balanço Estofada em Camurça",
   "codigo": "NTU",
   "categoria": "Namoradeiras",
-  "descricao": "Namoradeira de 2 lugares de ferro tubular em balanço (estilo cantilever), feita pela Móveis Stylo.\n\n- Estrutura de tubo de ferro preto com braços\n- Assento e encosto com estofado grosso, revestidos em camurça (suede)\n- Medidas: 110 cm de largura, 66 cm de profundidade, 47 cm até o assento e 84 cm de altura total\n\nFeita sob encomenda. Combina com a poltrona do mesmo modelo.\n\nIdeal para sala, escritório, recepção e varanda coberta.\n\nPersonalize do seu jeito (sob encomenda):\n- Assento mais grosso: + R$ 30,00\n- Assento mais largo: + R$ 50,00\nÉ só escolher a opção na hora da compra.\n\nCuidados: limpe a estrutura com pano seco ou levemente úmido e o tecido com escova macia. Não use produtos abrasivos.",
+  "descricao": "Namoradeira de 2 lugares de ferro tubular em balanço (estilo cantilever), feita pela Móveis Stylo.\n\n- Estrutura de tubo de ferro preto com braços\n- Assento e encosto com estofado grosso, revestidos em camurça (suede)\n- Medidas: 110 cm de largura, 66 cm de profundidade, 47 cm até o assento e 84 cm de altura total\n\nPronta entrega na estrutura preta com camurça sépia/marrom. Sob encomenda em outras cores. Combina com a poltrona do mesmo modelo.\n\nIdeal para sala, escritório, recepção e varanda coberta.\n\nPersonalize do seu jeito (sob encomenda):\n- Assento mais grosso: + R$ 30,00\n- Assento mais largo: + R$ 50,00\nÉ só escolher a opção na hora da compra.\n\nCuidados: limpe a estrutura com pano seco ou levemente úmido e o tecido com escova macia. Não use produtos abrasivos.",
   "o_que_vem_na_caixa": "1 namoradeira",
   "montagem": "Vem montada",
-  "sob_encomenda": true,
+  "sob_encomenda": false,
   "prazo_dias": 20,
   "ficha_tecnica": [
     {
@@ -63,8 +63,8 @@
       "custo": null,
       "venda": 890.0,
       "preco_tabela": null,
-      "estoque": 0,
-      "sob_encomenda": true,
+      "estoque": 1,
+      "sob_encomenda": false,
       "medidas_peca_cm": {
         "altura": 84.0,
         "largura": 110.0,
@@ -77,8 +77,7 @@
         "peso_kg": 20.0
       },
       "fotos": [],
-      "canva_extra": "Mesmo modelo da poltrona das fotos, mas como namoradeira de 2 lugares: 110 cm de largura, assento e encosto compridos.",
-      "prazo_dias": 20
+      "canva_extra": "Mesmo modelo da poltrona das fotos, mas como namoradeira de 2 lugares: como 2 poltronas lado a lado, 110 cm de largura."
     },
     {
       "valor": "Cor à escolha",
@@ -100,7 +99,7 @@
         "peso_kg": 20.0
       },
       "fotos": [],
-      "canva_extra": "Mesmo modelo da poltrona das fotos, mas como namoradeira de 2 lugares: 110 cm de largura, assento e encosto compridos. Na cor de estrutura e tecido que o cliente escolher.",
+      "canva_extra": "Mesmo modelo da poltrona das fotos, mas como namoradeira de 2 lugares: como 2 poltronas lado a lado, 110 cm de largura. Na cor de estrutura e tecido que o cliente escolher.",
       "prazo_dias": 20
     },
     {
@@ -123,7 +122,7 @@
         "peso_kg": 20.0
       },
       "fotos": [],
-      "canva_extra": "Mesmo modelo da poltrona das fotos, mas como namoradeira de 2 lugares: 110 cm de largura, assento e encosto compridos. Com assento estofado mais grosso, na cor que o cliente escolher.",
+      "canva_extra": "Mesmo modelo da poltrona das fotos, mas como namoradeira de 2 lugares: como 2 poltronas lado a lado, 110 cm de largura. Com assento estofado mais grosso, na cor que o cliente escolher.",
       "prazo_dias": 20
     },
     {
@@ -146,7 +145,7 @@
         "peso_kg": 20.0
       },
       "fotos": [],
-      "canva_extra": "Mesmo modelo da poltrona das fotos, mas como namoradeira de 2 lugares: 110 cm de largura, assento e encosto compridos. Com assento estofado mais largo, na cor que o cliente escolher.",
+      "canva_extra": "Mesmo modelo da poltrona das fotos, mas como namoradeira de 2 lugares: como 2 poltronas lado a lado, 110 cm de largura. Com assento estofado mais largo, na cor que o cliente escolher.",
       "prazo_dias": 20
     }
   ],
