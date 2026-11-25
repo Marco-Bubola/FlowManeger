@@ -17,7 +17,7 @@
   "nome": "Poltrona de Ferro com Arabescos Estofada",
   "codigo": "PAR",
   "categoria": "Poltronas",
-  "descricao": "Poltrona de ferro com arabescos, feita à mão pela Móveis Stylo.\n\n- Estrutura de ferro quadrado com braços e encosto em arabescos\n- Acabamento ouro envelhecido\n- Assento e encosto estofados em corino caramelo\n- Medidas: 51 cm de largura, 50 cm de profundidade, 47 cm de altura até o assento e 90 cm de altura total\n\nCombina com a namoradeira do mesmo modelo.\n\nIdeal para sala, varanda, jardim de inverno, hall de entrada e quarto.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
+  "descricao": "Poltrona de ferro com arabescos, feita à mão pela Móveis Stylo.\n\n- Estrutura de ferro quadrado com braços e encosto em arabescos\n- Acabamento ouro envelhecido\n- Assento e encosto estofados em corino caramelo\n- Medidas: 51 cm de largura, 50 cm de profundidade, 47 cm de altura até o assento e 90 cm de altura total\n\nCombina com a namoradeira do mesmo modelo.\n\nIdeal para sala, varanda, jardim de inverno, hall de entrada e quarto.\n\nPersonalize do seu jeito (sob encomenda):\n- Assento mais grosso: + R$ 30,00\n- Assento mais largo: + R$ 50,00\nÉ só escolher a opção na hora da compra.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
   "o_que_vem_na_caixa": "1 poltrona",
   "montagem": "Vem montada",
   "sob_encomenda": false,
@@ -81,6 +81,52 @@
         "02-poltrona-lateral.jpg"
       ],
       "canva_extra": null
+    },
+    {
+      "valor": "Assento mais grosso · Cor à escolha",
+      "codigo": "PAR-AG",
+      "custo": null,
+      "venda": 520.0,
+      "preco_tabela": null,
+      "estoque": 0,
+      "sob_encomenda": true,
+      "medidas_peca_cm": {
+        "altura": 90.0,
+        "largura": 51.0,
+        "profundidade": 50.0
+      },
+      "embalagem": {
+        "comprimento_cm": 55.0,
+        "largura_cm": 54.0,
+        "altura_cm": 94.0,
+        "peso_kg": 10.0
+      },
+      "fotos": [],
+      "canva_extra": "Mesmo modelo da foto, com assento estofado mais grosso e alto (mais confortável), na cor que o cliente escolher.",
+      "prazo_dias": 15
+    },
+    {
+      "valor": "Assento mais largo · Cor à escolha",
+      "codigo": "PAR-AL",
+      "custo": null,
+      "venda": 540.0,
+      "preco_tabela": null,
+      "estoque": 0,
+      "sob_encomenda": true,
+      "medidas_peca_cm": {
+        "altura": 90.0,
+        "largura": 51.0,
+        "profundidade": 50.0
+      },
+      "embalagem": {
+        "comprimento_cm": 55.0,
+        "largura_cm": 54.0,
+        "altura_cm": 94.0,
+        "peso_kg": 10.0
+      },
+      "fotos": [],
+      "canva_extra": "Mesmo modelo da foto, com assento estofado mais largo, na cor que o cliente escolher.",
+      "prazo_dias": 15
     }
   ],
   "mercado_livre": {

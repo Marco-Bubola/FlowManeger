@@ -11,7 +11,7 @@
   "material": "Ferro tubular e estofado",
   "acabamento": "Pintura eletrostática e tecido suede (camurça)",
   "uso": "Sala, quarto, escritório, recepção, varanda coberta e sala de jantar",
-  "descricao": "Cadeirão de ferro tubular com braços, feito pela Móveis Stylo.\n\n- Estrutura de tubo de ferro com linhas curvas e braços largos\n- Assento e encosto estofados em tecido camurça (suede)\n- Confortável e espaçoso\n- Medidas: 60 cm de largura, 55 cm de profundidade, 54 cm de altura até o assento e 91 cm de altura total\n\nPronta entrega na estrutura preta com tecido camurça sépia. Sob encomenda em outras cores de estrutura e tecido.\n\nIdeal para sala, quarto, escritório, recepção, cabeceira de mesa de jantar e varanda coberta.\n\nCuidados: limpe a estrutura com pano seco ou levemente úmido e o tecido com escova macia. Não use produtos abrasivos.",
+  "descricao": "Cadeirão de ferro tubular com braços, feito pela Móveis Stylo.\n\n- Estrutura de tubo de ferro com linhas curvas e braços largos\n- Assento e encosto estofados em tecido camurça (suede)\n- Confortável e espaçoso\n- Medidas: 60 cm de largura, 55 cm de profundidade, 54 cm de altura até o assento e 91 cm de altura total\n\nPronta entrega na estrutura preta com tecido camurça sépia. Sob encomenda em outras cores de estrutura e tecido.\n\nIdeal para sala, quarto, escritório, recepção, cabeceira de mesa de jantar e varanda coberta.\n\nPersonalize do seu jeito (sob encomenda):\n- Assento mais grosso: + R$ 30,00\n- Assento mais largo: + R$ 50,00\nÉ só escolher a opção na hora da compra.\n\nCuidados: limpe a estrutura com pano seco ou levemente úmido e o tecido com escova macia. Não use produtos abrasivos.",
   "o_que_vem_na_caixa": "1 cadeirão",
   "montagem": "Vem montado",
   "carga_maxima_kg": null,
@@ -108,6 +108,52 @@
       },
       "fotos": [],
       "canva_extra": "Feito na cor de estrutura e tecido que o cliente escolher."
+    },
+    {
+      "valor": "Assento mais grosso · Cor à escolha",
+      "codigo": "CDB-AG",
+      "custo": null,
+      "venda": 419.0,
+      "preco_tabela": null,
+      "estoque": 0,
+      "sob_encomenda": true,
+      "medidas_peca_cm": {
+        "altura": 91.0,
+        "largura": 60.0,
+        "profundidade": 55.0
+      },
+      "embalagem": {
+        "comprimento_cm": 64.0,
+        "largura_cm": 59.0,
+        "altura_cm": 95.0,
+        "peso_kg": 9.0
+      },
+      "fotos": [],
+      "canva_extra": "Mesmo modelo da foto, com assento estofado mais grosso e alto (mais confortável), na cor que o cliente escolher.",
+      "prazo_dias": 15
+    },
+    {
+      "valor": "Assento mais largo · Cor à escolha",
+      "codigo": "CDB-AL",
+      "custo": null,
+      "venda": 439.0,
+      "preco_tabela": null,
+      "estoque": 0,
+      "sob_encomenda": true,
+      "medidas_peca_cm": {
+        "altura": 91.0,
+        "largura": 60.0,
+        "profundidade": 55.0
+      },
+      "embalagem": {
+        "comprimento_cm": 64.0,
+        "largura_cm": 59.0,
+        "altura_cm": 95.0,
+        "peso_kg": 9.0
+      },
+      "fotos": [],
+      "canva_extra": "Mesmo modelo da foto, com assento estofado mais largo, na cor que o cliente escolher.",
+      "prazo_dias": 15
     }
   ],
   "mercado_livre": {

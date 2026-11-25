@@ -11,7 +11,7 @@
   "material": "Ferro e estofado",
   "acabamento": "Pintura eletrostática e assento estofado em corano",
   "uso": "Cozinha, bancada, balcão, área gourmet, bar e loja",
-  "descricao": "Banqueta quadrada de ferro com encosto, feita pela Móveis Stylo.\n\n- Estrutura de ferro quadrado com pintura eletrostática\n- Encosto com 3 lâminas de ferro\n- Assento quadrado estofado, revestido em corano (couro sintético) fácil de limpar\n- Apoio para os pés\n- Assento de 36 x 36 cm\n- Duas alturas: assento a 75 cm (alta, para balcão, 96 cm de altura total) ou a 54 cm (para bancada)\n\nPronta entrega na cor branca com assento sépia, altura de 75 cm. Sob encomenda nas outras alturas e cores.\n\nIdeal para cozinha americana, bancada, balcão, área gourmet, bar e loja.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
+  "descricao": "Banqueta quadrada de ferro com encosto, feita pela Móveis Stylo.\n\n- Estrutura de ferro quadrado com pintura eletrostática\n- Encosto com 3 lâminas de ferro\n- Assento quadrado estofado, revestido em corano (couro sintético) fácil de limpar\n- Apoio para os pés\n- Assento de 36 x 36 cm\n- Duas alturas: assento a 75 cm (alta, para balcão, 96 cm de altura total) ou a 54 cm (para bancada)\n\nPronta entrega na cor branca com assento sépia, altura de 75 cm. Sob encomenda nas outras alturas e cores.\n\nIdeal para cozinha americana, bancada, balcão, área gourmet, bar e loja.\n\nPersonalize do seu jeito (sob encomenda):\n- Assento mais grosso: + R$ 30,00\n- Assento mais largo: + R$ 50,00\n- Altura do assento acima de 75 cm: + R$ 20,00\nÉ só escolher a opção na hora da compra.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
   "o_que_vem_na_caixa": "1 banqueta",
   "montagem": "Vem montada",
   "carga_maxima_kg": null,
@@ -86,7 +86,7 @@
       "valor": "54 cm · Branco com assento sépia",
       "codigo": "BQQ-54-BR",
       "custo": null,
-      "venda": 220.0,
+      "venda": 200.0,
       "preco_tabela": null,
       "estoque": 0,
       "sob_encomenda": true,
@@ -132,7 +132,7 @@
       "valor": "54 cm · Cor à escolha",
       "codigo": "BQQ-54-CE",
       "custo": null,
-      "venda": 220.0,
+      "venda": 200.0,
       "preco_tabela": null,
       "estoque": 0,
       "sob_encomenda": true,
@@ -149,6 +149,75 @@
       },
       "fotos": [],
       "canva_extra": "Mesma banqueta da foto, mais baixa (assento a 54 cm), na cor de estrutura e assento que o cliente escolher.",
+      "prazo_dias": 15
+    },
+    {
+      "valor": "75 cm · Assento mais grosso · Cor à escolha",
+      "codigo": "BQQ-AG",
+      "custo": null,
+      "venda": 250.0,
+      "preco_tabela": null,
+      "estoque": 0,
+      "sob_encomenda": true,
+      "medidas_peca_cm": {
+        "altura": 96.0,
+        "largura": 36.0,
+        "profundidade": 36.0
+      },
+      "embalagem": {
+        "comprimento_cm": 40.0,
+        "largura_cm": 40.0,
+        "altura_cm": 100.0,
+        "peso_kg": 6.0
+      },
+      "fotos": [],
+      "canva_extra": "Mesmo modelo da foto, com assento estofado mais grosso e alto (mais confortável), na cor que o cliente escolher.",
+      "prazo_dias": 15
+    },
+    {
+      "valor": "75 cm · Assento mais largo · Cor à escolha",
+      "codigo": "BQQ-AL",
+      "custo": null,
+      "venda": 270.0,
+      "preco_tabela": null,
+      "estoque": 0,
+      "sob_encomenda": true,
+      "medidas_peca_cm": {
+        "altura": 96.0,
+        "largura": 36.0,
+        "profundidade": 36.0
+      },
+      "embalagem": {
+        "comprimento_cm": 40.0,
+        "largura_cm": 40.0,
+        "altura_cm": 100.0,
+        "peso_kg": 6.0
+      },
+      "fotos": [],
+      "canva_extra": "Mesmo modelo da foto, com assento estofado mais largo, na cor que o cliente escolher.",
+      "prazo_dias": 15
+    },
+    {
+      "valor": "Acima de 75 cm (altura especial) · Cor à escolha",
+      "codigo": "BQQ-AA",
+      "custo": null,
+      "venda": 240.0,
+      "preco_tabela": null,
+      "estoque": 0,
+      "sob_encomenda": true,
+      "medidas_peca_cm": {
+        "altura": 96.0,
+        "largura": 36.0,
+        "profundidade": 36.0
+      },
+      "embalagem": {
+        "comprimento_cm": 40.0,
+        "largura_cm": 40.0,
+        "altura_cm": 100.0,
+        "peso_kg": 6.0
+      },
+      "fotos": [],
+      "canva_extra": "Mesma banqueta da foto, mais alta: assento acima de 75 cm do chão, na cor que o cliente escolher.",
       "prazo_dias": 15
     }
   ],

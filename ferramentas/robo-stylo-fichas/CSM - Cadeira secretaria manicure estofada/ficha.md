@@ -11,7 +11,7 @@
   "material": "Ferro tubular e estofado",
   "acabamento": "Pintura eletrostática e estofado em corino",
   "uso": "Escritório, manicure, salão de beleza, recepção, estudo e consultório",
-  "descricao": "Cadeira secretária fixa de ferro tubular com assento e encosto estofados, feita pela Móveis Stylo.\n\n- Estrutura de tubo de ferro reforçada, com travessa entre os pés\n- Assento e encosto estofados\n- Ponteiras nos pés que protegem o piso\n- Medidas: 40 cm de largura, 40 cm de profundidade, 46 cm de altura até o assento e 81 cm de altura total\n\nPronta entrega na cor preta com estofado preto. Sob encomenda em outras cores de estrutura e estofado.\n\nIdeal para manicure, salão de beleza, escritório, recepção, home office, estudo e consultório.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
+  "descricao": "Cadeira secretária fixa de ferro tubular com assento e encosto estofados, feita pela Móveis Stylo.\n\n- Estrutura de tubo de ferro reforçada, com travessa entre os pés\n- Assento e encosto estofados\n- Ponteiras nos pés que protegem o piso\n- Medidas: 40 cm de largura, 40 cm de profundidade, 46 cm de altura até o assento e 81 cm de altura total\n\nPronta entrega na cor preta com estofado preto. Sob encomenda em outras cores de estrutura e estofado.\n\nIdeal para manicure, salão de beleza, escritório, recepção, home office, estudo e consultório.\n\nPersonalize do seu jeito (sob encomenda):\n- Assento mais grosso: + R$ 30,00\n- Assento mais largo: + R$ 50,00\nÉ só escolher a opção na hora da compra.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
   "o_que_vem_na_caixa": "1 cadeira",
   "montagem": "Vem montada",
   "carga_maxima_kg": null,
@@ -109,6 +109,52 @@
       },
       "fotos": [],
       "canva_extra": "Feita na cor de estrutura e estofado que o cliente escolher."
+    },
+    {
+      "valor": "Assento mais grosso · Cor à escolha",
+      "codigo": "CSM-AG",
+      "custo": null,
+      "venda": 229.0,
+      "preco_tabela": null,
+      "estoque": 0,
+      "sob_encomenda": true,
+      "medidas_peca_cm": {
+        "altura": 81.0,
+        "largura": 40.0,
+        "profundidade": 40.0
+      },
+      "embalagem": {
+        "comprimento_cm": 44.0,
+        "largura_cm": 44.0,
+        "altura_cm": 85.0,
+        "peso_kg": 5.0
+      },
+      "fotos": [],
+      "canva_extra": "Mesmo modelo da foto, com assento estofado mais grosso e alto (mais confortável), na cor que o cliente escolher.",
+      "prazo_dias": 15
+    },
+    {
+      "valor": "Assento mais largo · Cor à escolha",
+      "codigo": "CSM-AL",
+      "custo": null,
+      "venda": 249.0,
+      "preco_tabela": null,
+      "estoque": 0,
+      "sob_encomenda": true,
+      "medidas_peca_cm": {
+        "altura": 81.0,
+        "largura": 40.0,
+        "profundidade": 40.0
+      },
+      "embalagem": {
+        "comprimento_cm": 44.0,
+        "largura_cm": 44.0,
+        "altura_cm": 85.0,
+        "peso_kg": 5.0
+      },
+      "fotos": [],
+      "canva_extra": "Mesmo modelo da foto, com assento estofado mais largo, na cor que o cliente escolher.",
+      "prazo_dias": 15
     }
   ],
   "mercado_livre": {

@@ -11,7 +11,7 @@
   "material": "Ferro tubular e corano",
   "acabamento": "Pintura prata (alumínio), assento em corano azul",
   "uso": "Cozinha, copa, sala de jantar, lanchonete, bar e restaurante",
-  "descricao": "Cadeira de ferro tubular com assento redondo estofado, feita pela Móveis Stylo.\n\n- Estrutura de tubo de ferro com pintura prata (cor alumínio)\n- Encosto alto com 3 varetas e travessa curva\n- Assento redondo estofado em corano (couro sintético) azul, fácil de limpar\n- Aro de reforço entre os pés e ponteiras de borracha que não riscam o piso\n- Medidas: 40 cm de largura, 49 cm de profundidade e 90 cm de altura total\n- Altura do assento: 46 cm, a altura certa para mesas de jantar\n\nVendemos 1 cadeira ou kits com 2 e 4 cadeiras.\n\nIdeal para cozinha, copa, sala de jantar, lanchonete, bar e restaurante.\n\nCuidados: limpe com pano úmido e sabão neutro e seque. Não use produtos abrasivos.",
+  "descricao": "Cadeira de ferro tubular com assento redondo estofado, feita pela Móveis Stylo.\n\n- Estrutura de tubo de ferro com pintura prata (cor alumínio)\n- Encosto alto com 3 varetas e travessa curva\n- Assento redondo estofado em corano (couro sintético) azul, fácil de limpar\n- Aro de reforço entre os pés e ponteiras de borracha que não riscam o piso\n- Medidas: 40 cm de largura, 49 cm de profundidade e 90 cm de altura total\n- Altura do assento: 46 cm, a altura certa para mesas de jantar\n\nVendemos 1 cadeira ou kits com 2 e 4 cadeiras.\n\nIdeal para cozinha, copa, sala de jantar, lanchonete, bar e restaurante.\n\nPersonalize do seu jeito (sob encomenda):\n- Assento mais grosso: + R$ 30,00\n- Assento mais largo: + R$ 50,00\nÉ só escolher a opção na hora da compra.\n\nCuidados: limpe com pano úmido e sabão neutro e seque. Não use produtos abrasivos.",
   "o_que_vem_na_caixa": "1 cadeira (ou 2 e 4 nos kits)",
   "montagem": "Vem montado",
   "carga_maxima_kg": null,
@@ -145,6 +145,52 @@
       "fotos": [],
       "canva_extra": "Mostre 4 cadeiras iguais juntas, sem mesa.",
       "kit": 4
+    },
+    {
+      "valor": "Assento mais grosso · Cor à escolha",
+      "codigo": "CTE-AG",
+      "custo": null,
+      "venda": 269.0,
+      "preco_tabela": null,
+      "estoque": 0,
+      "sob_encomenda": true,
+      "medidas_peca_cm": {
+        "altura": 90.0,
+        "largura": 40.0,
+        "profundidade": 49.0
+      },
+      "embalagem": {
+        "comprimento_cm": 53.0,
+        "largura_cm": 45.0,
+        "altura_cm": 94.0,
+        "peso_kg": 6.0
+      },
+      "fotos": [],
+      "canva_extra": "Mesmo modelo da foto, com assento estofado mais grosso e alto (mais confortável), na cor que o cliente escolher.",
+      "prazo_dias": 15
+    },
+    {
+      "valor": "Assento mais largo · Cor à escolha",
+      "codigo": "CTE-AL",
+      "custo": null,
+      "venda": 289.0,
+      "preco_tabela": null,
+      "estoque": 0,
+      "sob_encomenda": true,
+      "medidas_peca_cm": {
+        "altura": 90.0,
+        "largura": 40.0,
+        "profundidade": 49.0
+      },
+      "embalagem": {
+        "comprimento_cm": 53.0,
+        "largura_cm": 45.0,
+        "altura_cm": 94.0,
+        "peso_kg": 6.0
+      },
+      "fotos": [],
+      "canva_extra": "Mesmo modelo da foto, com assento estofado mais largo, na cor que o cliente escolher.",
+      "prazo_dias": 15
     }
   ],
   "mercado_livre": {
