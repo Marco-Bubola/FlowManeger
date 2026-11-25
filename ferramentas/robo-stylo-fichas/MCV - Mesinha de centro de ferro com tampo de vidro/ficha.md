@@ -1,9 +1,9 @@
-# Ficha · Mesinha de Centro de Ferro com Tampo de Vidro 60 x 40 cm
+# Ficha · Mesinha de Centro de Ferro com Arabescos e Tampo de Vidro 60 x 40 cm
 
 ```json
 {
   "versao": 1,
-  "nome": "Mesinha de Centro de Ferro com Tampo de Vidro 60 x 40 cm",
+  "nome": "Mesinha de Centro de Ferro com Arabescos e Tampo de Vidro 60 x 40 cm",
   "codigo": "MCV",
   "categoria": "Mesas de centro e laterais",
   "marca": "Móveis Stylo",
@@ -11,14 +11,14 @@
   "material": "Ferro e vidro",
   "acabamento": "Pintura eletrostática",
   "uso": "Sala, varanda, quarto e recepção",
-  "descricao": "Mesinha de centro de ferro com tampo de vidro, feita à mão pela Móveis Stylo.\n\n- Estrutura de ferro com pintura eletrostática\n- Tampo de vidro, fácil de limpar\n- Prateleira de baixo de chapinhas de ferro, a 15 cm do chão, para revistas, livros e enfeites\n- Medidas: 60 cm de largura, 40 cm de profundidade e 61 cm de altura\n\nFeita sob encomenda, na cor que você escolher.\n\nIdeal para sala de estar, varanda, quarto e recepção.\n\nCuidados: limpe o vidro com limpa-vidros e o ferro com pano seco ou levemente úmido. Não use produtos abrasivos.",
+  "descricao": "Mesinha de centro de ferro com arabescos e tampo de vidro, feita à mão pela Móveis Stylo.\n\n- Estrutura de ferro com pintura eletrostática e detalhes em arabescos nas laterais\n- Tampo de vidro transparente, fácil de limpar\n- Prateleira de baixo de ripinhas de ferro, a 15 cm do chão, para revistas, livros e enfeites\n- Medidas: 60 cm de largura, 40 cm de profundidade e 61 cm de altura\n\nPronta entrega: 1 unidade branca. Sob encomenda na cor que você escolher.\n\nIdeal para sala de estar, varanda, quarto e recepção.\n\nCuidados: limpe o vidro com limpa-vidros e o ferro com pano seco ou levemente úmido. Não use produtos abrasivos.",
   "o_que_vem_na_caixa": "1 mesinha de centro com tampo de vidro",
   "montagem": "Já vai montada (é só apoiar o vidro)",
   "carga_maxima_kg": null,
   "garantia_meses": 3,
   "condicao": "novo",
   "codigo_barras": null,
-  "sob_encomenda": true,
+  "sob_encomenda": false,
   "prazo_dias": 10,
   "ficha_tecnica": [
     {
@@ -28,6 +28,10 @@
     {
       "nome": "Tampo",
       "valor": "Vidro"
+    },
+    {
+      "nome": "Detalhes",
+      "valor": "Arabescos de ferro"
     },
     {
       "nome": "Largura",
@@ -43,7 +47,7 @@
     },
     {
       "nome": "Prateleira de baixo",
-      "valor": "Chapinhas de ferro, a 15 cm do chão"
+      "valor": "Ripinhas de ferro, a 15 cm do chão"
     },
     {
       "nome": "Uso",
@@ -62,14 +66,13 @@
   "variacao_por": "Cor",
   "variacoes": [
     {
-      "valor": "Preto",
-      "codigo": "MCV-PT",
+      "valor": "Branco",
+      "codigo": "MCV-BR",
       "custo": null,
       "venda": 280.0,
       "preco_tabela": null,
-      "estoque": 0,
-      "sob_encomenda": true,
-      "prazo_dias": 10,
+      "estoque": 1,
+      "sob_encomenda": false,
       "medidas_peca_cm": {
         "altura": 61.0,
         "largura": 60.0,
@@ -81,8 +84,11 @@
         "altura_cm": 66.0,
         "peso_kg": 12.0
       },
-      "fotos": [],
-      "canva_extra": "Mesinha de centro de ferro preto com tampo de vidro e prateleira de chapinhas embaixo."
+      "fotos": [
+        "01-mesinha-frente.jpg",
+        "02-mesinha-lateral.jpg"
+      ],
+      "canva_extra": null
     },
     {
       "valor": "Cor à escolha",
@@ -110,7 +116,7 @@
   ],
   "mercado_livre": {
     "link_referencia": null,
-    "titulo_anuncio": "Mesa De Centro Ferro Tampo De Vidro 60x40 Industrial Sala",
+    "titulo_anuncio": "Mesa De Centro Ferro Arabesco Tampo De Vidro 60x40 Sala",
     "tipo_anuncio": "classico",
     "quantidade_anuncio": 10
   }
