@@ -9,9 +9,9 @@
   "marca": "Móveis Stylo",
   "modelo": null,
   "material": "Ferro tubular e estofado",
-  "acabamento": "Pintura eletrostática e assento estofado em corano",
+  "acabamento": "Pintura eletrostática e assento estofado",
   "uso": "Cozinha, bancada, balcão, área gourmet, bar e penteadeira",
-  "descricao": "Banqueta de ferro sem encosto com assento estofado, feita sob encomenda pela Móveis Stylo.\n\n- Estrutura de tubo de ferro com pintura eletrostática\n- Assento estofado e revestido, fácil de limpar\n- 33 cm de largura e 33 cm de profundidade\n- Duas alturas: assento a 47 cm (baixa) ou a 75 cm (alta, para balcão)\n\nFeita sob encomenda na cor de estrutura e assento que você escolher.\n\nIdeal para cozinha, bancada, balcão, área gourmet, bar e penteadeira.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
+  "descricao": "Banqueta de ferro sem encosto com assento estofado, feita sob encomenda pela Móveis Stylo.\n\n- Estrutura de tubo de ferro com pintura eletrostática\n- Assento redondo estofado, com tecido à escolha\n- 33 cm de largura e 33 cm de profundidade\n- Duas alturas: assento a 47 cm (baixa) ou a 75 cm (alta, para balcão)\n\nFeita sob encomenda na cor de estrutura e assento que você escolher.\n\nIdeal para cozinha, bancada, balcão, área gourmet, bar e penteadeira.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
   "o_que_vem_na_caixa": "1 banqueta",
   "montagem": "Vem montada",
   "carga_maxima_kg": null,
@@ -73,8 +73,10 @@
         "altura_cm": 51.0,
         "peso_kg": 3.0
       },
-      "fotos": [],
-      "canva_extra": "Banqueta de ferro sem encosto, assento redondo estofado, altura do assento 47 cm, na cor que o cliente escolher."
+      "fotos": [
+        "01-banqueta-sem-encosto.jpg"
+      ],
+      "canva_extra": "Banqueta de ferro sem encosto, assento redondo estofado como o da foto, altura do assento 47 cm, na cor que o cliente escolher."
     },
     {
       "valor": "Assento a 75 cm · Cor à escolha",
@@ -97,7 +99,7 @@
         "peso_kg": 4.0
       },
       "fotos": [],
-      "canva_extra": "Banqueta de ferro sem encosto, assento redondo estofado, altura do assento 75 cm, na cor que o cliente escolher."
+      "canva_extra": "Banqueta de ferro sem encosto, assento redondo estofado como o da foto, altura do assento 75 cm, na cor que o cliente escolher."
     }
   ],
   "mercado_livre": {
