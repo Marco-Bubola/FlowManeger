@@ -1,6 +1,6 @@
 {
-  "versao": 29,
-  "data": "2026-11-24",
+  "versao": 30,
+  "data": "2026-11-25",
   "arquivos": [
     "janela.pyw",
     "motor.py",
@@ -14,11 +14,11 @@
     "instalar.bat"
   ],
   "novidades": [
+    "Canva automático: depois de cada imagem o robô volta sozinho para a caixa de texto do Canva e manda o próximo pedido.",
+    "Ele não clica mais em Baixar no Canva (isso abria a imagem por cima e, no Edge, a janela “Salvar no OneDrive”): pega a imagem direto da tela.",
+    "Sumiu o aviso amarelo “sinalizador de linha de comando sem suporte” na janela do Canva.",
     "Canva automático: se você ainda não entrou no Canva, o robô agora espera você entrar (antes ele desistia e fechava).",
     "Ele tenta colocar as fotos de três jeitos. Se não conseguir, abre a pasta das fotos e pede para você arrastar; depois continua sozinho.",
-    "Se der erro, a janela do Canva fica aberta para você ver o que aconteceu (fecha quando você fecha a janela do robô ou tenta de novo).",
-    "Criar imagens no Canva: botão novo “⚡ Robô faz tudo no Canva”. O robô abre o Canva IA, manda as fotos marcadas da variação e cada pedido marcado, um por vez: espera ficar pronto, baixa e passa para o próximo. As imagens aparecem no robô sozinhas.",
-    "Na primeira vez, entre na sua conta do Canva na janela que o robô abre. Depois ele lembra. Não mexa nessa janela enquanto ele trabalha; “■ Parar” interrompe.",
-    "O jeito antigo continua no botão “Eu faço no Canva”."
+    "Se der erro, a janela do Canva fica aberta para você ver o que aconteceu (fecha quando você fecha a janela do robô ou tenta de novo)."
   ]
 }

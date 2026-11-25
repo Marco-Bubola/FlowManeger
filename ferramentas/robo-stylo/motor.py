@@ -778,7 +778,7 @@ class CanvaIA:
         from playwright.sync_api import sync_playwright
         self.pw = sync_playwright().start()
         opcoes = dict(headless=False, viewport={"width": 1366, "height": 860}, accept_downloads=True,
-                      args=["--disable-blink-features=AutomationControlled"])
+                      ignore_default_args=["--enable-automation"])
         for canal in ("msedge", "chrome"):
             try:
                 self.ctx = self.pw.chromium.launch_persistent_context(str(BASE / f"perfil-canva-{canal}"), channel=canal, **opcoes)
@@ -932,6 +932,51 @@ class CanvaIA:
         if not r.ok:
             raise RuntimeError(f"o Canva respondeu {r.status}")
         return r.body()
+
+    def _bytes_na_pagina(self, src):
+        import base64
+        b64 = self.page.evaluate("""async (u) => { const b = await (await fetch(u, {credentials: 'include'})).blob();
+            return await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result.split(',')[1]); f.readAsDataURL(b); }); }""", src)
+        return base64.b64decode(b64)
+
+    def _bytes_print(self, src):
+        imgs = self.page.locator("img[data-robo-src]")
+        for i in range(imgs.count()):
+            if imgs.nth(i).get_attribute("data-robo-src") == src:
+                return imgs.nth(i).screenshot(type="png", timeout=10000)
+        return None
+
+    def _voltar_ao_chat(self):
+        """Depois de uma imagem o Canva pode abri-la por cima do chat: fecha e volta para a caixa de texto."""
+        caixa = self._caixa(espera=3)
+        if caixa is not None:
+            return caixa
+        for _ in range(3):
+            try:
+                self.page.keyboard.press("Escape")
+            except Exception:
+                pass
+            time.sleep(0.8)
+            caixa = self._caixa(espera=2)
+            if caixa is not None:
+                return caixa
+        for sel in ("button[aria-label*='Fechar' i]", "button[aria-label*='Voltar' i]", "button[aria-label*='Close' i]",
+                    "button[aria-label*='Back' i]"):
+            try:
+                b = self.page.locator(sel)
+                if b.count() and b.first.is_visible():
+                    b.first.click(timeout=3000)
+                    caixa = self._caixa(espera=3)
+                    if caixa is not None:
+                        return caixa
+            except Exception:
+                continue
+        volta = getattr(self, "conversa", None) or self.link
+        try:
+            self.page.goto(volta, wait_until="domcontentloaded", timeout=60000)
+        except Exception:
+            pass
+        return self._caixa(espera=20)
 
     def _baixar_pelo_botao(self, src):
         """Passa o mouse na imagem e clica em Baixar. Devolve os bytes ou None."""
@@ -1087,7 +1132,7 @@ class CanvaIA:
             self._checar()
             self.avisar(f"pedido:{n}:{total}:{rot}")
             try:
-                caixa = self._caixa(espera=20)
+                caixa = self._voltar_ao_chat() if n > 1 else self._caixa(espera=20)
                 if caixa is None:
                     self._salvar_erro()
                     raise PararCanva("não achei a caixa de texto do Canva IA")
@@ -1130,23 +1175,26 @@ class CanvaIA:
                 dados = []
                 for src in novas[:4]:
                     self._checar()
-                    try:
-                        d = self._bytes(src)
-                    except Exception:
-                        d = None
-                    if not d or not _e_imagem(d) or _lado(d) < 600:      # prévia pequena: tenta o botão Baixar
-                        b = self._baixar_pelo_botao(src)
-                        if self.page is None or self.page.is_closed():
-                            if not self._reabrir():
-                                raise RuntimeError("o navegador do Canva fechou")
-                            enviadas = False
-                        if b and _e_imagem(b) and (not d or _lado(b) >= _lado(d)):
-                            d = b
+                    # pega a imagem direto (sem clicar em Baixar: no Canva isso abre a imagem por cima
+                    # do chat e, no Edge, a janela "Salvar no OneDrive")
+                    d = None
+                    for jeito in (self._bytes, self._bytes_na_pagina, self._bytes_print):
+                        try:
+                            d = jeito(src)
+                        except Exception:
+                            d = None
+                        if d and _e_imagem(d):
+                            break
                     if d and _e_imagem(d):
                         dados.append(d)
                 conhecidas |= set(novas)
                 if not dados:
                     raise RuntimeError("as imagens apareceram mas não consegui baixar")
+                try:
+                    if "/ai" in self.page.url:
+                        self.conversa = self.page.url          # volta aqui se o Canva sair do chat
+                except Exception:
+                    pass
                 receber(k, rot, n, total, dados, None)
             except (Parar, PararCanva):
                 raise
