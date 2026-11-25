@@ -11,7 +11,7 @@
   "material": "Ferro",
   "acabamento": "Pintura preta",
   "uso": "Banheiro e lavabo",
-  "descricao": "Suporte de papel higiênico de parede, de ferro, feito à mão pela Móveis Stylo.\n\n- Haste de ferro com ponta em arabesco, que segura o rolo e dá um toque rústico\n- Pintura preta\n- Fixação na parede com parafusos\n- Duas opções:\n  - Duplo, para 2 rolos: placa comprida, 20 cm de altura, 17 cm de largura e 8 cm de profundidade\n  - Simples, para 1 rolo: base redonda, 5 cm de altura, 17 cm de largura e 8 cm de profundidade\n\nIdeal para banheiro, lavabo e decoração rústica ou industrial.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
+  "descricao": "Suporte de papel higiênico de parede, de ferro, feito à mão pela Móveis Stylo.\n\n- Haste de ferro com ponta em arabesco, que segura o rolo e dá um toque rústico\n- Pintura preta\n- Fixação na parede com parafusos\n- Duas opções:\n  - Duplo, para 2 rolos: placa comprida, 20 cm de altura, 17 cm de largura e 8 cm de profundidade\n  - Simples, para 1 rolo: base redonda, 5 cm de altura, 17 cm de largura e 8 cm de profundidade\n\nPronta entrega: 5 simples e 1 duplo, na cor preta.\n\nIdeal para banheiro, lavabo e decoração rústica ou industrial.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
   "o_que_vem_na_caixa": "1 suporte de papel higiênico (parafusos e buchas não acompanham; papel não acompanha)",
   "montagem": "Fixação na parede com parafusos e buchas",
   "carga_maxima_kg": null,
@@ -91,7 +91,7 @@
       "custo": null,
       "venda": null,
       "preco_tabela": null,
-      "estoque": 1,
+      "estoque": 5,
       "sob_encomenda": false,
       "medidas_peca_cm": {
         "altura": 5.0,
