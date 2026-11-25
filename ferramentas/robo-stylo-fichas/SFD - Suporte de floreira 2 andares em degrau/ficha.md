@@ -67,7 +67,7 @@
       "custo": null,
       "venda": null,
       "preco_tabela": null,
-      "estoque": 1,
+      "estoque": 2,
       "sob_encomenda": false,
       "medidas_peca_cm": {
         "altura": 63.0,
