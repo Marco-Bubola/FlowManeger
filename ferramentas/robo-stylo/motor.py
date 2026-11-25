@@ -777,9 +777,9 @@ class CanvaIA:
     def abrir(self):
         from playwright.sync_api import sync_playwright
         self.pw = sync_playwright().start()
-        opcoes = dict(headless=False, viewport={"width": 1366, "height": 860}, accept_downloads=True,
-                      ignore_default_args=["--enable-automation"])
-        for canal in ("msedge", "chrome"):
+        opcoes = dict(headless=False, no_viewport=True, accept_downloads=True, chromium_sandbox=(os.name == "nt"),
+                      args=["--start-maximized"], ignore_default_args=["--enable-automation"])
+        for canal in ("chrome", "msedge"):
             try:
                 self.ctx = self.pw.chromium.launch_persistent_context(str(BASE / f"perfil-canva-{canal}"), channel=canal, **opcoes)
                 break
@@ -960,8 +960,10 @@ class CanvaIA:
             caixa = self._caixa(espera=2)
             if caixa is not None:
                 return caixa
-        for sel in ("button[aria-label*='Fechar' i]", "button[aria-label*='Voltar' i]", "button[aria-label*='Close' i]",
-                    "button[aria-label*='Back' i]"):
+        for sel in ("button[aria-label*='painel' i]", "button[aria-label*='panel' i]", "button[aria-label*='chat' i]",
+                    "button[aria-label*='conversa' i]", "button[aria-label*='lateral' i]", "button[aria-label*='sidebar' i]",
+                    "button[aria-label*='Mostrar' i]", "button[aria-label*='Fechar' i]", "button[aria-label*='Voltar' i]",
+                    "button[aria-label*='Close' i]", "button[aria-label*='Back' i]"):
             try:
                 b = self.page.locator(sel)
                 if b.count() and b.first.is_visible():
@@ -971,9 +973,10 @@ class CanvaIA:
                         return caixa
             except Exception:
                 continue
-        volta = getattr(self, "conversa", None) or self.link
+        # não achou: abre uma conversa nova do Canva IA (as fotos vão de novo)
+        self.nova_conversa = True
         try:
-            self.page.goto(volta, wait_until="domcontentloaded", timeout=60000)
+            self.page.goto(self.link, wait_until="domcontentloaded", timeout=60000)
         except Exception:
             pass
         return self._caixa(espera=20)
@@ -1132,7 +1135,11 @@ class CanvaIA:
             self._checar()
             self.avisar(f"pedido:{n}:{total}:{rot}")
             try:
+                self.nova_conversa = False
                 caixa = self._voltar_ao_chat() if n > 1 else self._caixa(espera=20)
+                if self.nova_conversa:
+                    enviadas = False
+                    conhecidas |= {s for s, *_ in self._imagens()}
                 if caixa is None:
                     self._salvar_erro()
                     raise PararCanva("não achei a caixa de texto do Canva IA")
