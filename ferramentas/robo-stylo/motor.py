@@ -779,7 +779,7 @@ class CanvaIA:
         self.pw = sync_playwright().start()
         opcoes = dict(headless=False, no_viewport=True, accept_downloads=True, chromium_sandbox=(os.name == "nt"),
                       args=["--start-maximized"], ignore_default_args=["--enable-automation"])
-        for canal in ("chrome", "msedge"):
+        for canal in ("msedge", "chrome"):
             try:
                 self.ctx = self.pw.chromium.launch_persistent_context(str(BASE / f"perfil-canva-{canal}"), channel=canal, **opcoes)
                 break

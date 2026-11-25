@@ -1,5 +1,5 @@
 {
-  "versao": 31,
+  "versao": 32,
   "data": "2026-11-25",
   "arquivos": [
     "janela.pyw",
@@ -14,9 +14,8 @@
     "instalar.bat"
   ],
   "novidades": [
-    "Canva automático agora abre no Google Chrome (se não tiver Chrome, usa o Edge). Na primeira vez, entre na conta do Canva nessa janela.",
-    "A janela do Canva abre maximizada e, se a caixa de texto sumir depois de uma imagem, o robô abre uma conversa nova do Canva IA, manda as fotos de novo e segue para o próximo pedido.",
-    "Não clica mais em Baixar no Canva (abria “Salvar no OneDrive”) e sumiu o aviso amarelo de “sinalizador sem suporte”.",
+    "Canva automático voltou para o Edge, como era antes (com a conta do Canva que você já entrou lá).",
+    "Continua: janela maximizada, sem clicar em Baixar (que abria “Salvar no OneDrive”) e conversa nova quando a caixa de texto some.",
     "Canva automático: se você ainda não entrou no Canva, o robô agora espera você entrar (antes ele desistia e fechava).",
     "Ele tenta colocar as fotos de três jeitos. Se não conseguir, abre a pasta das fotos e pede para você arrastar; depois continua sozinho.",
     "Se der erro, a janela do Canva fica aberta para você ver o que aconteceu (fecha quando você fecha a janela do robô ou tenta de novo)."
