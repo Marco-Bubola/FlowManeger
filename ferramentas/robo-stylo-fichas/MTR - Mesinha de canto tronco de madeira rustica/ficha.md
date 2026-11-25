@@ -51,7 +51,7 @@
     }
   ],
   "ficha_de_custo": [],
-  "variacao_por": null,
+  "variacao_por": "Cor",
   "variacoes": [
     {
       "valor": "Natural",
