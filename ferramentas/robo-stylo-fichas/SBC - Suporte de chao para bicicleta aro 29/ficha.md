@@ -11,7 +11,7 @@
   "material": "Ferro",
   "acabamento": "Pintura eletrostática",
   "uso": "Garagem, área de serviço, apartamento, loja e oficina de bicicleta",
-  "descricao": "Suporte de chão de ferro para bicicleta, feito pela Móveis Stylo.\n\n- Serve para bicicletas de aro 12 até aro 29\n- Estrutura de ferro firme, deixa a bicicleta em pé e organizada\n- Medidas: 61 cm de largura, 42 cm de profundidade e 68 cm de altura\n\nPronta entrega na cor preta.\n\nIdeal para garagem, área de serviço, apartamento, loja e oficina de bicicleta.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
+  "descricao": "Suporte de chão de ferro para bicicleta, feito pela Móveis Stylo.\n\n- Serve para bicicletas até aro 29\n- Estrutura de ferro firme, deixa a bicicleta em pé e organizada\n- Medidas: 61 cm de largura, 42 cm de profundidade e 68 cm de altura\n\nPronta entrega na cor preta.\n\nIdeal para garagem, área de serviço, apartamento, loja e oficina de bicicleta.\n\nCuidados: limpe com pano seco ou levemente úmido. Não use produtos abrasivos.",
   "o_que_vem_na_caixa": "1 suporte de bicicleta (bicicleta não acompanha)",
   "montagem": "Vem montado",
   "carga_maxima_kg": null,
