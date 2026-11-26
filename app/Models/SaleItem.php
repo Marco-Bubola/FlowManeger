@@ -17,6 +17,7 @@ class SaleItem extends Model
         'price_sale',
         'original_price', // preço "de" quando vendido em promoção
         'promotion_id',
+        'choices',        // escolhas do portal: "Estofado: Corino · Preto | Cor da ferragem: Preto"
     ];
 
     public function promotion()

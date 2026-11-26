@@ -275,7 +275,17 @@ document.addEventListener('alpine:init', () => {
         items: [],
         load() {
             try { this.items = JSON.parse(localStorage.getItem('portal_cart') || '[]'); } catch (e) { this.items = []; }
+            this.items.forEach(i => { if (!i.key) i.key = String(i.id); });
         },
+        // Linha do carrinho = produto + escolhas (cor da ferragem, estofado...). Sem escolhas, a chave é o id.
+        keyOf(id, opts) { return opts && opts.length ? id + ':' + opts.map(o => o.c + '-' + o.i).join('.') : String(id); },
+        optsText(i) { return (i.opts || []).map(o => o.l + ': ' + o.v).join(' · '); },
+        // Mesmo produto com escolhas diferentes no carrinho: a loja prefere tudo da mesma cor, então avisa.
+        mixed(id) {
+            const lines = this.items.filter(i => i.id === id && i.opts && i.opts.length);
+            return lines.length > 1 && new Set(lines.map(i => i.key)).size > 1;
+        },
+        get mixedNames() { return [...new Set(this.items.filter(i => this.mixed(i.id)).map(i => i.name))]; },
         sync(stock) {
             const before = this.items.length;
             this.items = this.items
@@ -295,7 +305,7 @@ document.addEventListener('alpine:init', () => {
             if (!this.pushUrl) return;
             clearTimeout(this.pushTimer);
             this.pushTimer = setTimeout(() => {
-                const body = JSON.stringify({ items: this.items.map(i => ({ id: i.id, qty: i.qty || 1 })) });
+                const body = JSON.stringify({ items: this.items.map(i => ({ id: i.id, qty: i.qty || 1, ...(i.opts && i.opts.length ? { ch: Object.fromEntries(i.opts.map(o => [o.c, o.i])) } : {}) })) });
                 // Carrinho vazio num aparelho que nunca mandou nada não apaga o carrinho guardado de outro aparelho.
                 try { const sent = localStorage.getItem('portal_cart_sent'); if (sent === body || (!this.items.length && sent === null)) return; } catch (e) {}
                 fetch(this.pushUrl, { method: 'POST', credentials: 'same-origin', keepalive: true, headers: {
@@ -307,26 +317,37 @@ document.addEventListener('alpine:init', () => {
         get count() { return this.items.length; },
         get total() { return this.items.reduce((s, i) => s + (parseFloat(i.price) || 0) * (i.qty || 1), 0); },
         has(id) { return this.items.some(i => i.id === id); },
-        qty(id) { const i = this.items.find(x => x.id === id); return i ? i.qty : 0; },
-        add(p, qty = 1) {
+        qty(id) { return this.items.filter(x => x.id === id).reduce((s, i) => s + (i.qty || 1), 0); },
+        // opts: [{c: lista, i: item, l: 'Estofado', v: 'Corino · Preto', x: valor a mais}]
+        add(p, qty = 1, opts = null) {
+            // Produto com escolhas (estofado, cor da ferragem) só entra pela página dele, onde o cliente escolhe.
+            if (p.ch && !(opts && opts.length)) {
+                if (p.url) window.location = p.url + (p.url.includes('?') ? '&' : '?') + 'escolher=1';
+                return false;
+            }
             const max = p.stock > 0 ? p.stock : 999;
-            const found = this.items.find(i => i.id === p.id);
+            const key = this.keyOf(p.id, opts);
+            const extra = (opts || []).reduce((s, o) => s + (parseFloat(o.x) || 0), 0);
+            const found = this.items.find(i => i.key === key);
             if (found) {
                 found.qty = Math.min(max, (found.qty || 1) + qty);
             } else {
-                this.items.push({ id: p.id, name: p.name, price: p.price, stock: p.stock, img: p.img || null, qty: Math.min(max, qty) });
+                const line = { key, id: p.id, name: p.name, price: Math.round(((parseFloat(p.price) || 0) + extra) * 100) / 100, stock: p.stock, img: p.img || null, qty: Math.min(max, qty) };
+                if (opts && opts.length) { line.opts = opts; line.base = parseFloat(p.price) || 0; }
+                this.items.push(line);
             }
             this.save();
+            return true;
         },
-        setQty(id, qty) {
-            const item = this.items.find(i => i.id === id);
+        setQty(key, qty) {
+            const item = this.items.find(i => i.key === String(key));
             if (!item) return;
             const max = item.stock > 0 ? item.stock : 999;
             item.qty = Math.min(max, Math.max(1, qty));
             this.save();
         },
-        remove(id) {
-            this.items = this.items.filter(i => i.id !== id);
+        remove(key) {
+            this.items = this.items.filter(i => i.key !== String(key));
             this.save();
         },
         clear() {

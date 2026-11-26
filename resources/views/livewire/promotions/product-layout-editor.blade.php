@@ -74,7 +74,8 @@
                                 </span>
                                 <button type="button" wire:click="move('{{ $list }}', '{{ $k }}', -1)" @disabled($i === 0) class="w-8 h-8 rounded-lg text-slate-500 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-25" aria-label="Subir {{ $n }}" data-testid="ppl-up-{{ $k }}"><i class="bi bi-arrow-up"></i></button>
                                 <button type="button" wire:click="move('{{ $list }}', '{{ $k }}', 1)" @disabled($i === count($layout[$list]) - 1) class="w-8 h-8 rounded-lg text-slate-500 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-25" aria-label="Descer {{ $n }}" data-testid="ppl-down-{{ $k }}"><i class="bi bi-arrow-down"></i></button>
-                                <button type="button" wire:click="toggleOff('{{ $list }}', '{{ $k }}')" class="w-8 h-8 rounded-lg {{ $off ? 'text-slate-400' : 'text-violet-600 dark:text-violet-300' }} hover:bg-white dark:hover:bg-slate-700" aria-label="{{ $off ? 'Mostrar' : 'Esconder' }} {{ $n }}" data-testid="ppl-eye-{{ $k }}"><i class="bi {{ $off ? 'bi-eye-slash' : 'bi-eye' }}"></i></button>
+                                @if(in_array($k, $L::ALWAYS_ON, true))<span class="w-8 h-8 inline-flex items-center justify-center text-slate-300" title="Sempre aparece"><i class="bi bi-lock"></i></span>@else
+                                <button type="button" wire:click="toggleOff('{{ $list }}', '{{ $k }}')" class="w-8 h-8 rounded-lg {{ $off ? 'text-slate-400' : 'text-violet-600 dark:text-violet-300' }} hover:bg-white dark:hover:bg-slate-700" aria-label="{{ $off ? 'Mostrar' : 'Esconder' }} {{ $n }}" data-testid="ppl-eye-{{ $k }}"><i class="bi {{ $off ? 'bi-eye-slash' : 'bi-eye' }}"></i></button>@endif
                             </li>
                         @endforeach
                     </ol>

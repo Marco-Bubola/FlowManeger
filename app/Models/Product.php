@@ -49,6 +49,7 @@ class Product extends Model
         'made_to_order',   // sob encomenda: vende sem estoque e fica pronto em production_days
         'production_days',
         'cost_items',      // ficha de custo [{n: item, q: quantidade, v: valor unitário}]
+        'choice_lists',    // listas de escolha no portal [{c: catálogo, l: nome, i: itens|null}]
     ];
 
     /**
@@ -74,6 +75,7 @@ class Product extends Model
         'made_to_order'       => 'boolean',
         'production_days'     => 'integer',
         'cost_items'          => 'array',
+        'choice_lists'        => 'array',
     ];
 
     protected $appends = ['image_url', 'all_images'];

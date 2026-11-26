@@ -8,6 +8,7 @@
         .pc-item:first-of-type { border-top: 0; }
         .pc-item .po-thumb { width: 64px; height: 64px; }
         .pc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+        .pc-opts { font-size: 12.5px; color: var(--ml-muted); margin-top: 2px; }
         .pc-name { font-size: 14px; color: #333; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .pc-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
         .pc-qty { display: inline-flex; align-items: center; border: 1px solid var(--ml-line); border-radius: 6px; height: 34px; overflow: hidden; }
@@ -39,7 +40,9 @@
     $start = collect($quote->items ?? [])->map(fn ($i) => array_merge(
         ['id' => (int) $i['product_id'], 'name' => $i['name'] ?? 'Produto', 'price' => (float) ($i['price_ref'] ?? 0), 'img' => null, 'stock' => 0],
         isset($fresh[$i['product_id']]) ? \Illuminate\Support\Arr::only($fresh[$i['product_id']], ['name', 'price', 'img', 'stock']) : [],
-        ['qty' => (int) ($i['quantity'] ?? 1), 'notes' => (string) ($i['notes'] ?? '')]
+        ['qty' => (int) ($i['quantity'] ?? 1), 'notes' => (string) ($i['notes'] ?? '')],
+        // Escolhas (estofado, ferragem): continuam iguais, com o valor a mais no preço
+        ! empty($i['options']) ? ['opts' => $i['options'], 'price' => (float) ($i['price_ref'] ?? 0)] : []
     ))->values();
     $extras = collect($quote->extra_items ?? [])->map(fn ($e) => ['desc' => $e['description'] ?? '', 'qty' => (int) ($e['quantity'] ?? 1)])->values();
 @endphp
@@ -63,7 +66,7 @@
             <div>
                 <section class="po-card">
                     <div class="pa-sec-head"><h2>Produtos do pedido</h2><span class="po-hint" style="margin:0" x-text="items.length + (items.length === 1 ? ' produto' : ' produtos')"></span></div>
-                    <template x-for="(item, i) in items" :key="item.id">
+                    <template x-for="(item, i) in items" :key="item.id + ':' + i">
                         <div class="pc-item">
                             <div class="po-thumb">
                                 <template x-if="item.img"><img :src="item.img" :alt="item.name" loading="lazy"></template>
@@ -71,6 +74,7 @@
                             </div>
                             <div class="pc-main">
                                 <div class="pc-name" x-text="item.name"></div>
+                                <div class="pc-opts" x-show="item.opts && item.opts.length" x-text="(item.opts || []).map(o => o.l + ': ' + o.v).join(' · ')"></div>
                                 <div class="pc-row">
                                     <div class="pc-qty">
                                         <button type="button" @click="item.qty = Math.max(1, item.qty - 1)" :disabled="item.qty <= 1" aria-label="Diminuir">−</button>
@@ -83,6 +87,9 @@
                                 <input type="hidden" :name="'items[' + i + '][product_id]'" :value="item.id">
                                 <input type="hidden" :name="'items[' + i + '][quantity]'" :value="item.qty">
                                 <input type="hidden" :name="'items[' + i + '][notes]'" :value="item.notes">
+                                <template x-for="o in (item.opts || [])" :key="o.c">
+                                    <input type="hidden" :name="'items[' + i + '][choices][' + o.c + ']'" :value="o.i">
+                                </template>
                                 <div><button type="button" class="pc-remove" @click="items.splice(i, 1)">Excluir</button></div>
                             </div>
                         </div>

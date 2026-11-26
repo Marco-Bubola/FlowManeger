@@ -17,6 +17,7 @@ class ProductLayout
     public const PARTS = [
         'preco' => ['Preço', 'bi-tag', 'Preço, desconto, Pix e pontos'],
         'variacoes' => ['Variações', 'bi-grid-3x2-gap', 'Tamanhos, cores ou modelos'],
+        'escolhas' => ['Escolhas (estofado, ferragem)', 'bi-palette', 'Só nos produtos com listas de escolha. Não dá para esconder'],
         'avisos' => ['Prazo e economia', 'bi-clock-history', 'Sob encomenda e quanto economiza'],
         'frete' => ['Frete e entrega', 'bi-truck', 'Calcular frete pelo CEP'],
         'loja' => ['Compra direta', 'bi-shield-check', '"Compra direta com a loja"'],
@@ -25,6 +26,9 @@ class ProductLayout
         'compartilhar' => ['Compartilhar', 'bi-share', 'Enviar para alguém e copiar link'],
         'kit' => ['Montar kit', 'bi-gift', 'Só aparece se o Monte seu kit estiver ligado'],
     ];
+
+    /** Partes que não podem ser escondidas (sem elas o cliente não consegue comprar). */
+    public const ALWAYS_ON = ['escolhas'];
 
     /** Seções de baixo da página. */
     public const SECTIONS = [
@@ -50,7 +54,7 @@ class ProductLayout
     ];
 
     public const DEFAULTS = [
-        'parts' => ['preco', 'variacoes', 'avisos', 'frete', 'loja', 'quantidade', 'botoes', 'compartilhar', 'kit'],
+        'parts' => ['preco', 'variacoes', 'escolhas', 'avisos', 'frete', 'loja', 'quantidade', 'botoes', 'compartilhar', 'kit'],
         'parts_off' => [],
         'sections' => ['especial', 'junto', 'sobre', 'avaliacoes', 'relacionados', 'vistos'],
         'sections_off' => [],
@@ -85,8 +89,17 @@ class ProductLayout
         $l = self::DEFAULTS;
         foreach (['parts' => self::PARTS, 'sections' => self::SECTIONS] as $k => $all) {
             $order = array_values(array_unique(array_filter((array) ($in[$k] ?? []), fn ($x) => is_string($x) && isset($all[$x]))));
+            // Parte nova (que a ordem salva não tem) entra logo depois da que vem antes dela no padrão.
+            $prev = null;
+            foreach (self::DEFAULTS[$k] as $key) {
+                if (! in_array($key, $order, true)) {
+                    $at = $prev === null ? 0 : array_search($prev, $order, true) + 1;
+                    array_splice($order, $at, 0, [$key]);
+                }
+                $prev = $key;
+            }
             $l[$k] = array_merge($order, array_values(array_diff(array_keys($all), $order)));
-            $l[$k . '_off'] = array_values(array_unique(array_filter((array) ($in[$k . '_off'] ?? []), fn ($x) => is_string($x) && isset($all[$x]))));
+            $l[$k . '_off'] = array_values(array_diff(array_unique(array_filter((array) ($in[$k . '_off'] ?? []), fn ($x) => is_string($x) && isset($all[$x]))), self::ALWAYS_ON));
         }
         foreach (self::CHOICES as $k => $opts) {
             $v = (string) ($in[$k] ?? '');

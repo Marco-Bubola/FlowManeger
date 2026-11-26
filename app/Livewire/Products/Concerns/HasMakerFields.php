@@ -3,6 +3,7 @@
 namespace App\Livewire\Products\Concerns;
 
 use App\Models\Product;
+use App\Services\Choices\ChoiceService;
 
 /**
  * Campos do Novo/Editar produto pensados para peças grandes ou feitas à mão
@@ -19,6 +20,8 @@ trait HasMakerFields
     public string $production_days = '';
     /** @var array<int, array{n: string, q: string, v: string}> */
     public array $cost_items = [];
+    /** Escolhas no portal: [id do catálogo => {on, l: nome na página, all: todas, i: itens}] */
+    public array $choice_lists = [];
 
     protected function makerRules(): array
     {
@@ -48,6 +51,75 @@ trait HasMakerFields
         $this->cost_items = collect($product->cost_items ?? [])
             ->map(fn ($i) => ['n' => (string) ($i['n'] ?? ''), 'q' => (string) ($i['q'] ?? '1'), 'v' => (string) ($i['v'] ?? '')])
             ->values()->all();
+        $this->fillChoiceLists($product);
+    }
+
+    protected function fillChoiceLists(?Product $product): void
+    {
+        $saved = collect($product?->choice_lists ?? [])->keyBy(fn ($l) => (int) ($l['c'] ?? 0));
+        $this->choice_lists = [];
+        foreach (ChoiceService::catalogs((int) auth()->id()) as $cat) {
+            $l = $saved[$cat->id] ?? null;
+            $this->choice_lists[$cat->id] = [
+                'on' => (bool) $l,
+                'l' => (string) ($l['l'] ?? '') ?: $this->defaultChoiceLabel($cat),
+                'all' => ! $l || empty($l['i']),
+                'i' => array_map('intval', (array) ($l['i'] ?? [])),
+            ];
+        }
+    }
+
+    protected function defaultChoiceLabel($cat): string
+    {
+        return match ($cat->kind) {
+            'estofado' => 'Estofado',
+            'ferragem' => 'Cor da ferragem',
+            default => $cat->name,
+        };
+    }
+
+    public function toggleChoiceList(int $id): void
+    {
+        if (! $cat = $this->choiceCatalogs->firstWhere('id', $id)) {
+            return;
+        }
+        $row = $this->choice_lists[$id] ?? ['on' => false, 'l' => $this->defaultChoiceLabel($cat), 'all' => true, 'i' => []];
+        $row['on'] = empty($row['on']);
+        $this->choice_lists[$id] = $row;
+    }
+
+    public function toggleChoiceItem(int $catId, int $itemId): void
+    {
+        $row = $this->choice_lists[$catId] ?? null;
+        if (! $row) {
+            return;
+        }
+        $items = array_map('intval', (array) ($row['i'] ?? []));
+        $items = in_array($itemId, $items, true) ? array_values(array_diff($items, [$itemId])) : [...$items, $itemId];
+        $this->choice_lists[$catId]['i'] = $items;
+        $this->choice_lists[$catId]['all'] = false;
+    }
+
+    /** Catálogos para a tela (Escolhas no portal). */
+    public function getChoiceCatalogsProperty()
+    {
+        return ChoiceService::catalogs((int) auth()->id());
+    }
+
+    protected function cleanChoiceLists(): array
+    {
+        $valid = $this->choiceCatalogs->mapWithKeys(fn ($c) => [$c->id => $c->items->pluck('id')->all()]);
+        $out = [];
+        foreach ($this->choiceCatalogs as $cat) {
+            $row = $this->choice_lists[$cat->id] ?? null;
+            if (! $row || empty($row['on'])) {
+                continue;
+            }
+            $items = empty($row['all']) ? array_values(array_intersect(array_map('intval', (array) ($row['i'] ?? [])), $valid[$cat->id] ?? [])) : [];
+            $out[] = ['c' => $cat->id, 'l' => mb_substr(trim((string) ($row['l'] ?? '')) ?: $cat->name, 0, 60), 'i' => $items ?: null];
+        }
+
+        return $out;
     }
 
     /** Colunas do produto a partir dos campos da tela. */
@@ -64,7 +136,7 @@ trait HasMakerFields
             'made_to_order' => $this->made_to_order,
             'production_days' => $this->made_to_order && (int) $this->production_days > 0 ? (int) $this->production_days : null,
             'cost_items' => $this->cleanCostItems() ?: null,
-        ];
+        ] + (ChoiceService::ready() ? ['choice_lists' => $this->cleanChoiceLists() ?: null] : []);
     }
 
     /** Antes de validar: vírgula vira ponto nos números (o teclado do celular manda "1,5"). */

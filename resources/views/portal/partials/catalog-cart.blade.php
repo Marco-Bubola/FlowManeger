@@ -16,7 +16,7 @@
         </div>
 
         <ul class="ml-cart-list" x-show="$store.cart.count">
-            <template x-for="item in $store.cart.items" :key="item.id">
+            <template x-for="item in $store.cart.items" :key="item.key || item.id">
                 <li class="ml-cart-item">
                     <div class="ml-cart-img">
                         <template x-if="item.img"><img :src="item.img" alt="" x-on:error="item.img = null"></template>
@@ -24,15 +24,21 @@
                     </div>
                     <div class="ml-cart-info">
                         <p x-text="item.name"></p>
+                        <template x-if="item.opts && item.opts.length">
+                            <ul class="ml-cart-opts" data-testid="cart-opts">
+                                <template x-for="o in item.opts" :key="o.c"><li><span x-text="o.l + ':'"></span> <b x-text="o.v"></b><em x-show="o.x > 0" x-text="' +' + money(o.x)"></em></li></template>
+                            </ul>
+                        </template>
+                        <small class="ml-cart-mix" x-show="$store.cart.mixed(item.id)" x-cloak data-testid="cart-mixed"><i class="fas fa-triangle-exclamation"></i> Cores diferentes do mesmo produto</small>
                         <strong x-text="money(item.price * item.qty)"></strong>
                         <small x-show="item.qty > 1" x-text="item.qty + ' × ' + money(item.price)"></small>
                         <div class="ml-cart-row">
                             <div class="ml-step">
-                                <button type="button" @click="$store.cart.setQty(item.id, item.qty - 1)" :disabled="item.qty <= 1" aria-label="Menos"><i class="fas fa-minus"></i></button>
+                                <button type="button" @click="$store.cart.setQty(item.key, item.qty - 1)" :disabled="item.qty <= 1" aria-label="Menos"><i class="fas fa-minus"></i></button>
                                 <span x-text="item.qty"></span>
-                                <button type="button" @click="$store.cart.setQty(item.id, item.qty + 1)" :disabled="item.stock && item.qty >= item.stock" aria-label="Mais"><i class="fas fa-plus"></i></button>
+                                <button type="button" @click="$store.cart.setQty(item.key, item.qty + 1)" :disabled="item.stock && item.qty >= item.stock" aria-label="Mais"><i class="fas fa-plus"></i></button>
                             </div>
-                            <button type="button" class="ml-cart-del" @click="$store.cart.remove(item.id)">
+                            <button type="button" class="ml-cart-del" @click="$store.cart.remove(item.key)">
                                 <i class="fas fa-trash-can"></i> Remover
                             </button>
                         </div>

@@ -206,6 +206,10 @@
     .ml-cart-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
     .ml-cart-info p { margin: 0; font-size: 14px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .ml-cart-info strong { font-size: 17px; font-weight: 700; margin-top: 2px; }
+    .ml-cart-opts { list-style: none; margin: 2px 0 0; padding: 0; font-size: 12px; color: var(--ml-muted); line-height: 1.35; }
+    .ml-cart-opts b { color: var(--ml-text); font-weight: 600; }
+    .ml-cart-opts em { font-style: normal; color: var(--ml-muted); }
+    .ml-cart-info .ml-cart-mix { display: inline-flex; align-items: center; gap: 5px; margin-top: 3px; font-size: 11.5px; font-weight: 700; color: #b45309; }
     .ml-cart-info small { font-size: 12px; color: var(--ml-muted); }
     .ml-cart-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
     .ml-cart-row .ml-step { box-shadow: none; border: 1px solid var(--ml-line); }

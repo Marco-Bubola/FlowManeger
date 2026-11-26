@@ -348,6 +348,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/orcamentos', \App\Livewire\Quotes\QuotesIndex::class)->name('orcamentos.index');
     Route::get('/orcamentos/novo', \App\Livewire\Quotes\QuoteEditor::class)->name('orcamentos.create');
     Route::get('/orcamentos/materiais', \App\Livewire\Quotes\QuoteMaterials::class)->name('orcamentos.materials');
+    Route::get('/orcamentos/estofados-e-cores', \App\Livewire\Quotes\ChoiceCatalogs::class)->name('orcamentos.choices');
     Route::get('/orcamentos/ajustes', \App\Livewire\Quotes\QuoteSettings::class)->name('orcamentos.settings');
     Route::get('/orcamentos/{quote}', \App\Livewire\Quotes\ShowQuote::class)->whereNumber('quote')->name('orcamentos.show');
     Route::get('/orcamentos/{quote}/editar', \App\Livewire\Quotes\QuoteEditor::class)->whereNumber('quote')->name('orcamentos.edit');
@@ -623,6 +624,9 @@ Route::prefix('robo-api')->name('robo-api.')->withoutMiddleware(['web'])->middle
         Route::post('/estoque/somar', 'somarEstoque')->name('estoque.somar');
         Route::get('/materiais', 'materiais')->name('materiais');
         Route::post('/materiais', 'salvarMateriais')->name('materiais.salvar');
+        Route::get('/escolhas', 'escolhas')->name('escolhas');
+        Route::post('/escolhas/item', 'salvarEscolha')->name('escolhas.salvar');
+        Route::post('/escolhas/excluir', 'excluirEscolha')->name('escolhas.excluir');
     });
 
 // Aviso do Mercado Pago sobre pagamentos do portal (público; o pagamento é conferido na API)

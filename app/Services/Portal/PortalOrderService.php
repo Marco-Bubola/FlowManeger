@@ -309,7 +309,7 @@ class PortalOrderService
                     'original' => $item->original_price ? (float) $item->original_price : null,
                     'total' => $unit * (int) $item->quantity,
                     'image' => $this->imageOf($product),
-                    'notes' => null,
+                    'notes' => $item->choices ?? null,
                 ];
             })->all();
         }
@@ -327,7 +327,7 @@ class PortalOrderService
                 'original' => null,
                 'total' => $unit * $qty,
                 'image' => $this->imageOf($product),
-                'notes' => $item['notes'] ?? null,
+                'notes' => trim(($item['choices'] ?? '') . (! empty($item['choices']) && ! empty($item['notes']) ? ' · ' : '') . ($item['notes'] ?? '')) ?: null,
             ];
         })->all();
     }

@@ -91,6 +91,9 @@
                             <x-product-thumb :product="$product" size="h-14 w-14" class="border border-slate-200 dark:border-slate-700" />
                             <div class="min-w-0 flex-1">
                                 <p class="truncate font-semibold text-slate-900 dark:text-white">{{ ucwords($product->name ?? 'Produto não encontrado') }}</p>
+                                @if(! empty($item->choices))
+                                    <p class="text-xs font-semibold text-pink-700 dark:text-pink-300" data-testid="sale-item-choices"><i class="bi bi-palette"></i> {{ $item->choices }}</p>
+                                @endif
                                 <p class="sm:hidden text-sm font-black text-slate-900 dark:text-white">R$ {{ number_format($item->quantity * $item->price_sale, 2, ',', '.') }}</p>
                                 <p class="truncate text-xs text-slate-500 dark:text-slate-400">
                                     <span class="font-mono">{{ $product->product_code ?? 'N/A' }}</span>

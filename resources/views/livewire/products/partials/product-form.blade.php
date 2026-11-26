@@ -183,6 +183,76 @@
                 </div>
             </section>
 
+            {{-- Escolhas no portal: listas do catálogo de estofados e cores (cor da ferragem, estofado...) --}}
+            @if(\App\Services\Choices\ChoiceService::ready())
+            @php $epCats = $this->choiceCatalogs; $epOnCount = collect($choice_lists)->where('on', true)->count(); @endphp
+            <section class="ep-card" id="ep-escolhas" data-testid="choices-card">
+                <div class="ep-card-h">
+                    <span class="ep-ico pink"><i class="bi bi-palette-fill"></i></span>
+                    <div class="flex-1 min-w-0"><h3>Escolhas no portal</h3><p>O cliente escolhe na página do produto (ex.: cor da ferragem e estofado). Feito sob encomenda.</p></div>
+                    @if($epOnCount)<span class="ep-pill good shrink-0">{{ $epOnCount }} {{ $epOnCount === 1 ? 'lista' : 'listas' }}</span>@endif
+                </div>
+                <div class="ep-card-b space-y-3">
+                    @forelse($epCats as $cat)
+                        @php $row = $choice_lists[$cat->id] ?? null; $on = ! empty($row['on']); @endphp
+                        <div class="ep-ch {{ $on ? 'on' : '' }}" wire:key="epch-{{ $cat->id }}">
+                            <button type="button" class="ep-ch-row" wire:click="toggleChoiceList({{ $cat->id }})" data-testid="choice-toggle">
+                                <span class="ep-ch-check"><i class="bi {{ $on ? 'bi-check-lg' : '' }}"></i></span>
+                                <span class="min-w-0 flex-1 text-left">
+                                    <b>{{ $cat->name }}</b>
+                                    <small>{{ $cat->items->where('active', true)->count() }} de {{ $cat->items->count() }} disponíveis
+                                        @if($cat->items->max('extra_price') > 0) · com valor a mais @endif</small>
+                                </span>
+                                <span class="ep-ch-dots">
+                                    @foreach($cat->items->take(6) as $it)
+                                        <span style="{{ $it->image ? "background-image:url('" . $it->imageUrl() . "');background-size:cover" : 'background:' . ($it->hex ?: '#e2e8f0') }}"></span>
+                                    @endforeach
+                                </span>
+                            </button>
+                            @if($on)
+                                <div class="ep-ch-body">
+                                    <div class="ep-row c2">
+                                        <div>
+                                            <label class="ep-label"><span>Nome na página</span></label>
+                                            <input type="text" wire:model.blur="choice_lists.{{ $cat->id }}.l" class="ep-input" maxlength="60" placeholder="Ex.: Estofado, Cor da ferragem">
+                                        </div>
+                                        <div>
+                                            <label class="ep-label"><span>Quais aparecem</span></label>
+                                            <div class="ep-ch-mode">
+                                                <button type="button" wire:click="$set('choice_lists.{{ $cat->id }}.all', true)" class="{{ ! empty($row['all']) ? 'on' : '' }}">Todas</button>
+                                                <button type="button" wire:click="$set('choice_lists.{{ $cat->id }}.all', false)" class="{{ empty($row['all']) ? 'on' : '' }}" data-testid="choice-some">Só algumas</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @if(empty($row['all']))
+                                        <div class="ep-ch-items">
+                                            @foreach($cat->items as $it)
+                                                @php $sel = in_array($it->id, (array) ($row['i'] ?? []), true); @endphp
+                                                <button type="button" wire:click="toggleChoiceItem({{ $cat->id }}, {{ $it->id }})" class="ep-ch-item {{ $sel ? 'on' : '' }} {{ $it->active ? '' : 'off' }}" wire:key="epci-{{ $it->id }}">
+                                                    <span class="sw" style="{{ $it->image ? "background-image:url('" . $it->imageUrl() . "');background-size:cover" : 'background:' . ($it->hex ?: '#e2e8f0') }}"></span>
+                                                    <span>{{ $it->label() }}@if($it->extra_price > 0) <em>+R$ {{ number_format($it->extra_price, 2, ',', '.') }}</em>@endif</span>
+                                                    @if($sel)<i class="bi bi-check-lg"></i>@endif
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                        @if(empty($row['i']))<p class="ep-hint"><i class="bi bi-info-circle"></i>Toque nas cores que este produto tem.</p>@endif
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    @empty
+                        <p class="ep-hint"><i class="bi bi-info-circle"></i>Você ainda não tem catálogo de estofados e cores.</p>
+                    @endforelse
+                    <a href="{{ route('orcamentos.choices') }}" target="_blank" class="ep-btn ep-btn-soft" style="padding:.45rem .8rem;font-size:.8rem;display:inline-flex">
+                        <i class="bi bi-palette"></i>{{ $epCats->isEmpty() ? 'Criar catálogo de estofados e cores' : 'Editar catálogo de estofados e cores' }}
+                    </a>
+                    @if(! empty($isEdit) && isset($product) && $product->parent_id && ! $epOnCount)
+                        <p class="ep-hint"><i class="bi bi-diagram-3"></i>Esta é uma variação: sem listas ligadas aqui, ela usa as escolhas do produto principal.</p>
+                    @endif
+                </div>
+            </section>
+            @endif
+
             {{-- Ficha de custo: materiais e horas que somam o custo da peça --}}
             @php $epCostTotal = $this->costItemsTotal; @endphp
             <section class="ep-card" id="ep-ficha-custo">

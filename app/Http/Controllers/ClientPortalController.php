@@ -1035,6 +1035,8 @@ class ClientPortalController extends Controller
             'special' => $special = \App\Services\Portal\ProductPageService::for($userId, $rootId,
                 $request->boolean('previa') && (int) Auth::guard('web')->id() === $userId),
             'variants' => \App\Services\Portal\ProductPageService::variantsFor($userId, $special),
+            // Escolhas do catálogo de estofados e cores (cor da ferragem, estofado...)
+            'choices' => \App\Services\Choices\ChoiceService::forProduct($item),
         ]);
     }
 
@@ -1081,6 +1083,48 @@ class ClientPortalController extends Controller
     }
 
     /**
+     * Linha do pedido do portal. Produto com escolhas (estofado, cor da ferragem):
+     * confere no servidor e soma o valor a mais no preço. Ao editar um pedido, o
+     * que já estava escolhido continua. Devolve o texto do erro se faltar escolher.
+     */
+    /** Escolhas do item do pedido para a linha da venda (se a coluna já existe). */
+    public static function saleChoices(array $item): array
+    {
+        return ! empty($item['choices']) && \App\Services\Choices\ChoiceService::ready()
+            ? ['choices' => mb_substr((string) $item['choices'], 0, 255)] : [];
+    }
+
+    public static function portalLine(Product $product, array $item, array $prevItems = []): array|string
+    {
+        $line = [
+            'product_id' => $product->id,
+            'name'       => $product->name,
+            'quantity'   => (int) $item['quantity'],
+            'notes'      => $item['notes'] ?? '',
+            'price_ref'  => $product->currentSalePrice(),
+        ];
+        $cs = \App\Services\Choices\ChoiceService::class;
+        if (! $cs::forProduct($product)) {
+            return $line;
+        }
+        $picked = $item['choices'] ?? null;
+        if (! is_array($picked) || ! $picked) {
+            $prev = collect($prevItems)->first(fn ($p) => (int) ($p['product_id'] ?? 0) === $product->id && ! empty($p['options']));
+            $picked = $prev ? collect($prev['options'])->mapWithKeys(fn ($o) => [(int) ($o['c'] ?? 0) => (int) ($o['i'] ?? 0)])->all() : [];
+        }
+        $r = $cs::resolve($product, $picked);
+        if (! $r['ok']) {
+            return 'Escolha ' . mb_strtolower(implode(' e ', $r['missing'])) . ' de "' . $product->name . '" na página do produto.';
+        }
+
+        return array_merge($line, [
+            'price_ref' => round($line['price_ref'] + $r['extra'], 2),
+            'options'   => $r['options'],
+            'choices'   => $r['text'],
+        ]);
+    }
+
+    /**
      * Dados de um produto para o card, a ficha e o carrinho do catálogo público.
      */
     public static function cardInfo(Product $p): array
@@ -1121,6 +1165,7 @@ class ClientPortalController extends Controller
             'pix'     => \App\Services\Portal\Rewards::for((int) $p->user_id)['pix_card'] ? \App\Services\Portal\Rewards::pixPrice((int) $p->user_id, $price) : null,
             'pts'     => \App\Services\Portal\Rewards::on((int) $p->user_id) ? \App\Services\Portal\Rewards::earnFor((int) $p->user_id, $price) : 0,
             'specs'   => collect($p->specs ?? [])->filter(fn ($s) => ($s['n'] ?? '') !== '' && ($s['v'] ?? '') !== '')->values()->all(),
+            'ch'      => \App\Services\Choices\ChoiceService::has($p), // estofado, cor da ferragem...: escolhe na página
         ];
     }
 
@@ -1157,6 +1202,8 @@ class ClientPortalController extends Controller
             'items.*.product_id'  => ['required_with:items', 'integer', 'exists:products,id'],
             'items.*.quantity'    => ['required_with:items', 'integer', 'min:1'],
             'items.*.notes'       => ['nullable', 'string', 'max:255'],
+            'items.*.choices'     => ['nullable', 'array', 'max:10'],
+            'items.*.choices.*'   => ['integer'],
             'extra_items'         => ['nullable', 'array'],
             'extra_items.*.desc'  => ['required_with:extra_items', 'string', 'max:255'],
             'extra_items.*.qty'   => ['required_with:extra_items', 'integer', 'min:1'],
@@ -1208,13 +1255,11 @@ class ClientPortalController extends Controller
                 ->where('user_id', $client->user_id)
                 ->first();
             if ($product) {
-                $items[] = [
-                    'product_id' => $product->id,
-                    'name'       => $product->name,
-                    'quantity'   => (int) $item['quantity'],
-                    'notes'      => $item['notes'] ?? '',
-                    'price_ref'  => $product->currentSalePrice(),
-                ];
+                $line = self::portalLine($product, $item);
+                if (is_string($line)) {
+                    return back()->withErrors(['items' => $line]);
+                }
+                $items[] = $line;
             }
         }
 
@@ -1390,6 +1435,8 @@ class ClientPortalController extends Controller
             'items.*.product_id'  => ['required_with:items', 'integer', 'exists:products,id'],
             'items.*.quantity'    => ['required_with:items', 'integer', 'min:1'],
             'items.*.notes'       => ['nullable', 'string', 'max:255'],
+            'items.*.choices'     => ['nullable', 'array', 'max:10'],
+            'items.*.choices.*'   => ['integer'],
             'extra_items'         => ['nullable', 'array'],
             'extra_items.*.desc'  => ['required_with:extra_items', 'string', 'max:255'],
             'extra_items.*.qty'   => ['required_with:extra_items', 'integer', 'min:1'],
@@ -1407,13 +1454,11 @@ class ClientPortalController extends Controller
                 ->where('user_id', $client->user_id)
                 ->first();
             if ($product) {
-                $items[] = [
-                    'product_id' => $product->id,
-                    'name'       => $product->name,
-                    'quantity'   => (int) $item['quantity'],
-                    'notes'      => $item['notes'] ?? '',
-                    'price_ref'  => $product->currentSalePrice(),
-                ];
+                $line = self::portalLine($product, $item, (array) ($quote->items ?? []));
+                if (is_string($line)) {
+                    return back()->withErrors(['items' => $line]);
+                }
+                $items[] = $line;
             }
         }
 
@@ -1701,11 +1746,12 @@ class ClientPortalController extends Controller
                 'sale_id'    => $sale->id,
                 'product_id' => $product->id,
                 'quantity'   => (int) ($item['quantity'] ?? 1),
-                'price_sale' => $promo ? (float) $promo->promo_price : ($product->price_sale ?? $item['price_ref'] ?? 0),
+                // Com escolhas (estofado, ferragem), o preço do pedido já tem o valor a mais.
+                'price_sale' => ! empty($item['choices']) ? (float) ($item['price_ref'] ?? 0) : ($promo ? (float) $promo->promo_price : ($product->price_sale ?? $item['price_ref'] ?? 0)),
                 'original_price' => $promo ? $promo->original_price : null,
                 'promotion_id'   => $promo?->id,
                 'price'      => $product->price_sale ?? $item['price_ref'] ?? 0,
-            ]);
+            ] + self::saleChoices($item));
 
         }
 

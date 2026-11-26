@@ -379,4 +379,69 @@ class FichasController extends Controller
 
         return $this->materiais($request);
     }
+
+    // ---------------------------------------------------------------- catálogo de estofados e cores
+    // O mesmo de Orçamentos › Estofados e cores. O robô mostra em "Minhas cores" e cadastra/apaga por aqui.
+
+    public function escolhas(Request $request): JsonResponse
+    {
+        $uid = (int) $request->user()->id;
+        $listas = \App\Services\Choices\ChoiceService::catalogs($uid)->map(fn ($c) => [
+            'id' => $c->id, 'nome' => $c->name, 'tipo' => $c->kind,
+            'itens' => $c->items->map(fn ($i) => [
+                'id' => $i->id, 'tecido' => $i->material, 'nome' => $i->name, 'codigo' => $i->code, 'hex' => $i->hex,
+                'foto' => $i->imageUrl(), 'extra' => (float) $i->extra_price, 'ativo' => (bool) $i->active,
+            ])->values(),
+        ])->values();
+
+        return response()->json(['listas' => $listas, 'ok' => \App\Services\Choices\ChoiceService::ready()]);
+    }
+
+    /** O robô cadastrou uma cor: entra na lista do tipo (cria a lista se ainda não existe). */
+    public function salvarEscolha(Request $request): JsonResponse
+    {
+        $uid = (int) $request->user()->id;
+        abort_unless(\App\Services\Choices\ChoiceService::ready(), 422, 'O site ainda não tem o catálogo de estofados e cores.');
+        $v = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'tipo' => 'required|in:estofado,ferragem,outro',
+            'lista' => 'nullable|string|max:80',
+            'tecido' => 'nullable|string|max:80',
+            'nome' => 'required|string|max:80',
+            'codigo' => 'nullable|string|max:30',
+            'hex' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+        ]);
+        abort_if($v->fails(), 422, $v->errors()->first());
+        $d = $v->validated();
+        $nomeLista = trim((string) ($d['lista'] ?? '')) ?: ($d['tipo'] === 'ferragem' ? 'Cores de ferragem' : ($d['tipo'] === 'estofado' ? 'Estofados' : 'Outras cores'));
+        $cat = \App\Models\ChoiceCatalog::where('user_id', $uid)->where('kind', $d['tipo'])
+            ->when($d['tipo'] === 'outro', fn ($q) => $q->where('name', $nomeLista))->orderBy('position')->orderBy('id')->first()
+            ?? \App\Models\ChoiceCatalog::create(['user_id' => $uid, 'name' => $nomeLista, 'kind' => $d['tipo'],
+                'position' => (int) \App\Models\ChoiceCatalog::where('user_id', $uid)->max('position') + 1]);
+        $tecido = trim((string) ($d['tecido'] ?? '')) ?: null;
+        $item = \App\Models\ChoiceItem::where('choice_catalog_id', $cat->id)->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($d['nome']))])
+            ->when($tecido, fn ($q) => $q->where('material', $tecido), fn ($q) => $q->whereNull('material'))->first();
+        if (! $item) {
+            // Mesmo tecido: o valor a mais das outras cores dele vale para a nova.
+            $extra = $tecido ? (float) \App\Models\ChoiceItem::where('choice_catalog_id', $cat->id)->where('material', $tecido)->max('extra_price') : 0;
+            $item = \App\Models\ChoiceItem::create(['user_id' => $uid, 'choice_catalog_id' => $cat->id, 'material' => $tecido,
+                'name' => trim($d['nome']), 'extra_price' => $extra, 'active' => true,
+                'position' => (int) \App\Models\ChoiceItem::where('choice_catalog_id', $cat->id)->max('position') + 1]);
+        }
+        $item->fill(array_filter(['hex' => $d['hex'] ?? null, 'code' => $d['codigo'] ?? null]))->save();
+
+        return $this->escolhas($request);
+    }
+
+    public function excluirEscolha(Request $request): JsonResponse
+    {
+        $uid = (int) $request->user()->id;
+        if ($item = \App\Models\ChoiceItem::where('user_id', $uid)->find((int) $request->input('id'))) {
+            if ($item->image && \App\Models\ChoiceItem::where('image', $item->image)->count() === 1) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($item->image);
+            }
+            $item->delete();
+        }
+
+        return $this->escolhas($request);
+    }
 }

@@ -482,7 +482,7 @@ class PortalCheckoutService
                 'price'          => (float) ($product->price_sale ?? $item['price_ref'] ?? 0),
                 'original_price' => $promo?->original_price,
                 'promotion_id'   => $promo?->id,
-            ]);
+            ] + \App\Http\Controllers\ClientPortalController::saleChoices($item));
         }
 
         $sp = SalePayment::create([

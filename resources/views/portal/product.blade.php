@@ -245,7 +245,41 @@
 
 <div class="ml-wrap pp" x-data="mlCatalog(@js($all), @js($cartUrl), @js($stockMap), {
         p: @js($d),
-        setup() { if (! this.p.buyable) this.qty = 0; mlSeenPush(@js($owner), this.p.id); },
+        ch: @js($choices ?? []), sel: {}, chErr: false,
+        setup() {
+            if (! this.p.buyable) this.qty = 0; mlSeenPush(@js($owner), this.p.id);
+            this.ch.forEach(l => { if (l.options.length === 1) this.sel[l.id] = l.options[0].id; });
+            if (this.ch.length && new URLSearchParams(location.search).get('escolher')) {
+                this.chErr = true;
+                this.$nextTick(() => document.getElementById('escolhas')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+            }
+        },
+        chPicked(l) { return l.options.find(o => o.id === this.sel[l.id]) || null; },
+        chSw(o) { return o ? (o.img ? `background-image:url('${o.img}')` : (o.hex ? 'background:' + o.hex : '')) : ''; },
+        chMissing() { return this.ch.filter(l => ! this.sel[l.id]); },
+        chOpts() { return this.ch.map(l => { const o = this.chPicked(l); return o ? { c: l.id, i: o.id, l: l.label, v: o.label, x: o.x } : null; }).filter(Boolean); },
+        chExtra() { return this.chOpts().reduce((s, o) => s + (o.x || 0), 0); },
+        // Mesma peça já no carrinho com outras cores (a loja prefere tudo igual).
+        chOther() {
+            if (! this.ch.length || this.chMissing().length) return null;
+            const key = this.$store.cart.keyOf(this.p.id, this.chOpts());
+            return this.$store.cart.items.find(i => i.id === this.p.id && i.key !== key && i.opts && i.opts.length) || null;
+        },
+        chCopy(line) { (line.opts || []).forEach(o => { if (this.ch.some(l => l.id === o.c)) this.sel[o.c] = o.i; }); this.say('Mesmas cores escolhidas'); },
+        // Comprar / carrinho com as escolhas. Falta escolher: marca em vermelho e rola até lá.
+        addCh(open = false) {
+            if (! this.ch.length) { Alpine.store('cart').add({ ...this.p, ch: false }, this.qty); open ? this.openCart() : this.say('Adicionado ao carrinho'); return; }
+            if (this.chMissing().length) {
+                this.chErr = true;
+                this.say('Escolha ' + this.chMissing().map(l => l.label.toLowerCase()).join(' e '));
+                document.getElementById('escolhas')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            const mixed = !! this.chOther();
+            Alpine.store('cart').add(this.p, this.qty, this.chOpts());
+            if (open) this.openCart();
+            else this.say(mixed ? 'Adicionado. Atenção: cores diferentes da mesma peça' : 'Adicionado ao carrinho');
+        },
         zoom: false, zoomAt: 0, zoomList: [],
         zoomOpen(i, list = null) {
             this.zoomList = list && list.length ? list : this.p.imgs;
@@ -358,7 +392,7 @@
             <span class="ml-deal" x-show="p.pct && @js($layout['show_deal'])" @if(! $d['pct']) x-cloak @endif>Oferta do dia</span>
             <div class="ml-old" x-show="p.old" x-text="money(p.old)" @if(! $d['old']) x-cloak @endif>@if($d['old'])R$ {{ number_format($d['old'], 2, ',', '.') }}@endif</div>
             <div class="ml-price-row" x-show="p.price > 0" @if(! ($d['price'] > 0)) x-cloak @endif>
-                <span class="ml-price"><span class="cur">R$</span><span x-text="intPart(p.price)">{{ $int }}</span><sup x-show="cents(p.price) !== '00'" x-text="cents(p.price)" @if($cents === '00') x-cloak @endif>{{ $cents }}</sup></span>
+                <span class="ml-price"><span class="cur">R$</span><span x-text="intPart(p.price + chExtra())">{{ $int }}</span><sup x-show="cents(p.price + chExtra()) !== '00'" x-text="cents(p.price + chExtra())" @if($cents === '00') x-cloak @endif>{{ $cents }}</sup></span>
                 <span class="ml-pct" x-show="p.pct" x-text="p.pct + '% OFF'" @if(! $d['pct']) x-cloak @endif>{{ $d['pct'] }}% OFF</span>
             </div>
             <div class="ml-pix pp-pix" x-show="p.pix && @js($layout['show_pix'])" @if(empty($d['pix'])) x-cloak @endif data-testid="page-pix"><i class="fas fa-qrcode"></i> <span x-text="p.pix ? 'ou ' + money(p.pix) + ' no Pix (' + @js(rtrim(rtrim(number_format(\App\Services\Portal\Rewards::for((int) $owner)['pix'], 2, ',', ''), '0'), ',')) + '% de desconto)' : ''"></span></div>
@@ -425,6 +459,9 @@
                 </div>
             @endif
             @break
+            @case('escolhas')
+            @include('portal.partials.product-choices')
+            @break
             @case('avisos')
             <div class="ml-perk" x-show="p.order" x-cloak>
                 <i class="fas fa-clock"></i>
@@ -481,9 +518,9 @@
             <div class="ml-actions" style="margin-top:14px">
                 <template x-if="p.buyable">
                     <div class="ml-actions">
-                        <button type="button" class="ml-btn ml-btn-primary" @click="buyNow()" data-testid="buy-now">{{ $layout['buy_text'] }}</button>
+                        <button type="button" class="ml-btn ml-btn-primary" @click="addCh(true)" data-testid="buy-now">{{ $layout['buy_text'] }}</button>
                         @if($layout['show_cart'])
-                        <button type="button" class="ml-btn ml-btn-soft" @click="add(p, qty)" data-testid="add-cart">
+                        <button type="button" class="ml-btn ml-btn-soft" @click="addCh()" data-testid="add-cart">
                             <i class="fas fa-cart-plus"></i> {{ $layout['cart_text'] }}
                         </button>
                         @endif
@@ -589,7 +626,7 @@
                 <div class="pp-buy2-sum">
                     <small x-text="items.length === 1 ? 'Só este produto' : 'Os ' + items.length + ' juntos por'"></small>
                     <strong x-text="money(total)"></strong>
-                    <button type="button" class="ml-btn ml-btn-primary" :disabled="!items.length" @click="items.forEach(x => add(x, 1))" data-testid="buy-together-add">
+                    <button type="button" class="ml-btn ml-btn-primary" :disabled="!items.length" @click="items.forEach(x => x.id === p.id ? addCh() : add(x, 1))" data-testid="buy-together-add">
                         <i class="fas fa-cart-plus"></i> <span x-text="items.length > 1 ? 'Adicionar os ' + items.length : 'Adicionar'"></span>
                     </button>
                 </div>
@@ -704,13 +741,13 @@
     <div class="pp-buybar">
         <div class="pp-buybar-sum">
             <small x-text="p.buyable ? (p.opt ? p.opt : 'Total') : 'Esgotado no momento'">Total</small>
-            <strong x-text="p.price > 0 ? money(p.price * Math.max(qty, 1)) : 'Sob consulta'"></strong>
+            <strong x-text="p.price > 0 ? money((p.price + chExtra()) * Math.max(qty, 1)) : 'Sob consulta'"></strong>
         </div>
         <button type="button" class="ml-btn ml-btn-soft pp-cart-btn" @click="openCart()" aria-label="Abrir carrinho">
             <i class="fas fa-cart-shopping"></i>
             <span class="ml-count" x-show="$store.cart.count > 0" x-text="$store.cart.count" x-cloak></span>
         </button>
-        <button type="button" class="ml-btn ml-btn-primary" x-show="p.buyable" @click="add(p, qty)">
+        <button type="button" class="ml-btn ml-btn-primary" x-show="p.buyable" @click="addCh()">
             <i class="fas fa-cart-plus"></i> Adicionar
         </button>
         <button type="button" class="ml-btn ml-btn-primary" x-show="!p.buyable" x-cloak @click="fav(p.id)">

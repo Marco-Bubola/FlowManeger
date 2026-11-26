@@ -9,6 +9,8 @@
         .pc-item .po-thumb { width: 76px; height: 76px; }
         .pc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
         .pc-name { font-size: 14px; color: var(--ml-text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .pc-opts { font-size: 12.5px; color: var(--ml-muted); margin-top: 2px; }
+        .pc-mix { font-size: 12px; font-weight: 700; color: #b45309; margin-top: 3px; }
         .pc-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
         .pc-qty { display: inline-flex; align-items: center; border: 1px solid var(--ml-line); border-radius: 6px; height: 34px; overflow: hidden; }
         .pc-qty button { width: 34px; height: 100%; border: 0; background: var(--ml-card); color: var(--ml-blue); font-size: 18px; font-weight: 700; cursor: pointer; }
@@ -121,7 +123,7 @@
         <div>
             <section class="po-card">
                 <div class="pa-sec-head"><h2>Produtos</h2></div>
-                <template x-for="item in $store.cart.items" :key="item.id">
+                <template x-for="item in $store.cart.items" :key="item.key || item.id">
                     <div class="pc-item" data-testid="cart-item">
                         <div class="po-thumb">
                             <template x-if="item.img"><img :src="item.img" :alt="item.name" loading="lazy"></template>
@@ -129,20 +131,22 @@
                         </div>
                         <div class="pc-main">
                             <div class="pc-name" x-text="item.name"></div>
+                            <div class="pc-opts" x-show="item.opts && item.opts.length" x-text="$store.cart.optsText(item)" data-testid="cart-item-opts"></div>
+                            <div class="pc-mix" x-show="$store.cart.mixed(item.id)" x-cloak><i class="fas fa-triangle-exclamation"></i> Cores diferentes da mesma peça. A loja recomenda tudo da mesma cor.</div>
                             <div class="pc-unit" x-text="money(item.price) + ' cada'"></div>
                             <div class="pc-last" x-show="item.stock && item.stock <= 3">Últimas unidades</div>
                             <div class="pc-row">
                                 <div class="pc-qty">
-                                    <button type="button" @click="$store.cart.setQty(item.id, item.qty - 1)" :disabled="item.qty <= 1" aria-label="Diminuir">−</button>
+                                    <button type="button" @click="$store.cart.setQty(item.key, item.qty - 1)" :disabled="item.qty <= 1" aria-label="Diminuir">−</button>
                                     <span x-text="item.qty"></span>
-                                    <button type="button" @click="$store.cart.setQty(item.id, item.qty + 1)" :disabled="item.stock > 0 && item.qty >= item.stock" aria-label="Aumentar">+</button>
+                                    <button type="button" @click="$store.cart.setQty(item.key, item.qty + 1)" :disabled="item.stock > 0 && item.qty >= item.stock" aria-label="Aumentar">+</button>
                                 </div>
                                 <div class="pc-price">
                                     <s x-show="fresh[item.id] && fresh[item.id].old" x-text="fresh[item.id] ? money((fresh[item.id].old || 0) * item.qty) : ''"></s>
                                     <strong x-text="money(item.price * item.qty)"></strong>
                                 </div>
                             </div>
-                            <div><button type="button" class="pc-remove" @click="$store.cart.remove(item.id)">Excluir</button></div>
+                            <div><button type="button" class="pc-remove" @click="$store.cart.remove(item.key)">Excluir</button></div>
                         </div>
                     </div>
                 </template>
@@ -313,10 +317,13 @@
 
     <form method="POST" action="{{ route('portal.quotes.store') }}" x-ref="form" style="display:none">
         @csrf
-        <template x-for="(item, i) in $store.cart.items" :key="item.id">
+        <template x-for="(item, i) in $store.cart.items" :key="item.key || item.id">
             <span>
                 <input type="hidden" :name="'items[' + i + '][product_id]'" :value="item.id">
                 <input type="hidden" :name="'items[' + i + '][quantity]'" :value="item.qty">
+                <template x-for="o in (item.opts || [])" :key="o.c">
+                    <input type="hidden" :name="'items[' + i + '][choices][' + o.c + ']'" :value="o.i">
+                </template>
             </span>
         </template>
         <input type="hidden" name="payment_preference" :value="online ? '' : pay">
@@ -361,7 +368,7 @@ function portalCart(fresh, stockMap, cfg) {
             this.removed = cart.sync(stockMap);
             cart.items.forEach(i => {
                 const f = fresh[i.id];
-                if (f) { i.price = f.price; i.name = f.name; i.img = f.img; i.stock = f.stock; }
+                if (f) { i.price = Math.round((f.price + (i.opts || []).reduce((s, o) => s + (parseFloat(o.x) || 0), 0)) * 100) / 100; i.name = f.name; i.img = f.img; i.stock = f.stock; }
             });
             cart.save();
             // Voltou com erro do envio: o carrinho tinha sido limpo, então volta o que estava nele.

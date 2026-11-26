@@ -25,6 +25,7 @@
             'lista' => ['label' => 'Orçamentos', 'icon' => 'bi-file-earmark-text', 'route' => 'orcamentos.index'],
             'novo' => ['label' => 'Novo orçamento', 'icon' => 'bi-plus-circle', 'route' => 'orcamentos.create'],
             'materiais' => ['label' => 'Materiais e horas', 'icon' => 'bi-calculator', 'route' => 'orcamentos.materials'],
+            'escolhas' => ['label' => 'Estofados e cores', 'icon' => 'bi-palette', 'route' => 'orcamentos.choices'],
             'ajustes' => ['label' => 'Ajustes', 'icon' => 'bi-sliders', 'route' => 'orcamentos.settings'],
         ],
         'mercadolivre' => [
