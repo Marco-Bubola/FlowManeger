@@ -327,4 +327,56 @@ class FichasController extends Controller
             'codigo' => is_array($json) ? (Str::limit((string) ($json['codigo'] ?? ''), 58, '') ?: null) : null,
         ];
     }
+
+    /**
+     * Tabela de materiais e horas (a mesma de Orçamentos › Materiais e horas).
+     * Formato do robô: {cat, nome, unid, preco, nota, est}.
+     */
+    public function materiais(Request $request): JsonResponse
+    {
+        $uid = (int) $request->user()->id;
+        $itens = \App\Services\Quotes\QuoteService::materials($uid)->map(fn ($m) => [
+            'id' => $m->id, 'cat' => $m->category, 'nome' => $m->name, 'unid' => $m->unit,
+            'preco' => (float) $m->price, 'nota' => (string) $m->note, 'est' => (bool) $m->estimated,
+        ])->values();
+        $quando = \App\Models\QuoteMaterial::where('user_id', $uid)->max('updated_at');
+
+        return response()->json(['itens' => $itens, 'atualizado_em' => $quando ? \Illuminate\Support\Carbon::parse($quando)->toIso8601String() : null]);
+    }
+
+    /** O robô salvou a tabela: o site fica igual (muda, cria e tira o que saiu). */
+    public function salvarMateriais(Request $request): JsonResponse
+    {
+        $uid = (int) $request->user()->id;
+        $itens = json_decode((string) $request->input('itens', '[]'), true);
+        abort_unless(is_array($itens) && count($itens) <= 2000, 422, 'Lista inválida.');
+        $atual = \App\Models\QuoteMaterial::where('user_id', $uid)->get();
+        $porId = $atual->keyBy('id');
+        $porNome = $atual->keyBy(fn ($m) => mb_strtolower($m->name));
+        $vistos = [];
+        DB::transaction(function () use ($itens, $uid, $porId, $porNome, &$vistos) {
+            foreach (array_values($itens) as $pos => $i) {
+                $nome = mb_substr(trim((string) ($i['nome'] ?? '')), 0, 160);
+                if ($nome === '') {
+                    continue;
+                }
+                $m = (!empty($i['id']) ? $porId->get((int) $i['id']) : null) ?? $porNome->get(mb_strtolower($nome)) ?? new \App\Models\QuoteMaterial(['user_id' => $uid]);
+                $m->fill([
+                    'category' => mb_substr(trim((string) ($i['cat'] ?? 'Outros')) ?: 'Outros', 0, 80),
+                    'name' => $nome,
+                    'unit' => mb_substr(trim((string) ($i['unid'] ?? 'un')) ?: 'un', 0, 20),
+                    'price' => max(0, round((float) ($i['preco'] ?? 0), 2)),
+                    'note' => mb_substr(trim((string) ($i['nota'] ?? '')), 0, 200) ?: null,
+                    'estimated' => (bool) ($i['est'] ?? false),
+                    'position' => ($pos + 1) * 10,
+                ]);
+                $m->user_id = $uid;
+                $m->save();
+                $vistos[] = $m->id;
+            }
+            \App\Models\QuoteMaterial::where('user_id', $uid)->whereNotIn('id', $vistos ?: [0])->delete();
+        });
+
+        return $this->materiais($request);
+    }
 }

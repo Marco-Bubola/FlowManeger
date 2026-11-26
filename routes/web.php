@@ -155,11 +155,19 @@ Route::get('/dashboard', DashboardIndex::class)
 // Mapa do site geral: aponta para o mapa de cada loja que quer aparecer no Google (robots.txt indica aqui).
 Route::get('/sitemap.xml', [\App\Http\Controllers\PortalFeedController::class, 'index'])->middleware('throttle:30,1')->name('sitemap.index');
 
+// Orçamento que o cliente abre pelo link (sem login): só preço, prazo e fotos, nunca o custo.
+Route::get('/o/{token}', [\App\Http\Controllers\QuotePublicController::class, 'show'])->where('token', '[A-Za-z0-9]{32}')->middleware('throttle:60,1')->name('orcamento.public');
+Route::get('/o/{token}/pdf', [\App\Http\Controllers\QuotePublicController::class, 'pdf'])->where('token', '[A-Za-z0-9]{32}')->middleware('throttle:20,1')->name('orcamento.public.pdf');
+Route::post('/o/{token}/resposta', [\App\Http\Controllers\QuotePublicController::class, 'respond'])->where('token', '[A-Za-z0-9]{32}')->middleware('throttle:10,1,orcamento-resposta')->name('orcamento.public.respond');
+
 // Rotas públicas do portal — sem autenticação (deve vir antes dos grupos com middleware)
 Route::prefix('portal')->name('portal.')->group(function () {
     Route::get('/catalogo/{userId?}', [ClientPortalController::class, 'publicCatalog'])->name('catalog');
     // Foto do produto em JPG para a prévia do link no WhatsApp (que não mostra .webp).
     Route::get('/catalogo/{userId}/vistos', [ClientPortalController::class, 'recentlyViewed'])->whereNumber('userId')->middleware('throttle:60,1')->name('catalog.seen');
+    // Pedir orçamento sob medida / reforma, com fotos (com ou sem login)
+    Route::get('/catalogo/{userId}/pedir-orcamento', [\App\Http\Controllers\PortalCustomQuoteController::class, 'create'])->whereNumber('userId')->name('custom-quote.create');
+    Route::post('/catalogo/{userId}/pedir-orcamento', [\App\Http\Controllers\PortalCustomQuoteController::class, 'store'])->whereNumber('userId')->middleware('throttle:6,1,orcamento-pedido')->name('custom-quote.store');
     Route::get('/catalogo/{userId}/frete', [ClientPortalController::class, 'shippingQuote'])->whereNumber('userId')->middleware('throttle:30,1')->name('catalog.shipping');
     Route::get('/catalogo/{userId}/pagina/{page}', [ClientPortalController::class, 'storePage'])->whereNumber('userId')->whereIn('page', ['sobre', 'trocas', 'entrega', 'privacidade', 'termos'])->name('store-page');
     Route::post('/catalogo/{userId}/carrinho', [\App\Http\Controllers\PortalCartController::class, 'save'])->whereNumber('userId')->middleware('throttle:60,1')->name('cart.save');
@@ -324,6 +332,14 @@ Route::middleware(['auth'])->group(function () {
     // Route::post('/update-stock/{productId}', [SaleController::class, 'updateStock']);
 
     // --- Rotas de Vendas (Livewire) ---
+    // Orçamentos de produto sob medida e de reforma (o custo nunca vai ao cliente)
+    Route::get('/orcamentos', \App\Livewire\Quotes\QuotesIndex::class)->name('orcamentos.index');
+    Route::get('/orcamentos/novo', \App\Livewire\Quotes\QuoteEditor::class)->name('orcamentos.create');
+    Route::get('/orcamentos/materiais', \App\Livewire\Quotes\QuoteMaterials::class)->name('orcamentos.materials');
+    Route::get('/orcamentos/ajustes', \App\Livewire\Quotes\QuoteSettings::class)->name('orcamentos.settings');
+    Route::get('/orcamentos/{quote}', \App\Livewire\Quotes\ShowQuote::class)->whereNumber('quote')->name('orcamentos.show');
+    Route::get('/orcamentos/{quote}/editar', \App\Livewire\Quotes\QuoteEditor::class)->whereNumber('quote')->name('orcamentos.edit');
+    Route::get('/orcamentos/{quote}/pdf', [\App\Http\Controllers\QuotePublicController::class, 'ownerPdf'])->whereNumber('quote')->name('orcamentos.pdf');
     Route::get('/sales', SalesIndex::class)->name('sales.index');
     Route::get('/sales/create', CreateSale::class)->name('sales.create');
     Route::get('/sales/pedidos-do-portal', \App\Livewire\Sales\PortalOrders::class)->name('sales.portal-orders');
@@ -593,6 +609,8 @@ Route::prefix('robo-api')->name('robo-api.')->withoutMiddleware(['web'])->middle
         Route::post('/fichas/excluir', 'excluir')->name('fichas.excluir');
         Route::get('/estoque', 'estoque')->name('estoque');
         Route::post('/estoque/somar', 'somarEstoque')->name('estoque.somar');
+        Route::get('/materiais', 'materiais')->name('materiais');
+        Route::post('/materiais', 'salvarMateriais')->name('materiais.salvar');
     });
 
 // Aviso do Mercado Pago sobre pagamentos do portal (público; o pagamento é conferido na API)
