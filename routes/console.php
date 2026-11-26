@@ -69,6 +69,11 @@ Schedule::command('crm:automacoes')
     ->dailyAt('08:05')
     ->withoutOverlapping();
 
+// Orçamentos sob medida e reforma: lembretes e vencimento
+Schedule::command('orcamentos:automacoes')
+    ->hourlyAt(10)
+    ->withoutOverlapping();
+
 // Tarefas e follow-ups dos clientes: aviso no sino no dia/hora marcada
 Schedule::command('tasks:avisar')
     ->everyFifteenMinutes()
