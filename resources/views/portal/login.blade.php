@@ -1,4 +1,8 @@
-<x-portal-auth-layout title="Entrar" heading="Bem-vindo de volta 👋" subtitle="Entre com seu e-mail ou com o login enviado pela loja.">
+@php
+    $loginStore = (int) request()->query('loja') ?: (int) request()->cookie('portal_store');
+    $look = \App\Services\Portal\LoginLook::for($loginStore ?: null);
+@endphp
+<x-portal-auth-layout title="Entrar" :heading="$look['heading'] ?: 'Bem-vindo de volta 👋'" :subtitle="$look['subtitle'] ?: 'Entre com seu e-mail ou com o login enviado pela loja.'">
     <form method="POST" action="{{ route('portal.login.post') }}" class="pa-form">
         @csrf
 
@@ -31,9 +35,10 @@
         <button type="submit" class="pa-btn">Entrar <i class="fas fa-arrow-right"></i></button>
     </form>
 
+    @if($look['google'])
     <div class="pa-divider">ou</div>
 
-    <a href="{{ route('portal.google.redirect') }}" class="pa-btn pa-btn-google">
+    <a href="{{ route('portal.google.redirect') }}" class="pa-btn pa-btn-google" data-testid="login-google">
         <svg width="18" height="18" viewBox="0 0 48 48" fill="none" aria-hidden="true">
             <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.654 32.657 29.243 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.959 3.041l5.657-5.657C34.053 6.053 29.277 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.651-.389-3.917Z"/>
             <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.959 3.041l5.657-5.657C34.053 6.053 29.277 4 24 4c-7.682 0-14.347 4.337-17.694 10.691Z"/>
@@ -42,17 +47,20 @@
         </svg>
         Entrar com Google
     </a>
-    @if($loginStore = (int) request()->cookie('portal_store'))
+    @if($loginStore)
         <p class="pa-muted" style="font-size:.75rem;text-align:center;margin:8px 0 0">Ao entrar com o Google pela primeira vez, você aceita os <a href="{{ route('portal.store-page', ['userId' => $loginStore, 'page' => 'termos']) }}" class="pa-link" style="font-size:.75rem">Termos</a> e a <a href="{{ route('portal.store-page', ['userId' => $loginStore, 'page' => 'privacidade']) }}" class="pa-link" style="font-size:.75rem">Política de privacidade</a>.</p>
+    @endif
     @endif
 
     <div class="pa-foot">
-        @if(request()->cookie('portal_store'))
+        @if($loginStore)
+            @if($look['register'])
             <p class="pa-muted">Primeira compra por aqui?</p>
-            <a href="{{ route('portal.register', session('portal_intended') === 'cart' ? ['redirect' => 'cart'] : []) }}" class="pa-btn pa-btn-ghost">
+            <a href="{{ route('portal.register', session('portal_intended') === 'cart' ? ['redirect' => 'cart'] : []) }}" class="pa-btn pa-btn-ghost" data-testid="login-register">
                 <i class="fas fa-user-plus"></i> Criar minha conta
             </a>
-            <a href="{{ route('portal.catalog', ['userId' => request()->cookie('portal_store')]) }}" class="pa-back">
+            @endif
+            <a href="{{ route('portal.catalog', ['userId' => $loginStore]) }}" class="pa-back">
                 <i class="fas fa-arrow-left"></i> Voltar ao catálogo
             </a>
         @else

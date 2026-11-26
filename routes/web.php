@@ -162,6 +162,17 @@ Route::post('/o/{token}/resposta', [\App\Http\Controllers\QuotePublicController:
 
 // Rotas públicas do portal — sem autenticação (deve vir antes dos grupos com middleware)
 Route::prefix('portal')->name('portal.')->group(function () {
+    // Ícone da loja (favicon e tela de início) e o manifesto do catálogo, feitos da logo da loja.
+    Route::get('/icone/{userId}/{size}.png', function (int $userId, int $size) {
+        $png = \App\Services\Portal\StoreIcon::png($userId, $size);
+        if ($png === null) {
+            return redirect(\Illuminate\Support\Facades\Vite::asset('resources/images/icons/' . ($size >= 180 ? 'apple-touch-icon-180.png' : 'favicon-32.png')));
+        }
+
+        return response($png, 200, ['Content-Type' => 'image/png', 'Cache-Control' => 'public, max-age=604800']);
+    })->whereNumber(['userId', 'size'])->name('icon');
+    Route::get('/app/{userId}.webmanifest', fn (int $userId) => response()->json(\App\Services\Portal\StoreIcon::manifest($userId), 200, ['Content-Type' => 'application/manifest+json'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE))
+        ->whereNumber('userId')->name('manifest');
     Route::get('/catalogo/{userId?}', [ClientPortalController::class, 'publicCatalog'])->name('catalog');
     // Foto do produto em JPG para a prévia do link no WhatsApp (que não mostra .webp).
     Route::get('/catalogo/{userId}/vistos', [ClientPortalController::class, 'recentlyViewed'])->whereNumber('userId')->middleware('throttle:60,1')->name('catalog.seen');

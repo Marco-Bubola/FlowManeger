@@ -1,5 +1,5 @@
 @props([
-    // Parte aberta agora (identidade, leis, tema, inicio, banners, destaques, colecoes, aviso, automacoes, kits, cupons, pagamentos, pedidos, avaliacoes)
+    // Parte aberta agora (identidade, leis, tema, login, inicio, banners, destaques, colecoes, aviso, automacoes, kits, cupons, pagamentos, pedidos, avaliacoes)
     'current' => 'geral',
     // Na Vitrine as partes dela trocam sem recarregar (wire:click); nas outras telas viram links.
     'wire' => false,
@@ -19,6 +19,7 @@
         ],
         'Aparência' => [
             'tema' => ['Tema e estilo', 'bi-palette', 'Cores, fonte, cards e fundo', 'tab', 'tema cores estilo fundo desenho cards botoes fonte titulos paleta cantos natal black'],
+            'login' => ['Tela de login', 'bi-box-arrow-in-right', 'Logo, cores e entrar com Google', 'tab', 'login entrar senha google conta cadastro criar conta acesso cliente tela cores cantos formato'],
             'inicio' => ['Página inicial', 'bi-house', 'Modelo e ordem dos blocos', 'tab', 'modelo blocos ordem secoes arrumacao vantagens texto largura'],
             'banners' => ['Banners', 'bi-images', 'Carrossel, faixas e laterais', 'tab', 'carrossel faixa lateral imagem foto modelo'],
             'destaques' => ['Destaques', 'bi-star', 'Produtos da fileira de destaque', 'tab', 'fileira produtos estrela'],

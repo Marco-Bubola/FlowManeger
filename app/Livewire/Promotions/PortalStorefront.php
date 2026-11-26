@@ -58,6 +58,9 @@ class PortalStorefront extends Component
     public array $pages = [];
     public $logoUpload = null;
 
+    /** Vitrine › Tela de login (LoginLook). */
+    public array $login = [];
+
     // Aviso no topo
     public string $notice_text = '';
     public string $notice_link = '';
@@ -88,6 +91,7 @@ class PortalStorefront extends Component
         $this->loadHome($s);
         $this->auto = HomeLayout::auto($s);
         $this->loadIdentity($s);
+        $this->login = \App\Services\Portal\LoginLook::clean((array) (($s->identity ?? [])['login'] ?? []));
         // Uma coleção pronta para cada categoria, criada uma vez; as categorias novas pelo botão.
         if (\Illuminate\Support\Facades\Schema::hasColumn('portal_settings', 'home') && empty(($s->home ?? [])['cats_done'])) {
             $made = StorefrontService::createCategoryCollections(Auth::id(), $this->kind);
@@ -527,6 +531,10 @@ class PortalStorefront extends Component
         $data['show_name'] = (bool) ($data['show_name'] ?? true);
         $data['privacy_bar'] = (bool) ($data['privacy_bar'] ?? true);
         $s = PortalSetting::for(Auth::id());
+        // A tela de login fica junto da identidade, mas é salva na aba dela.
+        if (! empty(($s->identity ?? [])['login'])) {
+            $data['login'] = $s->identity['login'];
+        }
         $s->identity = $data;
         $s->pages = array_map(fn ($v) => trim((string) $v), array_intersect_key($this->pages, \App\Services\Portal\StoreIdentity::allPages()));
         $s->save();
@@ -535,6 +543,63 @@ class PortalStorefront extends Component
         if (! $quiet) {
             $this->dispatch('notify', type: 'success', message: 'Informações da loja salvas.');
         }
+    }
+
+    /* ---------- Tela de login ---------- */
+
+    /** Cada mudança na aba Tela de login já fica salva e a prévia recarrega. */
+    public function updatedLogin(): void
+    {
+        $this->saveLogin();
+    }
+
+    public function setLogin(string $key, $value): void
+    {
+        if (array_key_exists($key, \App\Services\Portal\LoginLook::DEFAULTS)) {
+            $this->login[$key] = $value;
+            $this->saveLogin();
+        }
+    }
+
+    public function setLoginPalette(string $key): void
+    {
+        if ($p = \App\Services\Portal\LoginLook::PALETTES[$key] ?? null) {
+            $this->login['c1'] = $p[1];
+            $this->login['c2'] = $p[2];
+            $this->saveLogin();
+        }
+    }
+
+    /** Usa as cores do tema do site (Vitrine › Tema e estilo). */
+    public function useSiteColorsOnLogin(): void
+    {
+        $t = HomeLayout::cssTheme(Auth::id()) ?? [];
+        $c1 = (string) ($t['primary'] ?? '');
+        $c2 = (string) ($t['dark'] ?? '');
+        if (preg_match('/^#[0-9a-f]{6}$/i', $c1)) {
+            $this->login['c1'] = strtolower($c1);
+            $this->login['c2'] = preg_match('/^#[0-9a-f]{6}$/i', $c2) ? strtolower($c2) : strtolower($c1);
+            $this->saveLogin();
+        } else {
+            $this->dispatch('notify', type: 'info', message: 'O site está com as cores padrão. Escolha uma das cores prontas.');
+        }
+    }
+
+    public function resetLogin(): void
+    {
+        $this->login = \App\Services\Portal\LoginLook::DEFAULTS;
+        $this->saveLogin();
+        $this->dispatch('notify', type: 'success', message: 'Tela de login voltou ao padrão.');
+    }
+
+    private function saveLogin(): void
+    {
+        $this->login = \App\Services\Portal\LoginLook::clean($this->login);
+        $s = PortalSetting::for(Auth::id());
+        $s->identity = array_merge((array) ($s->identity ?? []), ['login' => $this->login]);
+        $s->save();
+        \App\Services\Portal\StoreIdentity::forget(Auth::id());
+        $this->previewKey++;
     }
 
     /** Site dentro da lei: põe o texto pronto no campo para a loja revisar e trocar o que quiser. */
@@ -943,6 +1008,7 @@ class PortalStorefront extends Component
             'geral'     => null,
             'identidade' => ($this->identity['logo'] ?? null) ? 'Com a sua logo' : 'Logo, endereço e contatos',
             'tema'      => $theme ? 'Tema: ' . $theme : null,
+            'login'     => (\App\Services\Portal\LoginLook::MODES[$this->login['mode'] ?? 'escuro'][0] ?? 'Escuro') . (($this->login['google'] ?? true) ? ' · com Google' : ' · sem Google'),
             'inicio'    => (HomeLayout::MODELS[$this->home_model][0] ?? null) ? 'Modelo ' . HomeLayout::MODELS[$this->home_model][0] : null,
             'banners'   => $n($live, 'banner no ar', 'banners no ar'),
             'destaques' => $n(count($this->featuredIds), 'produto escolhido', 'produtos escolhidos'),

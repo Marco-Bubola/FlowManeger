@@ -172,7 +172,7 @@
 
                 {{-- 1. Logo e nome --}}
                 <section id="id-logo" class="{{ $card }} p-4 sm:p-5 space-y-4 scroll-mt-20">
-                    {!! $secHead('bi-image', 'bg-violet-50 dark:bg-violet-500/15 text-violet-600', 'Logo e nome da loja', 'Aparecem no topo de todas as páginas do site e no rodapé.', (bool) $logoUrl) !!}
+                    {!! $secHead('bi-image', 'bg-violet-50 dark:bg-violet-500/15 text-violet-600', 'Logo e nome da loja', 'Aparecem no topo do site, no rodapé e na tela de login. A logo também vira o ícone da aba e do celular quando o cliente põe o site na tela de início.', (bool) $logoUrl) !!}
                     <div class="flex flex-col sm:flex-row gap-4 sm:items-center">
                         <div class="shrink-0 w-28 h-28 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden relative">
                             @if($logoUrl)
@@ -1083,6 +1083,11 @@
                 <button type="button" wire:click="saveNotice" class="{{ $primary }}" data-testid="notice-save"><i class="bi bi-check2"></i>Salvar aviso</button>
             </div>
         </section>
+    @endif
+
+    {{-- ===================== Tela de login ===================== --}}
+    @if($tab === 'login')
+        @include('livewire.promotions.partials.login-settings')
     @endif
 
     {{-- ===================== Páginas e leis ===================== --}}

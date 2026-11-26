@@ -65,6 +65,12 @@ class ClientPortalController extends Controller
             $request->session()->put('portal_intended', self::catalogPath($request->query('redirect')));
         }
 
+        // Link da loja (?loja=ID): o login já abre com a logo e as cores dela.
+        $loja = (int) $request->query('loja');
+        if ($loja && ! $request->has('previa') && \App\Models\User::whereKey($loja)->exists()) {
+            cookie()->queue('portal_store', (string) $loja, 60 * 24 * 30);
+        }
+
         return view('portal.login');
     }
 

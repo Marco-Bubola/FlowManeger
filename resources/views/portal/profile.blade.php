@@ -49,6 +49,7 @@
                 <div class="po-hint" style="margin:2px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Login: <strong>{{ $client->portal_login }}</strong>@if($client->email) · {{ $client->email }}@endif</div>
             </div>
         </div>
+        @if($client->google_id || \App\Services\Portal\LoginLook::for((int) $client->user_id)['google'])
         <div class="po-card-foot">
             <div style="min-width:0">
                 <div style="font-weight:700;font-size:14px">Entrar com Google</div>
@@ -68,6 +69,7 @@
                 </a>
             @endif
         </div>
+        @endif
     </section>
 
     <form method="POST" action="{{ route('portal.profile.update') }}">
