@@ -502,8 +502,8 @@ def materiais_padrao():
     return [{"cat": c, "nome": n, "unid": u, "preco": p, "nota": nt, "est": True} for c, n, u, p, nt in MATERIAIS_PADRAO]
 
 
-def ler_materiais():
-    """Sua tabela. Itens novos que vierem numa versão nova do robô entram sozinhos (os que você excluiu não voltam)."""
+def _ler_local_materiais():
+    """(itens, dados do arquivo) da cópia que fica no PC."""
     try:
         d = json.loads(ARQ_MATERIAIS.read_text(encoding="utf-8"))
         if isinstance(d, dict) and isinstance(d.get("itens"), list):
@@ -513,17 +513,71 @@ def ler_materiais():
                 if novo["nome"] not in vistos:
                     pos = max((n for n, x in enumerate(itens) if x.get("cat") == novo["cat"]), default=len(itens) - 1) + 1
                     itens.insert(pos, novo)
-            return itens
+            return itens, d
     except Exception:
         pass
-    return materiais_padrao()
+    return materiais_padrao(), {}
+
+
+def _gravar_local_materiais(itens, **extra):
+    vistos = sorted({i["nome"] for i in materiais_padrao()} | {i.get("nome") for i in itens if i.get("nome")})
+    tmp = ARQ_MATERIAIS.with_suffix(".tmp")
+    tmp.write_text(json.dumps({"itens": itens, "padrao_visto": vistos, **extra}, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, ARQ_MATERIAIS)
+
+
+def _site_materiais(itens=None):
+    """Tabela do site (Orçamentos › Materiais e horas). None = robô não conectado ou site sem essa parte.
+    Com itens: manda a tabela do robô para o site e devolve como ficou lá."""
+    conta = motor.ler_conta()
+    if not conta or not conta.get("site"):
+        return None
+    try:
+        n = motor.Nuvem(conta["site"], motor.BASE)
+        if itens is None:
+            r = n._req("GET", "/materiais", tempo=8)
+        else:
+            limpos = [{k: i.get(k) for k in ("id", "cat", "nome", "unid", "preco", "nota", "est")} for i in itens if i.get("nome")]
+            r = n._req("POST", "/materiais", campos={"itens": json.dumps(limpos, ensure_ascii=False)}, tempo=25)
+        lista = r.get("itens")
+        return lista if isinstance(lista, list) else None
+    except Exception:
+        return None
+
+
+_CACHE_MAT = {"t": 0.0, "itens": None}
+
+
+def ler_materiais():
+    """Sua tabela. Com o robô conectado ao site, a tabela é UMA SÓ: a do site (a mesma dos orçamentos).
+    Sem internet, usa a cópia do PC. Itens novos de uma versão nova do robô entram sozinhos."""
+    import time
+    if _CACHE_MAT["itens"] is not None and time.time() - _CACHE_MAT["t"] < 60:
+        return [dict(i) for i in _CACHE_MAT["itens"]]
+    locais, d = _ler_local_materiais()
+    if motor.ler_conta():
+        # Primeira vez (ou mudança que não subiu): os seus preços do PC vão para o site.
+        mexidos = any(not i.get("est", True) for i in locais)
+        if d.get("pendente") or (not d.get("site_ok") and mexidos):
+            site = _site_materiais(locais)
+        else:
+            site = _site_materiais()
+        if site is not None:
+            _gravar_local_materiais(site, site_ok=True)
+            _CACHE_MAT.update(t=time.time(), itens=site)
+            return [dict(i) for i in site]
+    return locais
 
 
 def salvar_materiais(itens):
-    vistos = sorted({i["nome"] for i in materiais_padrao()})
-    tmp = ARQ_MATERIAIS.with_suffix(".tmp")
-    tmp.write_text(json.dumps({"itens": itens, "padrao_visto": vistos}, ensure_ascii=False, indent=2), encoding="utf-8")
-    os.replace(tmp, ARQ_MATERIAIS)
+    """Grava no PC e, se o robô estiver conectado, no site também (fica igual nos orçamentos)."""
+    _CACHE_MAT["itens"] = None
+    _gravar_local_materiais(itens, site_ok=True, pendente=bool(motor.ler_conta()))
+    if motor.ler_conta():
+        site = _site_materiais(itens)
+        if site is not None:
+            _gravar_local_materiais(site, site_ok=True)
+            itens[:] = site
 
 
 def texto_materiais(itens=None):

@@ -1,6 +1,6 @@
 {
-  "versao": 33,
-  "data": "2026-11-25",
+  "versao": 34,
+  "data": "2026-11-26",
   "arquivos": [
     "janela.pyw",
     "motor.py",
@@ -14,10 +14,10 @@
     "instalar.bat"
   ],
   "novidades": [
+    "Materiais e custos agora é uma tabela só com o site: o que você muda aqui aparece nos Orçamentos do FlowManeger, e o que muda lá aparece aqui (com o robô conectado ao site). Na primeira vez, os preços que você já mudou no robô vão para o site.",
     "Canva automático: quando o Canva pede “Confirme que é humano”, o robô avisa e espera você marcar o quadradinho; depois continua sozinho.",
     "Canva automático voltou para o Edge, como era antes (com a conta do Canva que você já entrou lá).",
     "Continua: janela maximizada, sem clicar em Baixar (que abria “Salvar no OneDrive”) e conversa nova quando a caixa de texto some.",
-    "Canva automático: se você ainda não entrou no Canva, o robô agora espera você entrar (antes ele desistia e fechava).",
-    "Ele tenta colocar as fotos de três jeitos. Se não conseguir, abre a pasta das fotos e pede para você arrastar; depois continua sozinho."
+    "Canva automático: se você ainda não entrou no Canva, o robô agora espera você entrar (antes ele desistia e fechava)."
   ]
 }
