@@ -35,7 +35,7 @@
                             @case('pedido') Chegou pelo portal. Monte o custo e o preço e mande para o cliente. @break
                             @case('rascunho') Pronto para mandar? Use o WhatsApp ou copie o link. @break
                             @case('enviado') O cliente pode aprovar ou pedir mudança pelo link{{ $quote->valid_until ? ' até ' . $quote->valid_until->format('d/m/Y') : '' }}. @break
-                            @case('aprovado') O cliente aprovou {{ $quote->approved_at?->timezone(QS::TZ)->format('d/m \à\s H:i') }}. Agora é só virar venda. @break
+                            @case('aprovado') O cliente aprovou {{ $quote->approved_at?->timezone(QS::TZ)->format('d/m \à\s H:i') }}. Agora é só criar a venda. @break
                             @case('convertido') Virou a venda #{{ $quote->sale_id }}. @break
                             @case('recusado') Não aprovado. Dá para reabrir se o cliente mudar de ideia. @break
                             @case('vencido') Passou da validade. Renove para o cliente poder aprovar de novo. @break
@@ -44,7 +44,7 @@
                 </div>
                 <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                     @if(in_array($quote->status, ['aprovado', 'enviado', 'rascunho'], true))
-                        <button type="button" wire:click="convert" wire:confirm="Criar a venda com estes itens e preços?" class="crm-btn {{ $quote->status === 'aprovado' ? 'crm-btn-primary' : '' }} flex-1 sm:flex-none justify-center"><i class="bi bi-cart-plus"></i>Virar venda</button>
+                        <button type="button" wire:click="convert" wire:confirm="{{ $quote->status === 'aprovado' ? 'Criar a venda com estes itens e preços?' : 'O cliente confirmou? Vou criar a venda com estes itens e preços.' }}" class="crm-btn qt-btn-sale flex-1 sm:flex-none justify-center" data-testid="convert"><i class="bi bi-cart-plus"></i>{{ $quote->status === 'aprovado' ? 'Criar venda' : 'Confirmado: criar venda' }}</button>
                     @endif
                     @if($quote->status === 'enviado')
                         <button type="button" wire:click="approve" wire:confirm="O cliente aprovou por fora (WhatsApp, pessoalmente)?" class="crm-btn flex-1 sm:flex-none justify-center"><i class="bi bi-hand-thumbs-up"></i>Aprovado</button>

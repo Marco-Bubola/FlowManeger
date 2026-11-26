@@ -57,57 +57,96 @@
         <div class="qt-editor">
             <div class="flex flex-col gap-4 min-w-0">
                 {{-- ===== Tipo e cliente ===== --}}
-                <section class="crs-card">
+                <section class="crs-card qt-card-visible">
                     <div class="crs-head">
                         <span class="crs-head-icon bg-gradient-to-br from-indigo-500 to-purple-600"><i class="bi bi-person-lines-fill"></i></span>
                         <div class="min-w-0 flex-1"><h2 class="crs-title">Tipo e cliente</h2></div>
                     </div>
                     <div class="qt-sec">
-                        <div class="qt-seg">
-                            @foreach(Quote::KINDS as $k => $def)
-                                <button type="button" wire:click="$set('kind', '{{ $k }}')" class="{{ $kind === $k ? 'is-on' : '' }}">
-                                    <span class="crs-row-icon qt-tone" style="--t: {{ \App\Models\ConsortiumNotification::TONES[$def['tone']] }}"><i class="bi {{ $def['icon'] }}"></i></span>
-                                    <span class="min-w-0"><span class="qt-seg-t block">{{ $def['label'] }}</span><span class="qt-muted block truncate">{{ $k === 'produto' ? 'Sob medida, outra cor ou peça nova' : 'A peça do cliente: estofar, pintar, soldar' }}</span></span>
-                                </button>
-                            @endforeach
+                        <div class="qt-tc">
+                            <div class="qt-tc-kind">
+                                <span class="crm-label">Tipo</span>
+                                <div class="qt-seg">
+                                    @foreach(Quote::KINDS as $k => $def)
+                                        <button type="button" wire:click="$set('kind', '{{ $k }}')" class="{{ $kind === $k ? 'is-on' : '' }}">
+                                            <span class="crs-row-icon qt-tone" style="--t: {{ \App\Models\ConsortiumNotification::TONES[$def['tone']] }}"><i class="bi {{ $def['icon'] }}"></i></span>
+                                            <span class="min-w-0"><span class="qt-seg-t block">{{ $def['label'] }}</span><span class="qt-muted block truncate">{{ $k === 'produto' ? 'Sob medida, outra cor ou peça nova' : 'A peça do cliente: estofar, pintar' }}</span></span>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            {{-- Cliente: dropdown com pesquisa junto, igual ao criar venda --}}
+                            <div class="qt-tc-client" x-data="{ open: false, creating: false }" @keydown.escape.window="open = false">
+                                <span class="crm-label">Cliente</span>
+                                <div class="relative">
+                                    <button type="button" class="qt-dd {{ $client ? 'is-set' : '' }}" @click="open = !open; creating = false; $nextTick(() => { if (open) $refs.cs.focus() })" data-testid="client-dropdown">
+                                        <span class="qt-dd-av">{{ $client ? mb_strtoupper(mb_substr($client->name, 0, 1)) : '' }}<i class="bi bi-person {{ $client ? 'hidden' : '' }}"></i></span>
+                                        <span class="min-w-0 flex-1 text-left">
+                                            <span class="block truncate font-bold">{{ $client->name ?? 'Selecionar cliente' }}</span>
+                                            <span class="block truncate qt-muted">{{ $client ? ($client->phone ?: 'sem telefone') : 'Busque pelo nome ou telefone, ou crie um novo' }}</span>
+                                        </span>
+                                        @if($client)
+                                            <span role="button" tabindex="0" wire:click.stop="clearClient" class="crm-icon-btn !w-7 !h-7" title="Tirar o cliente"><i class="bi bi-x-lg"></i></span>
+                                        @endif
+                                        <i class="bi bi-chevron-down text-slate-400 transition-transform" :class="open && 'rotate-180'"></i>
+                                    </button>
+
+                                    <div x-show="open" x-cloak x-transition.origin.top @click.outside="open = false" class="qt-dd-menu">
+                                        <div class="p-2 border-b border-slate-100 dark:border-slate-800">
+                                            <div class="relative">
+                                                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                                <input x-ref="cs" type="search" wire:model.live.debounce.250ms="clientSearch" class="crm-input !pl-9" placeholder="Buscar cliente..." autocomplete="off">
+                                            </div>
+                                        </div>
+                                        <div class="qt-dd-list">
+                                            @forelse($clientResults as $c)
+                                                <button type="button" wire:click="pickClient({{ $c->id }})" @click="open = false" wire:key="cl-{{ $c->id }}">
+                                                    <span class="qt-dd-av">{{ mb_strtoupper(mb_substr($c->name, 0, 1)) }}</span>
+                                                    <span class="flex-1 min-w-0 truncate font-semibold">{{ $c->name }}</span>
+                                                    @if($c->phone)<span class="text-xs text-slate-400 shrink-0">{{ $c->phone }}</span>@endif
+                                                </button>
+                                            @empty
+                                                <p class="px-4 py-3 text-sm text-slate-500">Nenhum cliente encontrado.</p>
+                                            @endforelse
+                                        </div>
+                                        <div class="qt-dd-foot" x-data="{ nome: '', fone: '' }">
+                                            <button type="button" x-show="!creating" class="qt-dd-new" @click="creating = true; nome = $wire.clientSearch; $nextTick(() => $refs.nn.focus())">
+                                                <span><i class="bi bi-plus-lg"></i></span>
+                                                {{ trim($clientSearch) !== '' ? 'Criar "' . \Illuminate\Support\Str::limit(trim($clientSearch), 28) . '"' : 'Criar novo cliente' }}
+                                            </button>
+                                            <div x-show="creating" x-cloak class="flex flex-col gap-2">
+                                                <div class="qt-2">
+                                                    <input x-ref="nn" x-model="nome" type="text" class="crm-input" placeholder="Nome do cliente" maxlength="255" @keydown.enter.prevent="$wire.createClient(nome, fone).then(() => { open = false; creating = false })">
+                                                    <input x-model="fone" type="tel" class="crm-input" placeholder="WhatsApp (opcional)" maxlength="30">
+                                                </div>
+                                                @error('newClient') <span class="crm-err">{{ $message }}</span> @enderror
+                                                <div class="flex gap-2">
+                                                    <button type="button" class="crm-btn flex-1 justify-center" @click="creating = false">Cancelar</button>
+                                                    <button type="button" class="crm-btn crm-btn-primary flex-1 justify-center" @click="$wire.createClient(nome, fone).then(() => { open = false; creating = false })"><i class="bi bi-check-lg"></i>Criar e usar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="crm-label">Cliente
-                            @if($client)
-                                <div class="flex items-center gap-2 rounded-xl border border-indigo-200 dark:border-indigo-500/40 bg-indigo-50/70 dark:bg-indigo-500/10 px-3 py-2">
-                                    <i class="bi bi-person-check text-indigo-600 dark:text-indigo-300"></i>
-                                    <span class="flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{{ $client->name }}</span>
-                                    @if($client->phone)<span class="text-xs text-slate-500">{{ $client->phone }}</span>@endif
-                                    <button type="button" wire:click="clearClient" class="crm-icon-btn !w-7 !h-7" title="Trocar cliente"><i class="bi bi-x-lg"></i></button>
-                                </div>
-                            @else
-                                <div class="relative">
-                                    <input type="search" wire:model.live.debounce.250ms="clientSearch" class="crm-input" placeholder="Buscar cliente pelo nome ou telefone">
-                                    @if($clientResults->isNotEmpty())
-                                        <div class="qt-pick">
-                                            @foreach($clientResults as $c)
-                                                <button type="button" wire:click="pickClient({{ $c->id }})"><i class="bi bi-person text-slate-400"></i><span class="flex-1 truncate font-semibold">{{ $c->name }}</span>@if($c->phone)<span class="text-xs text-slate-400">{{ $c->phone }}</span>@endif</button>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </div>
-                            @endif
-                        </div>
-                        @if(!$client)
-                            <div class="qt-2">
-                                <label class="crm-label">Ou o nome de quem pediu
+                        <div class="qt-tc-row {{ $client ? 'has-client' : '' }}">
+                            @if(!$client)
+                                <label class="crm-label">Ou só o nome de quem pediu
                                     <input type="text" wire:model="contactName" class="crm-input" placeholder="Ex.: Ana (indicação da Paula)" maxlength="120">
                                     @error('contactName') <span class="crm-err">{{ $message }}</span> @enderror
                                 </label>
                                 <label class="crm-label">WhatsApp
                                     <input type="tel" wire:model="contactPhone" class="crm-input" placeholder="(16) 99999-9999" maxlength="30">
                                 </label>
-                            </div>
-                            <p class="qt-muted -mt-1">Quem ainda não é cliente vira cliente quando o orçamento virar venda.</p>
-                        @endif
-                        <label class="crm-label">Título (opcional)
-                            <input type="text" wire:model="title" class="crm-input" placeholder="{{ $kind === 'reforma' ? 'Ex.: Reforma de 4 cadeiras' : 'Ex.: Banquetas para a cozinha' }}" maxlength="160">
-                        </label>
+                            @endif
+                            <label class="crm-label qt-tc-title">Título (opcional)
+                                <input type="text" wire:model="title" class="crm-input" placeholder="{{ $kind === 'reforma' ? 'Ex.: Reforma de 4 cadeiras' : 'Ex.: Banquetas para a cozinha' }}" maxlength="160">
+                            </label>
+                        </div>
+                        @if(!$client)<p class="qt-muted -mt-1">Quem ainda não é cliente vira cliente quando o orçamento virar venda.</p>@endif
                     </div>
                 </section>
 
@@ -117,9 +156,9 @@
                             <span class="crs-head-icon bg-gradient-to-br from-amber-500 to-orange-500"><i class="bi bi-tools"></i></span>
                             <div class="min-w-0 flex-1"><h2 class="crs-title">A reforma</h2><p class="crs-sub">O cliente vê o que vai ser feito</p></div>
                         </div>
-                        <div class="qt-sec">
+                        <div class="qt-sec qt-ref">
                             <div class="crm-chips">
-                                @foreach($services as $s)
+                                @foreach($serviceOptions as $s)
                                     <button type="button" wire:click="toggleService(@js($s))" class="crm-chip {{ in_array($s, $this->services, true) ? 'is-on' : '' }}">{!! in_array($s, $this->services, true) ? '<i class="bi bi-check2"></i>' : '' !!}{{ $s }}</button>
                                 @endforeach
                             </div>
@@ -195,7 +234,7 @@
                                         @endif
                                     </div>
 
-                                    <div class="qt-3">
+                                    <div class="qt-3 qt-item-f">
                                         <label class="crm-label">Quantidade
                                             <input type="number" min="1" wire:model.blur="items.{{ $i }}.qty" class="crm-input">
                                         </label>
@@ -206,6 +245,7 @@
                                             <input type="text" wire:model.blur="items.{{ $i }}.attrs.medida" class="crm-input" placeholder="Ex.: 75 cm de altura" maxlength="120">
                                         </label>
                                     </div>
+                                    <div class="qt-item-dp">
                                     <label class="crm-label">Descrição para o cliente
                                         <textarea wire:model.blur="items.{{ $i }}.description" rows="2" class="crm-input !min-h-[3.5rem]" placeholder="O que vai ser feito, material, acabamento" maxlength="2000"></textarea>
                                     </label>
@@ -222,6 +262,7 @@
                                                 <input type="file" accept="image/*" multiple class="hidden" wire:model="uploads.{{ $it['key'] }}">
                                             </label>
                                         @endif
+                                    </div>
                                     </div>
                                     @error('uploads.' . $it['key'] . '.*') <p class="crm-err">{{ $message }}</p> @enderror
 
@@ -325,7 +366,7 @@
                         <div class="min-w-0 flex-1"><h2 class="crs-title">Prazo, validade e pagamento</h2></div>
                     </div>
                     <div class="qt-sec">
-                        <div class="qt-3">
+                        <div class="qt-3 qt-terms">
                             <label class="crm-label">Fica pronto em (dias)
                                 <input type="number" min="0" wire:model.blur="productionDays" class="crm-input" placeholder="Ex.: 15">
                             </label>
@@ -343,12 +384,14 @@
                                 <input type="number" min="0" step="0.01" wire:model.blur="deliveryFee" class="crm-input" placeholder="0,00">
                             </label>
                         </div>
+                        <div class="qt-2 qt-notes">
                         <label class="crm-label">Observações para o cliente
                             <textarea wire:model="clientNotes" rows="2" class="crm-input" placeholder="Ex.: Cores conferidas pela foto; pode variar um pouco no tom." maxlength="3000"></textarea>
                         </label>
                         <label class="crm-label"><span>Anotações só suas <span class="qt-private"><i class="bi bi-eye-slash"></i>o cliente não vê</span></span>
                             <textarea wire:model="adminNotes" rows="2" class="crm-input" placeholder="Fornecedor, onde comprar, lembretes" maxlength="3000"></textarea>
                         </label>
+                        </div>
                     </div>
                 </section>
 
@@ -396,6 +439,14 @@
                         </div>
                         <button type="button" data-mobile-save="Salvar orçamento" wire:click="save" class="crm-btn crm-btn-primary justify-center mt-2" wire:loading.attr="disabled" wire:target="save"><i class="bi bi-check2"></i>Salvar e ver</button>
                         <button type="button" wire:click="save('stay')" class="crm-btn justify-center" wire:loading.attr="disabled" wire:target="save"><i class="bi bi-floppy"></i>Salvar e continuar aqui</button>
+                        @if(!$quote || !in_array($quote->status, ['convertido', 'recusado'], true))
+                            <div class="qt-sale-box">
+                                <p><i class="bi bi-cart-check"></i><span><b>O cliente confirmou?</b> Salve e já crie a venda com estes itens e preços.</span></p>
+                                <button type="button" wire:click="save('venda')" wire:confirm="O cliente confirmou? Vou salvar e criar a venda com estes itens e preços." class="crm-btn qt-btn-sale justify-center w-full" wire:loading.attr="disabled" wire:target="save" data-testid="save-to-sale"><i class="bi bi-cart-plus"></i>Confirmar e criar venda</button>
+                            </div>
+                        @elseif($quote->sale_id)
+                            <a href="{{ route('sales.show', $quote->sale_id) }}" wire:navigate class="crm-btn justify-center"><i class="bi bi-receipt"></i>Ver venda #{{ $quote->sale_id }}</a>
+                        @endif
                     </div>
                 </section>
             </aside>

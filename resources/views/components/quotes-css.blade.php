@@ -130,4 +130,59 @@
     .qt-tl-item { display: flex; gap: .6rem; padding: .35rem 0; font-size: .8rem; color: rgb(51 65 85); }
     .dark .qt-tl-item { color: rgb(203 213 225); }
     .qt-tl-dot { width: 1.75rem; height: 1.75rem; border-radius: 999px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: .78rem; }
+
+    .qt-card-visible { overflow: visible !important; position: relative; z-index: 5; }
+    /* ===== Editor: tipo + cliente lado a lado no computador ===== */
+    .qt-tc { display: grid; gap: .75rem; grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 1024px) { .qt-tc { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+    .qt-tc-kind, .qt-tc-client { display: flex; flex-direction: column; gap: .35rem; min-width: 0; }
+    .qt-tc .qt-seg > button { min-height: 3.6rem; }
+    .qt-tc-row { display: grid; gap: .6rem; grid-template-columns: minmax(0, 1fr); }
+    @media (min-width: 640px) { .qt-tc-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } .qt-tc-row .qt-tc-title { grid-column: 1 / -1; } .qt-tc-row.has-client { grid-template-columns: minmax(0, 1fr); } }
+    @media (min-width: 1024px) { .qt-tc-row { grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr) minmax(0, 1.4fr); } .qt-tc-row .qt-tc-title { grid-column: auto; } }
+
+    .qt-dd { width: 100%; min-height: 3.6rem; display: flex; align-items: center; gap: .65rem; padding: .5rem .75rem; border-radius: .9rem; border: 1px solid rgb(226 232 240); background: #fff; font-size: .86rem; color: rgb(30 41 59); transition: border-color .15s, box-shadow .15s; }
+    .qt-dd:hover, .qt-dd:focus-visible { border-color: rgb(165 180 252); box-shadow: 0 0 0 3px rgb(99 102 241 / .12); outline: none; }
+    .qt-dd.is-set { border-color: rgb(199 210 254); background: rgb(238 242 255 / .7); }
+    .dark .qt-dd { background: rgb(15 23 42 / .7); border-color: rgb(51 65 85); color: rgb(226 232 240); }
+    .dark .qt-dd.is-set { background: rgb(99 102 241 / .12); border-color: rgb(99 102 241 / .45); }
+    .qt-dd-av { flex-shrink: 0; width: 2.1rem; height: 2.1rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: .85rem; color: #fff; background: linear-gradient(135deg, rgb(99 102 241), rgb(168 85 247)); }
+    .qt-dd-menu { position: absolute; z-index: 40; left: 0; right: 0; margin-top: .35rem; border-radius: .9rem; border: 1px solid rgb(226 232 240); background: #fff; box-shadow: 0 24px 48px -20px rgb(15 23 42 / .4); display: flex; flex-direction: column; max-height: 26rem; overflow: hidden; }
+    .dark .qt-dd-menu { background: rgb(15 23 42); border-color: rgb(51 65 85); }
+    .qt-dd-list { flex: 1; min-height: 0; overflow-y: auto; padding: .25rem 0; }
+    .qt-dd-list button { width: 100%; display: flex; align-items: center; gap: .6rem; padding: .45rem .8rem; text-align: left; font-size: .85rem; color: rgb(51 65 85); }
+    .qt-dd-list button:hover { background: rgb(248 250 252); }
+    .dark .qt-dd-list button { color: rgb(226 232 240); }
+    .dark .qt-dd-list button:hover { background: rgb(30 41 59); }
+    .qt-dd-list .qt-dd-av { width: 1.9rem; height: 1.9rem; font-size: .78rem; }
+    .qt-dd-foot { flex-shrink: 0; border-top: 1px solid rgb(241 245 249); padding: .5rem; background: rgb(248 250 252 / .8); }
+    .dark .qt-dd-foot { border-top-color: rgb(30 41 59); background: rgb(2 6 23 / .4); }
+    .qt-dd-new { width: 100%; display: flex; align-items: center; gap: .5rem; padding: .45rem .5rem; border-radius: .7rem; font-size: .85rem; font-weight: 700; color: rgb(4 120 87); }
+    .qt-dd-new:hover { background: rgb(16 185 129 / .1); }
+    .qt-dd-new > span { width: 1.75rem; height: 1.75rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: rgb(16 185 129 / .15); font-size: .75rem; }
+    .dark .qt-dd-new { color: rgb(110 231 183); }
+
+    /* Reforma: serviços e "a peça" na mesma linha no computador */
+    @media (min-width: 1024px) { .qt-ref { flex-direction: row !important; align-items: center; justify-content: space-between; } .qt-ref > .crm-chips:last-child { flex-shrink: 0; } }
+
+    /* Item: quantidade estreita; descrição e fotos lado a lado */
+    @media (min-width: 1024px) {
+        .qt-item-f { grid-template-columns: 7rem minmax(0, 1fr) minmax(0, 1fr) !important; }
+        .qt-item-dp { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .75rem; align-items: end; }
+        .qt-item-dp .qt-photos { max-width: 22rem; justify-content: flex-end; }
+    }
+    .qt-item-dp { display: flex; flex-direction: column; gap: .75rem; }
+    @media (min-width: 1024px) { .qt-item-dp { display: grid; } }
+
+    /* Prazo e pagamento: tudo numa linha no computador; observações lado a lado */
+    @media (min-width: 1280px) { .qt-terms { grid-template-columns: 8rem 10rem minmax(0, 1fr) 8rem 9rem !important; } .qt-terms > .col-span-2 { grid-column: auto; } }
+    @media (min-width: 1024px) { .qt-notes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+    /* Criar venda a partir do orçamento */
+    .qt-sale-box { margin-top: .5rem; border-radius: .9rem; border: 1px solid rgb(167 243 208); background: rgb(236 253 245 / .8); padding: .7rem; display: flex; flex-direction: column; gap: .55rem; }
+    .qt-sale-box p { display: flex; gap: .5rem; font-size: .78rem; color: rgb(6 95 70); line-height: 1.35; }
+    .qt-sale-box p i { color: rgb(16 185 129); font-size: 1rem; }
+    .dark .qt-sale-box { background: rgb(6 78 59 / .25); border-color: rgb(6 95 70 / .6); }
+    .dark .qt-sale-box p { color: rgb(167 243 208); }
+    .qt-btn-sale { color: #fff !important; border: 0; background: linear-gradient(90deg, rgb(16 185 129), rgb(5 150 105)) !important; box-shadow: 0 8px 18px -10px rgb(5 150 105 / .8); }
 </style>

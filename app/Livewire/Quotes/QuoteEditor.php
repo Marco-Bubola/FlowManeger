@@ -398,6 +398,24 @@ class QuoteEditor extends Component
         $this->clientId = null;
     }
 
+    /** Cria o cliente sem sair do orçamento (nome da busca + WhatsApp, se tiver). Igual ao criar venda. */
+    public function createClient(string $name = '', string $phone = ''): void
+    {
+        $name = trim($name) !== '' ? trim($name) : trim($this->clientSearch);
+        $phone = trim($phone) !== '' ? trim($phone) : trim($this->contactPhone);
+        if ($name === '' || mb_strlen($name) > 255) {
+            $this->addError('newClient', 'Escreva o nome do cliente.');
+
+            return;
+        }
+        $client = Client::where('user_id', Auth::id())->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])->first()
+            ?? Client::create(['user_id' => Auth::id(), 'name' => $name, 'phone' => mb_substr($phone, 0, 30) ?: null]);
+        $this->clientId = $client->id;
+        $this->clientSearch = '';
+        $this->contactName = '';
+        $this->dispatch('notify', type: 'success', message: 'Cliente ' . $client->name . ' selecionado.');
+    }
+
     // ------------------------------------------------------------------ salvar
 
     public function save(string $then = 'show')
@@ -490,16 +508,36 @@ class QuoteEditor extends Component
 
         $this->dispatch('notify', type: 'success', message: 'Orçamento ' . $quote->code() . ' salvo.');
 
+        if ($then === 'venda') {
+            if ($quote->sale_id) {
+                return $this->redirectRoute('sales.show', $quote->sale_id, navigate: true);
+            }
+            if ($quote->status !== 'aprovado') {
+                $quote->approved_at = now();
+                $quote->addEvent('aprovado', 'Confirmado pela loja');
+                $quote->save();
+            }
+            $sale = QuoteService::convertToSale($quote->fresh());
+            session()->flash('success', 'Orçamento ' . $quote->code() . ' virou a venda #' . $sale->id . '.');
+
+            return $this->redirectRoute('sales.show', $sale->id, navigate: true);
+        }
+
         return $then === 'stay' ? null : $this->redirectRoute('orcamentos.show', $quote->id, navigate: true);
     }
 
     public function render()
     {
+        // Dropdown de cliente (igual ao criar venda): sem busca mostra os mais recentes.
         $clientResults = collect();
-        if (!$this->clientId && mb_strlen(trim($this->clientSearch)) >= 2) {
-            $clientResults = Client::where('user_id', Auth::id())
-                ->where(fn ($q) => $q->where('name', 'like', '%' . trim($this->clientSearch) . '%')->orWhere('phone', 'like', '%' . trim($this->clientSearch) . '%'))
-                ->orderBy('name')->limit(8)->get(['id', 'name', 'phone']);
+        if (!$this->clientId) {
+            $cq = Client::where('user_id', Auth::id());
+            if (($cs = trim($this->clientSearch)) !== '') {
+                $cq->where(fn ($q) => $q->where('name', 'like', "%$cs%")->orWhere('phone', 'like', "%$cs%"))->orderBy('name');
+            } else {
+                $cq->latest('updated_at');
+            }
+            $clientResults = $cq->limit(30)->get(['id', 'name', 'phone']);
         }
 
         $productResults = collect();
@@ -553,7 +591,7 @@ class QuoteEditor extends Component
             'profit' => round($sub - (float) ($this->discount ?: 0) - $cost, 2),
             'stale' => $stale,
             'quote' => $quote,
-            'services' => QuoteDefaults::REPAIR_SERVICES,
+            'serviceOptions' => QuoteDefaults::REPAIR_SERVICES,
         ])->title($this->quoteId ? 'Editar orçamento' : 'Novo orçamento');
     }
 }
