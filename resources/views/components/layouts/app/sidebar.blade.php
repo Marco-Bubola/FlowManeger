@@ -217,6 +217,18 @@
                                     <div class="{{ Request::is('sales') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
                                 </a>
 
+                                @php $quotesNew = auth()->check() && \Illuminate\Support\Facades\Schema::hasTable('quotes') ? \App\Models\Quote::where('user_id', auth()->id())->whereIn('status', ['pedido', 'aprovado'])->count() : 0; @endphp
+                                <a href="{{ route('orcamentos.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('orcamentos*') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('orcamentos*') ? 'bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
+                                        <i class="bi bi-file-earmark-text text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Orçamentos</span>
+                                    @if($quotesNew > 0)
+                                        <span class="sidebar-text inline-flex min-w-[20px] h-5 px-1.5 items-center justify-center rounded-full bg-pink-500 text-white text-[11px] font-bold" title="{{ $quotesNew }} pedido(s) novo(s) ou aprovado(s)">{{ $quotesNew }}</span>
+                                    @endif
+                                    <div class="{{ Request::is('orcamentos*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
+                                </a>
+
                                 <a href="{{ url('clients') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('clients') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
                                     <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('clients') ? 'bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1306,6 +1318,12 @@
                                 </div>
                                 <span>Nova Venda</span>
                             </a>
+                            <a href="{{ route('orcamentos.create') }}" class="fab-area-action" wire:navigate.hover onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#a855f7,#db2777)">
+                                    <i class="bi bi-file-earmark-text" style="font-size:1.15rem;color:#fff"></i>
+                                </div>
+                                <span>Novo Orçamento</span>
+                            </a>
                             <a href="{{ route('clients.create') }}" class="fab-area-action" wire:navigate.hover onclick="closeFabSheet()">
                                 <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
@@ -1697,6 +1715,12 @@
                         @if($mobilePendingSales > 0)
                             <span class="more-app-badge">{{ $mobilePendingSales > 99 ? '99+' : $mobilePendingSales }}</span>
                         @endif
+                    </a>
+                    <a href="{{ route('orcamentos.index') }}" class="more-app-card {{ Request::is('orcamentos*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#a855f7,#db2777)">
+                            <i class="bi bi-file-earmark-text text-white"></i>
+                        </div>
+                        <span class="more-app-label">Orçamentos</span>
                     </a>
                     <a href="{{ route('clients.index') }}" class="more-app-card {{ Request::is('clients*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
                         <div class="more-app-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">

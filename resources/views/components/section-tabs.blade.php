@@ -21,6 +21,12 @@
             'receber' => ['label' => 'A receber', 'icon' => 'bi-cash-coin', 'route' => 'gestao.receivables'],
             'lucro' => ['label' => 'Lucro por venda', 'icon' => 'bi-graph-up-arrow', 'route' => 'gestao.profit'],
         ],
+        'orcamentos' => [
+            'lista' => ['label' => 'Orçamentos', 'icon' => 'bi-file-earmark-text', 'route' => 'orcamentos.index'],
+            'novo' => ['label' => 'Novo orçamento', 'icon' => 'bi-plus-circle', 'route' => 'orcamentos.create'],
+            'materiais' => ['label' => 'Materiais e horas', 'icon' => 'bi-calculator', 'route' => 'orcamentos.materials'],
+            'ajustes' => ['label' => 'Ajustes', 'icon' => 'bi-sliders', 'route' => 'orcamentos.settings'],
+        ],
         'mercadolivre' => [
             'anuncios' => ['label' => 'Anúncios', 'icon' => 'bi-megaphone', 'route' => 'mercadolivre.publications'],
             'produtos' => ['label' => 'Produtos', 'icon' => 'bi-box-seam', 'route' => 'mercadolivre.products'],

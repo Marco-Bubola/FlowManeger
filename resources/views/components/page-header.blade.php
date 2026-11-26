@@ -16,6 +16,7 @@
     $crumbs = [
         'vendas' => ['Vendas', 'bi-cart3', 'sales.index'],
         'clientes' => ['Clientes', 'bi-people', 'clients.index'],
+        'orcamentos' => ['Orçamentos', 'bi-file-earmark-text', 'orcamentos.index'],
         'categorias' => ['Categorias', 'bi-tags', 'categories.index'],
         'produtos' => ['Produtos', 'bi-box-seam', 'products.index'],
         'financas' => ['Finanças', 'bi-wallet2', 'cashbook.index'],
