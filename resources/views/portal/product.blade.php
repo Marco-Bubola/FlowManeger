@@ -1,5 +1,6 @@
 @php
     $owner = $ownerId;
+    $layout = \App\Services\Portal\ProductLayout::for((int) $owner);
     $d = $all[$item->id];
     $cartUrl = Auth::guard('portal')->check() ? route('portal.quotes.create') : route('portal.login', ['redirect' => 'cart']);
     $catalogHome = route('portal.catalog', ['userId' => $owner]);
@@ -298,12 +299,15 @@
         @include('portal.partials.product-special', ['where' => 'topo', 'name' => $d['name'], 'photos' => $d['imgs'] ?? [], 'phone' => $phone])
     @endif
 
-    <section class="ml-box pp-main" id="comprar">
+    @include('portal.partials.product-layout-styles')
+    <section class="ml-box pp-main {{ \App\Services\Portal\ProductLayout::classes($layout) }}" id="comprar">
         {{-- Nome antes da foto (no celular fica em cima; nas telas largas, no topo da coluna da direita). --}}
         <div class="pp-head" data-testid="page-head">
+            @if($layout['show_cat'])
             <div class="ml-cat-line" x-text="[p.cat, p.brand].filter(Boolean).join(' · ') || 'Produto'">{{ collect([$d['cat'], $d['brand']])->filter()->join(' · ') ?: 'Produto' }}</div>
+            @endif
             <h1 x-text="p.name">{{ $d['name'] }}</h1>
-            @if($rating)
+            @if($rating && $layout['show_rating'])
                 <a href="#avaliacoes" class="pp-rate" data-testid="page-rating"><span class="rv-stars" style="--v: {{ $rating['avg'] }}">★★★★★</span><b>{{ number_format($rating['avg'], 1, ',', '') }}</b> ({{ $rating['n'] }} {{ $rating['n'] === 1 ? 'avaliação' : 'avaliações' }})</a>
             @endif
         </div>
@@ -340,14 +344,25 @@
         </div>
 
         <div class="pp-info">
-            <span class="ml-deal" x-show="p.pct" @if(! $d['pct']) x-cloak @endif>Oferta do dia</span>
+            @if(in_array('preco', $layout['parts_off'], true))
+            <div class="pp-out" x-show="!p.buyable" x-cloak data-testid="sold-out">
+                <i class="fas fa-box-open"></i>
+                <span><b>Esgotado no momento</b><small>Toque no coração para salvar. Avisamos quando voltar ao estoque.</small></span>
+            </div>
+            @endif
+            @foreach($layout['parts'] as $part)
+            @continue(in_array($part, $layout['parts_off'], true))
+            <div class="ppl-part ppl-{{ $part }}">
+            @switch($part)
+            @case('preco')
+            <span class="ml-deal" x-show="p.pct && @js($layout['show_deal'])" @if(! $d['pct']) x-cloak @endif>Oferta do dia</span>
             <div class="ml-old" x-show="p.old" x-text="money(p.old)" @if(! $d['old']) x-cloak @endif>@if($d['old'])R$ {{ number_format($d['old'], 2, ',', '.') }}@endif</div>
             <div class="ml-price-row" x-show="p.price > 0" @if(! ($d['price'] > 0)) x-cloak @endif>
                 <span class="ml-price"><span class="cur">R$</span><span x-text="intPart(p.price)">{{ $int }}</span><sup x-show="cents(p.price) !== '00'" x-text="cents(p.price)" @if($cents === '00') x-cloak @endif>{{ $cents }}</sup></span>
                 <span class="ml-pct" x-show="p.pct" x-text="p.pct + '% OFF'" @if(! $d['pct']) x-cloak @endif>{{ $d['pct'] }}% OFF</span>
             </div>
-            <div class="ml-pix pp-pix" x-show="p.pix" @if(empty($d['pix'])) x-cloak @endif data-testid="page-pix"><i class="fas fa-qrcode"></i> <span x-text="p.pix ? 'ou ' + money(p.pix) + ' no Pix (' + @js(rtrim(rtrim(number_format(\App\Services\Portal\Rewards::for((int) $owner)['pix'], 2, ',', ''), '0'), ',')) + '% de desconto)' : ''"></span></div>
-            <div class="pp-pts" x-show="p.pts > 0" @if(empty($d['pts'])) x-cloak @endif data-testid="page-points"><i class="fas fa-star"></i> <span x-text="'Ganhe ' + Number(p.pts).toLocaleString('pt-BR') + ' pontos comprando este produto'"></span></div>
+            <div class="ml-pix pp-pix" x-show="p.pix && @js($layout['show_pix'])" @if(empty($d['pix'])) x-cloak @endif data-testid="page-pix"><i class="fas fa-qrcode"></i> <span x-text="p.pix ? 'ou ' + money(p.pix) + ' no Pix (' + @js(rtrim(rtrim(number_format(\App\Services\Portal\Rewards::for((int) $owner)['pix'], 2, ',', ''), '0'), ',')) + '% de desconto)' : ''"></span></div>
+            <div class="pp-pts" x-show="p.pts > 0 && @js($layout['show_points'])" @if(empty($d['pts'])) x-cloak @endif data-testid="page-points"><i class="fas fa-star"></i> <span x-text="'Ganhe ' + Number(p.pts).toLocaleString('pt-BR') + ' pontos comprando este produto'"></span></div>
             <div class="ml-ask" x-show="!(p.price > 0)" @if($d['price'] > 0) x-cloak @endif>Preço sob consulta</div>
             @if($family->count() > 1 && $family->pluck('price_sale')->unique()->count() > 1)
                 <div class="ml-stock" style="margin-top:4px">A partir de R$ {{ number_format($minPrice, 2, ',', '.') }}, conforme {{ mb_strtolower($attribute) }}</div>
@@ -358,7 +373,8 @@
                 <i class="fas fa-box-open"></i>
                 <span><b>Esgotado no momento</b><small>Toque no coração para salvar. Avisamos quando voltar ao estoque.</small></span>
             </div>
-
+            @break
+            @case('variacoes')
             @if($family->count() > 1 && $variants['mode'] === 'lista')
                 {{-- Variações em lista suspensa colorida (Vitrine › Páginas de produto) --}}
                 @include('portal.partials.variants-dropdown-styles')
@@ -408,7 +424,8 @@
                     </div>
                 </div>
             @endif
-
+            @break
+            @case('avisos')
             <div class="ml-perk" x-show="p.order" x-cloak>
                 <i class="fas fa-clock"></i>
                 <span><b x-text="p.order"></b><small>Feito depois do pedido. A loja confirma o prazo com você.</small></span>
@@ -417,6 +434,8 @@
                 <i class="fas fa-piggy-bank"></i>
                 <span>Você economiza <b x-text="money((p.old - p.price) * Math.max(qty, 1))"></b></span>
             </div>
+            @break
+            @case('frete')
             @if($shipOn)
                 @php $myCep = \App\Models\PortalShippingZone::formatCep(Auth::guard('portal')->user()?->cep); @endphp
                 <div class="pp-ship" x-data="ppShip(@js(route('portal.catalog.shipping', ['userId' => $ownerId])), @js($myCep), @js($ownerId))" data-testid="ship-box">
@@ -441,11 +460,14 @@
                     <span><b>Combine a entrega</b> com a loja<small>Retirada ou envio, você escolhe ao finalizar.</small></span>
                 </div>
             @endif
+            @break
+            @case('loja')
             <div class="ml-perk">
                 <i class="fas fa-shield-halved"></i>
                 <span>Compra direta com <b style="color:var(--ml-text)">{{ $store?->name ?: 'a loja' }}</b><small>Seu pedido chega para a loja confirmar.</small></span>
             </div>
-
+            @break
+            @case('quantidade')
             <div class="ml-qty" x-show="p.buyable">
                 <span class="ml-qty-label">Quantidade<small x-text="!p.order && p.stock <= 3 ? '(últimas unidades)' : ''"></small></span>
                 <div class="ml-step">
@@ -454,20 +476,23 @@
                     <button type="button" @click="qty = Math.min(p.stock || 999, qty + 1)" :disabled="p.stock && qty >= p.stock" aria-label="Mais"><i class="fas fa-plus"></i></button>
                 </div>
             </div>
-
+            @break
+            @case('botoes')
             <div class="ml-actions" style="margin-top:14px">
                 <template x-if="p.buyable">
                     <div class="ml-actions">
-                        <button type="button" class="ml-btn ml-btn-primary" @click="buyNow()" data-testid="buy-now">Comprar agora</button>
+                        <button type="button" class="ml-btn ml-btn-primary" @click="buyNow()" data-testid="buy-now">{{ $layout['buy_text'] }}</button>
+                        @if($layout['show_cart'])
                         <button type="button" class="ml-btn ml-btn-soft" @click="add(p, qty)" data-testid="add-cart">
-                            <i class="fas fa-cart-plus"></i> Adicionar ao carrinho
+                            <i class="fas fa-cart-plus"></i> {{ $layout['cart_text'] }}
                         </button>
+                        @endif
                     </div>
                 </template>
                 <template x-if="!p.buyable">
                     <button type="button" class="ml-btn ml-btn-primary" @click="fav(p.id)" x-text="$store.favs.has(p.id) ? 'Salvo: avisamos quando chegar' : 'Avise-me quando chegar'"></button>
                 </template>
-                @if($phone)
+                @if($phone && $layout['show_whatsapp'])
                     <a class="ml-btn ml-btn-wa" target="_blank" rel="noopener"
                        :href="'https://wa.me/{{ $phone }}?text=' + encodeURIComponent('Olá! Tenho interesse em: ' + p.name + '\n' + p.url)">
                         <i class="fab fa-whatsapp"></i> Perguntar pelo WhatsApp
@@ -480,6 +505,8 @@
                     </a>
                 @endif
             </div>
+            @break
+            @case('compartilhar')
             <div class="pp-share-row">
                 <a class="wa" target="_blank" rel="noopener" :href="'https://wa.me/?text=' + encodeURIComponent(p.name + ' ' + p.url)" data-testid="share-wa">
                     <i class="fab fa-whatsapp"></i> Enviar para alguém
@@ -488,17 +515,19 @@
                     <i class="fas fa-link"></i> Copiar link
                 </button>
             </div>
+            @break
+            @case('kit')
             @if(\App\Services\Portal\KitService::enabled((int) $owner))
                 <a class="pp-kit" x-show="p.buyable" :href="@js(route('portal.kit', ['userId' => $owner])) + '?produto=' + p.id" data-testid="product-kit">
                     <span aria-hidden="true">🎁</span><span><b>Montar um kit com este produto</b><small>Cesta, balão, doces e cartão</small></span><i class="fas fa-chevron-right"></i>
                 </a>
             @endif
+            @break
+            @endswitch
+            </div>
+            @endforeach
         </div>
     </section>
-
-    @if($special)
-        @include('portal.partials.product-special', ['where' => 'meio', 'name' => $d['name'], 'photos' => $d['imgs'] ?? [], 'phone' => $phone])
-    @endif
 
     {{-- Foto ampliada: toque/clique abre; pinça, toque duplo, roda do mouse e clique ampliam; arrasta para mover; desliza para trocar ou para baixo para fechar. --}}
     <template x-teleport="body">
@@ -528,6 +557,15 @@
         </div>
     </template>
 
+    @foreach($layout['sections'] as $sec)
+    @continue(in_array($sec, $layout['sections_off'], true))
+    @switch($sec)
+    @case('especial')
+    @if($special)
+        @include('portal.partials.product-special', ['where' => 'meio', 'name' => $d['name'], 'photos' => $d['imgs'] ?? [], 'phone' => $phone])
+    @endif
+    @break
+    @case('junto')
     @if($together->isNotEmpty() && ! ($special['settings']['hide_together'] ?? false))
         @php $tIds = $together->pluck('id')->all(); @endphp
         <section class="ml-box pp-buy2" data-testid="buy-together"
@@ -558,7 +596,8 @@
             </div>
         </section>
     @endif
-
+    @break
+    @case('sobre')
     <section class="ml-box pp-about" @if($special['settings']['hide_about'] ?? false) hidden @endif x-show="!{{ ($special['settings']['hide_about'] ?? false) ? 'true' : 'false' }} && (p.desc || p.brand || p.model || p.code || (p.specs && p.specs.length))">
         <div class="pp-about-in">
             <div x-show="p.desc">
@@ -577,7 +616,8 @@
             </div>
         </div>
     </section>
-
+    @break
+    @case('avaliacoes')
     @if(\App\Services\Portal\ReviewService::ready() && ! ($special['settings']['hide_reviews'] ?? false))
         <section class="ml-box pp-reviews" id="avaliacoes" data-testid="reviews">
             <h2>Avaliações</h2>
@@ -637,7 +677,8 @@
             @endif
         </section>
     @endif
-
+    @break
+    @case('relacionados')
     @if($related->isNotEmpty() && ! ($special['settings']['hide_related'] ?? false))
         <section class="ml-box ml-offers pp-related" data-testid="related">
             <div class="ml-sec-head">
@@ -651,10 +692,15 @@
             </div>
         </section>
     @endif
-
+    @break
+    @case('vistos')
     @include('portal.partials.recently-viewed', ['exclude' => $family->isNotEmpty() ? $family->pluck('id')->all() : [$item->id]])
+    @break
+    @endswitch
+    @endforeach
 
     {{-- Barra fixa de compra (celular) --}}
+    @if($layout['buybar'])
     <div class="pp-buybar">
         <div class="pp-buybar-sum">
             <small x-text="p.buyable ? (p.opt ? p.opt : 'Total') : 'Esgotado no momento'">Total</small>
@@ -671,6 +717,7 @@
             <i class="fa-heart" :class="$store.favs.has(p.id) ? 'fas' : 'far'"></i> Avise-me
         </button>
     </div>
+    @endif
 
     @include('portal.partials.catalog-cart')
 </div>

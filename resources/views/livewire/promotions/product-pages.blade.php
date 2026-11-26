@@ -12,6 +12,16 @@
 
     <x-portal-settings-nav current="paginas">
 
+    <a href="{{ route('promotions.product-layout') }}" wire:navigate data-testid="pp-layout-link"
+       class="group flex items-center gap-3 sm:gap-4 rounded-2xl p-4 text-white shadow-sm bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-500 hover:shadow-lg transition">
+        <span class="shrink-0 w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl"><i class="bi bi-layout-text-window-reverse"></i></span>
+        <span class="min-w-0 flex-1">
+            <b class="block text-base font-bold">Montar a página do produto</b>
+            <small class="block text-xs sm:text-sm text-white/85">Ordem de tudo, nome, fotos, preço e botões. Vale para todos os produtos, com prévia ao lado.</small>
+        </span>
+        <i class="bi bi-chevron-right text-xl transition group-hover:translate-x-1"></i>
+    </a>
+
     <section class="{{ $card }} p-4 space-y-3" data-testid="pp-pages-search">
         <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-plus-circle text-violet-500"></i>Criar página para um produto</h2>
         <div class="relative">
@@ -34,7 +44,7 @@
         @endif
     </section>
 
-    <section class="{{ $card }} p-4 space-y-4" data-testid="pp-variants-setting">
+    <section id="variacoes" class="{{ $card }} p-4 space-y-4 scroll-mt-20" data-testid="pp-variants-setting">
         <div>
             <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="bi bi-ui-radios text-violet-500"></i>Variações na página do produto</h2>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Como o cliente escolhe tamanho, cor ou modelo. Vale para todos os produtos; a página especial de um produto pode usar outro jeito.</p>

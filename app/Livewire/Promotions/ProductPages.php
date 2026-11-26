@@ -32,7 +32,7 @@ class ProductPages extends Component
         $this->variantsTheme = $theme ?? $this->variantsTheme;
         $s = \App\Models\PortalSetting::for((int) Auth::id());
         $home = (array) ($s->home ?? []);
-        $home['product_page'] = ['variants' => $this->variants, 'variants_theme' => $this->variantsTheme];
+        $home['product_page'] = ['variants' => $this->variants, 'variants_theme' => $this->variantsTheme] + (array) ($home['product_page'] ?? []);
         $s->home = $home;
         $s->save();
         $this->dispatch('notify', type: 'success', message: 'Pronto. Vale para todas as páginas de produto.');
