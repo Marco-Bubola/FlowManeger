@@ -337,6 +337,156 @@ def ler_cores():
     return json.loads(json.dumps(CORES_PADRAO))
 
 
+# ---- catálogo do site (Orçamentos › Estofados e cores): é o mesmo do robô quando ele está conectado.
+# Estofado de corino/corano -> grupo "corano"; outros tecidos -> "tecido" ("Suede Cinza"); ferragem -> "ferragem";
+# lista "Madeira" -> "madeira"; outras listas viram um grupo novo. As cores do site mandam: as que vieram prontas
+# no robô somem do grupo quando o site tem esse grupo; as que você cadastrou só no robô sobem para o site.
+
+_CACHE_CORES = {"t": 0.0, "listas": None}
+
+
+def _site_escolhas():
+    """Listas do site. None = robô não conectado ou site sem essa parte."""
+    conta = motor.ler_conta()
+    if not conta or not conta.get("site"):
+        return None
+    try:
+        r = motor.Nuvem(conta["site"], motor.BASE)._req("GET", "/escolhas", tempo=8)
+        listas = r.get("listas")
+        return listas if isinstance(listas, list) else None
+    except Exception:
+        return None
+
+
+def _slug(t):
+    t = unicodedata.normalize("NFKD", str(t or "")).encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", "-", t).strip("-") or "outro"
+
+
+def _grupo_do_site(lista, item):
+    """(chave, nome do grupo novo, prefixo, nome da cor) de um item do site."""
+    tipo, tecido, nome = lista.get("tipo"), (item.get("tecido") or "").strip(), (item.get("nome") or "").strip()
+    if tipo == "ferragem":
+        return "ferragem", None, None, nome
+    if tipo == "estofado":
+        if not tecido or re.search(r"cori|cora|courin|couro sint", tecido, re.I):
+            return "corano", None, None, nome
+        return "tecido", None, None, f"{tecido} {nome}"
+    if "madeira" in str(lista.get("nome") or "").lower():
+        return "madeira", None, None, (f"{tecido} {nome}" if tecido else nome)
+    return "site-" + _slug(lista.get("nome")), lista.get("nome") or "Outras cores", _slug(lista.get("nome")).split("-")[0], \
+        (f"{tecido} {nome}" if tecido else nome)
+
+
+def _juntar_site(d, listas):
+    """Põe as cores do site nos grupos do robô (guarda id e código em g["site"])."""
+    padrao = {g["chave"]: {n.lower() for n, _ in g["itens"]} for g in CORES_PADRAO["grupos"]}
+    por_grupo = {}
+    for lista in listas:
+        for it in lista.get("itens") or []:
+            if not it.get("ativo", True):
+                continue
+            chave, gnome, prefixo, nome = _grupo_do_site(lista, it)
+            if not nome:
+                continue
+            por_grupo.setdefault(chave, {"nome": gnome, "prefixo": prefixo, "itens": []})["itens"].append(
+                (nome[:40], it.get("hex") or "#888888", {"id": it.get("id"), "codigo": it.get("codigo"), "extra": it.get("extra") or 0,
+                                                       "tipo": lista.get("tipo"), "lista": lista.get("nome"), "tecido": it.get("tecido")}))
+    antes = set(d.get("do_site") or [])
+    agora = set()
+    for chave, info in por_grupo.items():
+        g = next((x for x in d["grupos"] if x.get("chave") == chave), None)
+        if g is None:
+            g = {"chave": chave, "nome": info["nome"] or chave, "prefixo": info["prefixo"] or "", "canva": "{n}", "itens": []}
+            pos = next((i for i, x in enumerate(d["grupos"]) if x.get("chave") == "madeira"), len(d["grupos"]))
+            d["grupos"].insert(pos, g)
+        nomes_site = {n.lower() for n, _, _ in info["itens"]}
+        # Fica o que você cadastrou só no robô (sobe para o site); sai o que veio pronto e o que o site apagou.
+        locais = [[n, h] for n, h, *_ in g.get("itens", []) if n.lower() not in nomes_site
+                  and n.lower() not in padrao.get(chave, set()) and f"{chave}:{n.lower()}" not in antes]
+        g["itens"] = [[n, h] for n, h, _ in info["itens"]] + locais
+        g["site"] = {n: meta for n, _, meta in info["itens"]}
+        g["locais"] = [n for n, _ in locais]
+        agora |= {f"{chave}:{n.lower()}" for n, _, _ in info["itens"]}
+    d["do_site"] = sorted(agora)
+    return d
+
+
+def _tipo_do_grupo(g):
+    """Para mandar uma cor do robô ao site: (tipo, lista, tecido, nome) a partir do grupo."""
+    chave = g.get("chave")
+    if chave == "ferragem":
+        return "ferragem", None, None
+    if chave == "corano":
+        return "estofado", None, "Corino"
+    if chave == "tecido":
+        return "estofado", None, ""
+    if chave == "madeira":
+        return "outro", "Madeira", None
+    return "outro", g.get("nome"), None
+
+
+def cor_para_site(g, nome, cor):
+    """Cadastra no site a cor que você pôs no robô. Devolve True se subiu."""
+    conta = motor.ler_conta()
+    if not conta or not conta.get("site"):
+        return False
+    tipo, lista, tecido = _tipo_do_grupo(g)
+    if tecido == "" and " " in nome:          # "Suede Cinza" -> tecido Suede, cor Cinza
+        tecido, nome = nome.split(" ", 1)
+    try:
+        motor.Nuvem(conta["site"], motor.BASE)._req("POST", "/escolhas/item", tempo=10, campos={
+            k: v for k, v in {"tipo": tipo, "lista": lista or "", "tecido": tecido or "", "nome": nome, "hex": cor or ""}.items()})
+        _CACHE_CORES["listas"] = None
+        return True
+    except Exception:
+        return False
+
+
+def apagar_cor_no_site(g, nome):
+    meta = (g.get("site") or {}).get(nome)
+    conta = motor.ler_conta()
+    if not meta or not meta.get("id") or not conta or not conta.get("site"):
+        return False
+    try:
+        motor.Nuvem(conta["site"], motor.BASE)._req("POST", "/escolhas/excluir", campos={"id": meta["id"]}, tempo=10)
+        _CACHE_CORES["listas"] = None
+        return True
+    except Exception:
+        return False
+
+
+def ler_cores_com_site():
+    """As suas cores junto com o catálogo do site (se o robô estiver conectado). Sem internet, a cópia do PC."""
+    import time
+    d = ler_cores()
+    if not motor.ler_conta():
+        return d
+    listas = _CACHE_CORES["listas"] if _CACHE_CORES["listas"] is not None and time.time() - _CACHE_CORES["t"] < 60 else None
+    if listas is None:
+        listas = _site_escolhas()
+        if listas is not None:
+            _CACHE_CORES.update(t=time.time(), listas=listas)
+    if listas:
+        d = _juntar_site(d, listas)
+        # Cores que você cadastrou só no robô sobem para o site uma vez.
+        subiu = False
+        for g in d["grupos"]:
+            for n in list(g.get("locais") or []):
+                h = next((h for x, h in g["itens"] if x == n), None)
+                subiu |= cor_para_site(g, n, h)
+        if subiu:
+            listas = _site_escolhas()
+            if listas is not None:
+                _CACHE_CORES.update(t=time.time(), listas=listas)
+                d = _juntar_site(d, listas)
+        try:
+            salvar_cores(d)
+        except Exception:
+            pass
+    return d
+
+
 def salvar_cores(d):
     d = dict(d)
     d["padrao_visto"] = _chaves_padrao_cores()

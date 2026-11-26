@@ -5553,7 +5553,7 @@ class EscolherCores(Dialogo):
                          "combinação (ex.: Preto com corano Verde)." if ao_usar else
                          "As cores que você usa. Elas aparecem para marcar em Variações › Escolher cores.", larg=760, alt=680)
         self.ao_usar, self.multiplicar, self.unica = ao_usar, max(multiplicar, 1), unica
-        self.dados = recursos.ler_cores()
+        self.dados = recursos.ler_cores_com_site()      # com o robô conectado: o catálogo do site (Estofados e cores)
         self.marcadas = {k: set(v) for k, v in (marcadas or {}).items()}
         self.editando = not ao_usar
         self.corpo.grid_rowconfigure(0, weight=1)
@@ -5590,6 +5590,11 @@ class EscolherCores(Dialogo):
             ctk.CTkLabel(topo, text=g["nome"], font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(side="left")
             n = len(marc)
             ctk.CTkLabel(topo, text=f"  {n} marcada(s)" if n else "", font=F(12), text_color=ROXO_TXT).pack(side="left")
+            if g.get("site") is not None:
+                ctk.CTkLabel(topo, text="  ☁ igual ao site", font=F(11), text_color=MUDO).pack(side="left")
+            elif self.editando and motor.ler_conta():
+                Botao(topo, "☁ Mandar para o site", "fantasma", width=150, height=24, font=F(11),
+                      command=lambda g=g: self._mandar_grupo(g)).pack(side="right")
             if self.ao_usar and not self.editando and not self.unica:
                 Botao(topo, "Limpar", "fantasma", width=60, height=24, font=F(11),
                       command=lambda k=g["chave"]: (self.marcadas[k].clear(), self.desenhar())).pack(side="right")
@@ -5602,7 +5607,9 @@ class EscolherCores(Dialogo):
                 chip.grid(row=1 + i // 4, column=i % 4, sticky="ew", padx=(14 if i % 4 == 0 else 4, 14 if i % 4 == 3 else 4), pady=4)
                 bola = ctk.CTkFrame(chip, width=22, height=22, corner_radius=11, fg_color=cor, border_width=1, border_color=BORDA)
                 bola.pack(side="left", padx=(10, 8), pady=8)
-                lbl = ctk.CTkLabel(chip, text=nome, font=F(12, "bold" if on else "normal"), text_color=ROXO_TXT if on else TEXTO, anchor="w")
+                cod = ((g.get("site") or {}).get(nome) or {}).get("codigo")
+                lbl = ctk.CTkLabel(chip, text=nome + (f"  ·  {cod}" if cod else ""), font=F(12, "bold" if on else "normal"),
+                                   text_color=ROXO_TXT if on else TEXTO, anchor="w")
                 lbl.pack(side="left", fill="x", expand=True)
                 if self.editando:
                     Botao(chip, "✕", "perigo", width=26, height=24, font=F(11),
@@ -5651,15 +5658,46 @@ class EscolherCores(Dialogo):
         if nome.lower() in {n.lower() for n, _ in g["itens"]}:
             self.app.toast(f"{nome} já está cadastrada", AMBAR)
             return
-        g["itens"].append([nome[:1].upper() + nome[1:], cor or "#888888"])
+        nome = nome[:1].upper() + nome[1:]
+        g["itens"].append([nome, cor or "#888888"])
         self._salvar()
         self.desenhar()
+        if g.get("site") is not None:          # grupo que é do site: a cor nova vai para lá também
+            self._no_fundo(lambda: recursos.cor_para_site(g, nome, cor), f"{nome} foi para o site também")
 
     def _apagar(self, g, nome):
+        do_site = nome in (g.get("site") or {})
+        if do_site and not messagebox.askyesno("Minhas cores", f"Tirar {nome} também do site? Ela some da página dos produtos.", parent=self):
+            return
         g["itens"] = [i for i in g["itens"] if i[0] != nome]
         self.marcadas.get(g["chave"], set()).discard(nome)
         self._salvar()
         self.desenhar()
+        if do_site:
+            self._no_fundo(lambda: recursos.apagar_cor_no_site(g, nome), f"{nome} saiu do site também")
+
+    def _mandar_grupo(self, g):
+        """Manda as cores deste grupo para o site (Orçamentos › Estofados e cores). Depois o grupo fica igual ao do site."""
+        if not messagebox.askyesno("Minhas cores", f"Mandar as {len(g['itens'])} cores de \"{g['nome']}\" para o site? "
+                                   "Depois disso o site e o robô ficam com a mesma lista.", parent=self):
+            return
+        itens = [list(i[:2]) for i in g["itens"]]
+
+        def tudo():
+            ok = sum(1 for n, h in itens if recursos.cor_para_site(g, n, h))
+            return ok
+
+        def fim(ok):
+            self.dados = recursos.ler_cores_com_site()
+            self.desenhar()
+            self.app.toast(f"{ok} cor(es) foram para o site" if ok else "Não deu para mandar ao site agora", VERDE if ok else AMBAR)
+        threading.Thread(target=lambda: self.after(0, fim, tudo()), daemon=True).start()
+
+    def _no_fundo(self, tarefa, aviso):
+        def rodar():
+            ok = tarefa()
+            self.after(0, lambda: self.app.toast(aviso if ok else "Ficou só no robô (sem conexão com o site)", VERDE if ok else AMBAR))
+        threading.Thread(target=rodar, daemon=True).start()
 
     def _salvar(self):
         try:
