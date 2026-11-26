@@ -409,6 +409,11 @@ document.addEventListener('alpine:init', () => {
                             <p class="ml-acc-name">{{ Str::limit(Auth::guard('portal')->user()->name, 28) }}</p>
                             <a href="{{ route('portal.quotes') }}" role="menuitem"><i class="fas fa-box"></i> Meus pedidos
                                 @if($orderAlerts > 0)<span class="ml-acc-badge">{{ $orderAlerts }}</span>@endif</a>
+                            @if(\Illuminate\Support\Facades\Schema::hasTable('quotes'))
+                                @php $cqWaiting = \App\Models\Quote::where('client_id', Auth::guard('portal')->id())->where('status', 'enviado')->count(); @endphp
+                                <a href="{{ route('portal.quotes', ['ver' => 'orcamentos']) }}" role="menuitem" data-testid="menu-custom-quotes"><i class="fas fa-file-lines"></i> Meus orçamentos
+                                    @if($cqWaiting > 0)<span class="ml-acc-badge">{{ $cqWaiting }}</span>@endif</a>
+                            @endif
                             <a href="{{ route('portal.favorites') }}" role="menuitem" data-testid="menu-favorites"><i class="fas fa-heart"></i> Meus favoritos
                                 @if($favAlerts > 0)<span class="ml-acc-badge pink">{{ $favAlerts }}</span>@endif</a>
                             <a href="{{ route('portal.sales') }}" role="menuitem"><i class="fas fa-bag-shopping"></i> Minhas compras</a>
@@ -506,6 +511,9 @@ document.addEventListener('alpine:init', () => {
                         @foreach($fPages as $k => [$t, $ic])
                             <li><i class="fas {{ $ic }}"></i><a href="{{ route('portal.store-page', ['userId' => $idOwner, 'page' => $k]) }}">{{ $t }}</a></li>
                         @endforeach
+                        @if(\Illuminate\Support\Facades\Schema::hasTable('quotes') && \App\Services\Quotes\QuoteService::settings((int) $idOwner)['portal_requests'])
+                            <li><i class="fas fa-ruler-combined"></i><a href="{{ route('portal.custom-quote.create', ['userId' => $idOwner]) }}">Pedir orçamento sob medida</a></li>
+                        @endif
                     </ul>
                 </div>
             @endif

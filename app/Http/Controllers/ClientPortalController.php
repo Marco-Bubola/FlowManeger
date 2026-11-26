@@ -532,7 +532,13 @@ class ClientPortalController extends Controller
         $store = User::select('id', 'name', 'phone')->find($client->user_id);
         $otherSales = $this->portalSales($client)->whereNull('portal_quote_id')->count();
 
-        return view('portal.quotes.index', compact('client', 'quotes', 'products', 'orders', 'store', 'filter', 'counts', 'otherSales'));
+        // Orçamentos sob medida e de reforma (área Orçamentos do app): o cliente vê e aprova pelo link.
+        $customQuotes = \Illuminate\Support\Facades\Schema::hasTable('quotes')
+            ? \App\Models\Quote::where('client_id', $client->id)->where('user_id', $client->user_id)->orderByRaw("CASE status WHEN 'enviado' THEN 0 ELSE 1 END")->orderByDesc('updated_at')->limit(50)->get()
+            : collect();
+        $ver = request('ver') === 'orcamentos' ? 'orcamentos' : 'pedidos';
+
+        return view('portal.quotes.index', compact('client', 'quotes', 'products', 'orders', 'store', 'filter', 'counts', 'otherSales', 'customQuotes', 'ver'));
     }
 
     /** Produtos dos pedidos (sem o escopo da equipe, só da loja do cliente), por id. */

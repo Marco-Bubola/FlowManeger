@@ -25,11 +25,18 @@
 
     <nav class="po-chips" aria-label="Filtrar pedidos">
         @foreach($chips as $key => $label)
-            <a href="{{ route('portal.quotes', array_filter(['status' => $key])) }}" class="po-chip {{ $filter === $key ? 'on' : '' }}">
+            <a href="{{ route('portal.quotes', array_filter(['status' => $key])) }}" class="po-chip {{ $ver === 'pedidos' && $filter === $key ? 'on' : '' }}">
                 {{ $label }} <b>{{ $counts[$key] }}</b>
             </a>
         @endforeach
+        <a href="{{ route('portal.quotes', ['ver' => 'orcamentos']) }}" class="po-chip {{ $ver === 'orcamentos' ? 'on' : '' }}" data-testid="chip-custom-quotes">
+            <i class="fas fa-ruler-combined"></i> Sob medida e reforma <b>{{ $customQuotes->count() }}</b>
+        </a>
     </nav>
+
+    @if($ver === 'orcamentos')
+        @include('portal.quotes.partials.custom-list')
+    @else
 
     @forelse($quotes as $quote)
         @php
@@ -110,6 +117,8 @@
                 <a href="{{ $quotes->nextPageUrl() }}" class="po-btn po-btn-ghost">Próximos <i class="fas fa-chevron-right"></i></a>
             @else<span></span>@endif
         </div>
+    @endif
+
     @endif
 
     <div class="po-card">

@@ -473,6 +473,12 @@
                         <i class="fab fa-whatsapp"></i> Perguntar pelo WhatsApp
                     </a>
                 @endif
+                @php $cqOn = \Illuminate\Support\Facades\Schema::hasTable('quotes') && \App\Services\Quotes\QuoteService::settings((int) $item->user_id)['portal_requests']; @endphp
+                @if($cqOn)
+                    <a class="ml-btn ml-btn-soft" href="{{ route('portal.custom-quote.create', ['userId' => $item->user_id, 'produto' => $item->id]) }}" data-testid="other-color">
+                        <i class="fas fa-palette"></i> {{ $item->hasVariations() ? 'Quero em outra cor' : 'Quero em outra cor ou medida' }}
+                    </a>
+                @endif
             </div>
             <div class="pp-share-row">
                 <a class="wa" target="_blank" rel="noopener" :href="'https://wa.me/?text=' + encodeURIComponent(p.name + ' ' + p.url)" data-testid="share-wa">
