@@ -1,5 +1,5 @@
 {
-  "versao": 37,
+  "versao": 38,
   "data": "2026-11-27",
   "arquivos": [
     "janela.pyw",
@@ -14,12 +14,11 @@
     "instalar.bat"
   ],
   "novidades": [
+    "“Medidas em desenho”: o pedido ao Canva ficou bem mais firme para sair desenho de traço preto no papel branco, com as setas e as medidas escritas (antes podia sair foto 3D).",
     "Ficha cadastrada que você mudou depois: o robô diz o que mudou em cada variação (por exemplo “Branco: preço R$ 490 → R$ 520, fotos”).",
     "Ao subir ou atualizar, o robô confere no site cada variação: se está lá e se o preço é o da ficha, e avisa qual está diferente.",
     "Se você mandar Cadastrar uma ficha que já está no site, mas alguma variação está com preço diferente, o robô atualiza sozinho.",
     "Estoque no site (na ficha cadastrada) mostra quando o preço do site está diferente do preço da ficha.",
-    "Criar imagens no Canva: nova opção “Medidas em desenho” (a peça desenhada com as medidas, em vez de foto realista).",
-    "Criar imagens no Canva: as imagens que você deixa marcadas ficam guardadas e vêm marcadas da próxima vez.",
-    "Criar imagens no Canva: as imagens baixadas aparecem bem maiores, e duplo clique numa delas abre ela grande."
+    "Criar imagens no Canva: nova opção “Medidas em desenho” (a peça desenhada com as medidas, em vez de foto realista)."
   ]
 }

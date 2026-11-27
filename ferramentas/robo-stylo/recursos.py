@@ -818,11 +818,14 @@ ESTILOS_IMAGEM = [
      "centímetros ({medidas}), em fonte sem serifa limpa e legível, cada medida na direção certa. "
      "O único texto da imagem são essas medidas."),
     ("medidas_desenho", "Medidas em desenho",
-     "DESENHO do produto (ilustração, não foto): o produto inteiro desenhado em traço limpo, estilo desenho técnico de "
-     "catálogo, linhas de contorno pretas ou cinza-escuro, preenchimento em cores planas suaves iguais às da peça (ou só "
-     "contorno), em vista de 3/4 que mostre frente, lateral e profundidade. Fundo 100% branco. Linhas de cota finas com as "
-     "medidas escritas em centímetros ({medidas}), em fonte sem serifa limpa e legível, cada medida na direção certa. "
-     "O único texto da imagem são essas medidas."),
+     "ESBOÇO TÉCNICO À MÃO, EM PRETO E BRANCO (não é foto, não é render 3D, não é ilustração colorida): o produto inteiro "
+     "desenhado só com traço de caneta preta sobre papel branco, como o desenho de um marceneiro ou de um catálogo técnico antigo. "
+     "Só linhas de contorno e alguns traços de detalhe; SEM cor, SEM textura de material, SEM brilho, SEM sombra realista, "
+     "SEM fundo, SEM cenário. Vista de frente ou em 3/4 levemente de lado. "
+     "Linhas de cota finas com setas nas pontas, cada uma com a medida escrita à mão em centímetros: {medidas}. "
+     "O único texto da imagem são essas medidas.\n"
+     "In English, to be clear: black ink hand-drawn technical line sketch on plain white paper, monochrome line art only, "
+     "no color, no shading, no texture, NOT a photo, NOT a 3D render, with dimension lines and arrows labeled in cm."),
     ("detalhe", "Detalhe do acabamento",
      "Foto macro em close do acabamento: textura e veios da madeira, a gravação, as bordas arredondadas, a solda e a pintura, "
      "com fundo bem desfocado e luz lateral suave que realça a textura. Mostra a qualidade do feito à mão. Sem texto."),
@@ -905,8 +908,11 @@ def prompt_imagem(d, estilo, variacao=None, extra="", ref=None):
         muda.append(extra.strip())
 
     partes = [
-        "Crie UMA imagem para o anúncio no Mercado Livre de um produto real da Móveis Stylo, que faz peças de madeira e ferro à mão. "
-        "As fotos que enviei são a referência exata do produto.",
+        ("Faça UM DESENHO TÉCNICO EM TRAÇO PRETO (esboço à mão, sem cor) de um produto real da Móveis Stylo, com as medidas. "
+         "As fotos que enviei servem só para você ver o formato da peça: o resultado NÃO pode parecer foto."
+         if estilo == "medidas_desenho" else
+         "Crie UMA imagem para o anúncio no Mercado Livre de um produto real da Móveis Stylo, que faz peças de madeira e ferro à mão. "
+         "As fotos que enviei são a referência exata do produto."),
         "TIPO DE IMAGEM\n" + texto,
         "PRODUTO\n" + "\n".join(prod),
     ]
@@ -914,8 +920,10 @@ def prompt_imagem(d, estilo, variacao=None, extra="", ref=None):
         partes.append("O QUE MUDA EM RELAÇÃO ÀS FOTOS\n" + "\n".join(f"- {m}" for m in muda))
     partes.append(
         "REGRAS\n"
-        "- Copie fielmente o produto das fotos: mesmo formato, cor, madeira e veios, ferro, espessura, bordas, divisórias, "
-        "gravação e acabamento (só mude o que está em “O que muda”).\n"
+        + ("- Use as fotos só para copiar o FORMATO e as PROPORÇÕES da peça (contorno, pés, curvas, divisórias). Não copie cor, "
+           "textura nem material: tudo vira traço preto no branco.\n" if estilo == "medidas_desenho" else
+           "- Copie fielmente o produto das fotos: mesmo formato, cor, madeira e veios, ferro, espessura, bordas, divisórias, "
+           "gravação e acabamento (só mude o que está em “O que muda”).\n") +
         "- Não invente peças, pés, alças, gavetas, rodinhas, enfeites ou textos que o produto não tem.\n"
         "- Escala real e coerente com as medidas.\n"
         + ("- Aparência de desenho técnico de catálogo, limpo e bem proporcional, não de foto.\n" if estilo == "medidas_desenho" else
@@ -923,6 +931,9 @@ def prompt_imagem(d, estilo, variacao=None, extra="", ref=None):
         "- Imagem quadrada 1:1, alta resolução (pelo menos 1200 x 1200 px).\n"
         "- Sem marca d'água, sem logo de loja, sem preço, sem selo e sem bordas."
         + ("" if estilo in ("medidas", "medidas_desenho") else "\n- Sem nenhum texto na imagem."))
+    if estilo == "medidas_desenho":
+        partes.append("LEMBRE: o resultado é um DESENHO DE LINHA PRETA NO PAPEL BRANCO, com as cotas e medidas escritas ({}). "
+                      "Se parecer foto ou 3D, está errado.".format(medidas or "medidas da peça"))
     return "\n\n".join(partes)
 
 
