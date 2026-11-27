@@ -817,6 +817,12 @@ ESTILOS_IMAGEM = [
      "Foto técnica em fundo 100% branco: o produto inteiro com linhas de cota finas cinza-escuro e as medidas escritas em "
      "centímetros ({medidas}), em fonte sem serifa limpa e legível, cada medida na direção certa. "
      "O único texto da imagem são essas medidas."),
+    ("medidas_desenho", "Medidas em desenho",
+     "DESENHO do produto (ilustração, não foto): o produto inteiro desenhado em traço limpo, estilo desenho técnico de "
+     "catálogo, linhas de contorno pretas ou cinza-escuro, preenchimento em cores planas suaves iguais às da peça (ou só "
+     "contorno), em vista de 3/4 que mostre frente, lateral e profundidade. Fundo 100% branco. Linhas de cota finas com as "
+     "medidas escritas em centímetros ({medidas}), em fonte sem serifa limpa e legível, cada medida na direção certa. "
+     "O único texto da imagem são essas medidas."),
     ("detalhe", "Detalhe do acabamento",
      "Foto macro em close do acabamento: textura e veios da madeira, a gravação, as bordas arredondadas, a solda e a pintura, "
      "com fundo bem desfocado e luz lateral suave que realça a textura. Mostra a qualidade do feito à mão. Sem texto."),
@@ -912,10 +918,11 @@ def prompt_imagem(d, estilo, variacao=None, extra="", ref=None):
         "gravação e acabamento (só mude o que está em “O que muda”).\n"
         "- Não invente peças, pés, alças, gavetas, rodinhas, enfeites ou textos que o produto não tem.\n"
         "- Escala real e coerente com as medidas.\n"
-        "- Aparência de foto profissional de catálogo, realista, nítida e bem iluminada, não de desenho ou 3D.\n"
+        + ("- Aparência de desenho técnico de catálogo, limpo e bem proporcional, não de foto.\n" if estilo == "medidas_desenho" else
+           "- Aparência de foto profissional de catálogo, realista, nítida e bem iluminada, não de desenho ou 3D.\n") +
         "- Imagem quadrada 1:1, alta resolução (pelo menos 1200 x 1200 px).\n"
         "- Sem marca d'água, sem logo de loja, sem preço, sem selo e sem bordas."
-        + ("" if estilo == "medidas" else "\n- Sem nenhum texto na imagem."))
+        + ("" if estilo in ("medidas", "medidas_desenho") else "\n- Sem nenhum texto na imagem."))
     return "\n\n".join(partes)
 
 

@@ -5943,9 +5943,11 @@ class ImagensIA(Dialogo):
 
         ctk.CTkLabel(esq, text="Imagens para criar", font=F(14, "bold"), text_color=TEXTO, anchor="w").pack(fill="x", pady=(12, 2))
         self.estilos = []
+        guardados = (app.cfg["robo"].get("estilos_imagem") or "").strip()
+        marcados = set(guardados.split(",")) if guardados else set(recursos.ESTILOS_PADRAO)
         for chave, rot, _ in recursos.ESTILOS_IMAGEM:
-            cb = ctk.CTkCheckBox(esq, text=rot, command=self._contar, **sw)
-            if chave in recursos.ESTILOS_PADRAO:
+            cb = ctk.CTkCheckBox(esq, text=rot, command=self._estilo_mudou, **sw)
+            if chave in marcados:
                 cb.select()
             cb.pack(anchor="w", pady=3)
             self.estilos.append((cb, chave, rot))
@@ -5962,14 +5964,12 @@ class ImagensIA(Dialogo):
         dir_.grid_columnconfigure(0, weight=1)
         dir_.grid_rowconfigure(3, weight=1)
         if modo == "canva":
-            passos = ctk.CTkFrame(dir_, fg_color=SUAVE, corner_radius=14)
-            passos.grid(row=0, column=0, sticky="ew", pady=(0, 8))
-            for i, t in enumerate(("1. Marque as fotos, a variação e as imagens para criar. Toque em “⚡ Robô faz tudo no Canva”.",
-                                   "2. Na primeira vez, entre na sua conta do Canva na janela que o robô abre (depois ele lembra).",
-                                   "3. O robô cola as fotos e o primeiro pedido, espera, baixa, e segue para o próximo. Não mexa na janela do Canva enquanto ele trabalha.")):
-                ctk.CTkLabel(passos, text=t, font=F(12), text_color=TEXTO, anchor="w", justify="left", wraplength=500).grid(
-                    row=i, column=0, sticky="w", padx=14, pady=(10 if i == 0 else 2, 10 if i == 2 else 2))
-            self.pedidos = ctk.CTkFrame(dir_, fg_color="transparent")
+            passos = ctk.CTkFrame(dir_, fg_color=SUAVE, corner_radius=12)
+            passos.grid(row=0, column=0, sticky="ew", pady=(0, 6))
+            ctk.CTkLabel(passos, text="Marque fotos, variação e imagens e toque em “⚡ Robô cria no Canva”. Não mexa na janela do "
+                                      "Canva enquanto ele trabalha (na primeira vez, entre na sua conta lá).",
+                         font=F(11), text_color=TEXTO, anchor="w", justify="left", wraplength=560).pack(fill="x", padx=12, pady=6)
+            self.pedidos = ctk.CTkFrame(dir_, fg_color="transparent", height=1)
             self.pedidos.grid(row=1, column=0, sticky="ew")
             self.capa_sw = ctk.CTkSwitch(dir_, text="A primeira imagem marcada vira a capa", progress_color=ROXO, font=F(12), text_color=TEXTO)
             self.capa_sw.select()
@@ -5977,7 +5977,8 @@ class ImagensIA(Dialogo):
                      text_color=TEXTO, anchor="w").grid(row=2, column=0, sticky="ew", pady=(4, 0))
         self.res = ctk.CTkScrollableFrame(dir_, fg_color=CARD, corner_radius=14, border_width=1, border_color=BORDA)
         self.res.grid(row=3, column=0, sticky="nsew", pady=(6, 0))
-        self.vazio = ctk.CTkLabel(self.res, text=("Esperando você baixar as imagens do Canva…\n(o robô olha a pasta Downloads)"
+        self.vazio = ctk.CTkLabel(self.res, text=("Esperando você baixar as imagens do Canva…\n(o robô olha a pasta Downloads)\n\n"
+                                                  "Duplo clique numa imagem abre ela grande."
                                                   if modo == "canva" else "As imagens aparecem aqui.\nMarque as que quer usar e toque em Adicionar."),
                                   font=F(12), text_color=MUDO, justify="center")
         self.vazio.pack(pady=60)
@@ -6113,6 +6114,15 @@ class ImagensIA(Dialogo):
 
     def _escolhidas(self):
         return [f.caminho for cb, f in self.marcadas if cb.get()][:6]
+
+    def _estilo_mudou(self):
+        """Guarda as imagens marcadas para virem marcadas da próxima vez."""
+        try:
+            self.app.cfg["robo"]["estilos_imagem"] = ",".join(k for cb, k, _ in self.estilos if cb.get()) or "nenhum"
+            motor.salvar_config(self.app.cfg)
+        except Exception:
+            pass
+        self._contar()
 
     def _contar(self):
         if self.modo == "canva":
@@ -6381,11 +6391,11 @@ class ImagensIA(Dialogo):
         if estilo is not None:
             card = ctk.CTkFrame(self.res, fg_color="transparent")
             i = len(self.criadas)
-            card.grid(row=i // 3, column=i % 3, padx=6, pady=6, sticky="n")
+            card.grid(row=i // 3, column=i % 3, padx=5, pady=5, sticky="n")
             if dado:
-                img = miniatura(dado, 120, 14)
+                img = miniatura(dado, 170, 14)
                 self.app._refs.append(img)
-                lbl = ctk.CTkLabel(card, text="" if img else "sem prévia", image=img, width=120, height=120, corner_radius=14,
+                lbl = ctk.CTkLabel(card, text="" if img else "sem prévia", image=img, width=170, height=170, corner_radius=14,
                                    fg_color="transparent" if img else SUAVE)
                 lbl.pack()
                 if idx is not None and len(self.vars) > 1 and idx < len(self.nomes_var):
@@ -6396,6 +6406,7 @@ class ImagensIA(Dialogo):
                     cb.select()
                 cb.pack(pady=(4, 0))
                 lbl.bind("<Button-1>", lambda e, c=cb: (c.toggle()))
+                lbl.bind("<Double-Button-1>", lambda e, d=dado, k=i: self._ampliar(d, k), add="+")
                 self.criadas.append({"estilo": estilo, "rotulo": rot, "dado": dado, "var": idx, "check": cb})
             else:
                 ctk.CTkLabel(card, text=f"{rot}\nnão saiu:\n{erro}", width=140, height=140, corner_radius=14, fg_color=SUAVE,
@@ -6416,6 +6427,18 @@ class ImagensIA(Dialogo):
         else:
             self.lbl_rod.configure(text=f"Criando {n + 1} de {total}…")
         self._botao_add()
+
+    def _ampliar(self, dado, k):
+        """Duplo clique na imagem: abre grande no visualizador de fotos do Windows."""
+        try:
+            pasta = self.editor.tmp / "ver"
+            pasta.mkdir(parents=True, exist_ok=True)
+            ext = ".png" if bytes(dado[:4]) == b"\x89PNG" else ".jpg"
+            arq = pasta / f"imagem-{k + 1}{ext}"
+            arq.write_bytes(bytes(dado))
+            abrir_no_sistema(arq)
+        except Exception as e:
+            self.lbl_rod.configure(text=f"Não deu para abrir a imagem: {e}")
 
     def _botao_add(self):
         n = sum(1 for c in self.criadas if c["dado"] and c["check"] and c["check"].get())

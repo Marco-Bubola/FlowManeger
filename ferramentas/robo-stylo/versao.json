@@ -1,6 +1,6 @@
 {
-  "versao": 35,
-  "data": "2026-11-26",
+  "versao": 36,
+  "data": "2026-11-27",
   "arquivos": [
     "janela.pyw",
     "motor.py",
@@ -14,12 +14,11 @@
     "instalar.bat"
   ],
   "novidades": [
+    "Criar imagens no Canva: nova opção “Medidas em desenho” (a peça desenhada com as medidas, em vez de foto realista).",
+    "Criar imagens no Canva: as imagens que você deixa marcadas ficam guardadas e vêm marcadas da próxima vez.",
+    "Criar imagens no Canva: as imagens baixadas aparecem bem maiores, e duplo clique numa delas abre ela grande.",
     "Minhas cores agora é o mesmo catálogo do site (Orçamentos › Estofados e cores): os corinos do mostruário com o código, as cores da ferragem e os outros tecidos aparecem aqui.",
     "Cor que você cadastra num grupo do site vai para o site também; tirar uma cor do site pergunta antes.",
-    "Grupo que ainda é só do robô tem o botão “☁ Mandar para o site”.",
-    "Sem internet, o robô usa a última cópia que ficou no PC.",
-    "Materiais e custos agora é uma tabela só com o site: o que você muda aqui aparece nos Orçamentos do FlowManeger, e o que muda lá aparece aqui (com o robô conectado ao site). Na primeira vez, os preços que você já mudou no robô vão para o site.",
-    "Canva automático: quando o Canva pede “Confirme que é humano”, o robô avisa e espera você marcar o quadradinho; depois continua sozinho.",
-    "Canva automático voltou para o Edge, como era antes (com a conta do Canva que você já entrou lá)."
+    "Grupo que ainda é só do robô tem o botão “☁ Mandar para o site”."
   ]
 }
