@@ -4294,6 +4294,10 @@ class Editor(ctk.CTkFrame):
         """Mostra no cartão de cada variação a foto que vai ser a capa dela."""
         vis = [f for f in self.fotos if not f.removida]
         for l in self.linhas:
+            c = getattr(l, "capa_foto", None)
+            if c is not None and not c.removida and c in self.fotos_da_linha(l):
+                l.mostrar_foto(c.caminho)
+                continue
             cor = self._cor_da_linha(l)
             propria = next((f for f in vis if f.de(l) or (isinstance(f.uso, str) and cor and f.uso == f"cor:{cor}")), None)
             geral = next((f for f in vis if f.uso == "todas"), None)
@@ -4505,6 +4509,11 @@ class Editor(ctk.CTkFrame):
                 i = next(iter(em))
                 uso = self.linhas[i] if i < len(self.linhas) and len(cheias) > 1 else "todas"
             self.fotos.append(FotoEd(p, uso=uso))
+        # a capa escolhida de cada variação (a primeira da lista dela na ficha)
+        por_caminho = {f.caminho: f for f in self.fotos}
+        for i, lst in enumerate(listas):
+            if lst and i < len(self.linhas) and len(cheias) > 1:
+                self.linhas[i].capa_foto = por_caminho.get(lst[0])
 
     @staticmethod
     def _cor_da_linha(l):
@@ -4567,7 +4576,12 @@ class Editor(ctk.CTkFrame):
             f.uso = sel[0] if len(sel) == 1 else tuple(sel)
 
     def fotos_da_linha(self, l):
-        return [f for f in self.fotos if not f.removida and l in self.linhas_da_foto(f)]
+        suas = [f for f in self.fotos if not f.removida and l in self.linhas_da_foto(f)]
+        c = getattr(l, "capa_foto", None)
+        if c is not None and c in suas and suas[0] is not c:
+            suas.remove(c)
+            suas.insert(0, c)
+        return suas
 
     def _desenhar_fotos(self):
         for w in self.grade_fotos.winfo_children():
@@ -4581,10 +4595,11 @@ class Editor(ctk.CTkFrame):
                 self.modo_fotos.pack_forget()
             if multi and self.modo_fotos.get() == "Por variação" and vis:
                 self.lbl_modo.configure(text="Cada linha é uma variação: toque em “Escolher fotos” e marque as fotos dela. "
-                                             "Para várias de uma vez, marque as variações (caixinha) e use “Fotos das marcadas”.")
+                                             "Toque numa foto da linha para ela virar a capa (★) daquela variação.")
                 return self._desenhar_por_variacao(vis)
-            self.lbl_modo.configure(text="Arraste a ordem com ◀ ▶ (★ = capa). Em cada foto, “Variações” diz onde ela entra." if multi
-                                    else "A primeira foto é a capa. Use ◀ ▶ para mudar a ordem.")
+            self.lbl_modo.configure(text="Para trocar a capa, toque em “★ Capa” na foto (ou duplo clique nela). ◀ ▶ mudam a ordem." if multi
+                                    else "A primeira foto é a capa. Para trocar, toque em “★ Capa” na foto (ou duplo clique nela).")
+        self.grade_fotos.grid_columnconfigure(0, weight=0)   # o modo "Por variação" estica a coluna 0
         vis = [f for f in self.fotos if not f.removida]
         if not vis:
             ctk.CTkLabel(self.grade_fotos, text="Nenhuma foto. Toque em “＋ Adicionar fotos” (pode escolher uma por vez ou várias).",
@@ -4602,7 +4617,12 @@ class Editor(ctk.CTkFrame):
             cel.grid(row=i // cols, column=i % cols, padx=5, pady=5, sticky="n")
             img = miniatura(f.caminho, 132)
             self.app._refs.append(img)
-            ctk.CTkLabel(cel, text="" if img else "sem prévia", image=img, width=132, height=132, text_color=MUDO).pack(padx=8, pady=(8, 2))
+            lb = ctk.CTkLabel(cel, text="" if img else "sem prévia", image=img, width=132, height=132, text_color=MUDO,
+                              cursor="hand2" if i else "")
+            lb.pack(padx=8, pady=(8, 2))
+            if i:
+                lb.bind("<Double-Button-1>", lambda e, f=f: self._mover(f, -999))
+                dica(lb, "Duplo clique = usar como capa")
             if i == 0:
                 Chip(cel, "capa", ROXO).place(x=12, y=12)
             if f.nova:
@@ -4622,7 +4642,9 @@ class Editor(ctk.CTkFrame):
             bts.pack(pady=(2, 8))
             pb = dict(width=32, height=26, font=F(12))
             dica(Botao(bts, "◀", "fantasma", command=lambda f=f: self._mover(f, -1), **pb), "Mover para a esquerda").pack(side="left", padx=1)
-            dica(Botao(bts, "★", "fantasma", command=lambda f=f: self._mover(f, -999), **pb), "Usar como capa").pack(side="left", padx=1)
+            if i:
+                dica(Botao(bts, "★ Capa", "suave", width=64, height=26, font=F(11, "bold"), command=lambda f=f: self._mover(f, -999)),
+                     "Usar esta foto como capa").pack(side="left", padx=1)
             dica(Botao(bts, "▶", "fantasma", command=lambda f=f: self._mover(f, 1), **pb), "Mover para a direita").pack(side="left", padx=1)
             Botao(bts, "✕", "perigo", command=lambda f=f: self._remover_foto(f), **pb).pack(side="left", padx=(6, 1))
 
@@ -4656,8 +4678,15 @@ class Editor(ctk.CTkFrame):
             tira.grid(row=0, column=1, sticky="w", pady=6)
             for i, f in enumerate(suas[:9]):
                 img = self._mini(f.caminho, 52)
-                ctk.CTkLabel(tira, text="" if img else "foto", image=img, width=52, height=52, corner_radius=10,
-                             fg_color=ROXO if i == 0 else "transparent").pack(side="left", padx=2)
+                cel = ctk.CTkFrame(tira, fg_color=ROXO if i == 0 else "transparent", corner_radius=10)
+                cel.pack(side="left", padx=2)
+                lb = ctk.CTkLabel(cel, text="" if img else "foto", image=img, width=52, height=52, corner_radius=10, cursor="hand2")
+                lb.pack(padx=2, pady=2)
+                if i == 0:
+                    ctk.CTkLabel(cel, text="★ capa", font=F(9, "bold"), text_color="#ffffff", height=12).pack(pady=(0, 2))
+                else:
+                    lb.bind("<Button-1>", lambda e, l=l, f=f: self._capa_da_linha(l, f))
+                    dica(lb, "Tocar = usar como capa desta variação")
             if len(suas) > 9:
                 ctk.CTkLabel(tira, text=f"+{len(suas) - 9}", font=F(12, "bold"), text_color=MUDO).pack(side="left", padx=4)
             Botao(fr, "Escolher fotos", "suave", width=120, height=32, font=F(12, "bold"),
@@ -4676,10 +4705,19 @@ class Editor(ctk.CTkFrame):
             rot = txt[len("Só: "):]
             f.uso = next((l for l in self.linhas if l.rotulo() == rot), "todas")
 
+    def _capa_da_linha(self, l, f):
+        """A foto f vira a capa (primeira) só da variação l; as outras variações não mudam."""
+        l.capa_foto = f
+        self.desenhar_fotos()
+        self.app.toast(f"Capa de {cortar(l.rotulo(), 30)} trocada.")
+
     def _mover(self, f, passo):
         vis = [x for x in self.fotos if not x.removida]
         i = vis.index(f)
         j = 0 if passo == -999 else max(0, min(len(vis) - 1, i + passo))
+        if passo == -999:
+            for l in self.linhas:        # capa geral: vale para todas as variações
+                l.capa_foto = None
         vis.insert(j, vis.pop(i))
         self.fotos = vis + [x for x in self.fotos if x.removida]
         self.desenhar_fotos()
@@ -4841,10 +4879,17 @@ class Editor(ctk.CTkFrame):
             cores = self._cores()
             de_cor = lambda f: isinstance(f.uso, str) and f.uso.startswith("cor:") and f.uso[4:] in cores
             tem_propria = any(f.uso in self.linhas or isinstance(f.uso, tuple) or de_cor(f) for f in vis)
+            capa_l = lambda l: getattr(l, "capa_foto", None)
+            if len(self.linhas) > 1 and any(capa_l(l) is not None and not capa_l(l).removida for l in self.linhas):
+                tem_propria = True      # alguma variação tem capa própria: cada uma leva a sua lista
             for l, v in zip(self.linhas, d["variacoes"]):
-                # mantém a ordem da tela: a primeira foto da variação vira a capa dela
-                v["fotos"] = [f.caminho.name for f in vis if f.uso == "todas" or f.de(l)
-                              or (de_cor(f) and f.uso[4:] == self._cor_da_linha(l))] if tem_propria else []
+                # mantém a ordem da tela: a primeira foto da variação vira a capa dela (ou a capa escolhida)
+                lst = [f for f in vis if f.uso == "todas" or f.de(l) or (de_cor(f) and f.uso[4:] == self._cor_da_linha(l))]
+                c = capa_l(l)
+                if c is not None and c in lst:
+                    lst.remove(c)
+                    lst.insert(0, c)
+                v["fotos"] = [f.caminho.name for f in lst] if tem_propria else []
             if not tem_propria and d["variacoes"]:
                 d["variacoes"][0]["fotos"] = gerais
             ficha = self.ficha or motor.Ficha(pasta=pasta)
