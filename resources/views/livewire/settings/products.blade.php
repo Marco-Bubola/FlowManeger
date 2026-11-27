@@ -8,6 +8,7 @@ new class extends Component {
     public string $cost_change = 'variation';
     public string $pdf_upload = 'auto';
     public string $store_kind = 'auto';
+    public string $kit_page = 'auto';
 
     public function mount(): void
     {
@@ -15,12 +16,14 @@ new class extends Component {
         $this->cost_change = $prefs[ProductPreferences::COST_CHANGE];
         $this->pdf_upload = $prefs[ProductPreferences::PDF_UPLOAD];
         $this->store_kind = $prefs[ProductPreferences::STORE_KIND];
+        $this->kit_page = $prefs[ProductPreferences::KIT_PAGE];
     }
 
     // Salva sozinho a cada escolha
     public function updatedCostChange(): void { $this->save(); }
     public function updatedPdfUpload(): void { $this->save(); }
     public function updatedStoreKind(): void { $this->save(); }
+    public function updatedKitPage(): void { $this->save(); }
 
     public function save(): void
     {
@@ -28,11 +31,13 @@ new class extends Component {
             'cost_change' => 'required|in:variation,update',
             'pdf_upload' => 'required|in:auto,show,hide',
             'store_kind' => 'required|in:auto,revenda,moveis',
+            'kit_page' => 'required|in:auto,revenda,moveis',
         ]);
         ProductPreferences::save(Auth::user(), [
             ProductPreferences::COST_CHANGE => $this->cost_change,
             ProductPreferences::PDF_UPLOAD => $this->pdf_upload,
             ProductPreferences::STORE_KIND => $this->store_kind,
+            ProductPreferences::KIT_PAGE => $this->kit_page,
         ]);
         $this->dispatch('products-prefs-saved');
     }
@@ -52,6 +57,7 @@ new class extends Component {
     }
     $pdfShown = \App\Services\Products\ProductPreferences::showPdfUpload(auth()->user());
     $furnitureOn = \App\Services\Products\ProductPreferences::isFurniture(auth()->user()->fresh());
+    $kitFurnitureOn = \App\Services\Products\ProductPreferences::furnitureKitPage(auth()->user()->fresh());
 @endphp
 
 <section class="settings-products-page w-full mobile-393-base">
@@ -106,6 +112,27 @@ new class extends Component {
                     @else
                         <p class="sp-auto-hint"><i class="bi bi-magic"></i>Automático: vira loja de móveis quando você tem peça sob encomenda ou produto com estofados e cores.</p>
                     @endif
+                </div>
+
+                {{-- Página de kit --}}
+                <div class="ap-card" id="pagina-de-kit">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-fuchsia-500 to-purple-600"><i class="bi bi-boxes"></i></span>
+                        <div class="min-w-0">
+                            <h2>Página de criar e editar kit</h2>
+                            <p>Qual tela abre em Novo kit e Editar kit. Hoje abre a de <b>{{ $kitFurnitureOn ? 'conjuntos de móveis' : 'kit de revenda' }}</b>.</p>
+                        </div>
+                    </div>
+                    <div class="sp-seg">
+                        @foreach([['auto', 'Automático', 'bi-magic', 'Segue o tipo de loja lá em cima'], ['revenda', 'Kit de revenda (Eudora)', 'bi-bag-heart', 'Escolhe produtos prontos e soma num kit, como sempre foi'], ['moveis', 'Conjunto de móveis (Móveis Stylo)', 'bi-lamp', 'Escolhe as peças (mesa, banquetas...) e monta uma opção para cada combinação de cor, ligada às variações']] as [$val, $label, $icon, $hint])
+                            <label class="sp-seg-opt {{ $kit_page === $val ? 'is-on' : '' }}">
+                                <input type="radio" wire:model.live="kit_page" value="{{ $val }}" data-testid="kit-page-{{ $val }}">
+                                <i class="bi {{ $icon }}"></i>
+                                <b>{{ $label }}</b>
+                                <small>{{ $hint }}</small>
+                            </label>
+                        @endforeach
+                    </div>
                 </div>
 
                 {{-- Custo mudou --}}

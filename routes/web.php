@@ -300,6 +300,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/{product}/desmembrar', \App\Livewire\Products\BreakdownKit::class)->name('products.breakdown');
     Route::get('/products/show/{productCode}', ShowProduct::class)->name('products.show');
     Route::get('/products/kit/create', CreateKit::class)->name('products.kit.create');
+    Route::get('/products/kit/moveis/create', \App\Livewire\Products\FurnitureKit::class)->name('products.kit.moveis.create');
+    Route::get('/products/kit/moveis/{kit}/edit', \App\Livewire\Products\FurnitureKit::class)->name('products.kit.moveis.edit');
     Route::get('/products/kit/{kit}/edit', EditKit::class)->name('products.kit.edit');
     Route::get('/products/upload', UploadProducts::class)->name('products.upload');
     Route::get('/products/importar-planilha', \App\Livewire\Products\ImportSheet::class)->name('products.import-sheet');

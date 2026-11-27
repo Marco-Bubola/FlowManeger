@@ -20,6 +20,9 @@ class ProductPreferences
     /** Tipo de loja: 'auto' (padrão), 'revenda' ou 'moveis' (Editar produto com variações de móvel). */
     public const STORE_KIND = 'store_kind';
 
+    /** Página de criar/editar kit: 'auto' (segue o tipo de loja), 'revenda' (Eudora) ou 'moveis' (conjuntos de móveis). */
+    public const KIT_PAGE = 'kit_page';
+
     public static function get(?User $user): array
     {
         $prefs = $user?->preferences['products'] ?? [];
@@ -28,13 +31,14 @@ class ProductPreferences
             self::COST_CHANGE => in_array($prefs[self::COST_CHANGE] ?? null, ['variation', 'update'], true) ? $prefs[self::COST_CHANGE] : 'variation',
             self::PDF_UPLOAD => in_array($prefs[self::PDF_UPLOAD] ?? null, ['auto', 'show', 'hide'], true) ? $prefs[self::PDF_UPLOAD] : 'auto',
             self::STORE_KIND => in_array($prefs[self::STORE_KIND] ?? null, ['auto', 'revenda', 'moveis'], true) ? $prefs[self::STORE_KIND] : 'auto',
+            self::KIT_PAGE => in_array($prefs[self::KIT_PAGE] ?? null, ['auto', 'revenda', 'moveis'], true) ? $prefs[self::KIT_PAGE] : 'auto',
         ];
     }
 
     public static function save(User $user, array $values): void
     {
         $prefs = is_array($user->preferences) ? $user->preferences : [];
-        $prefs['products'] = array_merge(self::get($user), array_intersect_key($values, array_flip([self::COST_CHANGE, self::PDF_UPLOAD, self::STORE_KIND])));
+        $prefs['products'] = array_merge(self::get($user), array_intersect_key($values, array_flip([self::COST_CHANGE, self::PDF_UPLOAD, self::STORE_KIND, self::KIT_PAGE])));
         $user->forceFill(['preferences' => $prefs])->save();
     }
 
@@ -99,5 +103,16 @@ class ProductPreferences
                 return false;
             }
         })();
+    }
+
+    /** Criar/editar kit abre a página de conjuntos de móveis? No automático segue o tipo de loja. */
+    public static function furnitureKitPage(?User $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+        $mode = self::get($user)[self::KIT_PAGE];
+
+        return $mode === 'auto' ? self::isFurniture($user) : $mode === 'moveis';
     }
 }

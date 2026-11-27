@@ -80,6 +80,12 @@ class EditKit extends Component
             abort(404, 'Product is not a kit.');
         }
 
+        if (\App\Services\Products\ProductPreferences::furnitureKitPage(Auth::user()) && !request()->boolean('revenda')) {
+            $this->redirectRoute('products.kit.moveis.edit', ['kit' => $kit->id], navigate: true);
+
+            return;
+        }
+
         $this->kit = $kit;
 
         // Carregar dados do kit

@@ -46,6 +46,13 @@ class CreateKit extends Component
 
     public function mount()
     {
+        // Loja de móveis: abre a página de conjuntos (Configurações › Produtos › Página de kit)
+        if (\App\Services\Products\ProductPreferences::furnitureKitPage(Auth::user()) && !request()->boolean('revenda')) {
+            $this->redirectRoute('products.kit.moveis.create', navigate: true);
+
+            return;
+        }
+
         // Inicializa como array vazio - os produtos serão adicionados via toggleProduct
         $this->selectedProducts = [];
 
