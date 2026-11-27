@@ -611,10 +611,14 @@ def criar_pasta_da_ficha(pasta_produtos, texto, fotos):
 
 # ------------------------------------------------------------ fotos
 
-def preparar_fotos(ficha, pasta_tmp, lado_max=1600, kb_max=1500):
+def preparar_fotos(ficha, pasta_tmp, lado_max=1600, kb_max=1500, so=None):
     """Cópias das fotos prontas para o site: viradas certas, até lado_max px e kb_max KB.
-    Mantém o nome (o site acha a foto pelo nome, com ou sem extensão)."""
+    Mantém o nome (o site acha a foto pelo nome, com ou sem extensão).
+    Com so (nomes de arquivo), prepara só essas (atualizar só o que mudou)."""
     fotos = ficha.fotos or [ficha.pasta / n for n in ficha.sobrando]
+    if so is not None:
+        so = {str(n).lower() for n in so}
+        fotos = [p for p in fotos if p.name.lower() in so]
     prontas = []
     for p in fotos:
         destino = Path(pasta_tmp) / p.name
@@ -2186,13 +2190,77 @@ def mover_para_feitos(ficha, pasta_produtos):
         ficha.arquivo = destino / ficha.arquivo.relative_to(antiga)
 
 
-def ficha_para_envio(ficha, pasta_tmp):
-    """Se houver variações desligadas, manda para o site uma cópia da ficha só com as ligadas."""
+def plano_envio(ficha, info):
+    """Atualizar só o que mudou desde o último envio (resultado.json).
+
+    Devolve (codigos, fotos, removidos, resumo):
+    - codigos: códigos das variações que vão (None = todas)
+    - fotos: nomes das fotos que sobem (None = todas)
+    - removidos: códigos que saíram da ficha (o site desliga)
+    - resumo: texto curto do que vai."""
+    salvo = (info or {}).get("variacoes") if isinstance(info, dict) else None
+    if not isinstance(salvo, dict) or not salvo.get("var"):
+        return None, None, [], "tudo (primeira atualização)"
+    atual = assinaturas_variacoes(ficha)
+    if not atual or not atual.get("var"):
+        return None, None, [], "tudo"
+    antigos, novos = salvo.get("var") or {}, atual["var"]
+    geral_mudou = salvo.get("geral") != atual.get("geral")
+    mudou, fotos_mudaram, novas = [], [], []
+    for k, a in novos.items():
+        s = antigos.get(k)
+        if s is None:
+            novas.append(k)
+            mudou.append(k)
+            fotos_mudaram.append(k)
+            continue
+        if any(s.get(c) != a.get(c) for c in ("valor", "venda", "preco_tabela", "custo", "medidas", "embalagem", "outros", "fotos")):
+            mudou.append(k)
+        if s.get("fotos") != a.get("fotos"):
+            fotos_mudaram.append(k)
+    separada = sim((ficha.dados or {}).get("separar_do_grupo"))
+    removidos = [] if separada else [str(antigos[k].get("codigo") or "") for k in antigos if k not in novos and antigos[k].get("codigo")]
+    fotos = set()
+    for k in fotos_mudaram:
+        fotos.update(Path(str(n[0])).name for n in novos[k].get("fotos") or [])
+    if novas and not any(novos[k].get("fotos") for k in novas):
+        # variação nova sem foto própria: o site usa as da primeira, então elas vão junto
+        primeira = next(iter(novos.values()))
+        fotos.update(Path(str(n[0])).name for n in primeira.get("fotos") or [])
+    if geral_mudou or separada:
+        codigos = None  # nome, descrição... valem para todas
+    else:
+        codigos = [novos[k].get("codigo") for k in mudou if novos[k].get("codigo")]
+        if not codigos and removidos and novos:
+            # só retirou variações: vai uma das que ficaram, sem mudar nada, para o site achar o grupo
+            codigos = [next(iter(novos.values())).get("codigo")]
+    partes = []
+    if geral_mudou:
+        partes.append("dados do produto")
+    if mudou and not geral_mudou:
+        partes.append(f"{len(mudou)} variação(ões)")
+    if novas:
+        partes.append(f"{len(novas)} nova(s)")
+    if removidos:
+        partes.append(f"{len(removidos)} retirada(s)")
+    partes.append(f"{len(fotos)} foto(s)" if fotos else "nenhuma foto")
+    return codigos, sorted(fotos), removidos, ", ".join(partes)
+
+
+def ficha_para_envio(ficha, pasta_tmp, codigos=None, removidos=None):
+    """Se houver variações desligadas, manda para o site uma cópia da ficha só com as ligadas.
+    Com codigos, só essas variações vão (as outras não mudaram); removidos vão em "remover_codigos"."""
     import copy
-    if len(ficha.ativas) == len(ficha.variacoes):
+    if len(ficha.ativas) == len(ficha.variacoes) and codigos is None and not removidos:
         return ficha
     dados = json.loads(json.dumps(ficha.dados))
     dados["variacoes"] = [v for v in dados.get("variacoes") or [] if isinstance(v, dict) and v.get("ativa", True) is not False]
+    if codigos is not None:
+        quero = {str(c).lower() for c in codigos}
+        dados["variacoes"] = [v for (v, cod) in codigos_no_site(ficha) if str(cod).lower() in quero]
+        dados["variacoes"] = json.loads(json.dumps(dados["variacoes"]))
+    if removidos:
+        dados["remover_codigos"] = list(removidos)
     envio = copy.copy(ficha)
     envio.arquivo = Path(pasta_tmp) / "ficha.md"
     envio.arquivo.write_text(texto_da_ficha(dados), encoding="utf-8")
@@ -2226,8 +2294,21 @@ def rodar(fichas, cfg, avisar, parar, site=None, atualizar=False):
             avisar("inicio", ficha, f"{'Atualizando' if atualizar else 'Cadastrando'} {ficha.nome}...")
             tmp = Path(tempfile.mkdtemp(prefix="robo-stylo-"))
             try:
-                fotos = preparar_fotos(ficha, tmp, int(r.get("lado_maximo_foto")), int(r.get("tamanho_maximo_foto_kb")))
-                envio = ficha_para_envio(ficha, tmp)
+                codigos = so_fotos = None
+                removidos = []
+                if atualizar and ja_feita:
+                    try:
+                        salvo = json.loads((ficha.pasta / "resultado.json").read_text(encoding="utf-8"))
+                    except Exception:
+                        salvo = None
+                    codigos, so_fotos, removidos, resumo = plano_envio(ficha, salvo)
+                    if codigos is not None and not codigos and not removidos:
+                        ficha.status, ficha.mensagem = "feita", "Nada mudou desde o último envio: não precisei subir."
+                        avisar("fim", ficha, ficha.mensagem)
+                        continue
+                    avisar("inicio", ficha, f"Atualizando só o que mudou: {resumo}.")
+                fotos = preparar_fotos(ficha, tmp, int(r.get("lado_maximo_foto")), int(r.get("tamanho_maximo_foto_kb")), so=so_fotos)
+                envio = ficha_para_envio(ficha, tmp, codigos, removidos)
                 res = site.cadastrar(envio, fotos, atualizar=atualizar)
                 if res is None and not atualizar and nuvem is not None:
                     # tudo já estava no site: confere variação por variação; se algo está diferente, atualiza
