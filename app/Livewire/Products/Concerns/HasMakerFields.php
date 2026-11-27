@@ -23,6 +23,12 @@ trait HasMakerFields
     /** Escolhas no portal: [id do catálogo => {on, l: nome na página, all: todas, i: itens}] */
     public array $choice_lists = [];
 
+    /** Loja de móveis (Configurações › Produtos): mostra encomenda, escolhas e ficha de custo. */
+    public function getFurnitureModeProperty(): bool
+    {
+        return \App\Services\Products\ProductPreferences::isFurniture(auth()->user());
+    }
+
     protected function makerRules(): array
     {
         return [

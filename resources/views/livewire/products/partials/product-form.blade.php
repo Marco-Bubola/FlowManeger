@@ -8,6 +8,9 @@
         $epSale = (float) str_replace(',', '.', $price_sale ?: '0');
         $epProfit = $epSale - $epCost;
         $epMargin = $epSale > 0 ? round($epProfit / $epSale * 100) : 0;
+        // Loja de móveis (Configurações › Produtos): encomenda, escolhas e ficha de custo.
+        // Na revenda essas partes só aparecem se o produto já usa.
+        $epFurn = $this->furnitureMode;
         $epSpecCount = collect($specs)->filter(fn ($s) => trim($s['n'] ?? '') !== '' && trim($s['v'] ?? '') !== '')->count();
     @endphp
     @include('livewire.products.partials.ep-styles')
@@ -137,7 +140,7 @@
             <section class="ep-card" id="ep-embalagem">
                 <div class="ep-card-h">
                     <span class="ep-ico amber"><i class="bi bi-box-seam"></i></span>
-                    <div><h3>Embalagem e prazo</h3><p>Peso e medidas da caixa para o frete, e se a peça é feita sob encomenda</p></div>
+                    <div><h3>{{ $epFurn ? 'Embalagem e prazo' : 'Embalagem e frete' }}</h3><p>{{ $epFurn ? 'Peso e medidas da caixa para o frete, e se a peça é feita sob encomenda' : 'Peso e medidas da caixa para o frete do Mercado Livre e da Shopee' }}</p></div>
                 </div>
                 <div class="ep-card-b space-y-4">
                     <div class="ep-row c4">
@@ -164,6 +167,7 @@
                     </div>
                     <p class="ep-hint -mt-2"><i class="bi bi-info-circle"></i>Medidas da caixa já embalada. O Mercado Livre e a Shopee usam para calcular o frete.</p>
 
+                    @if($epFurn || $made_to_order)
                     <div class="ep-mto {{ $made_to_order ? 'on' : '' }}">
                         <label class="ep-mto-row">
                             <input type="checkbox" wire:model.live="made_to_order" class="w-4 h-4 accent-indigo-600">
@@ -180,12 +184,14 @@
                             </div>
                         @endif
                     </div>
+                    @endif
                 </div>
             </section>
 
             {{-- Escolhas no portal: listas do catálogo de estofados e cores (cor da ferragem, estofado...) --}}
-            @if(\App\Services\Choices\ChoiceService::ready())
-            @php $epCats = $this->choiceCatalogs; $epOnCount = collect($choice_lists)->where('on', true)->count(); @endphp
+            @php $epOnCount = collect($choice_lists)->where('on', true)->count(); @endphp
+            @if(\App\Services\Choices\ChoiceService::ready() && ($epFurn || $epOnCount))
+            @php $epCats = $this->choiceCatalogs; @endphp
             <section class="ep-card" id="ep-escolhas" data-testid="choices-card">
                 <div class="ep-card-h">
                     <span class="ep-ico pink"><i class="bi bi-palette-fill"></i></span>
@@ -255,6 +261,7 @@
 
             {{-- Ficha de custo: materiais e horas que somam o custo da peça --}}
             @php $epCostTotal = $this->costItemsTotal; @endphp
+            @if($epFurn || count($cost_items))
             <section class="ep-card" id="ep-ficha-custo">
                 <div class="ep-card-h">
                     <span class="ep-ico orange"><i class="bi bi-calculator"></i></span>
@@ -287,6 +294,7 @@
                     </div>
                 </div>
             </section>
+            @endif
 
             {{-- Descrição e ficha técnica --}}
             <section class="ep-card">

@@ -16,7 +16,7 @@ use Livewire\WithFileUploads;
 
 class EditProduct extends Component
 {
-    use WithFileUploads, HasNotifications, Concerns\ImportsFromMlCatalog, Concerns\HasMakerFields;
+    use WithFileUploads, HasNotifications, Concerns\ImportsFromMlCatalog, Concerns\HasMakerFields, Concerns\FurnitureVariations;
 
     public Product $product;
     public int $currentStep = 1;
@@ -118,7 +118,8 @@ class EditProduct extends Component
         $this->loadExtraImages();
 
         // Variações já abertas quando o produto tem grupo ou há outros com o mesmo código
-        $this->showVariationsPanel = $product->parent_id || $product->is_variation_parent || $this->sameCodeCount > 0;
+        $this->showVariationsPanel = $product->parent_id || $product->is_variation_parent || $this->sameCodeCount > 0 || $this->furnitureMode;
+        $this->fillFurniture($product);
 
         // Não preenchemos $this->image para evitar conflitos
         // A imagem atual será mostrada através de $product->image
@@ -605,6 +606,7 @@ class EditProduct extends Component
             }
 
             $this->product->refresh();
+            $this->loadGroupRows();
             $this->reset(['newVariantName', 'newVariantValue', 'newVariantPrice', 'newVariantPriceSale', 'newVariantStock']);
             $this->dispatch('product-updated');
             $this->notifySuccess('Variação criada com sucesso!');
@@ -731,6 +733,7 @@ class EditProduct extends Component
         }
 
         $this->product->refresh();
+        $this->loadGroupRows();
         $this->name = $this->product->name;
         $this->variationAttribute = $attribute;
         $this->reset(['gridValues', 'gridColors', 'gridSelfValue', 'gridPrice', 'gridPriceSale', 'gridStock']);
@@ -752,6 +755,7 @@ class EditProduct extends Component
         if ($target) {
             $target->update(['variation_value' => $value]);
             $this->product->refresh();
+            $this->loadGroupRows();
             $this->notifySuccess('Variação renomeada para "' . $value . '".');
         }
     }
@@ -769,6 +773,7 @@ class EditProduct extends Component
             $variations->link($this->product, $child);
 
             $this->product->refresh();
+            $this->loadGroupRows();
             $this->reset(['linkVariantId', 'linkVariantValue', 'linkSearch', 'linkSelectedLabel']);
             $this->dispatch('product-updated');
             $this->notifySuccess('Produto vinculado como variação!');
@@ -797,6 +802,7 @@ class EditProduct extends Component
                 $variations->link($this->product, $child);
             }
             $this->product->refresh();
+            $this->loadGroupRows();
             $this->dispatch('product-updated');
             $this->notifySuccess($children->count() === 1 ? '1 produto vinculado como variação.' : $children->count() . ' produtos vinculados como variações.');
         } catch (\Throwable $e) {
@@ -816,6 +822,7 @@ class EditProduct extends Component
 
             $variations->detach($variant);
             $this->product->refresh();
+            $this->loadGroupRows();
             $this->dispatch('product-updated');
             $this->notifySuccess('Variação desvinculada.');
         } catch (\Throwable $e) {
@@ -831,6 +838,7 @@ class EditProduct extends Component
         }
         $variations->detach($this->product);
         $this->product->refresh();
+        $this->loadGroupRows();
         $this->dispatch('product-updated');
         $this->notifySuccess('Este produto saiu do grupo de variações.');
     }

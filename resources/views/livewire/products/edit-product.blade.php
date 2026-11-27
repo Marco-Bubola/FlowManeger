@@ -36,6 +36,8 @@
         $withStock = collect([$product])->merge($variants)->where('stock_quantity', '>', 0)->count();
         $vxImg = fn ($p) => asset('storage/products/' . ($p->image ?: 'product-placeholder.png'));
         $vxMoney = fn ($v) => 'R$ ' . number_format((float) $v, 2, ',', '.');
+        $vxFurn = $this->furnitureMode;
+        $vxFold = $vxFurn && $variants->count() + 1 > 8; // grupo grande: fotos recolhidas, a tabela manda
     @endphp
     <section class="vx" id="variacoes">
         <button type="button" wire:click="toggleVariationsPanel" class="vx-h">
@@ -45,7 +47,7 @@
                     @if($variants->count() > 0)<span class="vx-pill">{{ $variants->count() + 1 }} no grupo</span>@endif
                     @if(!$isVariant && $sameCodeCount > 0)<span class="vx-pill is-code"><i class="bi bi-upc-scan"></i>{{ $sameCodeCount }} com o mesmo código</span>@endif
                 </span>
-                <span class="vx-h-s">Mesmo item com preço, cor ou tamanho diferente. Cada um tem seu estoque.</span>
+                <span class="vx-h-s">{{ $vxFurn ? 'Tamanhos, cores da ferragem e estofados. Cada uma tem seu estoque.' : 'Mesmo item com preço, cor ou tamanho diferente. Cada um tem seu estoque.' }}</span>
             </span>
             @if($variants->count() > 0)
                 <span class="vx-h-stock"><small>Estoque do grupo</small><b>{{ $familyStock }}</b><small>{{ $withStock }} de {{ $variants->count() + 1 }} com estoque</small></span>
@@ -65,11 +67,13 @@
             @endif
 
             {{-- O grupo: este produto + as variações, em cards iguais aos da lista de produtos --}}
+            <div x-data="{ fotos: @js(! $vxFold) }" class="contents">
             <div class="vx-sec-h">
                 <span><i class="bi bi-collection-fill"></i> {{ $variants->count() ? 'No grupo' : 'Este produto' }}</span>
-                @if(!$variants->count())<small>Nenhuma variação ainda. Escolha abaixo.</small>@endif
+                @if(!$variants->count())<small>Nenhuma variação ainda. {{ $vxFurn ? 'Monte abaixo.' : 'Escolha abaixo.' }}</small>@endif
+                @if($vxFold)<button type="button" class="vx-fold" @click="fotos = !fotos"><i class="bi" :class="fotos ? 'bi-eye-slash' : 'bi-images'"></i><span x-text="fotos ? 'Esconder as fotos' : 'Ver as {{ $variants->count() + 1 }} com foto'"></span></button>@endif
             </div>
-            <div class="vx-grid">
+            <div class="vx-grid" x-show="fotos" x-cloak>
                 @foreach(collect([$product])->merge($variants) as $vp)
                     @php $self = $vp->id === $product->id; @endphp
                     <div class="vx-card {{ $self ? 'is-self' : '' }}" wire:key="vx-g-{{ $vp->id }}">
@@ -107,9 +111,20 @@
                     </div>
                 @endforeach
             </div>
+            </div>
+
+            {{-- Preço e estoque de todas de uma vez --}}
+            @if(count($fvRows) > 1)
+                @include('livewire.products.partials.group-table', ['gtOpen' => $vxFurn])
+            @endif
+
+            {{-- Loja de móveis: montador tamanho × ferragem × estofado × kit --}}
+            @if($vxFurn && !$isVariant)
+                @include('livewire.products.partials.furniture-builder')
+            @endif
 
             {{-- Gerar variações de uma vez: tamanhos (e cores) da mesma peça --}}
-            @unless($isVariant)
+            @if(!$isVariant && !$vxFurn)
             @php $gridPreview = $this->gridPreviewList(); @endphp
             <div class="vx-gen" id="gerar-variacoes">
                 <div class="vx-sug-h">
@@ -167,7 +182,7 @@
                     <span class="vx-sug-s">Preço e estoque vazios: usa os deste produto e 0.</span>
                 </div>
             </div>
-            @endunless
+            @endif
 
             {{-- Sugestões: primeiro os de mesmo código, depois os de mesmo nome --}}
             @unless($isVariant)
@@ -315,6 +330,174 @@
         .vx-btn.is-danger { color: #e11d48; background: #fff; border: 1px solid rgba(244,63,94,.35); }
         .dark .vx-btn.is-danger { background: transparent; }
         .vx-empty { grid-column: 1 / -1; margin: 0; padding: 1.2rem; text-align: center; font-size: .78rem; color: #64748b; border: 1px dashed rgba(148,163,184,.5); border-radius: 1rem; }
+
+        .vx-fold { margin-left: auto; display: inline-flex; align-items: center; gap: .3rem; text-transform: none; letter-spacing: 0; font-size: .74rem; font-weight: 700; color: #6d28d9; }
+        .dark .vx-fold { color: #c4b5fd; }
+
+        /* ── Loja de móveis: montar variações ── */
+        .fv { display: grid; gap: .9rem; padding: 1rem; border-radius: 1.2rem; border: 1px solid rgba(217,119,6,.28); background: linear-gradient(160deg, rgba(254,243,199,.55), rgba(255,255,255,.6) 45%); }
+        .dark .fv { background: linear-gradient(160deg, rgba(120,53,15,.22), rgba(15,23,42,.4) 50%); border-color: rgba(217,119,6,.35); }
+        .fv-head { display: flex; align-items: flex-start; gap: .7rem; }
+        .fv-head-ico { width: 2.3rem; height: 2.3rem; flex: none; border-radius: .8rem; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #d97706, #b45309); box-shadow: 0 6px 16px rgba(217,119,6,.3); }
+        .fv-t { margin: 0; font-size: .95rem; font-weight: 900; color: #78350f; }
+        .dark .fv-t { color: #fde68a; }
+        .fv-s, .fv-hint { margin: .1rem 0 0; font-size: .74rem; color: #64748b; }
+        .fv-link { display: inline-flex; align-items: center; gap: .25rem; font-size: .74rem; font-weight: 800; color: #b45309; white-space: nowrap; }
+        .dark .fv-link { color: #fbbf24; }
+        .fv-steps { display: grid; gap: .8rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .fv-step { min-width: 0; padding: .85rem; border-radius: 1rem; background: rgba(255,255,255,.9); border: 1px solid rgba(148,163,184,.25); }
+        .dark .fv-step { background: rgba(15,23,42,.75); border-color: rgba(71,85,105,.5); }
+        .fv-step-wide { grid-column: 1 / -1; }
+        .fv-step > header { display: flex; flex-wrap: wrap; align-items: baseline; gap: .45rem; margin-bottom: .6rem; }
+        .fv-step > header b { font-size: .86rem; color: #0f172a; }
+        .dark .fv-step > header b { color: #f1f5f9; }
+        .fv-step > header small { font-size: .7rem; color: #94a3b8; }
+        .fv-n { width: 1.35rem; height: 1.35rem; border-radius: 999px; display: inline-grid; place-items: center; font-size: .7rem; font-weight: 900; color: #fff; background: #d97706; align-self: center; }
+        .fv-add { display: flex; gap: .5rem; }
+        .fv-add .ep-input { flex: 1; min-width: 0; }
+        .fv-sizes { margin-top: .6rem; display: grid; gap: .4rem; }
+        .fv-sizes-h, .fv-size { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) 2.2rem; gap: .4rem; align-items: center; }
+        .fv-sizes-h span { font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; }
+        .fv-size-v { display: inline-flex; align-items: center; gap: .35rem; min-width: 0; padding: .45rem .6rem; border-radius: .7rem; font-size: .8rem; font-weight: 800; color: #92400e; background: rgba(251,191,36,.18); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .dark .fv-size-v { color: #fde68a; }
+        .fv-size .ep-input { padding-top: .45rem; padding-bottom: .45rem; }
+        .fv-dots { display: flex; flex-wrap: wrap; gap: .45rem; }
+        .fv-dot { display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .65rem .25rem .25rem; border-radius: 999px; border: 1.5px solid rgba(148,163,184,.35); background: #fff; font-size: .76rem; font-weight: 700; color: #334155; transition: border-color .15s, box-shadow .15s; }
+        .fv-dot:hover { border-color: #f59e0b; }
+        .fv-dot.on { border-color: #d97706; box-shadow: 0 0 0 3px rgba(217,119,6,.16); color: #78350f; background: #fffbeb; }
+        .dark .fv-dot { background: rgba(30,41,59,.9); color: #e2e8f0; border-color: rgba(71,85,105,.7); }
+        .dark .fv-dot.on { background: rgba(120,53,15,.35); color: #fde68a; border-color: #d97706; }
+        .fv-dot .sw { width: 1.6rem; height: 1.6rem; flex: none; border-radius: 999px; display: grid; place-items: center; box-shadow: inset 0 0 0 1px rgba(15,23,42,.15); color: #fff; font-size: .8rem; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+        .fv-dot .nm em { margin-left: .3rem; font-style: normal; font-size: .64rem; color: #94a3b8; }
+        .fv-mode { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-bottom: .7rem; }
+        .fv-mode button { display: flex; align-items: center; gap: .55rem; padding: .6rem .7rem; text-align: left; border-radius: .9rem; border: 2px solid rgba(148,163,184,.3); background: #f8fafc; }
+        .fv-mode button > i { font-size: 1.1rem; color: #94a3b8; }
+        .fv-mode button b { display: block; font-size: .8rem; color: #0f172a; }
+        .fv-mode button small { display: block; font-size: .68rem; color: #64748b; }
+        .fv-mode button.on { border-color: #d97706; background: #fffbeb; }
+        .fv-mode button.on > i { color: #d97706; }
+        .dark .fv-mode button { background: rgba(30,41,59,.7); border-color: rgba(71,85,105,.6); }
+        .dark .fv-mode button b { color: #f1f5f9; }
+        .dark .fv-mode button.on { background: rgba(120,53,15,.3); border-color: #d97706; }
+        .fv-mat + .fv-mat { margin-top: .7rem; padding-top: .7rem; border-top: 1px dashed rgba(148,163,184,.35); }
+        .fv-mat-h { display: flex; align-items: baseline; gap: .5rem; margin-bottom: .45rem; }
+        .fv-mat-h b { font-size: .8rem; color: #334155; }
+        .dark .fv-mat-h b { color: #e2e8f0; }
+        .fv-mat-h small { font-size: .7rem; color: #94a3b8; }
+        .fv-mat-h .fv-link { margin-left: auto; }
+        .fv-check { display: flex; align-items: center; gap: .45rem; margin-top: .7rem; font-size: .78rem; font-weight: 600; color: #475569; }
+        .dark .fv-check { color: #cbd5e1; }
+        .fv-empty { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; padding: .8rem; border-radius: .9rem; font-size: .78rem; color: #475569; border: 1px dashed rgba(148,163,184,.5); }
+        .fv-empty > i { font-size: 1.3rem; color: #d97706; }
+        .fv-empty > span { flex: 1 1 220px; }
+        .fv-opts { display: grid; gap: .7rem; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); align-items: end; }
+        .fv-toggle { display: flex; align-items: center; gap: .6rem; padding: .55rem .7rem; border-radius: .9rem; border: 1.5px solid rgba(148,163,184,.35); cursor: pointer; }
+        .fv-toggle.on { border-color: #d97706; background: #fffbeb; }
+        .dark .fv-toggle.on { background: rgba(120,53,15,.3); }
+        .fv-toggle b { display: block; font-size: .8rem; color: #0f172a; }
+        .dark .fv-toggle b { color: #f1f5f9; }
+        .fv-toggle small { display: block; font-size: .68rem; color: #64748b; }
+        .fv-sw { position: relative; flex: none; width: 2.3rem; height: 1.3rem; border-radius: 999px; background: #cbd5e1; transition: background .15s; }
+        .fv-sw span { position: absolute; top: .15rem; left: .15rem; width: 1rem; height: 1rem; border-radius: 999px; background: #fff; transition: transform .15s; }
+        .fv-toggle.on .fv-sw { background: #d97706; }
+        .fv-toggle.on .fv-sw span { transform: translateX(1rem); }
+        .fv-prev { padding: .8rem; border-radius: 1rem; background: rgba(255,255,255,.9); border: 1px solid rgba(16,185,129,.35); }
+        .fv-prev.is-bad { border-color: rgba(244,63,94,.5); }
+        .dark .fv-prev { background: rgba(15,23,42,.75); }
+        .fv-prev-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: .6rem; margin-bottom: .55rem; }
+        .fv-prev-h b { font-size: .86rem; color: #047857; }
+        .fv-prev.is-bad .fv-prev-h b { color: #e11d48; }
+        .fv-prev-h small { font-size: .72rem; color: #64748b; }
+        .fv-prev-h small.bad { color: #e11d48; font-weight: 700; }
+        .fv-prev-list { display: grid; gap: .35rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); max-height: 19rem; overflow: auto; }
+        .fv-pc { display: flex; align-items: center; gap: .5rem; min-width: 0; padding: .35rem .55rem; border-radius: .7rem; background: #f8fafc; font-size: .76rem; }
+        .dark .fv-pc { background: rgba(30,41,59,.8); }
+        .fv-pc.is-dup { opacity: .45; }
+        .fv-pc-dots { display: inline-flex; flex: none; }
+        .fv-pc-dots span { width: 1rem; height: 1rem; border-radius: 999px; box-shadow: 0 0 0 2px #fff, inset 0 0 0 1px rgba(15,23,42,.15); }
+        .fv-pc-dots span + span { margin-left: -.25rem; }
+        .fv-pc-dots i { color: #d97706; }
+        .fv-pc-n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: #334155; }
+        .dark .fv-pc-n { color: #e2e8f0; }
+        .fv-pc-p { flex: none; font-weight: 800; color: #047857; }
+        .fv-pc-p.is-low { color: #e11d48; }
+        .dark .fv-pc-p { color: #6ee7b7; }
+        .fv-more { align-self: center; font-size: .74rem; font-weight: 800; color: #64748b; }
+        .fv-foot { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; }
+        .fv-go { background: linear-gradient(90deg, #d97706, #b45309) !important; box-shadow: 0 8px 20px rgba(217,119,6,.3) !important; padding: .65rem 1.1rem; }
+        .fv-go:disabled { opacity: .5; }
+        @media (max-width: 900px) { .fv-opts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fv-opts .fv-toggle { grid-column: 1 / -1; } }
+        @media (max-width: 640px) {
+            .fv { padding: .75rem; }
+            .fv-steps { grid-template-columns: minmax(0, 1fr); }
+            .fv-mode { grid-template-columns: minmax(0, 1fr); }
+            .fv-prev-list { grid-template-columns: minmax(0, 1fr); }
+            .fv-foot .fv-go { width: 100%; }
+            .fv-sizes-h { display: none; }
+            .fv-size { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.2rem; }
+            .fv-size-v { grid-column: 1 / -1; }
+            .fv-dots { gap: .35rem; }
+            .fv-dot { font-size: .72rem; padding-right: .55rem; }
+            .fv-dot .sw { width: 1.35rem; height: 1.35rem; }
+            .fv-dot .nm em { display: none; }
+        }
+
+        /* ── Tabela do grupo ── */
+        .gt { border-radius: 1.1rem; border: 1px solid rgba(99,102,241,.22); background: rgba(255,255,255,.7); overflow: hidden; }
+        .dark .gt { background: rgba(15,23,42,.5); border-color: rgba(99,102,241,.35); }
+        .gt-h { width: 100%; display: flex; align-items: center; gap: .65rem; padding: .75rem .9rem; }
+        .gt-h:hover { background: rgba(99,102,241,.04); }
+        .gt-h-ico { width: 2rem; height: 2rem; flex: none; border-radius: .7rem; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #6366f1, #0ea5e9); }
+        .gt-h b { display: block; font-size: .86rem; color: #0f172a; }
+        .dark .gt-h b { color: #f1f5f9; }
+        .gt-h small { display: block; font-size: .7rem; color: #64748b; }
+        .gt-tools { display: grid; gap: .6rem; padding: 0 .9rem .7rem; }
+        .gt-marks { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; }
+        .gt-lbl { font-size: .7rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+        .gt-chip { display: inline-flex; align-items: center; gap: .2rem; padding: .25rem .65rem; border-radius: 999px; font-size: .74rem; font-weight: 700; color: #4338ca; background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.2); }
+        .gt-chip.is-tk { color: #92400e; background: rgba(251,191,36,.16); border-color: rgba(217,119,6,.25); }
+        .gt-chip.is-off { color: #64748b; background: rgba(148,163,184,.14); border-color: transparent; }
+        .dark .gt-chip { color: #c7d2fe; } .dark .gt-chip.is-tk { color: #fde68a; }
+        .gt-bulk { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .5rem; padding: .65rem; border-radius: .9rem; background: rgba(99,102,241,.07); border: 1px solid rgba(99,102,241,.2); }
+        .gt-bulk > b { align-self: center; font-size: .8rem; color: #4338ca; margin-right: .2rem; }
+        .dark .gt-bulk > b { color: #c7d2fe; }
+        .gt-bulk label { display: grid; gap: .15rem; width: 7rem; }
+        .gt-bulk label span, .gt-f span { font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
+        .gt-bulk .ep-input { padding-top: .4rem; padding-bottom: .4rem; }
+        .gt-bulk-b { display: flex; flex-wrap: wrap; gap: .4rem; }
+        .gt-soft { color: #4338ca; background: #fff; border: 1px solid rgba(99,102,241,.3); }
+        .dark .gt-soft { background: transparent; color: #c7d2fe; }
+        .gt-list { display: grid; }
+        .gt-row { display: grid; grid-template-columns: 2rem minmax(0, 2.4fr) repeat(3, minmax(0, 1fr)) 6rem 2rem; gap: .5rem; align-items: center; padding: .45rem .9rem; border-top: 1px solid rgba(148,163,184,.18); }
+        .gt-row-h { padding-top: .35rem; padding-bottom: .35rem; background: rgba(148,163,184,.08); }
+        .gt-row-h span { font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; }
+        .gt-row.is-on { background: rgba(99,102,241,.07); }
+        .gt-row.is-self .gt-name b::after { content: ''; }
+        .gt-ck { font-size: 1.05rem; color: #94a3b8; }
+        .gt-row.is-on .gt-ck { color: #6366f1; }
+        .gt-name { display: flex; align-items: center; gap: .55rem; min-width: 0; }
+        .gt-name img { width: 2.3rem; height: 2.3rem; flex: none; border-radius: .6rem; object-fit: contain; background: #fff; border: 1px solid rgba(148,163,184,.25); }
+        .gt-name b { display: block; font-size: .8rem; color: #0f172a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .dark .gt-name b { color: #f1f5f9; }
+        .gt-name small { display: block; font-size: .66rem; color: #94a3b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .gt-f span { display: none; }
+        .gt-f .ep-input { padding: .4rem .55rem; font-size: .82rem; }
+        .gt-mto { display: inline-flex; align-items: center; justify-content: center; gap: .3rem; padding: .4rem .5rem; border-radius: .7rem; font-size: .74rem; font-weight: 800; color: #64748b; background: rgba(148,163,184,.14); }
+        .gt-mto.on { color: #92400e; background: rgba(251,191,36,.25); }
+        .dark .gt-mto.on { color: #fde68a; }
+        .gt-open { display: grid; place-items: center; color: #6366f1; }
+        .gt-foot { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; padding: .75rem .9rem; border-top: 1px solid rgba(148,163,184,.18); }
+        @media (max-width: 767px) {
+            .gt-row-h { display: none; }
+            .gt-row { grid-template-columns: 1.6rem minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "ck nm nm op" ". c s q" ". mt mt mt"; row-gap: .45rem; padding: .7rem .75rem; }
+            .gt-ck { grid-area: ck; } .gt-name { grid-area: nm; } .gt-open { grid-area: op; justify-self: end; }
+            .gt-row > .gt-f:nth-of-type(1) { grid-area: c; } .gt-row > .gt-f:nth-of-type(2) { grid-area: s; } .gt-row > .gt-f:nth-of-type(3) { grid-area: q; }
+            .gt-mto { grid-area: mt; justify-self: start; }
+            .gt-f span { display: block; }
+            .gt-bulk label { width: calc(50% - .25rem); }
+            .gt-bulk-b { width: 100%; }
+            .gt-bulk-b .vx-btn { flex: 1; }
+        }
     </style>
 
     <style>
