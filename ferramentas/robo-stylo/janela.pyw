@@ -5839,14 +5839,16 @@ class EscolherFotos(Dialogo):
 class EscolherVariacoes(Dialogo):
     """Marca em quais variações uma foto entra (ex.: a foto da mesa na Mesa, Mesa + 2 e Mesa + 4, e não na Cadeira)."""
 
-    def __init__(self, editor, foto):
-        super().__init__(editor.app, "Esta foto entra em quais variações?", foto.caminho.name, larg=600, alt=660)
-        self.editor, self.foto = editor, foto
-        img = miniatura(foto.caminho, 96)
-        editor.app._refs.append(img)
+    def __init__(self, editor, foto, marcadas=None, ao_ok=None, titulo=None, sub=None):
+        super().__init__(editor.app, titulo or "Esta foto entra em quais variações?", sub or (foto.caminho.name if foto else ""),
+                         larg=600, alt=660)
+        self.editor, self.foto, self.ao_ok = editor, foto, ao_ok
         topo = ctk.CTkFrame(self.corpo, fg_color="transparent")
         topo.grid(row=0, column=0, columnspan=2, sticky="ew", padx=16, pady=(12, 4))
-        ctk.CTkLabel(topo, text="" if img else "foto", image=img, width=96, height=96).pack(side="left")
+        if foto is not None:
+            img = miniatura(foto.caminho, 96)
+            editor.app._refs.append(img)
+            ctk.CTkLabel(topo, text="" if img else "foto", image=img, width=96, height=96).pack(side="left")
         bts = ctk.CTkFrame(topo, fg_color="transparent")
         bts.pack(side="left", padx=14)
         Botao(bts, "Marcar todas", "fantasma", width=120, height=28, font=F(12), command=lambda: self._todas(True)).pack(anchor="w")
@@ -5882,8 +5884,11 @@ class EscolherVariacoes(Dialogo):
             cb = ctk.CTkCheckBox(lista, text=l.rotulo(), font=F(13), text_color=TEXTO, fg_color=ROXO, hover_color=ROXO_H,
                                  command=self._contar)
             cb.pack(anchor="w", padx=8, pady=5)
-            if foto.uso == "todas" or foto.de(l) or (isinstance(foto.uso, str) and foto.uso.startswith("cor:")
-                                                     and editor._cor_da_linha(l) == foto.uso[4:]):
+            if foto is None:
+                if marcadas and l in marcadas:
+                    cb.select()
+            elif foto.uso == "todas" or foto.de(l) or (isinstance(foto.uso, str) and foto.uso.startswith("cor:")
+                                                       and editor._cor_da_linha(l) == foto.uso[4:]):
                 cb.select()
             self.caixas.append((cb, l))
         self.botao_ok("Usar nestas", self._ok)
@@ -5921,6 +5926,10 @@ class EscolherVariacoes(Dialogo):
 
     def _ok(self):
         sel = tuple(l for cb, l in self.caixas if cb.get())
+        if self.ao_ok is not None:
+            self.destroy()
+            self.ao_ok(list(sel))
+            return
         if not sel:
             self.foto.uso = "nao"
         elif len(sel) == len(self.caixas):
@@ -5998,8 +6007,14 @@ class ImagensIA(Dialogo):
         self.lbl_var = ctk.CTkLabel(vbox, text="", font=F(11), text_color=MUDO, anchor="w", justify="left", wraplength=320)
         self.lbl_var.pack(fill="x", padx=12, pady=(2, 4))
         self.bt_prox = Botao(vbox, "Próxima variação sem imagem  ▶", "suave", height=30, font=F(12, "bold"), command=self._proxima_sem)
+        self.destinos = []      # outras variações que também recebem as imagens baixadas
+        self.bt_dest = Botao(vbox, "＋  Pôr as imagens também em outras variações", "fantasma", height=30, font=F(12, "bold"),
+                             command=self._escolher_destinos)
+        self.lbl_dest = ctk.CTkLabel(vbox, text="", font=F(11), text_color=ROXO_TXT, anchor="w", justify="left", wraplength=320)
         if len(self.vars) > 1:
-            self.bt_prox.pack(fill="x", padx=12, pady=(0, 10))
+            self.bt_prox.pack(fill="x", padx=12, pady=(0, 4))
+            self.bt_dest.pack(fill="x", padx=12, pady=(0, 2))
+            self.lbl_dest.pack(fill="x", padx=12, pady=(0, 10))
         # as fotos reais são de qual variação?
         self.banner_ref = None
         self.reais = [f for f in self.fotos if f.uso != "nao"]
@@ -6134,6 +6149,37 @@ class ImagensIA(Dialogo):
             if idx < len(self.vars):
                 self.vars[idx]["canva_extra"] = t or None
 
+    def _linhas_destino(self, idx):
+        """A variação aberta (de onde a imagem é feita) mais as outras escolhidas."""
+        ls = list(self.destinos)
+        l = self._linha(idx)
+        if l is not None and l not in ls:
+            ls.insert(0, l)
+        return [x for x in self.editor.linhas if x in ls]
+
+    def _mostrar_destinos(self):
+        idx, _ = self._var_atual()
+        ls = self._linhas_destino(idx)
+        if len(ls) <= 1:
+            self.lbl_dest.configure(text="")
+            self.bt_dest.configure(text="＋  Pôr as imagens também em outras variações")
+            return
+        nomes = ", ".join(cortar(l.rotulo(), 22) for l in ls[:6]) + (f" e mais {len(ls) - 6}" if len(ls) > 6 else "")
+        self.lbl_dest.configure(text=f"As imagens vão para {len(ls)} variações: {nomes}.")
+        self.bt_dest.configure(text=f"✎  Mudar onde as imagens entram ({len(ls)})")
+
+    def _escolher_destinos(self):
+        idx, _ = self._var_atual()
+
+        def pronto(sel):
+            self.destinos = sel
+            self._mostrar_destinos()
+            self.after(150, self._prender)
+        dlg = EscolherVariacoes(self.editor, None, marcadas=self._linhas_destino(idx), ao_ok=pronto,
+                                titulo="As imagens entram em quais variações?",
+                                sub="A imagem é feita a partir da variação aberta; aqui você escolhe em quais ela entra.")
+        dlg.bind("<Destroy>", lambda e: self.after(200, self._prender) if e.widget is dlg else None, add="+")
+
     def _fotos_da(self, txt):
         ed = self.editor
         alvo = next((l for l in ed.linhas if l.rotulo() == txt), None)
@@ -6144,6 +6190,8 @@ class ImagensIA(Dialogo):
 
     def _trocou_var(self):
         idx, var = self._var_atual()
+        if hasattr(self, "lbl_dest"):
+            self.after(10, self._mostrar_destinos)
         l = self._linha(idx) if len(self.vars) > 1 else None
         self.var_idx = idx if len(self.vars) > 1 else None
         self.extra.delete("1.0", "end")
@@ -6541,7 +6589,8 @@ class ImagensIA(Dialogo):
                 continue
             uso = "todas"
             if c["var"] is not None and len(ed.linhas) > 1 and c["var"] < len(ed.linhas):
-                uso = ed.linhas[c["var"]]
+                ls = self._linhas_destino(c["var"])
+                uso = "todas" if len(ls) == len(ed.linhas) else (ls[0] if len(ls) == 1 else tuple(ls))
             (novas_capa if c["estilo"] == "capa" else novas).append(FotoEd(destino, nova=True, uso=uso))
         if not novas_capa and not novas:
             return
@@ -6554,6 +6603,7 @@ class ImagensIA(Dialogo):
                 if w is not self.vazio:
                     w.destroy()
             self.criadas = []
+            self.destinos = []
             self.vazio.pack(pady=60)
             self.fotos = [f for f in ed.fotos if not f.removida]
             self.app.toast(f"{total} imagem(ns) na variação. Agora a próxima.", VERDE)
