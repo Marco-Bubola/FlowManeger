@@ -5840,7 +5840,7 @@ class EscolherVariacoes(Dialogo):
     """Marca em quais variações uma foto entra (ex.: a foto da mesa na Mesa, Mesa + 2 e Mesa + 4, e não na Cadeira)."""
 
     def __init__(self, editor, foto):
-        super().__init__(editor.app, "Esta foto entra em quais variações?", foto.caminho.name, larg=560, alt=620)
+        super().__init__(editor.app, "Esta foto entra em quais variações?", foto.caminho.name, larg=600, alt=660)
         self.editor, self.foto = editor, foto
         img = miniatura(foto.caminho, 96)
         editor.app._refs.append(img)
@@ -5858,9 +5858,25 @@ class EscolherVariacoes(Dialogo):
         self.filtro.pack(anchor="w")
         self.filtro.bind("<Return>", lambda e: self._por_nome())
         Botao(filtro, "Marcar", "suave", width=70, height=26, font=F(11, "bold"), command=self._por_nome).pack(anchor="w", pady=(4, 0))
-        self.corpo.grid_rowconfigure(1, weight=1)
+        # atalhos: um botão para cada cor/tamanho que aparece nas variações ("Branco" marca todas as brancas)
+        pecas = []
+        for l in editor.linhas:
+            for p in (x.strip() for x in l.rotulo().split("·")):
+                if p and p not in pecas:
+                    pecas.append(p)
+        self.chips = {}
+        if len(pecas) > 1 and len(pecas) < len(editor.linhas) * 2:
+            caixa = ctk.CTkFrame(self.corpo, fg_color="transparent")
+            caixa.grid(row=1, column=0, columnspan=2, sticky="ew", padx=16, pady=(2, 6))
+            ctk.CTkLabel(caixa, text="Toque para marcar (ou desmarcar) todas as que têm:", font=F(11, "bold"),
+                         text_color=MUDO, anchor="w").grid(row=0, column=0, columnspan=6, sticky="w")
+            for i, p in enumerate(pecas[:24]):
+                b = Botao(caixa, cortar(p, 14), "suave", width=118, height=28, font=F(12, "bold"), command=lambda p=p: self._por_peca(p))
+                b.grid(row=1 + i // 4, column=i % 4, padx=3, pady=3, sticky="w")
+                self.chips[p] = b
+        self.corpo.grid_rowconfigure(2, weight=1)
         lista = ctk.CTkScrollableFrame(self.corpo, fg_color="transparent")
-        lista.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=10, pady=(0, 10))
+        lista.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=10, pady=(0, 10))
         self.caixas = []
         for l in editor.linhas:
             cb = ctk.CTkCheckBox(lista, text=l.rotulo(), font=F(13), text_color=TEXTO, fg_color=ROXO, hover_color=ROXO_H,
@@ -5871,6 +5887,17 @@ class EscolherVariacoes(Dialogo):
                 cb.select()
             self.caixas.append((cb, l))
         self.botao_ok("Usar nestas", self._ok)
+        self._contar()
+
+    def _tem(self, l, p):
+        return p in [x.strip() for x in l.rotulo().split("·")]
+
+    def _por_peca(self, p):
+        """Marca todas as variações com essa cor/tamanho; se já estavam todas marcadas, desmarca."""
+        alvo = [cb for cb, l in self.caixas if self._tem(l, p)]
+        todas = all(cb.get() for cb in alvo)
+        for cb in alvo:
+            cb.deselect() if todas else cb.select()
         self._contar()
 
     def _por_nome(self):
@@ -5888,6 +5915,9 @@ class EscolherVariacoes(Dialogo):
     def _contar(self):
         n = sum(1 for cb, _ in self.caixas if cb.get())
         self.lbl_rod.configure(text=f"{n} de {len(self.caixas)} marcada(s)" + (" · nenhuma = não usar" if not n else ""))
+        for p, b in getattr(self, "chips", {}).items():
+            cheio = all(cb.get() for cb, l in self.caixas if self._tem(l, p))
+            b.configure(fg_color=ROXO if cheio else ROXO_CLARO, text_color="#ffffff" if cheio else ROXO_TXT)
 
     def _ok(self):
         sel = tuple(l for cb, l in self.caixas if cb.get())

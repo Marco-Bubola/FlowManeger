@@ -1,5 +1,5 @@
 {
-  "versao": 39,
+  "versao": 40,
   "data": "2026-11-27",
   "arquivos": [
     "janela.pyw",
@@ -14,12 +14,11 @@
     "instalar.bat"
   ],
   "novidades": [
+    "Fotos › “Esta foto entra em quais variações?”: botões com cada cor e tamanho (Branco, Preto, 120 cm…). Toque em “Branco” e marca todas as brancas; toque de novo e desmarca.",
     "Fotos: escolha qualquer foto como capa. Em “Todas as fotos”, toque em “★ Capa” na foto (ou duplo clique nela).",
     "Fotos “Por variação”: toque numa foto da linha e ela vira a capa só daquela variação (as outras não mudam).",
     "Fotos: arrumado o espaço vazio que aparecia entre as fotos depois de trocar de “Por variação” para “Todas as fotos”.",
     "“Medidas em desenho”: o pedido ao Canva ficou bem mais firme para sair desenho de traço preto no papel branco, com as setas e as medidas escritas (antes podia sair foto 3D).",
-    "Ficha cadastrada que você mudou depois: o robô diz o que mudou em cada variação (por exemplo “Branco: preço R$ 490 → R$ 520, fotos”).",
-    "Ao subir ou atualizar, o robô confere no site cada variação: se está lá e se o preço é o da ficha, e avisa qual está diferente.",
-    "Se você mandar Cadastrar uma ficha que já está no site, mas alguma variação está com preço diferente, o robô atualiza sozinho."
+    "Ficha cadastrada que você mudou depois: o robô diz o que mudou em cada variação (por exemplo “Branco: preço R$ 490 → R$ 520, fotos”)."
   ]
 }
