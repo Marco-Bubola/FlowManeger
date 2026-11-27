@@ -2266,8 +2266,13 @@ class PainelEstoque(ctk.CTkFrame):
         total = 0
         for i, (v, cod) in enumerate(self.linhas, 1):
             info = dados.get((cod or "").lower()) if cod else None
-            ctk.CTkLabel(tab, text=cortar(str(v.get("valor") or self.ficha.nome), letras), font=F(12), text_color=TEXTO,
-                         anchor="w").grid(row=i, column=0, sticky="w", padx=(0, 10), pady=2)
+            aviso = ""
+            if info:
+                na_ficha, no_site = motor.numero(v.get("venda")), motor.numero(info.get("venda"))
+                if na_ficha is not None and (no_site is None or abs(na_ficha - no_site) > 0.009):
+                    aviso = f"\n⚠ preço no site {motor._txt_preco(no_site)}, na ficha {motor._txt_preco(na_ficha)}"
+            ctk.CTkLabel(tab, text=cortar(str(v.get("valor") or self.ficha.nome), letras) + aviso, font=F(12),
+                         text_color=AMBAR if aviso else TEXTO, anchor="w", justify="left").grid(row=i, column=0, sticky="w", padx=(0, 10), pady=2)
             ctk.CTkLabel(tab, text=cod or "—", font=F(11), text_color=MUDO).grid(row=i, column=1, sticky="w", padx=(0, 10))
             if not info:
                 ctk.CTkLabel(tab, text="não está no site", font=F(11), text_color=AMBAR).grid(row=i, column=2, columnspan=2, sticky="w")

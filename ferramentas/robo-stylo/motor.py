@@ -117,6 +117,7 @@ class Ficha:
     status: str = "pronta"                          # pronta | erro | feita | ja | falhou
     mensagem: str = ""
     resultado: list = field(default_factory=list)
+    mudancas: list = field(default_factory=list)    # o que mudou por variação desde o último envio
 
     @property
     def nome(self):
@@ -342,6 +343,106 @@ def assinatura_ficha(f):
         return ""
 
 
+def _txt_preco(n):
+    return "—" if n is None else "R$ " + f"{n:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def assinaturas_variacoes(f):
+    """Um retrato de cada variação como foi para o site (preço, fotos, medidas...), para depois dizer o que mudou."""
+    try:
+        tam = {}
+        for q in f.todas_fotos:
+            try:
+                tam[q.name] = q.stat().st_size
+            except OSError:
+                tam[q.name] = 0
+        dados = json.loads(json.dumps(f.dados))
+        dados.pop("variacoes", None)
+        geral = hashlib.sha1(json.dumps(dados, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
+        var = {}
+        alguma = any(v.get("fotos") for v in f.variacoes)
+        for v, cod in codigos_no_site(f):
+            resto = {k: x for k, x in v.items() if k not in ("estoque", "fotos", "venda", "custo", "preco_tabela",
+                                                           "medidas_peca_cm", "embalagem")}
+            nomes = [str(n) for n in (v.get("fotos") or []) if n] or ([] if alguma else sorted(tam))
+            var[(cod or str(v.get("valor") or "")).lower()] = {
+                "valor": v.get("valor"), "codigo": cod,
+                "venda": numero(v.get("venda")), "preco_tabela": numero(v.get("preco_tabela")), "custo": numero(v.get("custo")),
+                "fotos": [[n, tam.get(Path(n).name, 0)] for n in nomes],
+                "medidas": v.get("medidas_peca_cm") or {}, "embalagem": v.get("embalagem") or {},
+                "outros": hashlib.sha1(json.dumps(resto, ensure_ascii=False, sort_keys=True, default=str).encode("utf-8")).hexdigest(),
+            }
+        return {"geral": geral, "var": var}
+    except Exception:
+        return {}
+
+
+def mudancas_variacoes(f, salvo):
+    """O que mudou na ficha desde o último envio, variação por variação. [] se nada (ou se não dá para saber)."""
+    if not isinstance(salvo, dict) or not salvo.get("var"):
+        return []
+    atual = assinaturas_variacoes(f)
+    if not atual:
+        return []
+    out = []
+    if salvo.get("geral") != atual.get("geral"):
+        out.append("dados do produto (nome, descrição ou ficha técnica)")
+    antigos = salvo.get("var") or {}
+    for k, a in atual["var"].items():
+        rot = str(a.get("valor") or a.get("codigo") or "Produto")
+        s = antigos.get(k)
+        if s is None:
+            out.append(f"{rot}: variação nova (entra no site)")
+            continue
+        itens = []
+        if s.get("venda") != a.get("venda"):
+            itens.append(f"preço {_txt_preco(s.get('venda'))} → {_txt_preco(a.get('venda'))}")
+        if s.get("preco_tabela") != a.get("preco_tabela"):
+            itens.append("preço de tabela")
+        if s.get("custo") != a.get("custo"):
+            itens.append("custo")
+        if s.get("fotos") != a.get("fotos"):
+            itens.append("fotos")
+        if s.get("medidas") != a.get("medidas"):
+            itens.append("medidas")
+        if s.get("embalagem") != a.get("embalagem"):
+            itens.append("embalagem")
+        if s.get("outros") != a.get("outros"):
+            itens.append("nome, prazo ou outros dados")
+        if itens:
+            out.append(f"{rot}: " + ", ".join(itens))
+    for k, s in antigos.items():
+        if k not in atual["var"]:
+            out.append(f"{s.get('valor') or s.get('codigo')}: saiu da ficha (no site continua)")
+    return out
+
+
+def conferir_no_site(ficha, nuvem):
+    """Confere no site cada variação da ficha: se está lá e se o preço é o da ficha.
+
+    Devolve (certas, total, problemas) ou None se não deu para ler o site."""
+    linhas = [(v, c) for v, c in codigos_no_site(ficha) if c]
+    if not linhas or nuvem is None or not nuvem.conectada:
+        return None
+    try:
+        dados = nuvem.estoque([c for _, c in linhas])
+    except Exception:
+        return None
+    certas, problemas = 0, []
+    for v, cod in linhas:
+        rot = str(v.get("valor") or cod)
+        info = dados.get(cod.lower())
+        if not info:
+            problemas.append(f"{rot}: não está no site")
+            continue
+        na_ficha, no_site = numero(v.get("venda")), numero(info.get("venda"))
+        if na_ficha is not None and (no_site is None or abs(na_ficha - no_site) > 0.009):
+            problemas.append(f"{rot}: no site {_txt_preco(no_site)}, na ficha {_txt_preco(na_ficha)}")
+            continue
+        certas += 1
+    return certas, len(linhas), problemas
+
+
 def ler_feita(p):
     """Uma ficha da pasta feitos, com o que o site devolveu no cadastro (resultado.json).
 
@@ -366,7 +467,19 @@ def ler_feita(p):
                 pass
         elif atual and info.get("assinatura") != atual and not f.erros:
             f.status = "editada"
-            f.mensagem = "Editada depois do cadastro: suba de novo para o site levar as mudanças."
+            f.mudancas = mudancas_variacoes(f, info.get("variacoes"))
+            if f.mudancas:
+                f.mensagem = ("Mudou depois do cadastro: " + "; ".join(f.mudancas[:4]) + ("; …" if len(f.mudancas) > 4 else "")
+                              + ". Suba de novo (Atualizar no site) para o site levar.")
+            else:
+                f.mensagem = "Editada depois do cadastro: suba de novo para o site levar as mudanças."
+        if info.get("assinatura") == atual and atual and not info.get("variacoes"):
+            # guarda o retrato das variações para poder dizer o que muda daqui para frente
+            info["variacoes"] = assinaturas_variacoes(f)
+            try:
+                arq.write_text(json.dumps(info, ensure_ascii=False, indent=2), encoding="utf-8")
+            except OSError:
+                pass
     return f
 
 
@@ -2097,6 +2210,10 @@ def rodar(fichas, cfg, avisar, parar, site=None, atualizar=False):
                         avisar=lambda t: avisar("site", None, t), parar=parar)
     feitas = falhas = 0
     try:
+        nuvem = Nuvem(r.get("site"), r.get("pasta_produtos")) if ler_conta() else None
+    except Exception:
+        nuvem = None
+    try:
         site.entrar()
         for ficha in fichas:
             if parar():
@@ -2105,11 +2222,19 @@ def rodar(fichas, cfg, avisar, parar, site=None, atualizar=False):
                 continue
             ja_feita = ficha.status in ("feita", "editada")
             assinatura = assinatura_ficha(ficha)
+            retrato = assinaturas_variacoes(ficha)
             avisar("inicio", ficha, f"{'Atualizando' if atualizar else 'Cadastrando'} {ficha.nome}...")
             tmp = Path(tempfile.mkdtemp(prefix="robo-stylo-"))
             try:
                 fotos = preparar_fotos(ficha, tmp, int(r.get("lado_maximo_foto")), int(r.get("tamanho_maximo_foto_kb")))
-                res = site.cadastrar(ficha_para_envio(ficha, tmp), fotos, atualizar=atualizar)
+                envio = ficha_para_envio(ficha, tmp)
+                res = site.cadastrar(envio, fotos, atualizar=atualizar)
+                if res is None and not atualizar and nuvem is not None:
+                    # tudo já estava no site: confere variação por variação; se algo está diferente, atualiza
+                    conf = conferir_no_site(ficha, nuvem)
+                    if conf and conf[2]:
+                        avisar("inicio", ficha, f"Já estava no site, mas {len(conf[2])} variação(ões) diferentes. Atualizando…")
+                        res = site.cadastrar(envio, fotos, atualizar=True)
                 if res is None:
                     ficha.status, ficha.mensagem = "ja", "Todos os códigos já estavam cadastrados."
                     if ja_feita:
@@ -2128,10 +2253,20 @@ def rodar(fichas, cfg, avisar, parar, site=None, atualizar=False):
                         f"{novos} produto(s) criado(s)" if novos else "",
                         f"{mudados} atualizado(s)" if mudados else ""] if t) + "."
                     feitas += 1
+                conf = conferir_no_site(ficha, nuvem) if nuvem is not None else None
+                if conf:
+                    certas, total, problemas = conf
+                    if problemas:
+                        ficha.mensagem += (f" Conferido no site: {certas} de {total} variação(ões) certas. Atenção: "
+                                           + "; ".join(problemas[:4]) + ("; …" if len(problemas) > 4 else "") + ".")
+                    else:
+                        ficha.mensagem += (f" Conferido no site: as {total} variações estão certas, com o preço da ficha." if total > 1
+                                           else " Conferido no site: está certo, com o preço da ficha.")
                 try:
                     (ficha.pasta / "resultado.json").write_text(json.dumps({
                         "quando": datetime.now().isoformat(timespec="seconds"), "site": r.get("site"),
-                        "mensagem": ficha.mensagem, "produtos": ficha.resultado, "assinatura": assinatura},
+                        "mensagem": ficha.mensagem, "produtos": ficha.resultado, "assinatura": assinatura,
+                        "variacoes": retrato},
                         ensure_ascii=False, indent=2), encoding="utf-8")
                 except OSError:
                     pass
