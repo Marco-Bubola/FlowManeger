@@ -87,6 +87,14 @@ class Product extends Model
     {
         // Promoções não têm chave estrangeira (tabelas antigas vieram do dump),
         // então são apagadas junto com o produto aqui.
+        // Kit não tem estoque próprio: o stock_quantity dele acompanha a peça que
+        // acaba primeiro, para o portal e as listas mostrarem certo.
+        static::updated(function (Product $product) {
+            if (! $product->isKit() && $product->wasChanged('stock_quantity')) {
+                $product->refreshKitsUsingMe();
+            }
+        });
+
         static::deleting(function (Product $product) {
             $ids = $product->promotions()->pluck('id');
             if ($ids->isNotEmpty()) {
@@ -237,6 +245,32 @@ class Product extends Model
         return $min ?? 0;
     }
 
+    /** Kit: grava em stock_quantity quantos kits dá para montar agora. */
+    public function refreshKitStock(): void
+    {
+        if (! $this->isKit()) {
+            return;
+        }
+        $n = $this->availableStock();
+        if ((int) $this->stock_quantity !== $n) {
+            $this->forceFill(['stock_quantity' => $n])->save(); // observer: ML e "Avise-me"
+        }
+    }
+
+    /** Atualiza o estoque dos kits que usam este produto como peça. */
+    public function refreshKitsUsingMe(): void
+    {
+        try {
+            $ids = \App\Models\ProdutoComponente::where('componente_produto_id', $this->id)->pluck('kit_produto_id');
+            if ($ids->isEmpty()) {
+                return;
+            }
+            static::withoutGlobalScope('team_visibility')->whereIn('id', $ids)->get()->each->refreshKitStock();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Falha ao atualizar estoque de kit', ['product_id' => $this->id, 'error' => $e->getMessage()]);
+        }
+    }
+
     /**
      * Soma (delta > 0) ou tira (delta < 0) unidades do estoque. Em kit, mexe
      * nos componentes. Nunca deixa o saldo negativo.
@@ -322,7 +356,8 @@ class Product extends Model
     /** Texto do prazo para o cliente: "Sob encomenda · pronto em 7 dias". */
     public function madeToOrderLabel(): ?string
     {
-        if (!$this->made_to_order) {
+        // Sob encomenda com peça pronta no estoque: sai como pronta entrega
+        if (!$this->made_to_order || (int) $this->stock_quantity > 0) {
             return null;
         }
         $d = (int) $this->production_days;

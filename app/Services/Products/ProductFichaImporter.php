@@ -5,6 +5,7 @@ namespace App\Services\Products;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProdutoComponente;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -57,6 +58,10 @@ class ProductFichaImporter
     {
         $errors = [];
         $warnings = [];
+        // Ficha separada de outra: os códigos já existem, então ela sempre atualiza
+        if ($this->bool($f['separar_do_grupo'] ?? false)) {
+            $update = true;
+        }
         $nome = $this->text($f['nome'] ?? '', 255);
         if ($nome === '') {
             $errors[] = 'Falta o "nome" do produto.';
@@ -102,7 +107,7 @@ class ProductFichaImporter
 
         $baseCode = $this->text($f['codigo'] ?? '', 90);
         $existing = Product::withoutGlobalScope('team_visibility')->where('user_id', $userId)
-            ->whereNotNull('product_code')->get(['id', 'product_code', 'name', 'parent_id'])
+            ->whereNotNull('product_code')->get(['id', 'product_code', 'name', 'parent_id', 'price', 'price_sale', 'stock_quantity', 'tipo', 'made_to_order'])
             ->keyBy(fn ($p) => mb_strtolower(trim($p->product_code)));
 
         $photoIndex = [];
@@ -175,11 +180,53 @@ class ProductFichaImporter
                 'status' => 'ok',
                 'note' => '',
                 'existing_id' => null,
+                'components' => [],
             ];
+
+            // Conjunto (kit): cada opção liga às variações de verdade das peças
+            $missingParts = [];
+            foreach ((array) ($v['componentes'] ?? []) as $c) {
+                if (is_string($c)) {
+                    $c = ['codigo' => $c];
+                }
+                if (!is_array($c)) {
+                    continue;
+                }
+                $cCode = $this->text($c['codigo'] ?? '', 100);
+                if ($cCode === '') {
+                    continue;
+                }
+                $qty = max(1, (int) round($this->num($c['quantidade'] ?? 1)));
+                $part = $existing[mb_strtolower($cCode)] ?? null;
+                if (!$part || ($part->tipo ?? 'simples') === 'kit') {
+                    $missingParts[] = $cCode;
+                    continue;
+                }
+                $row['components'][] = [
+                    'id' => $part->id, 'code' => $part->product_code, 'name' => $part->name, 'qty' => $qty,
+                    'cost' => (float) $part->price, 'sale' => (float) $part->price_sale,
+                    'stock' => (int) $part->stock_quantity, 'made' => (bool) $part->made_to_order,
+                ];
+            }
+            if ($row['components']) {
+                if (($v['custo'] ?? '') === '' || $v['custo'] === null) {
+                    // Sem custo na ficha: soma o custo das peças
+                    $row['price'] = round(collect($row['components'])->sum(fn ($c) => $c['cost'] * $c['qty']), 2);
+                }
+                $row['stock'] = (int) collect($row['components'])->map(fn ($c) => intdiv(max(0, $c['stock']), $c['qty']))->min();
+                // Peça sob encomenda no conjunto: o conjunto também pode ser pedido (se as outras peças têm estoque ou também são feitas)
+                $cs = collect($row['components']);
+                if (!$row['made_to_order'] && $cs->contains('made', true) && $cs->every(fn ($c) => $c['made'] || $c['stock'] >= $c['qty'])) {
+                    $row['made_to_order'] = true;
+                    $row['production_days'] = $rowDays > 0 ? min($rowDays, 365) : 15;
+                }
+            }
 
             $key = mb_strtolower($code);
             if ($row['price_sale'] <= 0) {
                 [$row['status'], $row['note']] = ['error', 'Sem preço de venda'];
+            } elseif ($missingParts) {
+                [$row['status'], $row['note']] = ['error', 'Peça do kit não cadastrada: ' . implode(', ', array_slice($missingParts, 0, 3))];
             } elseif ($code !== '' && isset($seen[$key])) {
                 [$row['status'], $row['note']] = ['error', 'Código repetido na ficha'];
             } elseif ($code !== '' && $existing->has($key)) {
@@ -200,8 +247,23 @@ class ProductFichaImporter
             $usedPhotos = array_fill_keys($sorted, true);
         }
 
+        $removeCodes = collect((array) ($f['remover_codigos'] ?? []))
+            ->map(fn ($c) => $this->text($c, 100))->filter()
+            ->reject(fn ($c) => isset($seen[mb_strtolower($c)]))
+            ->filter(fn ($c) => $existing->has(mb_strtolower($c)))
+            ->values()->all();
+        if ($removeCodes) {
+            $warnings[] = 'Saíram da ficha e ficam inativas no site: ' . implode(', ', array_slice($removeCodes, 0, 6)) . (count($removeCodes) > 6 ? '…' : '') . '.';
+        }
+
         if ($rows && collect($rows)->every(fn ($r) => $r['status'] === 'skip')) {
             $warnings[] = 'Todos os códigos desta ficha já estão cadastrados: nada novo para importar. Marque "Atualizar os que já estão cadastrados" para mudar os cadastrados.';
+        }
+        if (collect($rows)->contains(fn ($r) => $r['status'] === 'error' && str_starts_with($r['note'], 'Peça do kit'))) {
+            $warnings[] = 'Cadastre antes as peças do conjunto (as fichas delas): o kit liga às variações que já estão no site.';
+        }
+        if (collect($rows)->contains(fn ($r) => $r['components'])) {
+            $warnings[] = 'Conjunto como kit: o estoque de cada opção é o da peça que acaba primeiro, e a venda baixa o estoque das peças.';
         }
         if (collect($rows)->contains(fn ($r) => $r['status'] === 'update')) {
             $warnings[] = 'Os cadastrados são atualizados (preços, textos, medidas e as fotos enviadas). O estoque deles não muda.';
@@ -255,6 +317,10 @@ class ProductFichaImporter
                 'ml_type' => $this->text($ml['tipo_anuncio'] ?? '', 20),
                 'ml_link' => $this->text($ml['link_referencia'] ?? '', 500),
                 'ml_quantity' => (int) $this->num($ml['quantidade_anuncio'] ?? 0) ?: null,
+                // Ficha que saiu de outra (ex.: banqueta 54 cm separada da 75 cm): as variações vêm para este grupo
+                'own_group' => $this->bool($f['separar_do_grupo'] ?? false),
+                // Variações que saíram da ficha: ficam inativas no site (vendas e histórico continuam)
+                'remove' => $removeCodes,
             ],
             'rows' => $rows,
             'errors' => $errors,
@@ -291,7 +357,10 @@ class ProductFichaImporter
 
             // Principal do grupo: a primeira linha nova, ou um produto já cadastrado da ficha
             $parent = null;
-            if ($multi) {
+            if ($multi && !empty($p['own_group'])) {
+                $parent = $this->ownGroup($userId, $p, $rows, $variations);
+            }
+            if ($multi && $parent === null) {
                 foreach ($rows as $r) {
                     if (in_array($r['status'], ['skip', 'update'], true) && $r['existing_id']) {
                         $found = Product::withoutGlobalScope('team_visibility')->where('user_id', $userId)->find($r['existing_id']);
@@ -303,12 +372,18 @@ class ProductFichaImporter
                 }
             }
 
+            foreach ($p['remove'] ?? [] as $code) {
+                Product::withoutGlobalScope('team_visibility')->where('user_id', $userId)
+                    ->where('product_code', $code)->update(['status' => 'inativo']);
+            }
+
             // Fotos da primeira linha servem para as variações que não têm foto própria
             $fallbackPhotos = collect($rows)->first(fn ($r) => $r['photos'])['photos'] ?? [];
 
             foreach ($rows as $r) {
                 if ($r['status'] === 'update') {
-                    if ($updated = $this->updateExisting($userId, $p, $r, $categoryId, $r['photos'] ?: $fallbackPhotos, $store)) {
+                    // Só troca as fotos da variação quando vieram fotos dela (o robô manda só o que mudou)
+                    if ($updated = $this->updateExisting($userId, $p, $r, $categoryId, $r['photos'], $store)) {
                         $result[] = $updated;
                     }
                     continue;
@@ -335,7 +410,7 @@ class ProductFichaImporter
                     'stock_quantity' => $r['stock'],
                     'category_id' => $categoryId,
                     'image' => $main ?: 'product-placeholder.png',
-                    'tipo' => 'simples',
+                    'tipo' => $r['components'] ? 'kit' : 'simples',
                     'status' => 'ativo',
                     'custos_adicionais' => 0,
                     'description' => $p['description'] ?: null,
@@ -355,6 +430,9 @@ class ProductFichaImporter
                 ], fn ($v) => $v !== null);
 
                 $product = Product::create($data);
+                if ($r['components']) {
+                    $this->syncComponents($product, $r['components']);
+                }
 
                 if ($isNewParent) {
                     $product->update([
@@ -426,10 +504,19 @@ class ProductFichaImporter
         ], fn ($v) => $v !== null));
         // Preço "de" e prazo podem ter sido tirados da ficha
         $product->price_original = $r['price_original'];
+        if ($product->status === 'inativo') {
+            $product->status = 'ativo'; // voltou para a ficha
+        }
         $product->made_to_order = $r['made_to_order'];
         $product->production_days = $r['production_days'];
-        if ($product->is_variation_parent && $r['value'] !== '') {
+        if (($product->is_variation_parent || $product->parent_id) && $r['value'] !== '') {
             $product->variation_value = $r['value'];
+            if ($multi) {
+                $product->variation_attribute = $p['attribute'];
+            }
+        }
+        if ($r['components']) {
+            $product->tipo = 'kit';
         }
 
         // Fotos só mudam quando a ficha veio com fotos
@@ -450,8 +537,77 @@ class ProductFichaImporter
             }
         }
         $product->save();
+        if ($r['components']) {
+            $this->syncComponents($product, $r['components']);
+        }
 
         return ['id' => $product->id, 'name' => $product->name, 'code' => $product->product_code, 'action' => 'atualizado'];
+    }
+
+    /** Peças do kit iguais às da ficha; o estoque do kit passa a ser o da peça que acaba primeiro. */
+    private function syncComponents(Product $kit, array $components): void
+    {
+        ProdutoComponente::where('kit_produto_id', $kit->id)->delete();
+        foreach ($components as $c) {
+            ProdutoComponente::create([
+                'kit_produto_id' => $kit->id,
+                'componente_produto_id' => $c['id'],
+                'quantidade' => $c['qty'],
+                'preco_custo_unitario' => $c['cost'],
+                'preco_venda_unitario' => $c['sale'],
+            ]);
+        }
+        $kit->refreshKitStock();
+    }
+
+    /**
+     * Ficha com "separar_do_grupo": as variações dela formam um grupo próprio.
+     * O principal é o que já é principal entre elas; senão a primeira já
+     * cadastrada sai do grupo antigo e vira principal. As outras cadastradas
+     * vêm para cá (código, estoque e vendas ficam como estão).
+     */
+    private function ownGroup(int $userId, array $p, array $rows, VariationService $variations): ?Product
+    {
+        $ids = collect($rows)->whereIn('status', ['update', 'skip'])->pluck('existing_id')->filter()->values();
+        if ($ids->isEmpty()) {
+            return null;
+        }
+        $found = Product::withoutGlobalScope('team_visibility')->where('user_id', $userId)->whereIn('id', $ids)->get()->keyBy('id');
+        $ordered = $ids->map(fn ($id) => $found[$id] ?? null)->filter()->values();
+
+        $parent = $ordered->first(fn ($x) => $x->is_variation_parent && !$x->parent_id);
+        if (!$parent) {
+            $parent = $ordered->first();
+            if ($parent->parent_id) {
+                $variations->detach($parent);
+                $parent->refresh();
+            }
+            $value = collect($rows)->firstWhere('existing_id', $parent->id)['value'] ?? 'Padrão';
+            $parent->update(['is_variation_parent' => true, 'variation_attribute' => $p['attribute'], 'variation_value' => $value, 'variation_sort' => 0]);
+        }
+
+        $sort = 0;
+        foreach ($rows as $r) {
+            $x = $r['existing_id'] ? ($found[$r['existing_id']] ?? null) : null;
+            if (!$x || $x->id === $parent->id) {
+                continue;
+            }
+            $sort++;
+            $x->refresh();
+            if ((int) $x->parent_id === (int) $parent->id) {
+                continue;
+            }
+            if ($x->is_variation_parent && $x->variants()->exists()) {
+                continue; // principal de outro grupo: fica onde está
+            }
+            if ($x->parent_id) {
+                $variations->detach($x);
+                $x->refresh();
+            }
+            $variations->attach($parent, $x, $p['attribute'], $r['value'], $sort);
+        }
+
+        return $parent->refresh();
     }
 
     private function description(array $f): string

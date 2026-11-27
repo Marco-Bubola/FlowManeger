@@ -282,7 +282,7 @@ class DashboardProductsMetricsService
             ->all();
 
         $totalProdutos = $products->count();
-        $totalProdutosEstoque = (int) $products->where('stock_quantity', '>', 0)->sum('stock_quantity');
+        $totalProdutosEstoque = (int) $products->where('stock_quantity', '>', 0)->where('tipo', '!=', 'kit')->sum('stock_quantity');
         $produtosEstoqueCritico = $products->filter(fn ($product) => $product->stock_quantity > 0 && $product->stock_quantity < 10)->count();
         $produtosSemEstoque = $products->where('stock_quantity', 0)->count();
         $produtosAtivos = $products->where('status', 'ativo')->count();

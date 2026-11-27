@@ -253,7 +253,9 @@ class DashboardIndex extends Component
 
         // Produtos
         $this->totalProdutos = Product::where('user_id', $userId)->count();
-        $this->totalProdutosEstoque = Product::where('user_id', $userId)->sum('stock_quantity');
+        $this->totalProdutosEstoque = Product::where('user_id', $userId)
+            ->where(fn ($q) => $q->whereNull('tipo')->orWhere('tipo', '!=', 'kit')) // kit: estoque é das peças
+            ->sum('stock_quantity');
         $this->produtosCadastrados = $this->totalProdutos;
 
         // Produtos vendidos no mês
