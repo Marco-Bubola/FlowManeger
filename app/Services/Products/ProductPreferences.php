@@ -17,6 +17,9 @@ class ProductPreferences
     /** Menu "Upload de PDF": 'auto' (padrão), 'show' ou 'hide'. */
     public const PDF_UPLOAD = 'pdf_upload';
 
+    /** Tipo de loja: 'auto' (padrão), 'revenda' ou 'moveis' (Editar produto com variações de móvel). */
+    public const STORE_KIND = 'store_kind';
+
     public static function get(?User $user): array
     {
         $prefs = $user?->preferences['products'] ?? [];
@@ -24,13 +27,14 @@ class ProductPreferences
         return [
             self::COST_CHANGE => in_array($prefs[self::COST_CHANGE] ?? null, ['variation', 'update'], true) ? $prefs[self::COST_CHANGE] : 'variation',
             self::PDF_UPLOAD => in_array($prefs[self::PDF_UPLOAD] ?? null, ['auto', 'show', 'hide'], true) ? $prefs[self::PDF_UPLOAD] : 'auto',
+            self::STORE_KIND => in_array($prefs[self::STORE_KIND] ?? null, ['auto', 'revenda', 'moveis'], true) ? $prefs[self::STORE_KIND] : 'auto',
         ];
     }
 
     public static function save(User $user, array $values): void
     {
         $prefs = is_array($user->preferences) ? $user->preferences : [];
-        $prefs['products'] = array_merge(self::get($user), array_intersect_key($values, array_flip([self::COST_CHANGE, self::PDF_UPLOAD])));
+        $prefs['products'] = array_merge(self::get($user), array_intersect_key($values, array_flip([self::COST_CHANGE, self::PDF_UPLOAD, self::STORE_KIND])));
         $user->forceFill(['preferences' => $prefs])->save();
     }
 
@@ -66,6 +70,33 @@ class ProductPreferences
                     || !\App\Models\Product::withoutGlobalScope('team_visibility')->where('user_id', $user->id)->exists();
             } catch (\Throwable) {
                 return true; // na dúvida, mostra como sempre foi
+            }
+        })();
+    }
+
+    /**
+     * Loja de móveis? Ligado em Configurações › Produtos. No automático vale
+     * para quem já tem peça sob encomenda ou produto com escolhas no portal.
+     */
+    public static function isFurniture(?User $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+        $mode = self::get($user)[self::STORE_KIND];
+        if ($mode !== 'auto') {
+            return $mode === 'moveis';
+        }
+        static $cache = [];
+
+        return $cache[$user->id] ??= (function () use ($user) {
+            try {
+                $base = \App\Models\Product::withoutGlobalScope('team_visibility')->where('user_id', $user->id);
+
+                return (clone $base)->where('made_to_order', true)->exists()
+                    || (\App\Services\Choices\ChoiceService::ready() && (clone $base)->whereNotNull('choice_lists')->where('choice_lists', '!=', '[]')->exists());
+            } catch (\Throwable) {
+                return false;
             }
         })();
     }

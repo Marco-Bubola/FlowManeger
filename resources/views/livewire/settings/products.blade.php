@@ -7,27 +7,32 @@ use Livewire\Volt\Component;
 new class extends Component {
     public string $cost_change = 'variation';
     public string $pdf_upload = 'auto';
+    public string $store_kind = 'auto';
 
     public function mount(): void
     {
         $prefs = ProductPreferences::get(Auth::user());
         $this->cost_change = $prefs[ProductPreferences::COST_CHANGE];
         $this->pdf_upload = $prefs[ProductPreferences::PDF_UPLOAD];
+        $this->store_kind = $prefs[ProductPreferences::STORE_KIND];
     }
 
     // Salva sozinho a cada escolha
     public function updatedCostChange(): void { $this->save(); }
     public function updatedPdfUpload(): void { $this->save(); }
+    public function updatedStoreKind(): void { $this->save(); }
 
     public function save(): void
     {
         $this->validate([
             'cost_change' => 'required|in:variation,update',
             'pdf_upload' => 'required|in:auto,show,hide',
+            'store_kind' => 'required|in:auto,revenda,moveis',
         ]);
         ProductPreferences::save(Auth::user(), [
             ProductPreferences::COST_CHANGE => $this->cost_change,
             ProductPreferences::PDF_UPLOAD => $this->pdf_upload,
+            ProductPreferences::STORE_KIND => $this->store_kind,
         ]);
         $this->dispatch('products-prefs-saved');
     }
@@ -46,6 +51,7 @@ new class extends Component {
     } catch (\Throwable $e) {
     }
     $pdfShown = \App\Services\Products\ProductPreferences::showPdfUpload(auth()->user());
+    $furnitureOn = \App\Services\Products\ProductPreferences::isFurniture(auth()->user()->fresh());
 @endphp
 
 <section class="settings-products-page w-full mobile-393-base">
@@ -70,6 +76,38 @@ new class extends Component {
 
         <div class="sp-grid">
             <div class="sp-main">
+                {{-- Tipo de loja --}}
+                <div class="ap-card" id="tipo-de-loja">
+                    <div class="ap-card-head">
+                        <span class="ap-ico bg-gradient-to-br from-amber-600 to-orange-700"><i class="bi bi-house-door"></i></span>
+                        <div class="min-w-0">
+                            <h2>Tipo de loja</h2>
+                            <p>Muda a tela de Editar produto. Hoje está como <b>{{ $furnitureOn ? 'loja de móveis' : 'revenda' }}</b>.</p>
+                        </div>
+                    </div>
+                    <div class="sp-choices">
+                        <label class="sp-choice {{ $store_kind === 'revenda' || ($store_kind === 'auto' && ! $furnitureOn) ? 'is-on' : '' }}">
+                            <input type="radio" wire:model.live="store_kind" value="revenda" data-testid="kind-revenda">
+                            <span class="sp-art sp-art-kind"><i class="bi bi-bag-heart"></i><span><em>Perfume 100 ml</em><i>R$ 40 · R$ 45</i></span></span>
+                            <b>Revenda</b>
+                            <small>Cosméticos, perfumaria e produtos prontos (ex.: Boticário, Eudora). Editar produto fica simples: dados, preço, estoque e fotos.</small>
+                            <span class="sp-check"><i class="bi bi-check-lg"></i></span>
+                        </label>
+                        <label class="sp-choice {{ $store_kind === 'moveis' || ($store_kind === 'auto' && $furnitureOn) ? 'is-on' : '' }}">
+                            <input type="radio" wire:model.live="store_kind" value="moveis" data-testid="kind-moveis">
+                            <span class="sp-art sp-art-kind"><i class="bi bi-lamp"></i><span class="sp-dots"><s style="background:#111827"></s><s style="background:#f8fafc"></s><s style="background:#16a34a"></s><s style="background:#92400e"></s></span></span>
+                            <b>Loja de móveis</b>
+                            <small>Peças em vários tamanhos, cores de ferragem e estofados. Editar produto ganha o montador de variações (tamanho × cor × estofado), preço por tamanho e tecido e sob encomenda.</small>
+                            <span class="sp-check"><i class="bi bi-check-lg"></i></span>
+                        </label>
+                    </div>
+                    @if($store_kind !== 'auto')
+                        <button type="button" wire:click="$set('store_kind', 'auto')" class="sp-auto"><i class="bi bi-magic"></i>Voltar para o automático</button>
+                    @else
+                        <p class="sp-auto-hint"><i class="bi bi-magic"></i>Automático: vira loja de móveis quando você tem peça sob encomenda ou produto com estofados e cores.</p>
+                    @endif
+                </div>
+
                 {{-- Custo mudou --}}
                 <div class="ap-card">
                     <div class="ap-card-head">
@@ -191,6 +229,15 @@ new class extends Component {
         .dark .sp-choice small { color: #94a3b8; }
         .sp-check { position: absolute; top: .7rem; right: .7rem; display: none; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 999px; background: var(--color-indigo-600); color: #fff; font-size: .85rem; }
         .sp-choice.is-on .sp-check { display: grid; }
+        .sp-art-kind { gap: .7rem; min-height: 4.1rem; }
+        .sp-art-kind > i { font-size: 1.6rem; color: var(--color-indigo-600); }
+        .sp-art-kind > span { display: flex; flex-direction: column; font-size: .7rem; font-weight: 800; color: #334155; }
+        .sp-art-kind > span i { font-style: normal; font-weight: 700; color: #64748b; }
+        .dark .sp-art-kind > span { color: #e2e8f0; }
+        .sp-dots { flex-direction: row !important; gap: .25rem; }
+        .sp-dots s { width: 1.1rem; height: 1.1rem; border-radius: 999px; border: 2px solid #fff; box-shadow: 0 0 0 1px #cbd5e1; }
+        .sp-auto { margin-top: .7rem; display: inline-flex; align-items: center; gap: .35rem; font-size: .76rem; font-weight: 700; color: var(--color-indigo-600); }
+        .sp-auto-hint { margin-top: .7rem; display: flex; gap: .35rem; font-size: .74rem; color: #64748b; }
         .sp-seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .55rem; }
         .sp-seg-opt { position: relative; display: flex; flex-direction: column; gap: .2rem; padding: .75rem; border-radius: 1rem; border: 2px solid #e2e8f0; background: #f8fafc; cursor: pointer; transition: border-color .15s; }
         .sp-seg-opt > i { font-size: 1.15rem; color: #94a3b8; }
