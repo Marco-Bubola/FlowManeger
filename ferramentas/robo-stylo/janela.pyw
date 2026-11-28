@@ -3184,9 +3184,59 @@ class LinhaVariacao(ctk.CTkFrame):
             self.cores = recursos.cores_do_nome(self._parte_cor() or "")
         self._desenhar_cores()
         self._pintar_custo()
+        # opção de conjunto: as peças (fichas ligadas) dão foto, preço, custo e estoque
+        self.pecas = []
+        self.conta = None
+        self.caixa_pecas = ctk.CTkFrame(self, fg_color=ROXO_CLARO, corner_radius=14)
+        if v.get("componentes"):
+            if not motor.numero(v.get("estoque")):
+                self.estoque.definir(None)  # o estoque do conjunto é o das peças
+            self.atualizar_pecas()
         self._selos()
         self._pintar()
         self.calc()
+
+    def atualizar_pecas(self):
+        """Mostra de quais peças a opção do conjunto é feita (foto, variação, preço) e o que soma."""
+        self.pecas = motor.pecas_da_variacao(self.original, self.editor.indice_pecas())
+        self.conta = motor.conta_conjunto(self.pecas, motor.numero((self.editor.dados.get("conjunto") or {}).get("desconto")))
+        for w in self.caixa_pecas.winfo_children():
+            w.destroy()
+        self.caixa_pecas.grid(row=3, column=0, columnspan=2, sticky="ew", padx=12, pady=(0, 10))
+        ctk.CTkLabel(self.caixa_pecas, text="Peças", font=F(11, "bold"), text_color=ROXO_TXT).pack(side="left", padx=(12, 6), pady=8)
+        for i, pc in enumerate(self.pecas):
+            if i:
+                ctk.CTkLabel(self.caixa_pecas, text="+", font=F(14, "bold"), text_color=ROXO_TXT).pack(side="left", padx=2)
+            chip = ctk.CTkFrame(self.caixa_pecas, fg_color=PAINEL, corner_radius=12, border_width=1,
+                                border_color=VERMELHO if pc.get("falta") else VIDRO_BORDA)
+            chip.pack(side="left", padx=2, pady=6)
+            img = miniatura(pc["foto"], 34, 8) if pc.get("foto") else None
+            if img:
+                self.editor.app._refs.append(img)
+            ctk.CTkLabel(chip, text="" if img else "▢", image=img, width=34, height=34, corner_radius=8, fg_color=SUAVE,
+                         text_color=MUDO).pack(side="left", padx=(5, 6), pady=5)
+            info = ctk.CTkFrame(chip, fg_color="transparent")
+            info.pack(side="left", padx=(0, 10))
+            topo = f"{pc['quantidade']}× {pc['codigo']}"
+            if pc.get("falta"):
+                baixo = "não achei a ficha desta peça"
+            else:
+                baixo = cortar(pc.get("valor") or pc.get("produto") or "", 30)
+                baixo += f"  ·  R$ {reais(pc['venda'])}" if pc.get("venda") else "  ·  sem preço"
+            ctk.CTkLabel(info, text=topo, font=F(11, "bold"), text_color=VERMELHO if pc.get("falta") else TEXTO, anchor="w", height=15).pack(anchor="w")
+            ctk.CTkLabel(info, text=baixo, font=F(10), text_color=MUDO, anchor="w", height=13).pack(anchor="w")
+        c = self.conta
+        partes = []
+        if c["venda"]:
+            partes.append(f"soma R$ {reais(c['venda'])}")
+        if c["custo"]:
+            partes.append(f"custo R$ {reais(c['custo'])}")
+        partes.append(f"dá para montar {c['estoque']}" if c["estoque"] else "sob encomenda / sem estoque")
+        ctk.CTkLabel(self.caixa_pecas, text="  ·  ".join(partes), font=F(11, "bold"), text_color=ROXO_TXT).pack(side="right", padx=12)
+        # campo vazio = soma das peças (aparece em cinza); digitar um valor fixa o preço desta opção
+        self.venda.configure(placeholder_text=reais(c["venda"]) if c["venda"] else "soma")
+        self.custo.configure(placeholder_text=reais(c["custo"]) if c["custo"] else "soma")
+        self.estoque.configure(placeholder_text=str(c["estoque"]))
 
     # ações
     def _ligou(self):
@@ -3223,7 +3273,7 @@ class LinhaVariacao(ctk.CTkFrame):
     def alternar(self, abrir=None):
         self.aberta = (not self.aberta) if abrir is None else abrir
         if self.aberta:
-            self.det.grid(row=3, column=0, columnspan=2, sticky="ew", padx=12, pady=(0, 12))
+            self.det.grid(row=4, column=0, columnspan=2, sticky="ew", padx=12, pady=(0, 12))
             self.bt_det.configure(text="▾  Medidas, caixa e pedido do Canva")
         else:
             self.det.grid_forget()
@@ -3234,7 +3284,11 @@ class LinhaVariacao(ctk.CTkFrame):
 
     def _selos(self):
         n = self.kit.valor() or 1
-        if n > 1:
+        if getattr(self, "pecas", None):
+            self.selo_kit.configure(text="  conjunto  ")
+            self.selo_kit.grid(row=0, column=3, padx=(8, 0))
+            self.bt_kit.pack_forget()
+        elif n > 1:
             self.selo_kit.configure(text=f"  kit {n} un.  ")
             self.selo_kit.grid(row=0, column=3, padx=(8, 0))
             self.bt_kit.pack(side="left", padx=(4, 0))
@@ -3319,6 +3373,9 @@ class LinhaVariacao(ctk.CTkFrame):
         self.editor.app.toast(f"Kit de {k} calculado pelo preço de “{base.rotulo()}”" + (f" com {desc * 100:.0f}% de desconto" if desc else ""))
 
     def mostrar_foto(self, caminho):
+        if not caminho and getattr(self, "pecas", None):
+            # sem foto própria: a da primeira peça (a mesa, por exemplo)
+            caminho = next((p["foto"] for p in self.pecas if p.get("foto")), None)
         img = miniatura(caminho, 64, 14) if caminho else None
         if img:
             self.editor.app._refs.append(img)
@@ -3326,9 +3383,12 @@ class LinhaVariacao(ctk.CTkFrame):
         else:
             self.foto.configure(image=None, text="sem\nfoto", fg_color=SUAVE)
 
+    def venda_efetiva(self):
+        return self.venda.valor() or ((getattr(self, "conta", None) or {}).get("venda"))
+
     def calc(self):
-        venda = self.venda.valor()
-        custo = self.custo.valor()
+        venda = self.venda_efetiva()
+        custo = self.custo.valor() or ((getattr(self, "conta", None) or {}).get("custo"))
         k = self.kit.valor() or 1
         if k > 1 and venda:
             self.lbl_un.configure(text=f"R$ {reais(venda / k)} por un.")
@@ -3406,6 +3466,14 @@ class Editor(ctk.CTkFrame):
     CHAVE_SECAO = {"Produto": "produto", "Preço, estoque e prazo": "precos", "Custo e preço sugerido": "custo", "Variações": "variacoes",
                    "Fotos": "fotos", "Ficha técnica": "tecnica", "Mercado Livre": "ml"}
     CURTOS = {"Preço, estoque e prazo": "Preço", "Custo e preço sugerido": "Custo", "Ficha técnica": "Técnica", "Mercado Livre": "Anúncio"}
+
+    def indice_pecas(self):
+        """As peças das outras fichas (para as opções de conjunto mostrarem foto, preço e custo delas)."""
+        try:
+            raiz = motor.raiz_produtos(self.ficha.pasta) if self.ficha else Path(self.app.cfg["robo"]["pasta_produtos"])
+            return motor.indice_pecas(raiz)
+        except Exception:
+            return {}
 
     def __init__(self, master, app, ficha=None):
         super().__init__(master, fg_color="transparent")
@@ -4284,7 +4352,7 @@ class Editor(ctk.CTkFrame):
         n = len(self.linhas)
         lig = [l for l in self.linhas if l.ativa]
         est = sum((l.estoque.valor() or 0) for l in lig)
-        sem_preco = sum(1 for l in lig if not l.venda.valor())
+        sem_preco = sum(1 for l in lig if not l.venda_efetiva() and not getattr(l, "pecas", None))
         t = f"{len(lig)} de {n} ligada(s) para subir · {est} em estoque" if len(lig) < n else f"{n} variação(ões) · {est} em estoque"
         if sem_preco:
             t += f" · {sem_preco} sem preço de venda"
@@ -4300,7 +4368,7 @@ class Editor(ctk.CTkFrame):
                 continue
             cor = self._cor_da_linha(l)
             propria = next((f for f in vis if f.de(l) or (isinstance(f.uso, str) and cor and f.uso == f"cor:{cor}")), None)
-            geral = next((f for f in vis if f.uso == "todas"), None)
+            geral = None if getattr(l, "pecas", None) and l is not self.linhas[0] else next((f for f in vis if f.uso == "todas"), None)
             l.mostrar_foto((propria or geral).caminho if (propria or geral) else None)
 
     def _desenhar_var(self):
@@ -4561,7 +4629,8 @@ class Editor(ctk.CTkFrame):
         if f.removida or f.uso == "nao":
             return []
         if f.uso == "todas":
-            return list(self.linhas)
+            # opções de conjunto usam as fotos das peças (só a primeira leva as fotos gerais)
+            return [l for i, l in enumerate(self.linhas) if i == 0 or not getattr(l, "pecas", None)]
         if isinstance(f.uso, str) and f.uso.startswith("cor:"):
             return [l for l in self.linhas if self._cor_da_linha(l) == f.uso[4:]] or list(self.linhas)
         return [l for l in self.linhas if f.de(l)]
@@ -4660,7 +4729,7 @@ class Editor(ctk.CTkFrame):
         self.bt_fotos_marc.pack(side="left")
         Botao(bar, "Todas as fotos em todas", "fantasma", width=180, height=32, font=F(12),
               command=lambda: ([setattr(f, "uso", "todas") for f in vis], self.desenhar_fotos())).pack(side="left", padx=8)
-        sem = [l for l in self.linhas if not self.fotos_da_linha(l)]
+        sem = [l for l in self.linhas if not self.fotos_da_linha(l) and not getattr(l, "pecas", None)]
         if sem:
             ctk.CTkLabel(bar, text=f"{len(sem)} sem foto", font=F(12, "bold"), text_color=AMBAR).pack(side="left", padx=8)
         for r, l in enumerate(self.linhas, 1):
@@ -4672,10 +4741,21 @@ class Editor(ctk.CTkFrame):
             nome.grid(row=0, column=0, sticky="w", padx=(12, 8), pady=8)
             ctk.CTkLabel(nome, text=cortar(l.rotulo(), 34), font=F(13, "bold"), text_color=TEXTO if l.ativa else MUDO, anchor="w",
                          width=250).pack(anchor="w")
-            ctk.CTkLabel(nome, text=(f"{len(suas)} foto(s)" if suas else "sem foto") + ("" if l.ativa else " · não sobe"), font=F(11),
-                         text_color=MUDO if suas else AMBAR, anchor="w").pack(anchor="w")
+            das_pecas = not suas and getattr(l, "pecas", None)
+            ctk.CTkLabel(nome, text=(f"{len(suas)} foto(s)" if suas else "fotos das peças" if das_pecas else "sem foto")
+                         + ("" if l.ativa else " · não sobe"), font=F(11),
+                         text_color=MUDO if suas else ROXO_TXT if das_pecas else AMBAR, anchor="w").pack(anchor="w")
+            if das_pecas:
+                fr.configure(border_color=VIDRO_BORDA)
             tira = ctk.CTkFrame(fr, fg_color="transparent")
             tira.grid(row=0, column=1, sticky="w", pady=6)
+            if das_pecas:
+                for pc in l.pecas:
+                    img = self._mini(pc["foto"], 52) if pc.get("foto") else None
+                    cel = ctk.CTkFrame(tira, fg_color="transparent")
+                    cel.pack(side="left", padx=2)
+                    ctk.CTkLabel(cel, text="" if img else "sem foto", image=img, width=52, height=52, corner_radius=10).pack()
+                    ctk.CTkLabel(cel, text=f"{pc['quantidade']}× {cortar(pc['codigo'], 12)}", font=F(9, "bold"), text_color=ROXO_TXT, height=12).pack()
             for i, f in enumerate(suas[:9]):
                 img = self._mini(f.caminho, 52)
                 cel = ctk.CTkFrame(tira, fg_color=ROXO if i == 0 else "transparent", corner_radius=10)
@@ -4884,7 +4964,10 @@ class Editor(ctk.CTkFrame):
                 tem_propria = True      # alguma variação tem capa própria: cada uma leva a sua lista
             for l, v in zip(self.linhas, d["variacoes"]):
                 # mantém a ordem da tela: a primeira foto da variação vira a capa dela (ou a capa escolhida)
-                lst = [f for f in vis if f.uso == "todas" or f.de(l) or (de_cor(f) and f.uso[4:] == self._cor_da_linha(l))]
+                # opção de conjunto (menos a primeira) não leva as fotos gerais: usa as das peças
+                gerais_aqui = not getattr(l, "pecas", None) or l is self.linhas[0]
+                lst = [f for f in vis if (f.uso == "todas" and gerais_aqui) or f.de(l)
+                       or (de_cor(f) and f.uso[4:] == self._cor_da_linha(l))]
                 c = capa_l(l)
                 if c is not None and c in lst:
                     lst.remove(c)

@@ -1562,9 +1562,11 @@ def pendencias(d, n_fotos=None, cfg=None):
     for i, v in enumerate(vs, 1):
         rot = _rot(v, i, n)
         custo = motor.numero(v.get("custo")) if v.get("custo") not in (None, "") else soma
-        if motor.numero(v.get("venda")) <= 0:
+        if v.get("componentes") or motor.e_conjunto(d):
+            pass  # opção de conjunto: preço e custo são a soma das peças
+        elif motor.numero(v.get("venda")) <= 0:
             add("venda", f"{rot}: sem preço de venda.", i - 1, "Sugerir pelo custo" if custo > 0 else None)
-        if v.get("custo") in (None, "") and soma <= 0:
+        if v.get("custo") in (None, "") and soma <= 0 and not (v.get("componentes") or motor.e_conjunto(d)):
             add("custo", f"{rot}: sem custo.", i - 1, "Estimar" if com_custo and motor.numero(v.get("venda")) > 0 else None)
         if motor.numero(_emb(v).get("peso_kg")) <= 0:
             pode = com_peso or peso_pelo_tipo(d, v, motor.numero(cfg.get("folga_caixa") or 4) or 4) is not None

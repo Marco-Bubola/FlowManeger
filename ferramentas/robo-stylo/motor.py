@@ -344,6 +344,107 @@ def usa_pecas(dados):
     return e_conjunto(dados) or any(isinstance(v, dict) and v.get("componentes") for v in (dados or {}).get("variacoes") or [])
 
 
+_INDICE_PECAS = {"chave": None, "dados": {}}
+
+
+def raiz_produtos(pasta):
+    pasta = Path(pasta)
+    return pasta.parent.parent if pasta.parent.name.lower() == "feitos" else pasta.parent
+
+
+def indice_pecas(raiz):
+    """Todas as variações das fichas (produtos e feitos), pelo código: o que o conjunto precisa saber
+    de cada peça (nome, preço, custo, estoque e a foto dela). Guarda até alguma ficha mudar."""
+    raiz = Path(raiz)
+    lugares = [raiz, raiz / "feitos"]
+    arqs = []
+    for lugar in lugares:
+        if not lugar.is_dir():
+            continue
+        for p in lugar.iterdir():
+            if p.is_dir() and p.name.lower() not in IGNORAR and not p.name.startswith("_"):
+                a = achar_ficha(p)
+                if a:
+                    try:
+                        arqs.append((a, a.stat().st_mtime))
+                    except OSError:
+                        pass
+    chave = (str(raiz), tuple(sorted((str(a), m) for a, m in arqs)))
+    if _INDICE_PECAS["chave"] == chave:
+        return _INDICE_PECAS["dados"]
+    out = {}
+    for a, _m in arqs:
+        try:
+            d = extrair_json(a.read_text(encoding="utf-8", errors="replace"))
+        except Exception:
+            continue
+        if not isinstance(d, dict) or e_conjunto(d):
+            continue
+        pasta = a.parent
+        fotos_pasta = {}
+        for q in [pasta] + pastas_ligadas(pasta, d.get("fotos_de")):
+            try:
+                for f in sorted(q.iterdir()):
+                    if f.is_file() and f.suffix.lower() in FOTO_EXTS:
+                        fotos_pasta.setdefault(f.name.lower(), f)
+                        fotos_pasta.setdefault(f.stem.lower(), f)
+            except OSError:
+                pass
+        vs = [v for v in (d.get("variacoes") or []) if isinstance(v, dict)]
+        primeira = None
+        for v in vs:
+            for n in v.get("fotos") or []:
+                n = str(n).strip().replace("\\", "/").split("/")[-1].lower()
+                primeira = primeira or fotos_pasta.get(n) or fotos_pasta.get(Path(n).stem)
+        if primeira is None:
+            primeira = next((f for k, f in sorted(fotos_pasta.items()) if "." in k and "referencia" not in k), None)
+        soma = sum((numero(i.get("quantidade")) or 1) * numero(i.get("valor"))
+                   for i in d.get("ficha_de_custo") or [] if isinstance(i, dict))
+        for v in vs:
+            cod = str(v.get("codigo") or "").strip()
+            if not cod or v.get("componentes"):
+                continue
+            foto = None
+            for n in v.get("fotos") or []:
+                n = str(n).strip().replace("\\", "/").split("/")[-1].lower()
+                foto = fotos_pasta.get(n) or fotos_pasta.get(Path(n).stem)
+                if foto:
+                    break
+            custo = numero(v.get("custo")) if v.get("custo") not in (None, "") else (soma or None)
+            out[cod.lower()] = {
+                "codigo": cod, "valor": str(v.get("valor") or "").strip(), "produto": str(d.get("nome") or pasta.name),
+                "venda": numero(v.get("venda")) or None, "custo": custo,
+                "estoque": int(numero(v.get("estoque")) or 0), "encomenda": sim(v.get("sob_encomenda", d.get("sob_encomenda"))),
+                "foto": foto or primeira, "foto_propria": bool(foto), "ativa": v.get("ativa", True) is not False,
+            }
+    _INDICE_PECAS.update(chave=chave, dados=out)
+    return out
+
+
+def pecas_da_variacao(v, indice):
+    """As peças de uma opção de conjunto, com o que veio das fichas delas. A que não achou vem com "falta"."""
+    out = []
+    for c in v.get("componentes") or []:
+        c = {"codigo": c} if isinstance(c, str) else (c if isinstance(c, dict) else {})
+        cod = str(c.get("codigo") or "").strip()
+        if not cod:
+            continue
+        q = max(1, int(numero(c.get("quantidade")) or 1))
+        info = indice.get(cod.lower())
+        out.append(dict(info or {"codigo": cod, "falta": True}, quantidade=q))
+    return out
+
+
+def conta_conjunto(pecas, desconto=0):
+    """Venda, custo e estoque de uma opção pelas peças (None quando falta o dado de alguma)."""
+    if not pecas or any(p.get("falta") for p in pecas):
+        return {"venda": None, "custo": None, "estoque": 0}
+    venda = None if any(not p.get("venda") for p in pecas) else round(sum(p["venda"] * p["quantidade"] for p in pecas) * (1 - (desconto or 0) / 100), 2)
+    custo = None if any(not p.get("custo") for p in pecas) else round(sum(p["custo"] * p["quantidade"] for p in pecas), 2)
+    estoque = min(p.get("estoque", 0) // p["quantidade"] for p in pecas)
+    return {"venda": venda, "custo": custo, "estoque": estoque}
+
+
 def pastas_ligadas(pasta, codigos):
     """Pastas das fichas citadas em "fotos_de" (pelo código no começo do nome: "BQT - Banqueta…"), em produtos ou feitos."""
     if not codigos:

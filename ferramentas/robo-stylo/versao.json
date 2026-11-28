@@ -1,5 +1,5 @@
 {
-  "versao": 43,
+  "versao": 44,
   "data": "2026-11-28",
   "arquivos": [
     "janela.pyw",
@@ -14,10 +14,11 @@
     "instalar.bat"
   ],
   "novidades": [
+    "Conjuntos no editor: cada opção mostra as peças dela (foto, variação e preço da mesa, das banquetas...) e a soma do preço, do custo e quantos dá para montar.",
+    "Opção de conjunto sem foto própria usa as fotos das peças (aparece em Fotos como \"fotos das peças\").",
+    "Venda e custo vazios numa opção de conjunto = soma das peças (o valor aparece em cinza). Digitar um valor fixa o preço daquela opção.",
+    "Conjunto não aparece mais como \"sem preço\" ou \"sem custo\" em Falta resolver.",
     "Conjuntos montados com as peças: a ficha só diz as peças (\"conjunto\": {\"pecas\": [...]}) e o site monta cada opção com as variações delas, com preço e custo somados, estoque da peça que acaba primeiro e as fotos das peças.",
-    "Cor nova de banqueta, cadeira ou mesa? Cadastre a peça e clique Atualizar no site no conjunto: a opção nova entra sozinha. Peça desativada desliga a opção.",
-    "O robô sobe as peças antes dos conjuntos.",
-    "Fichas ligadas: \"fotos_de\" deixa a ficha de um tamanho usar as fotos da ficha do outro tamanho, sem copiar.",
-    "Correção: atualizar só com variações novas agora coloca elas no mesmo produto (antes podia criar um produto separado)."
+    "Cor nova de banqueta, cadeira ou mesa? Cadastre a peça e clique Atualizar no site no conjunto: a opção nova entra sozinha. Peça desativada desliga a opção."
   ]
 }
