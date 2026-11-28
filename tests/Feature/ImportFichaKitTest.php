@@ -197,4 +197,83 @@ class ImportFichaKitTest extends TestCase
         ]], true);
         $this->assertSame('ativo', $this->p('BQQ75-BR')->status);
     }
+
+    public function test_conjunto_monta_opcoes_com_as_pecas_e_segue_novas_variacoes(): void
+    {
+        $this->pecas();
+        // fotos das peças
+        foreach (['MBR-PT', 'MBR-BR', 'BQQ54-PT', 'BQQ54-BR'] as $c) {
+            Storage::disk('public')->put('products/' . $c . '.jpg', 'x');
+            $this->p($c)->forceFill(['image' => $c . '.jpg'])->saveQuietly();
+        }
+        $ficha = ['nome' => 'Conjunto bistrô', 'codigo' => 'CBR', 'conjunto' => [
+            'pecas' => [['codigo' => 'MBR', 'quantidade' => 1], ['codigo' => 'BQQ', 'quantidade' => 2, 'so' => ['54 cm'], 'rotulo' => 'banquetas']],
+            'desconto' => 10,
+        ], 'variacoes' => [
+            ['valor' => 'Preto completo', 'codigo' => 'CBR-PT', 'venda' => 650, 'componentes' => [['codigo' => 'MBR-PT', 'quantidade' => 1], ['codigo' => 'BQQ54-PT', 'quantidade' => 2]]],
+        ]];
+        [$plan] = $this->importa($ficha);
+        $this->assertSame([], $plan['errors']);
+        $this->assertCount(2, $plan['rows']); // mesma cor: preto+preto e branco+branco
+
+        $pt = $this->p('CBR-PT');
+        $this->assertSame('kit', $pt->tipo);
+        $this->assertEquals(650, $pt->price_sale); // preço escrito na ficha fica
+        $this->assertEquals(180, $pt->price);      // custo = 100 + 2×40
+        $this->assertSame(2, $pt->stock_quantity);  // min(3, 5/2)
+
+        $br = $this->p('CBR-BR');
+        $this->assertEquals(round((320 + 2 * 179) * 0.9, 2), (float) $br->price_sale);
+        $this->assertSame(1, $br->stock_quantity);
+        $this->assertStringStartsWith('kit-', $br->image); // foto copiada da mesa branca
+        $this->assertTrue(Storage::disk('public')->exists('products/' . $br->image));
+        $this->assertSame(1, ProductImage::where('product_id', $br->id)->where('source', 'kit')->count()); // + banqueta
+        $this->assertStringContainsString('banquetas', $br->variation_value);
+
+        // nova cor de banqueta 54 e mesa: atualizar o conjunto cria a opção nova sozinho
+        $this->importa(['nome' => 'Banqueta', 'codigo' => 'BQQ', 'variacao_por' => 'Tamanho e cor', 'variacoes' => [
+            ['valor' => '75 cm · Preto', 'codigo' => 'BQQ75-PT', 'custo' => 50, 'venda' => 199, 'estoque' => 4],
+            ['valor' => '54 cm · Vermelho', 'codigo' => 'BQQ54-VM', 'custo' => 40, 'venda' => 179, 'estoque' => 2],
+        ]], true);
+        $this->importa(['nome' => 'Mesinha bistrô', 'codigo' => 'MBR', 'variacao_por' => 'Cor', 'variacoes' => [
+            ['valor' => 'Preto', 'codigo' => 'MBR-PT', 'custo' => 100, 'venda' => 320, 'estoque' => 3],
+            ['valor' => 'Vermelho', 'codigo' => 'MBR-VM', 'custo' => 100, 'venda' => 320, 'estoque' => 1],
+        ]], true);
+        [$plan2] = $this->importa($ficha, true);
+        $this->assertSame([], $plan2['errors']);
+        $this->assertSame(1, Product::where('product_code', 'CBR-VM')->count());
+
+        // banqueta branca saiu: a opção branca fica inativa
+        $this->p('BQQ54-BR')->update(['status' => 'inativo']);
+        [$plan3] = $this->importa($ficha, true);
+        $this->assertContains('CBR-BR', $plan3['product']['remove']);
+        $this->assertSame('inativo', $this->p('CBR-BR')->status);
+    }
+
+    public function test_conjunto_com_peca_que_nao_existe_avisa(): void
+    {
+        [$plan] = $this->importa(['nome' => 'Conjunto', 'codigo' => 'CXX', 'conjunto' => ['pecas' => [['codigo' => 'NAOTEM']]]]);
+        $this->assertNotEmpty(array_filter($plan['errors'], fn ($e) => str_contains($e, 'NAOTEM')));
+    }
+
+    public function test_conjunto_igual_junta_mesmo_acabamento_e_cor_feminina(): void
+    {
+        $this->assertSame('preto', \App\Services\Products\KitBuilder::colorKey('Preta com estofado preto'));
+        $this->importa(['nome' => 'Namoradeira', 'codigo' => 'NTU', 'variacao_por' => 'Cor', 'variacoes' => [
+            ['valor' => 'Preto com camurça', 'codigo' => 'NTU-PT', 'venda' => 890, 'estoque' => 1],
+            ['valor' => 'Preto com estofado', 'codigo' => 'NTU-EP', 'venda' => 920],
+            ['valor' => 'Cor à escolha', 'codigo' => 'NTU-CE', 'venda' => 890],
+        ]]);
+        $this->importa(['nome' => 'Poltrona', 'codigo' => 'PTU', 'variacao_por' => 'Cor', 'variacoes' => [
+            ['valor' => 'Preto com camurça', 'codigo' => 'PTU-PT', 'venda' => 459, 'estoque' => 2],
+            ['valor' => 'Preto com estofado', 'codigo' => 'PTU-EP', 'venda' => 489],
+            ['valor' => 'Cor à escolha', 'codigo' => 'PTU-CE', 'venda' => 459],
+        ]]);
+        [$plan] = $this->importa(['nome' => 'Conjunto', 'codigo' => 'CNT', 'conjunto' => ['combinar' => 'igual', 'pecas' => [
+            ['codigo' => 'NTU', 'excluir' => ['cor à escolha']], ['codigo' => 'PTU', 'quantidade' => 2, 'excluir' => ['cor à escolha']],
+        ]]]);
+        $this->assertSame([], $plan['errors']);
+        $this->assertSame(['CNT-PT', 'CNT-EP'], array_column($plan['rows'], 'code'));
+        $this->assertEquals(890 + 2 * 459, $this->p('CNT-PT')->price_sale);
+    }
 }

@@ -77,6 +77,17 @@ class ProductFichaImporter
                 'medidas_peca_cm' => $f['medidas_peca_cm'] ?? null, 'fotos' => $f['fotos'] ?? [],
             ]];
         }
+        // Conjunto montado com as peças do site: as opções saem das variações das peças
+        $autoRemove = [];
+        $kitDiscount = 0.0;
+        if (is_array($f['conjunto'] ?? null) && !empty($f['conjunto']['pecas'])) {
+            $kitDiscount = max(0, min(90, $this->num($f['conjunto']['desconto'] ?? 0)));
+            $written = array_values(array_filter((array) ($f['variacoes'] ?? []), 'is_array'));
+            $vars = $this->expandConjunto($userId, $f, $written, $errors, $warnings, $autoRemove);
+            if ($vars && $this->text($f['variacao_por'] ?? '', 60) === '') {
+                $f['variacao_por'] = 'Conjunto';
+            }
+        }
         if (count($vars) > 40) {
             $errors[] = 'A ficha tem ' . count($vars) . ' variações; o máximo é 40.';
             $vars = array_slice($vars, 0, 40);
@@ -107,7 +118,7 @@ class ProductFichaImporter
 
         $baseCode = $this->text($f['codigo'] ?? '', 90);
         $existing = Product::withoutGlobalScope('team_visibility')->where('user_id', $userId)
-            ->whereNotNull('product_code')->get(['id', 'product_code', 'name', 'parent_id', 'price', 'price_sale', 'stock_quantity', 'tipo', 'made_to_order'])
+            ->whereNotNull('product_code')->get(['id', 'product_code', 'name', 'parent_id', 'price', 'price_sale', 'stock_quantity', 'tipo', 'made_to_order', 'image', 'variation_value'])
             ->keyBy(fn ($p) => mb_strtolower(trim($p->product_code)));
 
         $photoIndex = [];
@@ -181,6 +192,8 @@ class ProductFichaImporter
                 'note' => '',
                 'existing_id' => null,
                 'components' => [],
+                // Opção do conjunto sem foto própria na ficha: usa as fotos das peças
+                'kit_photos' => false,
             ];
 
             // Conjunto (kit): cada opção liga às variações de verdade das peças
@@ -206,6 +219,8 @@ class ProductFichaImporter
                     'id' => $part->id, 'code' => $part->product_code, 'name' => $part->name, 'qty' => $qty,
                     'cost' => (float) $part->price, 'sale' => (float) $part->price_sale,
                     'stock' => (int) $part->stock_quantity, 'made' => (bool) $part->made_to_order,
+                    'image' => $part->image && $part->image !== 'product-placeholder.png' ? $part->image : null,
+                    'value' => (string) ($part->variation_value ?? ''),
                 ];
             }
             if ($row['components']) {
@@ -213,6 +228,12 @@ class ProductFichaImporter
                     // Sem custo na ficha: soma o custo das peças
                     $row['price'] = round(collect($row['components'])->sum(fn ($c) => $c['cost'] * $c['qty']), 2);
                 }
+                if ($row['price_sale'] <= 0) {
+                    // Sem preço na ficha: soma o preço das peças (menos o desconto do conjunto)
+                    $sum = collect($row['components'])->sum(fn ($c) => $c['sale'] * $c['qty']);
+                    $row['price_sale'] = round($sum * (1 - $kitDiscount / 100), 2);
+                }
+                $row['kit_photos'] = !array_filter((array) ($v['fotos'] ?? []));
                 $row['stock'] = (int) collect($row['components'])->map(fn ($c) => intdiv(max(0, $c['stock']), $c['qty']))->min();
                 // Peça sob encomenda no conjunto: o conjunto também pode ser pedido (se as outras peças têm estoque ou também são feitas)
                 $cs = collect($row['components']);
@@ -247,7 +268,7 @@ class ProductFichaImporter
             $usedPhotos = array_fill_keys($sorted, true);
         }
 
-        $removeCodes = collect((array) ($f['remover_codigos'] ?? []))
+        $removeCodes = collect(array_merge((array) ($f['remover_codigos'] ?? []), $autoRemove))
             ->map(fn ($c) => $this->text($c, 100))->filter()
             ->reject(fn ($c) => isset($seen[mb_strtolower($c)]))
             ->filter(fn ($c) => $existing->has(mb_strtolower($c)))
@@ -268,7 +289,7 @@ class ProductFichaImporter
         if (collect($rows)->contains(fn ($r) => $r['status'] === 'update')) {
             $warnings[] = 'Os cadastrados são atualizados (preços, textos, medidas e as fotos enviadas). O estoque deles não muda.';
         }
-        if (!collect($rows)->contains(fn ($r) => $r['photos'])) {
+        if (!collect($rows)->contains(fn ($r) => $r['photos']) && !collect($rows)->contains(fn ($r) => !empty($r['kit_photos']))) {
             $warnings[] = 'Nenhuma foto da ficha foi enviada: o produto entra sem foto.';
         }
 
@@ -391,7 +412,7 @@ class ProductFichaImporter
                 if ($r['status'] !== 'ok') {
                     continue;
                 }
-                $photos = $r['photos'] ?: $fallbackPhotos;
+                $photos = $r['photos'] ?: (!empty($r['kit_photos']) ? [] : $fallbackPhotos);
                 $main = $photos ? $store($photos[0]) : null;
 
                 $specs = $p['specs'];
@@ -432,6 +453,9 @@ class ProductFichaImporter
                 $product = Product::create($data);
                 if ($r['components']) {
                     $this->syncComponents($product, $r['components']);
+                    if (!empty($r['kit_photos'])) {
+                        KitBuilder::copyImages($product);
+                    }
                 }
 
                 if ($isNewParent) {
@@ -539,9 +563,186 @@ class ProductFichaImporter
         $product->save();
         if ($r['components']) {
             $this->syncComponents($product, $r['components']);
+            if (!empty($r['kit_photos'])) {
+                // sem foto própria na ficha: as fotos são as das peças desta opção
+                KitBuilder::copyImages($product, true);
+            }
         }
 
         return ['id' => $product->id, 'name' => $product->name, 'code' => $product->product_code, 'action' => 'atualizado'];
+    }
+
+    /**
+     * Ficha com "conjunto": {"pecas": [{"codigo": "MBR", "quantidade": 1, "so": [...], "excluir": [...], "rotulo": "mesa"},
+     * {"codigo": "BQT54", "quantidade": 2, "rotulo": "banquetas"}], "combinar": "cor" | "todas", "desconto": 0}.
+     * Cada combinação das variações ativas das peças vira uma opção do conjunto. As variações
+     * escritas na ficha com as mesmas peças mantêm o nome, o código, o preço e as fotos delas.
+     * Opções que já estão no site e não saem mais (peça desativada) ficam inativas.
+     *
+     * @return array<int, array> variações para a ficha
+     */
+    private function expandConjunto(int $userId, array $f, array $written, array &$errors, array &$warnings, array &$autoRemove): array
+    {
+        $conj = (array) $f['conjunto'];
+        $mode = Str::lower(Str::ascii((string) ($conj['combinar'] ?? 'cor')));
+        $mode = in_array($mode, ['todas', 'igual'], true) ? $mode : 'cor';
+        $base = $this->text($f['codigo'] ?? '', 40);
+        $lists = [];
+        $pieces = [];
+        foreach ((array) $conj['pecas'] as $pc) {
+            if (is_string($pc)) {
+                $pc = ['codigo' => $pc];
+            }
+            if (!is_array($pc) || $this->text($pc['codigo'] ?? '', 100) === '') {
+                continue;
+            }
+            $code = $this->text($pc['codigo'], 100);
+            $root = KitBuilder::family($userId, $code);
+            if (!$root) {
+                $errors[] = 'Peça do conjunto não está no site: ' . $code . '. Cadastre antes a ficha dela.';
+                continue;
+            }
+            $only = array_map(fn ($x) => Str::lower(Str::ascii(trim((string) $x))), (array) ($pc['so'] ?? []));
+            $skip = array_map(fn ($x) => Str::lower(Str::ascii(trim((string) $x))), (array) ($pc['excluir'] ?? []));
+            $hit = function ($m, array $terms) {
+                $c = Str::lower((string) $m->product_code);
+                $v = Str::lower(Str::ascii((string) $m->variation_value));
+                foreach ($terms as $t) {
+                    if ($t !== '' && ($c === $t || str_contains($v, $t))) {
+                        return true;
+                    }
+                }
+
+                return false;
+            };
+            $members = KitBuilder::members($root)
+                ->filter(fn ($m) => (!$only || $hit($m, $only)) && !($skip && $hit($m, $skip)))
+                ->values();
+            if ($members->isEmpty()) {
+                $errors[] = 'Peça ' . $code . ': nenhuma variação ativa (confira "so" e "excluir").';
+                continue;
+            }
+            $qty = max(1, (int) round($this->num($pc['quantidade'] ?? 1)));
+            $label = $this->text($pc['rotulo'] ?? '', 40);
+            if ($label === '') {
+                $label = Str::lower(KitBuilder::shortLabel((string) $root->name));
+                $label = $qty > 1 ? $label . 's' : $label;
+            }
+            $pieces[] = ['qty' => $qty, 'label' => $label];
+            $pi = count($pieces) - 1;
+            $lists[] = $members->map(fn ($m) => [
+                'piece' => $pi, 'id' => $m->id, 'code' => (string) $m->product_code,
+                'value' => (string) ($m->variation_value ?: ''), 'color' => KitBuilder::colorKey((string) $m->variation_value),
+            ])->all();
+        }
+        if (!$lists || count($lists) !== count((array) $conj['pecas'])) {
+            return $written;
+        }
+
+        // Variações escritas na ficha (com "componentes"), pelas peças
+        $byCode = Product::withoutGlobalScope('team_visibility')->where('user_id', $userId)->whereNotNull('product_code')
+            ->pluck('id', 'product_code')->mapWithKeys(fn ($id, $c) => [mb_strtolower(trim($c)) => $id]);
+        $sigOf = function (array $comps) use ($byCode) {
+            $parts = [];
+            foreach ($comps as $c) {
+                $c = is_string($c) ? ['codigo' => $c] : (array) $c;
+                $id = $byCode[mb_strtolower(trim((string) ($c['codigo'] ?? '')))] ?? null;
+                if (!$id) {
+                    return null;
+                }
+                $parts[] = [$id, max(1, (int) round($this->num($c['quantidade'] ?? 1)))];
+            }
+
+            return $parts ? KitBuilder::signature($parts) : null;
+        };
+        $override = [];
+        $others = [];
+        foreach ($written as $v) {
+            $sig = !empty($v['componentes']) ? $sigOf((array) $v['componentes']) : null;
+            if ($sig) {
+                $override[$sig] = $v;
+            } elseif (!empty($v['componentes']) || !empty($v['codigo'])) {
+                $others[] = $v; // kit de outras peças ou peça avulsa da ficha
+            }
+        }
+
+        // Opções que já estão no site (mesma família do conjunto)
+        $siteKits = [];
+        if ($base !== '') {
+            $kits = Product::withoutGlobalScope('team_visibility')->where('user_id', $userId)->where('tipo', 'kit')
+                ->where(fn ($q) => $q->where('product_code', $base)->orWhere('product_code', 'like', $base . '-%'))
+                ->with('componentes')->get();
+            foreach ($kits as $k) {
+                $sig = KitBuilder::signature($k->componentes->map(fn ($pc) => [(int) $pc->componente_produto_id, (int) $pc->quantidade])->all());
+                $siteKits[$sig] = $k;
+            }
+        }
+
+        $combos = KitBuilder::combos($lists, $mode);
+        $out = [];
+        $taken = [];
+        foreach ($written as $v) {
+            if (!empty($v['codigo'])) {
+                $taken[mb_strtolower((string) $v['codigo'])] = true;
+            }
+        }
+        foreach ($siteKits as $k) {
+            $taken[mb_strtolower((string) $k->product_code)] = true;
+        }
+        $seenSigs = [];
+        foreach ($combos as $c) {
+            $parts = array_map(fn ($x) => [$x['id'], $pieces[$x['piece']]['qty']], $c);
+            $sig = KitBuilder::signature($parts);
+            $seenSigs[$sig] = true;
+            $ov = $override[$sig] ?? null;
+            if ($ov && ($ov['ativa'] ?? true) === false) {
+                continue;
+            }
+            $site = $siteKits[$sig] ?? null;
+            $value = implode(' · ', array_map(function ($x) use ($pieces) {
+                $p = $pieces[$x['piece']];
+                if ($x['piece'] === 0) {
+                    return $x['value'] !== '' ? $x['value'] : Str::ucfirst($p['label']);
+                }
+
+                return trim(($p['qty'] > 1 ? $p['qty'] . ' ' : '') . $p['label'] . ' ' . $x['value']);
+            }, $c));
+            $code = (string) ($ov['codigo'] ?? '') ?: ($site->product_code ?? '');
+            if ($code === '') {
+                $code = KitBuilder::optionCode($base, array_column($c, 'code'), $taken);
+                $taken[mb_strtolower($code)] = true;
+            }
+            $row = $ov ?? [];
+            $row['valor'] = (string) ($ov['valor'] ?? '') ?: ($site && $site->variation_value ? $site->variation_value : mb_substr($value, 0, 120));
+            $row['codigo'] = $code;
+            $row['componentes'] = array_map(fn ($x) => ['codigo' => $x['code'], 'quantidade' => $pieces[$x['piece']]['qty']], $c);
+            $row['fotos'] = (array) ($ov['fotos'] ?? []);
+            if (!isset($row['venda']) || $this->num($row['venda']) <= 0) {
+                $row['venda'] = $this->num($conj['preco'] ?? 0) > 0 ? $this->num($conj['preco']) : null;
+            }
+            $out[] = $row;
+        }
+        // a opção com fotos próprias vai na frente (vira a principal)
+        usort($out, fn ($a, $b) => (int) empty($a['fotos']) <=> (int) empty($b['fotos']));
+        foreach ($others as $v) {
+            $out[] = $v;
+        }
+        foreach ($siteKits as $sig => $k) {
+            if (!isset($seenSigs[$sig]) && ($k->status ?? 'ativo') !== 'inativo'
+                && !collect($others)->contains(fn ($v) => mb_strtolower((string) ($v['codigo'] ?? '')) === mb_strtolower((string) $k->product_code))) {
+                $autoRemove[] = (string) $k->product_code;
+            }
+        }
+        if (count($out) > KitBuilder::MAX_OPTIONS) {
+            $errors[] = 'O conjunto deu ' . count($out) . ' opções; o máximo é ' . KitBuilder::MAX_OPTIONS
+                . '. Use "so" ou "excluir" nas peças para tirar cores.';
+        }
+        $warnings[] = 'Conjunto montado com as peças do site: ' . count($out) . ' opções'
+            . ($mode === 'cor' ? ' (mesma cor de ferragem)' : ($mode === 'igual' ? ' (mesmo acabamento)' : '')) . '. Preço = soma das peças'
+            . (($d = $this->num($conj['desconto'] ?? 0)) > 0 ? ' menos ' . $this->fmt($d) . '%' : '')
+            . ', custo = soma dos custos, fotos = fotos das peças.';
+
+        return $out;
     }
 
     /** Peças do kit iguais às da ficha; o estoque do kit passa a ser o da peça que acaba primeiro. */

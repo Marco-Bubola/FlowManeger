@@ -143,10 +143,18 @@
         <div class="if-list">
             @foreach($plan['rows'] as $k => $r)
                 <div class="if-item is-{{ $r['status'] }}" wire:key="row-{{ $k }}">
+                    @if(!empty($r['kit_photos']) && collect($r['components'])->pluck('image')->filter()->isNotEmpty())
+                    <span class="if-pic if-pic-kit" title="Fotos das peças">
+                        @foreach(collect($r['components'])->pluck('image')->filter()->take(2) as $img)
+                            <img src="{{ asset('storage/products/' . $img) }}" alt="" loading="lazy">
+                        @endforeach
+                    </span>
+                    @else
                     <span class="if-pic">
                         @php $first = $r['photos'][0] ?? null; $obj = $first ? collect($photos)->first(fn ($p) => $p->getClientOriginalName() === $first) : null; @endphp
                         @if($obj)@php try { $u = $obj->temporaryUrl(); } catch (\Throwable) { $u = null; } @endphp @if($u)<img src="{{ $u }}" alt="">@endif @else<i class="bi bi-image"></i>@endif
                     </span>
+                    @endif
                     <div class="min-w-0 flex-1">
                         <p class="if-name">{{ $r['name'] }}</p>
                         <p class="if-meta">
@@ -157,8 +165,19 @@
                             @if($r['weight_grams'])<span><i class="bi bi-box-seam"></i>{{ rtrim(rtrim(number_format($r['weight_grams'] / 1000, 2, ',', ''), '0'), ',') }} kg</span>@endif
                             @if($r['length_cm'])<span>{{ (float) $r['length_cm'] }}×{{ (float) $r['width_cm'] }}×{{ (float) $r['height_cm'] }} cm</span>@endif
                             @if($mixMade)<span><i class="bi bi-hammer"></i>{{ !empty($r['made_to_order']) ? 'Sob encomenda' . (!empty($r['production_days']) ? ' · ' . $r['production_days'] . ' dias' : '') : 'Pronta entrega' }}</span>@endif
-                            <span><i class="bi bi-images"></i>{{ count($r['photos']) }}</span>
+                            @if(!empty($r['kit_photos']) && $r['components'])
+                                <span><i class="bi bi-images"></i>fotos das peças</span>
+                            @else
+                                <span><i class="bi bi-images"></i>{{ count($r['photos']) }}</span>
+                            @endif
                         </p>
+                        @if($r['components'])
+                        <p class="if-parts">
+                            @foreach($r['components'] as $c)
+                                <span class="if-part"><b>{{ $c['qty'] }}×</b> {{ $c['code'] }}<small>R$ {{ number_format($c['sale'], 2, ',', '.') }}</small></span>
+                            @endforeach
+                        </p>
+                        @endif
                     </div>
                     @if($r['note'] !== '')<span class="if-note">{{ $r['note'] }}</span>@endif
                 </div>
@@ -195,6 +214,13 @@
     @endif
 
     <style>
+        .import-ficha-page .if-pic-kit { position: relative; overflow: hidden; }
+        .import-ficha-page .if-pic-kit img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .import-ficha-page .if-pic-kit img:nth-child(2) { clip-path: polygon(100% 0, 100% 100%, 0 100%); border-left: 2px solid #fff; }
+        .import-ficha-page .if-parts { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .35rem; }
+        .import-ficha-page .if-part { display: inline-flex; align-items: center; gap: .3rem; padding: .15rem .5rem; border-radius: 999px; font-size: .72rem; background: rgba(168,85,247,.1); color: #7e22ce; }
+        .import-ficha-page .if-part small { opacity: .7; }
+        .dark .import-ficha-page .if-part { background: rgba(168,85,247,.18); color: #d8b4fe; }
         .import-ficha-page .if-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); }
         @media (min-width: 900px) { .import-ficha-page .if-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
         .import-ficha-page .if-drop { display: flex; align-items: center; justify-content: center; text-align: center; min-height: 8rem; padding: 1rem; border-radius: 1.1rem; border: 2px dashed rgba(99,102,241,.4); background: rgba(99,102,241,.05); cursor: pointer; transition: background .15s, border-color .15s; }

@@ -5,6 +5,7 @@ namespace App\Livewire\Products;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProdutoComponente;
+use App\Services\Products\KitBuilder;
 use App\Services\Products\VariationService;
 use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
@@ -412,6 +413,7 @@ class FurnitureKit extends Component
                     'made_to_order' => $made,
                     'production_days' => $made ? $days : null,
                 ];
+                $created = !$p;
                 if ($p) {
                     $p->fill($data);
                     if ($image && $root && $p->id === $root->id) {
@@ -419,12 +421,11 @@ class FurnitureKit extends Component
                     }
                     $p->save();
                 } else {
-                    $comp = Product::find($o['parts'][0]['id'] ?? 0);
                     $p = Product::create($data + [
                         'user_id' => $uid,
                         'product_code' => $o['code'],
                         'stock_quantity' => 0,
-                        'image' => ($root === null ? $image : null) ?: ($comp->image ?? null) ?: 'product-placeholder.png',
+                        'image' => ($root === null ? $image : null) ?: 'product-placeholder.png',
                         'custos_adicionais' => 0,
                     ]);
                 }
@@ -442,6 +443,11 @@ class FurnitureKit extends Component
                     }
                 }
                 $p->refreshKitStock();
+                // Fotos da opção = fotos das peças (cópia), menos na principal quando veio foto própria
+                $ownPhoto = $image && $root && $p->id === $root->id;
+                if (!$ownPhoto && ($created || !$p->image || $p->image === 'product-placeholder.png' || str_starts_with((string) $p->image, 'kit-'))) {
+                    KitBuilder::copyImages($p);
+                }
 
                 if ($root === null) {
                     $root = $p;
@@ -505,31 +511,14 @@ class FurnitureKit extends Component
         return $try;
     }
 
-    /** Cor da ferragem: a primeira cor do nome da variação, sem o tamanho. "54 cm · Preto com corano Vermelho" → "preto". */
     public static function colorKey(string $value): string
     {
-        foreach (preg_split('/\s*[·|\/,+]\s*|\s-\s/u', $value) as $part) {
-            $part = Str::lower(Str::ascii(trim($part)));
-            $part = trim(preg_replace('/\b\d+([.,]\d+)?\s*(cm|m|mm)\b/', ' ', $part));
-            if ($part === '' || preg_match('/^(com|sem)\s+tampo\b/', $part) && !preg_match('/^(com|sem)\s+tampo\s+\S/', $part)
-                || str_starts_with($part, 'tampo') || str_starts_with($part, 'kit') || str_starts_with($part, 'assento a')) {
-                continue;
-            }
-            $part = preg_replace('/^(ferragem|estrutura|cor|base)\s+/', '', $part);
-            if (preg_match('/^(rose\s*gold|ouro velho|ouro envelhecido|[a-z]+)/', $part, $m)) {
-                return str_replace(' ', '', $m[1]);
-            }
-        }
-
-        return '';
+        return KitBuilder::colorKey($value);
     }
 
-    /** "Banqueta de ferro 54 cm com assento" → "Banqueta"; "Mesinha Bistrô Redonda" → "Mesinha". */
     public static function shortLabel(string $name): string
     {
-        $first = trim(Str::before(trim($name), ' '));
-
-        return $first !== '' ? Str::ucfirst($first) : 'Peça';
+        return KitBuilder::shortLabel($name);
     }
 
     private function defaultCategory(int $uid): int
