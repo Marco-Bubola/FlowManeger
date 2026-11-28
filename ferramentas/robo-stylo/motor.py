@@ -216,7 +216,14 @@ def ler_ficha(pasta):
         f.erros.append('Falta o "nome" do produto.')
 
     variacoes = f.variacoes
-    if not variacoes:
+    conjunto = e_conjunto(d)
+    if conjunto:
+        pecas = [p for p in (d["conjunto"].get("pecas") or []) if p]
+        nomes = ", ".join(f'{(p.get("quantidade") or 1) if isinstance(p, dict) else 1}× {p.get("codigo") if isinstance(p, dict) else p}' for p in pecas)
+        f.avisos.append(f"Conjunto montado no site com as peças: {nomes}. Preço, custo, estoque e fotos vêm das peças.")
+    if not variacoes and conjunto:
+        pass
+    elif not variacoes:
         # Ficha sem lista: os campos soltos viram um produto só
         if d.get("venda") is not None:
             variacoes = [{k: d.get(k) for k in ("codigo", "custo", "venda", "preco_tabela", "estoque", "embalagem", "medidas_peca_cm", "fotos")}]
@@ -240,9 +247,9 @@ def ler_ficha(pasta):
                      for i in d.get("ficha_de_custo") or [] if isinstance(i, dict))
     for i, v in enumerate(variacoes, 1):
         rotulo = str(v.get("valor") or "").strip() or (f"variação {i}" if multi else "produto")
-        if numero(v.get("venda")) <= 0:
+        if numero(v.get("venda")) <= 0 and not (conjunto or v.get("componentes")):
             f.erros.append(f"{rotulo}: falta o preço de venda.")
-        if v.get("custo") in (None, "") and soma_custo <= 0:
+        if v.get("custo") in (None, "") and soma_custo <= 0 and not (conjunto or v.get("componentes")):
             sem_custo.append(rotulo)
         if multi and not str(v.get("valor") or "").strip():
             f.erros.append(f"Variação {i}: falta o \"valor\" (ex.: 30 cm).")
@@ -271,16 +278,24 @@ def ler_ficha(pasta):
     # Fotos citadas x fotos da pasta (aceita o nome com ou sem extensão)
     na_pasta = {p.name.lower(): p for p in f.pasta.iterdir()
                 if p.is_file() and p.suffix.lower() in FOTO_EXTS | FOTO_CONVERTER}
+    na_pasta_ligada = {}
     por_stem = {}
     for p in na_pasta.values():
         por_stem.setdefault(p.stem.lower(), p)
+    # Fichas ligadas ("fotos_de": ["BQT"]): a ficha pode citar as fotos delas sem copiar
+    ligadas = pastas_ligadas(f.pasta, d.get("fotos_de"))
+    for outra in ligadas:
+        for p in outra.iterdir():
+            if p.is_file() and p.suffix.lower() in FOTO_EXTS | FOTO_CONVERTER:
+                por_stem.setdefault(p.stem.lower(), p)
+                na_pasta_ligada.setdefault(p.name.lower(), p)
     usadas = []
     for v in variacoes:
         for nome in v.get("fotos") or []:
             nome = str(nome).strip().replace("\\", "/").split("/")[-1]
             if not nome:
                 continue
-            p = na_pasta.get(nome.lower()) or por_stem.get(Path(nome).stem.lower())
+            p = na_pasta.get(nome.lower()) or na_pasta_ligada.get(nome.lower()) or por_stem.get(Path(nome).stem.lower())
             if p:
                 if p not in usadas:
                     usadas.append(p)
@@ -295,11 +310,19 @@ def ler_ficha(pasta):
             if p and p not in usadas:
                 so_desligadas.add(p)
     f.sobrando = sorted(p.name for p in na_pasta.values() if p not in usadas and p not in so_desligadas)
+    if ligadas:
+        de_fora = sum(1 for p in usadas if p.parent != f.pasta)
+        f.avisos.append(f"Ligada a {', '.join(x.name for x in ligadas)}: usa {de_fora} foto(s) de lá." if de_fora
+                        else f"Ligada a {', '.join(x.name for x in ligadas)} (pode citar as fotos de lá).")
+    elif d.get("fotos_de"):
+        f.avisos.append("Não achei a(s) ficha(s) de \"fotos_de\": " + ", ".join(str(x) for x in d.get("fotos_de") or []))
     if f.faltando:
         f.avisos.append("Fotos citadas na ficha que não estão na pasta: " + ", ".join(f.faltando))
     if not usadas:
         if f.sobrando:
             f.avisos.append("A ficha não cita as fotos: vão todas as da pasta, em ordem de nome.")
+        elif conjunto or any(v.get("componentes") for v in variacoes):
+            f.avisos.append("Sem fotos próprias: cada opção usa as fotos das peças.")
         else:
             f.avisos.append("Sem fotos: o produto entra sem foto.")
 
@@ -308,6 +331,42 @@ def ler_ficha(pasta):
 
 
 IGNORAR = ("feitos", "_modelo", "_lixeira")
+
+
+def e_conjunto(dados):
+    """Ficha de conjunto montado com as peças do site ("conjunto": {"pecas": [...]})."""
+    c = (dados or {}).get("conjunto")
+    return isinstance(c, dict) and bool(c.get("pecas"))
+
+
+def usa_pecas(dados):
+    """Conjunto ou kit: precisa das peças no site antes, então sobe por último."""
+    return e_conjunto(dados) or any(isinstance(v, dict) and v.get("componentes") for v in (dados or {}).get("variacoes") or [])
+
+
+def pastas_ligadas(pasta, codigos):
+    """Pastas das fichas citadas em "fotos_de" (pelo código no começo do nome: "BQT - Banqueta…"), em produtos ou feitos."""
+    if not codigos:
+        return []
+    if isinstance(codigos, str):
+        codigos = [codigos]
+    pasta = Path(pasta)
+    raiz = pasta.parent.parent if pasta.parent.name.lower() == "feitos" else pasta.parent
+    lugares = [raiz, raiz / "feitos"]
+    achadas = []
+    for cod in codigos:
+        cod = str(cod or "").strip().lower()
+        if not cod:
+            continue
+        for lugar in lugares:
+            if not lugar.is_dir():
+                continue
+            hit = next((p for p in sorted(lugar.iterdir()) if p.is_dir() and p != pasta and (
+                p.name.lower() == cod or p.name.lower().startswith(cod + " ") or p.name.lower().startswith(cod + "-"))), None)
+            if hit:
+                achadas.append(hit)
+                break
+    return achadas
 
 
 def listar_fichas(pasta_produtos, incluir_feitas=False):
@@ -2199,6 +2258,15 @@ def plano_envio(ficha, info):
     - removidos: códigos que saíram da ficha (o site desliga)
     - resumo: texto curto do que vai."""
     salvo = (info or {}).get("variacoes") if isinstance(info, dict) else None
+    if e_conjunto(ficha.dados):
+        # conjunto: o site remonta as opções com as peças de agora (cor nova de banqueta entra sozinha)
+        atual = assinaturas_variacoes(ficha) or {}
+        antigos = (salvo or {}).get("var") or {} if isinstance(salvo, dict) else {}
+        fotos = set()
+        for k, a in (atual.get("var") or {}).items():
+            if (antigos.get(k) or {}).get("fotos") != a.get("fotos"):
+                fotos.update(Path(str(n[0])).name for n in a.get("fotos") or [])
+        return None, sorted(fotos), [], "conjunto remontado com as peças do site" + (f", {len(fotos)} foto(s)" if fotos else ", sem subir fotos")
     if not isinstance(salvo, dict) or not salvo.get("var"):
         return None, None, [], "tudo (primeira atualização)"
     atual = assinaturas_variacoes(ficha)
@@ -2231,9 +2299,11 @@ def plano_envio(ficha, info):
         codigos = None  # nome, descrição... valem para todas
     else:
         codigos = [novos[k].get("codigo") for k in mudou if novos[k].get("codigo")]
-        if not codigos and removidos and novos:
-            # só retirou variações: vai uma das que ficaram, sem mudar nada, para o site achar o grupo
-            codigos = [next(iter(novos.values())).get("codigo")]
+        velhas = [novos[k].get("codigo") for k in novos if k in antigos and novos[k].get("codigo")]
+        if (codigos or removidos) and velhas and not any(c in velhas for c in codigos):
+            # só variações novas (ou só retiradas): vai junto uma que já está no site, sem mudar nada,
+            # para o site achar o grupo e pôr as novas nele
+            codigos = [velhas[0]] + codigos
     partes = []
     if geral_mudou:
         partes.append("dados do produto")
@@ -2283,6 +2353,8 @@ def rodar(fichas, cfg, avisar, parar, site=None, atualizar=False):
         nuvem = None
     try:
         site.entrar()
+        # peças primeiro, conjuntos e kits por último (o kit liga às peças que já estão no site)
+        fichas = sorted(fichas, key=lambda x: 1 if usa_pecas(x.dados) else 0)
         for ficha in fichas:
             if parar():
                 raise Parar()

@@ -1,6 +1,6 @@
 {
-  "versao": 42,
-  "data": "2026-11-27",
+  "versao": 43,
+  "data": "2026-11-28",
   "arquivos": [
     "janela.pyw",
     "motor.py",
@@ -14,9 +14,10 @@
     "instalar.bat"
   ],
   "novidades": [
-    "Atualizar no site agora sobe só o que mudou na ficha: as variações alteradas ou novas e só as fotos que mudaram. Se nada mudou, ele avisa e não sobe.",
-    "Variação tirada da ficha (ou desligada) fica inativa no site, sem apagar vendas nem histórico.",
-    "Conjuntos como kit: cada opção do conjunto pode ter \"componentes\" (as variações das peças, ex.: mesinha + 2 banquetas). O site liga o kit às peças: vender o conjunto baixa o estoque delas.",
-    "Fichas separadas por tamanho (\"separar_do_grupo\"): o site move as variações para o produto novo sem perder estoque nem vendas."
+    "Conjuntos montados com as peças: a ficha só diz as peças (\"conjunto\": {\"pecas\": [...]}) e o site monta cada opção com as variações delas, com preço e custo somados, estoque da peça que acaba primeiro e as fotos das peças.",
+    "Cor nova de banqueta, cadeira ou mesa? Cadastre a peça e clique Atualizar no site no conjunto: a opção nova entra sozinha. Peça desativada desliga a opção.",
+    "O robô sobe as peças antes dos conjuntos.",
+    "Fichas ligadas: \"fotos_de\" deixa a ficha de um tamanho usar as fotos da ficha do outro tamanho, sem copiar.",
+    "Correção: atualizar só com variações novas agora coloca elas no mesmo produto (antes podia criar um produto separado)."
   ]
 }

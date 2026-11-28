@@ -222,6 +222,26 @@ LOTE, KITS E ETIQUETAS
 - "Etiquetas": PDF A4 com 24 etiquetas (Pimaco A4356), com nome, medida,
   código de barras e preço. Fica na pasta relatorios.
 
+CONJUNTOS (mesa + banquetas, mesa + cadeiras)
+- A ficha do conjunto não precisa listar as opções. Basta dizer as peças:
+    "conjunto": {"pecas": [{"codigo": "MBR", "quantidade": 1, "so": ["com tampo"]},
+                           {"codigo": "BQT54", "quantidade": 2, "rotulo": "banquetas"}],
+                 "combinar": "cor", "desconto": 0}
+  O site monta uma opção para cada combinação das variações das peças
+  ("cor" = só junta peças da mesma cor de ferragem; "todas" = todas).
+  Preço = soma das peças (menos o desconto em %), custo = soma dos custos,
+  estoque = o da peça que acaba primeiro, fotos = fotos das peças.
+- "so" e "excluir": escolhem as variações da peça (pelo código ou parte do nome).
+- Para mudar uma opção (nome, preço fixo, fotos próprias), escreva ela em
+  "variacoes" com os mesmos "componentes".
+- Criou uma cor nova de banqueta? Cadastre a banqueta e clique "Atualizar no
+  site" no conjunto: a opção nova aparece sozinha. Peça desativada tira a opção.
+- O robô sempre sobe as peças antes dos conjuntos.
+
+FICHAS LIGADAS (mesmo produto em tamanhos diferentes)
+- "fotos_de": ["BQT"] na ficha da BQT54 deixa citar as fotos da pasta BQT sem
+  copiar. Vale o código do começo do nome da pasta (em produtos ou feitos).
+
 CADASTRADAS
 - O que já subiu para o site, com o link de cada produto e "Nova a partir desta".
 
